@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/network/api_error.dart';
+import '../../../core/widgets/error_state_view.dart';
 import '../domain/order_repository.dart';
 import 'orders_controller.dart';
 import 'report_issue_screen.dart';
@@ -25,25 +27,25 @@ class OrderDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final orderAsync = ref.watch(orderDetailProvider(orderId));
 
     return Scaffold(
       body: SafeArea(
         child: orderAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const AppBackButton(),
-                  const SizedBox(height: AppSpacing.md),
-                  Text('Impossible de charger cette commande.', style: theme.textTheme.bodyMedium),
-                ],
+          error: (e, _) => Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Row(children: const [AppBackButton()]),
               ),
-            ),
+              Expanded(
+                child: ErrorStateView(
+                  message: apiErrorMessage(e),
+                  onRetry: () => ref.invalidate(orderDetailProvider(orderId)),
+                ),
+              ),
+            ],
           ),
           data: (order) => _OrderDetailBody(order: order, canonicalSteps: _canonicalSteps),
         ),

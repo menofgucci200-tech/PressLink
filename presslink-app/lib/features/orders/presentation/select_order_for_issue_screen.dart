@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/network/api_error.dart';
+import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/status_badge.dart';
 import 'orders_controller.dart';
 import 'report_issue_screen.dart';
@@ -40,7 +42,10 @@ class SelectOrderForIssueScreen extends ConsumerWidget {
               Expanded(
                 child: ordersAsync.when(
                   loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => Center(child: Text('Impossible de charger vos commandes.', style: theme.textTheme.bodyMedium)),
+                  error: (e, _) => ErrorStateView(
+                    message: apiErrorMessage(e),
+                    onRetry: () => ref.invalidate(ordersProvider),
+                  ),
                   data: (orders) {
                     if (orders.isEmpty) {
                       return Center(child: Text('Vous n\'avez aucune commande.', style: theme.textTheme.bodyMedium));

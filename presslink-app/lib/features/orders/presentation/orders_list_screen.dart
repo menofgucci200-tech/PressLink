@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/network/api_error.dart';
+import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/order_card.dart';
 import '../domain/order_repository.dart';
 import '../../../shared/models/order_summary.dart';
+import '../../pressings/presentation/join_pressing_screen.dart';
 import 'order_detail_screen.dart';
 import 'orders_controller.dart';
 
@@ -58,9 +61,35 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
               Expanded(
                 child: ordersAsync.when(
                   loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => Center(child: Text('Impossible de charger vos commandes.', style: theme.textTheme.bodyMedium)),
+                  error: (e, _) => ErrorStateView(
+                    message: apiErrorMessage(e),
+                    onRetry: () => ref.invalidate(ordersProvider),
+                  ),
                   data: (orders) {
                     final filtered = orders.where(_matches).toList();
+                    if (filtered.isEmpty && orders.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.receipt_long_outlined, size: 32, color: theme.textTheme.bodyMedium?.color),
+                              const SizedBox(height: AppSpacing.sm),
+                              const Text('Vous n\'avez encore aucune commande.'),
+                              const SizedBox(height: AppSpacing.sm + 4),
+                              OutlinedButton.icon(
+                                onPressed: () => Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (_) => const JoinPressingScreen()),
+                                ),
+                                icon: const Icon(Icons.add, size: 18),
+                                label: const Text('Rejoindre un pressing'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
                     if (filtered.isEmpty) {
                       return Center(
                         child: Text('Aucune commande ici.', style: theme.textTheme.bodyMedium),

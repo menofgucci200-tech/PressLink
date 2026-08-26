@@ -93,6 +93,10 @@ class AuthRepository {
     return Customer.fromJson(data['customer'] as Map<String, dynamic>);
   }
 
+  /// Un token n'est effacé que si le serveur l'a explicitement rejeté
+  /// (401/403). Toute autre erreur (pas de réseau, backend injoignable,
+  /// 5xx) laisse la session locale intacte : on ne veut jamais déconnecter
+  /// un client simplement parce qu'il est hors-ligne au démarrage de l'app.
   Future<bool> hasValidSession() async {
     final token = await _tokenStorage.readToken();
     if (token == null) return false;
@@ -100,9 +104,13 @@ class AuthRepository {
     try {
       await _apiClient.dio.get('/auth/customer/me');
       return true;
-    } on DioException {
-      await _tokenStorage.clearToken();
-      return false;
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      if (status == 401 || status == 403) {
+        await _tokenStorage.clearToken();
+        return false;
+      }
+      return true;
     }
   }
 

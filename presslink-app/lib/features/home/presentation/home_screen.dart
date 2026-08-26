@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/network/api_error.dart';
+import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/order_card.dart';
 import '../../../shared/models/order_summary.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -88,7 +90,10 @@ class HomeScreen extends ConsumerWidget {
                   padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
                   child: Center(child: CircularProgressIndicator()),
                 ),
-                error: (e, _) => Text('Impossible de charger vos commandes.', style: theme.textTheme.bodyMedium),
+                error: (e, _) => ErrorStateView(
+                  message: apiErrorMessage(e),
+                  onRetry: () => ref.invalidate(ordersProvider),
+                ),
                 data: (orders) {
                   if (orders.isEmpty) {
                     return Text('Aucune commande pour le moment.', style: theme.textTheme.bodyMedium);
@@ -122,7 +127,10 @@ class HomeScreen extends ConsumerWidget {
                   padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
                   child: Center(child: CircularProgressIndicator()),
                 ),
-                error: (e, _) => Text('Impossible de charger vos pressings.', style: theme.textTheme.bodyMedium),
+                error: (e, _) => ErrorStateView(
+                  message: apiErrorMessage(e),
+                  onRetry: () => ref.invalidate(myPressingsProvider),
+                ),
                 data: (pressings) => Column(
                   children: [
                     for (final pressing in pressings) ...[

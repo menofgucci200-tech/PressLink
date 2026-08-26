@@ -3,6 +3,7 @@
 namespace App\Actions\Orders;
 
 use App\Enums\OrderStatus;
+use App\Enums\PressingStatus;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Pressing;
@@ -14,7 +15,8 @@ use RuntimeException;
 /**
  * Création d'une commande — applique :
  * RB-03 (1 pressing + 1 client), RB-04 (≥ 1 article), RB-09 (quota
- * d'abonnement respecté avant toute création).
+ * d'abonnement respecté avant toute création), et le blocage d'un
+ * pressing suspendu par le Super Admin.
  */
 class CreateOrderAction
 {
@@ -30,6 +32,10 @@ class CreateOrderAction
     ): Order {
         if ($items === []) {
             throw new InvalidArgumentException('Une commande doit contenir au moins un article.');
+        }
+
+        if ($pressing->status !== PressingStatus::Active) {
+            throw new RuntimeException('Ce pressing est suspendu : impossible de créer une nouvelle commande.');
         }
 
         $subscription = $pressing->subscription;

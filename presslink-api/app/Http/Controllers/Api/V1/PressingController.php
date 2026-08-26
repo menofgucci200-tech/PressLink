@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\PressingStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Pressing;
 use Illuminate\Http\JsonResponse;
@@ -32,6 +33,12 @@ class PressingController extends Controller
             return response()->json([
                 'message' => 'Ce code ne correspond à aucun pressing.',
             ], 404);
+        }
+
+        if ($pressing->status !== PressingStatus::Active) {
+            return response()->json([
+                'message' => 'Ce pressing n\'accepte plus de nouveaux clients pour le moment.',
+            ], 403);
         }
 
         $request->user()->pressings()->syncWithoutDetaching([

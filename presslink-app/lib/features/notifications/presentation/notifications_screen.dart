@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_back_button.dart';
+import '../../../core/network/api_error.dart';
+import '../../../core/widgets/error_state_view.dart';
 import '../../orders/presentation/order_detail_screen.dart';
 import '../domain/notification_repository.dart';
 import 'notifications_controller.dart';
@@ -39,11 +41,12 @@ class NotificationsScreen extends ConsumerWidget {
             Expanded(
               child: notificationsAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: Text('Impossible de charger les notifications.', style: theme.textTheme.bodyMedium),
-                  ),
+                error: (error, _) => ErrorStateView(
+                  message: apiErrorMessage(error),
+                  onRetry: () {
+                    ref.invalidate(notificationsProvider);
+                    ref.invalidate(unreadNotificationsCountProvider);
+                  },
                 ),
                 data: (notifications) {
                   if (notifications.isEmpty) {

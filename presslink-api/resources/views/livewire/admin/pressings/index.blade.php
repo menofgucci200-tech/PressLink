@@ -10,10 +10,24 @@
         </a>
     </div>
 
-    <div class="relative max-w-sm mb-5">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-(--color-text-muted)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-        <input type="text" wire:model.live.debounce.400ms="search" placeholder="Nom, code ou ville…"
-               class="w-full h-10 pl-9 pr-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-white">
+    <div class="flex items-center gap-3 mb-5">
+        <div class="relative max-w-sm flex-1">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-(--color-text-muted)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            <input type="text" wire:model.live.debounce.400ms="search" placeholder="Nom, code ou ville…"
+                   class="w-full h-10 pl-9 pr-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-white">
+        </div>
+        <select wire:model.live="status" class="h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-white">
+            <option value="">Tous les statuts</option>
+            @foreach (\App\Enums\PressingStatus::cases() as $case)
+                <option value="{{ $case->value }}">{{ $case->label() }}</option>
+            @endforeach
+        </select>
+        <select wire:model.live="plan" class="h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-white">
+            <option value="">Tous les plans</option>
+            @foreach (\App\Enums\SubscriptionPlan::cases() as $case)
+                <option value="{{ $case->value }}">{{ $case->label() }}</option>
+            @endforeach
+        </select>
     </div>
 
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden">

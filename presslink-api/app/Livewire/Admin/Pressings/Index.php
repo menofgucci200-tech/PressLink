@@ -14,12 +14,26 @@ class Index extends Component
 
     public string $search = '';
 
+    public string $status = '';
+
+    public string $plan = '';
+
     public function mount(): void
     {
         abort_unless(auth()->user()->is_super_admin, 403);
     }
 
     public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPlan(): void
     {
         $this->resetPage();
     }
@@ -45,6 +59,14 @@ class Index extends Component
             $query->where(fn ($q) => $q->where('name', 'like', "%{$term}%")
                 ->orWhere('code', 'like', "%{$term}%")
                 ->orWhere('city', 'like', "%{$term}%"));
+        }
+
+        if ($this->status !== '') {
+            $query->where('status', $this->status);
+        }
+
+        if ($this->plan !== '') {
+            $query->whereHas('subscription', fn ($q) => $q->where('plan', $this->plan));
         }
 
         return view('livewire.admin.pressings.index', [

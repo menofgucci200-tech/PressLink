@@ -1,6 +1,8 @@
 <?php
 
+use App\Livewire\Admin\Clients\Index as AdminClientsIndex;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
+use App\Livewire\Admin\Orders\Index as AdminOrdersIndex;
 use App\Livewire\Admin\Pressings\Create as AdminPressingsCreate;
 use App\Livewire\Admin\Pressings\Index as AdminPressingsIndex;
 use App\Livewire\Admin\Pressings\Show as AdminPressingsShow;
@@ -63,6 +65,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/pressings', AdminPressingsIndex::class)->name('pressings.index');
         Route::get('/pressings/nouveau', AdminPressingsCreate::class)->name('pressings.create');
         Route::get('/pressings/{pressing}', AdminPressingsShow::class)->name('pressings.show');
+        Route::get('/commandes', AdminOrdersIndex::class)->name('orders.index');
+        Route::get('/clients', AdminClientsIndex::class)->name('clients.index');
     });
 
     Route::post('/logout', function () {

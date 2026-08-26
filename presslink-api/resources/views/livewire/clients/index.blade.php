@@ -54,7 +54,7 @@
                 </thead>
                 <tbody>
                     @foreach ($clients as $client)
-                        <tr class="border-t border-(--color-border) hover:bg-(--color-bg)">
+                        <tr class="border-t border-(--color-border) hover:bg-(--color-bg) cursor-pointer" onclick="window.location='{{ route('clients.show', $client) }}'">
                             <td class="px-5 py-3.5 font-medium">{{ $client->fullName() }}</td>
                             <td class="px-5 py-3.5 text-(--color-text-secondary) tabular-nums">{{ $client->phone }}</td>
                             <td class="px-5 py-3.5 text-right tabular-nums">{{ $client->orders_count }}</td>

@@ -29,20 +29,24 @@ class MyPressingsScreen extends ConsumerWidget {
                   AppBackButton(onPressed: () => Navigator.of(context).pop()),
                   const SizedBox(width: AppSpacing.sm + 2),
                   Text('Mes pressings', style: theme.textTheme.headlineSmall?.copyWith(fontSize: 18)),
-                  const Spacer(),
-                  IconButton(
-                    tooltip: 'Ajouter un pressing',
-                    onPressed: () async {
-                      final joined = await Navigator.of(context).push<bool>(
-                        MaterialPageRoute(builder: (_) => const JoinPressingScreen()),
-                      );
-                      if (joined == true) ref.invalidate(myPressingsProvider);
-                    },
-                    icon: const Icon(Icons.add_circle, color: AppColors.primary),
-                  ),
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    final joined = await Navigator.of(context).push<bool>(
+                      MaterialPageRoute(builder: (_) => const JoinPressingScreen()),
+                    );
+                    if (joined == true) ref.invalidate(myPressingsProvider);
+                  },
+                  icon: const Icon(Icons.add, size: 20, color: Colors.white),
+                  label: const Text('Ajouter un pressing'),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
               Expanded(
                 child: pressingsAsync.when(
                   loading: () => const Center(child: CircularProgressIndicator()),
@@ -101,9 +105,16 @@ class MyPressingsScreen extends ConsumerWidget {
                                   ],
                                 ),
                               );
-                              if (confirmed == true) {
+                              if (confirmed != true) return;
+
+                              try {
                                 await ref.read(pressingRepositoryProvider).leave(pressing.id);
                                 ref.invalidate(myPressingsProvider);
+                              } catch (e) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(PressingRepository.errorMessage(e))),
+                                );
                               }
                             },
                           );

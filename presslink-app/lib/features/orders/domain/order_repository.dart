@@ -1,6 +1,5 @@
-import 'package:dio/dio.dart';
-
 import '../../../core/network/api_client.dart';
+import '../../../core/network/api_error.dart';
 import '../../../core/theme/app_colors.dart';
 
 class OrderItemModel {
@@ -149,13 +148,5 @@ class OrderRepository {
     });
   }
 
-  static String errorMessage(Object error) {
-    if (error is DioException) {
-      final data = error.response?.data;
-      if (data is Map && data['message'] is String) {
-        return data['message'] as String;
-      }
-    }
-    return 'Une erreur est survenue. Réessayez.';
-  }
+  static String errorMessage(Object error) => apiErrorMessage(error);
 }

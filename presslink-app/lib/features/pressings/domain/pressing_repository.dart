@@ -1,6 +1,5 @@
-import 'package:dio/dio.dart';
-
 import '../../../core/network/api_client.dart';
+import '../../../core/network/api_error.dart';
 
 class PressingModel {
   const PressingModel({
@@ -60,13 +59,5 @@ class PressingRepository {
     await _apiClient.dio.delete('/pressings/$pressingId/leave');
   }
 
-  static String errorMessage(Object error) {
-    if (error is DioException) {
-      final data = error.response?.data;
-      if (data is Map && data['message'] is String) {
-        return data['message'] as String;
-      }
-    }
-    return 'Une erreur est survenue. Réessayez.';
-  }
+  static String errorMessage(Object error) => apiErrorMessage(error);
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "911324801346",
+    "project_id": "preink-a53d9",
+    "storage_bucket": "preink-a53d9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:911324801346:android:6f88183b74091386ae00db",
+        "android_client_info": {
+          "package_name": "com.presslink.presslink_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqrL92322do_UiI330LztH_qF9oaooFLA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

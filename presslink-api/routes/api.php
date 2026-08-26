@@ -40,5 +40,6 @@ Route::prefix('v1')->group(function () {
         Route::put('/customer/password', [CustomerProfileController::class, 'updatePassword']);
         Route::post('/customer/photo', [CustomerProfileController::class, 'updatePhoto']);
         Route::delete('/customer/photo', [CustomerProfileController::class, 'deletePhoto']);
+        Route::put('/customer/fcm-token', [CustomerProfileController::class, 'updateFcmToken']);
     });
 });

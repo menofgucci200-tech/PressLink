@@ -42,6 +42,8 @@ dependencies:
   intl: ^0.20.3
   shared_preferences: ^2.5.5
   image_picker: ^1.2.3
+  firebase_core: ^4.14.0
+  firebase_messaging: ^16.6.0
 
 dev_dependencies:
   flutter_test:
@@ -53,6 +55,20 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.7
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/branding/logo_original.png"
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/branding/logo_original.png
+  android_12:
+    color: "#FFFFFF"
+    image: assets/branding/logo_original.png
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -66,9 +82,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/branding/logo_original.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

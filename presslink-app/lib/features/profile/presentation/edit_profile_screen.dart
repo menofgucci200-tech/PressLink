@@ -42,7 +42,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   Future<void> _pickPhoto(ImageSource source) async {
-    final picked = await ImagePicker().pickImage(source: source, maxWidth: 1024, imageQuality: 85);
+    final XFile? picked;
+    try {
+      picked = await ImagePicker().pickImage(source: source, maxWidth: 1024, imageQuality: 85);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = source == ImageSource.camera
+            ? 'Impossible d\'accéder à l\'appareil photo. Vérifiez les autorisations de l\'application.'
+            : 'Impossible d\'accéder à la galerie. Vérifiez les autorisations de l\'application.';
+      });
+      return;
+    }
     if (picked == null) return;
 
     setState(() {

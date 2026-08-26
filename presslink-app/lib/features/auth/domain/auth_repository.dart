@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../../../core/network/api_client.dart';
+import '../../../core/network/api_error.dart';
 import '../../../core/storage/token_storage.dart';
 
 enum Gender { homme, femme }
@@ -142,6 +143,10 @@ class AuthRepository {
     });
   }
 
+  Future<void> updateFcmToken(String fcmToken) async {
+    await _apiClient.dio.put('/customer/fcm-token', data: {'fcm_token': fcmToken});
+  }
+
   Future<void> logout() async {
     try {
       await _apiClient.dio.post('/auth/customer/logout');
@@ -152,22 +157,5 @@ class AuthRepository {
   }
 
   /// Extrait un message d'erreur lisible depuis une réponse API PressLink.
-  static String errorMessage(Object error) {
-    if (error is DioException) {
-      final data = error.response?.data;
-      if (data is Map) {
-        if (data['errors'] is Map && (data['errors'] as Map).isNotEmpty) {
-          final firstError = (data['errors'] as Map).values.first;
-          if (firstError is List && firstError.isNotEmpty) {
-            return firstError.first as String;
-          }
-        }
-        if (data['message'] is String) {
-          return data['message'] as String;
-        }
-      }
-    }
-
-    return 'Une erreur est survenue. Réessayez.';
-  }
+  static String errorMessage(Object error) => apiErrorMessage(error);
 }

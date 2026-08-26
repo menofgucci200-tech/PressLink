@@ -3,20 +3,23 @@
 namespace App\Notifications\Channels;
 
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Kreait\Firebase\Contract\Messaging;
+use Kreait\Firebase\Exception\Messaging\NotFound;
+use Kreait\Firebase\Messaging\CloudMessage;
+use Kreait\Firebase\Messaging\Notification as FcmNotification;
 
 /**
- * Canal de notification push — Cahier §9 (MVP : push uniquement).
+ * Canal de notification push — Cahier §9, branché sur Firebase Cloud Messaging.
  *
- * Tant qu'aucun projet Firebase réel n'est configuré (FCM_SERVER_KEY vide),
- * le message est simplement loggué — même logique que l'OTP mocké en
- * Phase 2. Brancher un vrai token FCM par appareil (table à ajouter côté
- * Customer) et une clé serveur suffira à activer l'envoi réel, sans
- * changer les notifications métier qui appellent ce canal.
+ * Si le client n'a pas encore de token FCM enregistré (app pas encore lancée
+ * depuis le branchement Firebase, ou permission refusée), le message est
+ * simplement loggué au lieu d'échouer.
  */
 class FcmChannel
 {
+    public function __construct(private readonly Messaging $messaging) {}
+
     public function send(mixed $notifiable, Notification $notification): void
     {
         if (! method_exists($notification, 'toFcm')) {
@@ -28,12 +31,9 @@ class FcmChannel
             ? $notifiable->routeNotificationForFcm($notification)
             : null;
 
-        $serverKey = config('services.fcm.server_key');
-
-        if (! $serverKey || ! $token) {
-            Log::info('FCM (mock) PressLink', [
+        if (! $token) {
+            Log::info('FCM (mock) PressLink — aucun token enregistré', [
                 'notifiable' => $notifiable::class.'#'.$notifiable->getKey(),
-                'token' => $token,
                 'title' => $payload['title'] ?? null,
                 'body' => $payload['body'] ?? null,
                 'data' => $payload['data'] ?? [],
@@ -42,15 +42,18 @@ class FcmChannel
             return;
         }
 
-        Http::withHeaders(['Authorization' => "key={$serverKey}"])
-            ->asJson()
-            ->post('https://fcm.googleapis.com/fcm/send', [
-                'to' => $token,
-                'notification' => [
-                    'title' => $payload['title'] ?? null,
-                    'body' => $payload['body'] ?? null,
-                ],
-                'data' => $payload['data'] ?? [],
-            ]);
+        $message = CloudMessage::new()
+            ->withToken($token)
+            ->withNotification(FcmNotification::create($payload['title'] ?? '', $payload['body'] ?? ''))
+            ->withData(array_map('strval', $payload['data'] ?? []));
+
+        try {
+            $this->messaging->send($message);
+        } catch (NotFound) {
+            // Token expiré/désinstallé côté device : on nettoie pour éviter de réessayer.
+            if (method_exists($notifiable, 'update')) {
+                $notifiable->update(['fcm_token' => null]);
+            }
+        }
     }
 }

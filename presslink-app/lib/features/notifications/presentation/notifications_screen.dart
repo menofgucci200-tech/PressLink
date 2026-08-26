@@ -78,9 +78,14 @@ class NotificationsScreen extends ConsumerWidget {
                           notification: n,
                           onTap: () async {
                             if (!n.isRead) {
-                              await ref.read(notificationRepositoryProvider).markAsRead(n.id);
-                              ref.invalidate(notificationsProvider);
-                              ref.invalidate(unreadNotificationsCountProvider);
+                              try {
+                                await ref.read(notificationRepositoryProvider).markAsRead(n.id);
+                                ref.invalidate(notificationsProvider);
+                                ref.invalidate(unreadNotificationsCountProvider);
+                              } catch (_) {
+                                // Le marquage comme lu n'est pas critique : on continue
+                                // vers la commande même s'il échoue silencieusement.
+                              }
                             }
                             if (n.orderId != null && context.mounted) {
                               Navigator.of(context).push(

@@ -30,6 +30,7 @@ class Customer extends Authenticatable
         'gender',
         'email',
         'photo_path',
+        'fcm_token',
         'phone_verified_at',
         'last_login_at',
         'is_active',
@@ -77,5 +78,10 @@ class Customer extends Authenticatable
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function routeNotificationForFcm(): ?string
+    {
+        return $this->fcm_token;
     }
 }

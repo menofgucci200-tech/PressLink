@@ -24,7 +24,11 @@
             </div>
             <div class="flex items-end gap-2 justify-end">
                 <button type="button" wire:click="$set('showCreateForm', false)" class="h-10 px-4 rounded-lg border border-(--color-border) text-sm font-medium">Annuler</button>
-                <button type="submit" class="h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold">Créer</button>
+                <button type="submit" wire:loading.attr="disabled" wire:target="createService"
+                        class="h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold disabled:opacity-60">
+                    <span wire:loading.remove wire:target="createService">Créer</span>
+                    <span wire:loading wire:target="createService">Création…</span>
+                </button>
             </div>
         </form>
     @endif
@@ -53,7 +57,9 @@
                                 </span>
                             </td>
                             <td class="px-5 py-3.5 text-right">
-                                <button wire:click="toggleActive({{ $service->id }})" class="text-xs font-medium text-(--color-primary)">
+                                <button wire:click="toggleActive({{ $service->id }})"
+                                        wire:loading.attr="disabled" wire:target="toggleActive({{ $service->id }})"
+                                        class="text-xs font-medium text-(--color-primary) disabled:opacity-60">
                                     {{ $service->is_active ? 'Désactiver' : 'Activer' }}
                                 </button>
                             </td>

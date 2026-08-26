@@ -51,7 +51,11 @@
             </div>
             <div class="col-span-2 flex gap-2 justify-end">
                 <button type="button" wire:click="$set('showCreateForm', false)" class="h-10 px-4 rounded-lg border border-(--color-border) text-sm font-medium">Annuler</button>
-                <button type="submit" class="h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold">Créer</button>
+                <button type="submit" wire:loading.attr="disabled" wire:target="inviteEmployee"
+                        class="h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold disabled:opacity-60">
+                    <span wire:loading.remove wire:target="inviteEmployee">Créer</span>
+                    <span wire:loading wire:target="inviteEmployee">Création…</span>
+                </button>
             </div>
         </form>
     @endif
@@ -91,7 +95,9 @@
                             </td>
                             <td class="px-5 py-3.5 text-right">
                                 @if ($member->id !== auth()->id())
-                                    <button wire:click="toggleActive({{ $member->id }})" class="text-xs font-medium text-(--color-primary)">
+                                    <button wire:click="toggleActive({{ $member->id }})"
+                                            wire:loading.attr="disabled" wire:target="toggleActive({{ $member->id }})"
+                                            class="text-xs font-medium text-(--color-primary) disabled:opacity-60">
                                         {{ $member->pivot->is_active ? 'Retirer' : 'Réactiver' }}
                                     </button>
                                 @endif

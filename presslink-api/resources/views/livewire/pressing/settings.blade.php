@@ -102,8 +102,10 @@
         </div>
 
         <div class="flex justify-end">
-            <button type="submit" class="h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
-                Enregistrer
+            <button type="submit" wire:loading.attr="disabled" wire:target="save"
+                    class="h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600) disabled:opacity-60">
+                <span wire:loading.remove wire:target="save">Enregistrer</span>
+                <span wire:loading wire:target="save">Enregistrement…</span>
             </button>
         </div>
     </form>

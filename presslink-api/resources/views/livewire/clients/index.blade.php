@@ -29,7 +29,11 @@
             </div>
             <div class="col-span-3 flex gap-2 justify-end">
                 <button type="button" wire:click="$set('showCreateForm', false)" class="h-10 px-4 rounded-lg border border-(--color-border) text-sm font-medium">Annuler</button>
-                <button type="submit" class="h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold">Créer</button>
+                <button type="submit" wire:loading.attr="disabled" wire:target="createClient"
+                        class="h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold disabled:opacity-60">
+                    <span wire:loading.remove wire:target="createClient">Créer</span>
+                    <span wire:loading wire:target="createClient">Création…</span>
+                </button>
             </div>
         </form>
     @endif

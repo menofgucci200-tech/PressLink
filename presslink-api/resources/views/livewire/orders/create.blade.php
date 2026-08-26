@@ -182,8 +182,10 @@
                 Continuer →
             </button>
         @else
-            <button type="button" wire:click="create" class="h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
-                Créer la commande
+            <button type="button" wire:click="create" wire:loading.attr="disabled" wire:target="create"
+                    class="h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600) disabled:opacity-60">
+                <span wire:loading.remove wire:target="create">Créer la commande</span>
+                <span wire:loading wire:target="create">Création…</span>
             </button>
         @endif
     </div>

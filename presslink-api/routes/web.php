@@ -1,5 +1,9 @@
 <?php
 
+use App\Livewire\Admin\Dashboard as AdminDashboard;
+use App\Livewire\Admin\Pressings\Create as AdminPressingsCreate;
+use App\Livewire\Admin\Pressings\Index as AdminPressingsIndex;
+use App\Livewire\Admin\Pressings\Show as AdminPressingsShow;
 use App\Livewire\Auth\Login;
 use App\Livewire\Clients\Index as ClientsIndex;
 use App\Livewire\Clients\Show as ClientsShow;
@@ -33,6 +37,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/equipe', TeamIndex::class)->name('team.index');
     Route::get('/parametres', PressingSettings::class)->name('pressing.settings');
     Route::get('/abonnement', SubscriptionShow::class)->name('subscription.show');
+
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/', AdminDashboard::class)->name('dashboard');
+        Route::get('/pressings', AdminPressingsIndex::class)->name('pressings.index');
+        Route::get('/pressings/nouveau', AdminPressingsCreate::class)->name('pressings.create');
+        Route::get('/pressings/{pressing}', AdminPressingsShow::class)->name('pressings.show');
+    });
 
     Route::post('/logout', function () {
         Auth::logout();

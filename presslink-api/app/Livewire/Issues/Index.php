@@ -18,23 +18,42 @@ class Index extends Component
 
     public string $status = 'open';
 
+    public ?int $resolvingIssueId = null;
+
+    public string $resolutionNote = '';
+
     public function updatingStatus(): void
     {
         $this->resetPage();
     }
 
-    public function resolveIssue(int $issueId): void
+    public function startResolving(int $issueId): void
+    {
+        $this->resolvingIssueId = $issueId;
+        $this->resolutionNote = '';
+    }
+
+    public function cancelResolving(): void
+    {
+        $this->resolvingIssueId = null;
+        $this->resolutionNote = '';
+    }
+
+    public function confirmResolve(): void
     {
         $pressing = auth()->user()->currentPressing();
 
         $issue = OrderIssue::whereHas('order', fn ($q) => $q->where('pressing_id', $pressing?->id))
-            ->findOrFail($issueId);
+            ->findOrFail($this->resolvingIssueId);
 
         $issue->update([
             'status' => OrderIssueStatus::Resolved,
             'resolved_by' => auth()->id(),
             'resolved_at' => now(),
+            'resolution_note' => trim($this->resolutionNote) ?: null,
         ]);
+
+        $this->cancelResolving();
     }
 
     #[Layout('layouts.dashboard', ['active' => 'issues', 'title' => 'Signalements'])]

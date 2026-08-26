@@ -22,23 +22,48 @@
                     <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-3">Problèmes signalés</div>
                     <div class="flex flex-col gap-3">
                         @foreach ($order->issues as $issue)
-                            <div class="flex items-start justify-between gap-3 p-3 rounded-lg {{ $issue->status->value === 'open' ? 'bg-(--color-error-tint)' : 'bg-(--color-bg)' }}">
-                                <div>
-                                    <div class="text-sm font-semibold {{ $issue->status->value === 'open' ? 'text-(--color-error)' : 'text-(--color-text-secondary)' }}">
-                                        {{ $issue->category->label() }}
+                            <div class="p-3 rounded-lg {{ $issue->status->value === 'open' ? 'bg-(--color-error-tint)' : 'bg-(--color-bg)' }}">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div>
+                                        <div class="text-sm font-semibold {{ $issue->status->value === 'open' ? 'text-(--color-error)' : 'text-(--color-text-secondary)' }}">
+                                            {{ $issue->category->label() }}
+                                        </div>
+                                        @if ($issue->description)
+                                            <div class="text-sm text-(--color-text-secondary) mt-1">{{ $issue->description }}</div>
+                                        @endif
+                                        <div class="text-xs text-(--color-text-muted) mt-1">{{ $issue->created_at->format('d/m/Y H:i') }} · {{ $issue->status->label() }}</div>
+                                        @if ($issue->resolution_note)
+                                            <div class="text-sm text-(--color-text-secondary) mt-2 italic">« {{ $issue->resolution_note }} »</div>
+                                        @endif
                                     </div>
-                                    @if ($issue->description)
-                                        <div class="text-sm text-(--color-text-secondary) mt-1">{{ $issue->description }}</div>
+                                    @if ($issue->status->value === 'open' && $resolvingIssueId !== $issue->id)
+                                        <button wire:click="startResolving({{ $issue->id }})"
+                                                class="flex-none h-8 px-3 rounded-lg border border-(--color-border) text-xs font-medium hover:border-(--color-primary)">
+                                            Marquer résolu
+                                        </button>
                                     @endif
-                                    <div class="text-xs text-(--color-text-muted) mt-1">{{ $issue->created_at->format('d/m/Y H:i') }} · {{ $issue->status->label() }}</div>
                                 </div>
-                                @if ($issue->status->value === 'open')
-                                    <button wire:click="resolveIssue({{ $issue->id }})"
-                                            wire:loading.attr="disabled" wire:target="resolveIssue({{ $issue->id }})"
-                                            class="flex-none h-8 px-3 rounded-lg border border-(--color-border) text-xs font-medium hover:border-(--color-primary) disabled:opacity-60">
-                                        <span wire:loading.remove wire:target="resolveIssue({{ $issue->id }})">Marquer résolu</span>
-                                        <span wire:loading wire:target="resolveIssue({{ $issue->id }})">…</span>
-                                    </button>
+
+                                @if ($resolvingIssueId === $issue->id)
+                                    <div class="mt-3 pt-3 border-t border-(--color-border)">
+                                        <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">
+                                            Comment ce problème a-t-il été résolu ? (ex. "Chemise retrouvée et remise au client")
+                                        </label>
+                                        <textarea wire:model="resolutionNote" rows="2" autofocus
+                                            placeholder="Note de résolution (facultatif)"
+                                            class="w-full px-3 py-2 rounded-lg border border-(--color-border) text-sm bg-(--color-surface) focus:outline-none focus:border-(--color-primary)"></textarea>
+                                        <div class="flex gap-2 mt-2">
+                                            <button wire:click="confirmResolve"
+                                                wire:loading.attr="disabled" wire:target="confirmResolve"
+                                                class="h-8 px-3.5 rounded-lg bg-(--color-primary) text-white text-xs font-semibold hover:bg-(--color-primary-600) disabled:opacity-60">
+                                                Confirmer la résolution
+                                            </button>
+                                            <button wire:click="cancelResolving"
+                                                class="h-8 px-3.5 rounded-lg border border-(--color-border) text-xs font-medium text-(--color-text-secondary) hover:bg-(--color-surface)">
+                                                Annuler
+                                            </button>
+                                        </div>
+                                    </div>
                                 @endif
                             </div>
                         @endforeach

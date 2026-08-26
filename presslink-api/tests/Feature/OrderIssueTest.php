@@ -84,9 +84,12 @@ class OrderIssueTest extends TestCase
         $this->actingAs($admin);
 
         Livewire::test(Show::class, ['order' => $order])
-            ->call('resolveIssue', $issue->id);
+            ->call('startResolving', $issue->id)
+            ->set('resolutionNote', 'Chemise retrouvée et remise au client.')
+            ->call('confirmResolve');
 
         $this->assertSame(OrderIssueStatus::Resolved, $issue->fresh()->status);
         $this->assertSame($admin->id, $issue->fresh()->resolved_by);
+        $this->assertSame('Chemise retrouvée et remise au client.', $issue->fresh()->resolution_note);
     }
 }

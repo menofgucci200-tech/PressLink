@@ -15,6 +15,10 @@ class Show extends Component
 
     public ?string $errorMessage = null;
 
+    public ?int $resolvingIssueId = null;
+
+    public string $resolutionNote = '';
+
     public function mount(Order $order): void
     {
         abort_unless(auth()->user()->can('view', $order), 403);
@@ -36,14 +40,29 @@ class Show extends Component
         $this->order->refresh();
     }
 
-    public function resolveIssue(int $issueId): void
+    public function startResolving(int $issueId): void
     {
-        $issue = $this->order->issues()->findOrFail($issueId);
+        $this->resolvingIssueId = $issueId;
+        $this->resolutionNote = '';
+    }
+
+    public function cancelResolving(): void
+    {
+        $this->resolvingIssueId = null;
+        $this->resolutionNote = '';
+    }
+
+    public function confirmResolve(): void
+    {
+        $issue = $this->order->issues()->findOrFail($this->resolvingIssueId);
         $issue->update([
             'status' => OrderIssueStatus::Resolved,
             'resolved_by' => auth()->id(),
             'resolved_at' => now(),
+            'resolution_note' => trim($this->resolutionNote) ?: null,
         ]);
+
+        $this->cancelResolving();
     }
 
     #[Layout('layouts.dashboard', ['active' => 'orders', 'title' => 'Commande'])]

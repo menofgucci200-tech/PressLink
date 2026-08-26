@@ -26,6 +26,7 @@ class OrderIssue extends Model
         'status',
         'resolved_by',
         'resolved_at',
+        'resolution_note',
     ];
 
     protected function casts(): array

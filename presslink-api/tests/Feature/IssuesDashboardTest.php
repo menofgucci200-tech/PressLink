@@ -99,12 +99,15 @@ class IssuesDashboardTest extends TestCase
 
         Livewire::actingAs($employee)
             ->test(IssuesIndex::class)
-            ->call('resolveIssue', $issue->id);
+            ->call('startResolving', $issue->id)
+            ->set('resolutionNote', 'Chemise retrouvée et remise au client.')
+            ->call('confirmResolve');
 
         $issue->refresh();
         $this->assertSame(OrderIssueStatus::Resolved, $issue->status);
         $this->assertSame($employee->id, $issue->resolved_by);
         $this->assertNotNull($issue->resolved_at);
+        $this->assertSame('Chemise retrouvée et remise au client.', $issue->resolution_note);
     }
 
     public function test_staff_cannot_resolve_an_issue_from_another_pressing(): void
@@ -130,6 +133,7 @@ class IssuesDashboardTest extends TestCase
 
         Livewire::actingAs($admin)
             ->test(IssuesIndex::class)
-            ->call('resolveIssue', $foreignIssue->id);
+            ->call('startResolving', $foreignIssue->id)
+            ->call('confirmResolve');
     }
 }

@@ -44,6 +44,14 @@
 
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden mb-6">
         <div class="px-5 py-3.5 border-b border-(--color-border) text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Équipe</div>
+
+        @if ($generatedPassword)
+            <div class="mx-5 mt-4 p-3 rounded-lg bg-(--color-success-tint) text-(--color-success-text) text-sm">
+                Nouveau mot de passe temporaire (à transmettre vous-même, il ne sera plus affiché) :
+                <span class="font-mono font-semibold">{{ $generatedPassword }}</span>
+            </div>
+        @endif
+
         @if ($staff->isEmpty())
             <div class="px-5 py-8 text-center text-sm text-(--color-text-muted)">Aucun membre.</div>
         @else
@@ -54,8 +62,18 @@
                             <td class="px-5 py-3 font-medium">{{ $member->name }}</td>
                             <td class="px-5 py-3 text-(--color-text-secondary)">{{ $member->email }}</td>
                             <td class="px-5 py-3">{{ $member->pivot->role->label() }}</td>
-                            <td class="px-5 py-3 text-right text-xs font-medium {{ $member->pivot->is_active ? 'text-(--color-success-text)' : 'text-(--color-text-muted)' }}">
+                            <td class="px-5 py-3 text-xs font-medium {{ $member->pivot->is_active ? 'text-(--color-success-text)' : 'text-(--color-text-muted)' }}">
                                 {{ $member->pivot->is_active ? 'Actif' : 'Retiré' }}
+                            </td>
+                            <td class="px-5 py-3 text-right">
+                                @if ($member->pivot->is_active)
+                                    <button wire:click="resetStaffPassword({{ $member->id }})"
+                                            wire:confirm="Générer un nouveau mot de passe pour {{ $member->name }} ? L'ancien ne fonctionnera plus."
+                                            wire:loading.attr="disabled" wire:target="resetStaffPassword({{ $member->id }})"
+                                            class="text-xs font-medium text-(--color-primary) disabled:opacity-60">
+                                        Réinitialiser le mot de passe
+                                    </button>
+                                @endif
                             </td>
                         </tr>
                     @endforeach

@@ -7,6 +7,7 @@ use App\Enums\SubscriptionPlan;
 use App\Enums\SubscriptionStatus;
 use App\Models\Pressing;
 use App\Models\Subscription;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -32,6 +33,10 @@ class Show extends Component
 
     public bool $saved = false;
 
+    public ?int $passwordResetForUserId = null;
+
+    public ?string $generatedPassword = null;
+
     public function mount(Pressing $pressing): void
     {
         abort_unless(auth()->user()->is_super_admin, 403);
@@ -48,6 +53,18 @@ class Show extends Component
                 : PressingStatus::Active,
         ]);
         $this->pressing->refresh();
+    }
+
+    public function resetStaffPassword(int $userId): void
+    {
+        $member = $this->pressing->staff()->where('users.id', $userId)->firstOrFail();
+
+        $password = Str::password(10);
+
+        $member->update(['password' => $password]);
+
+        $this->passwordResetForUserId = $member->id;
+        $this->generatedPassword = $password;
     }
 
     public function saveSubscription(): void

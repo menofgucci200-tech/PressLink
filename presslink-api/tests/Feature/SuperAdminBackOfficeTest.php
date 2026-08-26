@@ -14,6 +14,7 @@ use App\Livewire\Auth\Login;
 use App\Models\Pressing;
 use App\Models\Subscription;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
@@ -189,5 +190,38 @@ class SuperAdminBackOfficeTest extends TestCase
         $subscription = $pressing->fresh()->subscription;
         $this->assertSame(SubscriptionPlan::Business, $subscription->plan);
         $this->assertNull($subscription->orders_limit);
+    }
+
+    public function test_super_admin_can_reset_a_staff_members_password(): void
+    {
+        $superAdmin = $this->makeSuperAdmin();
+        $pressing = Pressing::factory()->create();
+        $member = $this->makeStaff($pressing, PressingRole::Admin);
+        $originalHash = $member->password;
+
+        $this->actingAs($superAdmin);
+
+        Livewire::test(AdminPressingsShow::class, ['pressing' => $pressing])
+            ->call('resetStaffPassword', $member->id)
+            ->assertSet('passwordResetForUserId', $member->id)
+            ->assertViewHas('staff');
+
+        $member->refresh();
+        $this->assertNotSame($originalHash, $member->password);
+    }
+
+    public function test_super_admin_cannot_reset_the_password_of_staff_from_another_pressing(): void
+    {
+        $superAdmin = $this->makeSuperAdmin();
+        $pressing = Pressing::factory()->create();
+        $otherPressing = Pressing::factory()->create();
+        $foreignMember = $this->makeStaff($otherPressing, PressingRole::Admin);
+
+        $this->actingAs($superAdmin);
+
+        $this->expectException(ModelNotFoundException::class);
+
+        Livewire::test(AdminPressingsShow::class, ['pressing' => $pressing])
+            ->call('resetStaffPassword', $foreignMember->id);
     }
 }

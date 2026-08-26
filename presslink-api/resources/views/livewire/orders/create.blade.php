@@ -69,6 +69,11 @@
                         <input type="text" wire:model="newPhone" placeholder="+2250708124400" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
                         @error('newPhone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                     </div>
+                    <p class="col-span-3 text-xs text-(--color-text-muted)">
+                        Mot de passe par défaut pour l'app :
+                        <span class="font-mono font-semibold">{{ \App\Models\Customer::DEFAULT_WALK_IN_PASSWORD }}</span>
+                        (modifiable ensuite par le client dans son profil).
+                    </p>
                     <div class="col-span-3 flex justify-end gap-2">
                         <button type="button" wire:click="$set('showNewClientForm', false)" class="h-9 px-3 rounded-lg border border-(--color-border) text-sm">Annuler</button>
                         <button type="button" wire:click="createAndPickCustomer" class="h-9 px-3 rounded-lg bg-(--color-primary) text-white text-sm font-semibold">Créer</button>

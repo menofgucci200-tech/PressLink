@@ -40,7 +40,12 @@ class Index extends Component
         DB::transaction(function () use ($pressing) {
             $customer = Customer::firstOrCreate(
                 ['phone' => $this->phone],
-                ['first_name' => $this->firstName, 'last_name' => $this->lastName, 'phone_verified_at' => now()],
+                [
+                    'first_name' => $this->firstName,
+                    'last_name' => $this->lastName,
+                    'password' => Customer::DEFAULT_WALK_IN_PASSWORD,
+                    'phone_verified_at' => now(),
+                ],
             );
 
             $pressing->customers()->syncWithoutDetaching([$customer->id => ['joined_at' => now()]]);

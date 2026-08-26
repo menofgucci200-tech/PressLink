@@ -65,7 +65,12 @@ class Create extends Component
         $customer = DB::transaction(function () use ($pressing) {
             $customer = Customer::firstOrCreate(
                 ['phone' => $this->newPhone],
-                ['first_name' => $this->newFirstName, 'last_name' => $this->newLastName, 'phone_verified_at' => now()],
+                [
+                    'first_name' => $this->newFirstName,
+                    'last_name' => $this->newLastName,
+                    'password' => Customer::DEFAULT_WALK_IN_PASSWORD,
+                    'phone_verified_at' => now(),
+                ],
             );
 
             $pressing->customers()->syncWithoutDetaching([$customer->id => ['joined_at' => now()]]);

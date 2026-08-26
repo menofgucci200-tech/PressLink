@@ -66,10 +66,11 @@
                 @if ($isAdmin)
                     <div class="px-3">
                         <div class="h-px bg-(--color-border) mx-3 mb-3"></div>
-                        <div class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium text-(--color-text-muted)">
+                        <a href="{{ route('subscription.show') }}"
+                           class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium {{ ($active ?? null) === 'subscription' ? 'bg-(--color-primary-tint) text-(--color-primary)' : 'text-(--color-text-secondary) hover:bg-(--color-bg)' }}">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
                             Abonnement
-                        </div>
+                        </a>
                     </div>
                 @endif
             </aside>

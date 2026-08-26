@@ -85,15 +85,78 @@
         {{-- Étape 2 : Articles --}}
         @if ($step === 2)
             <h2 class="font-semibold text-[17px] mb-1">Ajouter des articles</h2>
-            <p class="text-[13px] text-(--color-text-muted) mb-5">Sélectionnez les vêtements déposés.</p>
+            <p class="text-[13px] text-(--color-text-muted) mb-5">Choisissez un service, sa variante et sa couleur si besoin.</p>
 
-            <div class="flex flex-wrap gap-2 mb-6">
-                @foreach ($services as $service)
-                    <button type="button" wire:click="addItem({{ $service->id }})"
-                            class="h-9 px-3.5 rounded-lg border border-(--color-border) text-[13px] font-medium hover:border-(--color-primary)">
-                        {{ $service->name }} · {{ number_format($service->price_fcfa, 0, ',', ' ') }} F
-                    </button>
-                @endforeach
+            <div class="border border-(--color-border) rounded-lg p-4 mb-6">
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Service</label>
+                        <select wire:model.live="pickerService" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
+                            <option value="">— Sélectionner —</option>
+                            @foreach ($services as $service)
+                                <option value="{{ $service->id }}">
+                                    {{ $service->name }}
+                                    @if ($service->variants_count > 0)
+                                        (variantes)
+                                    @else
+                                        · {{ number_format($service->price_fcfa, 0, ',', ' ') }} F
+                                    @endif
+                                </option>
+                            @endforeach
+                            <option value="other">Autre article (non listé)</option>
+                        </select>
+                        @error('pickerService') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    @if ($pickerService !== '' && $pickerService !== 'other' && $this->pickerServiceVariants->isNotEmpty())
+                        <div>
+                            <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Variante</label>
+                            <select wire:model.live="pickerVariant" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
+                                <option value="">— Sélectionner —</option>
+                                @foreach ($this->pickerServiceVariants as $variant)
+                                    <option value="{{ $variant->id }}">{{ $variant->name }} · {{ number_format($variant->price_fcfa, 0, ',', ' ') }} F</option>
+                                @endforeach
+                                <option value="other">Autre (non listée)</option>
+                            </select>
+                            @error('pickerVariant') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    @endif
+                </div>
+
+                @if ($pickerService === 'other' || $pickerVariant === 'other')
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom de l'article</label>
+                            <input type="text" wire:model="pickerCustomName" placeholder="Ex. Nappe" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
+                            @error('pickerCustomName') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Prix (FCFA)</label>
+                            <input type="number" wire:model="pickerCustomPrice" placeholder="1000" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
+                            @error('pickerCustomPrice') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+                @endif
+
+                <div class="grid grid-cols-2 gap-3 items-end">
+                    <div>
+                        <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Couleur (optionnel)</label>
+                        <input type="text" wire:model="pickerColor" placeholder="Ex. Bleu" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
+                        @error('pickerColor') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="flex items-end gap-3">
+                        <div class="flex-1">
+                            <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Quantité</label>
+                            <input type="number" min="1" wire:model="pickerQuantity" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
+                            @error('pickerQuantity') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <button type="button" wire:click="addPickedItem" wire:loading.attr="disabled" wire:target="addPickedItem"
+                                class="h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600) disabled:opacity-60 flex-none">
+                            <span wire:loading.remove wire:target="addPickedItem">+ Ajouter</span>
+                            <span wire:loading wire:target="addPickedItem">…</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             @if ($items === [])

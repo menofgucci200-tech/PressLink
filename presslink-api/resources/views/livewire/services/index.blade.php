@@ -41,7 +41,8 @@
                 <thead>
                     <tr class="bg-(--color-bg) text-left">
                         <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Service</th>
-                        <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) text-right">Prix</th>
+                        <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) text-right">Prix de base</th>
+                        <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Variantes</th>
                         <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Statut</th>
                         <th class="px-5 py-2.5"></th>
                     </tr>
@@ -51,6 +52,11 @@
                         <tr class="border-t border-(--color-border) hover:bg-(--color-bg)">
                             <td class="px-5 py-3.5 font-medium">{{ $service->name }}</td>
                             <td class="px-5 py-3.5 text-right tabular-nums">{{ number_format($service->price_fcfa, 0, ',', ' ') }} F</td>
+                            <td class="px-5 py-3.5">
+                                <a href="{{ route('services.variants', $service) }}" class="text-(--color-primary) font-medium">
+                                    {{ $service->variants_count }} variante(s)
+                                </a>
+                            </td>
                             <td class="px-5 py-3.5">
                                 <span class="text-xs font-medium {{ $service->is_active ? 'text-(--color-success-text)' : 'text-(--color-text-muted)' }}">
                                     {{ $service->is_active ? 'Actif' : 'Désactivé' }}

@@ -13,6 +13,7 @@ use App\Livewire\Orders\Index as OrdersIndex;
 use App\Livewire\Orders\Show as OrdersShow;
 use App\Livewire\Pressing\Settings as PressingSettings;
 use App\Livewire\Services\Index as ServicesIndex;
+use App\Livewire\Services\Variants as ServicesVariants;
 use App\Livewire\Subscription\Show as SubscriptionShow;
 use App\Livewire\Team\Index as TeamIndex;
 use Illuminate\Support\Facades\Auth;
@@ -33,6 +34,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/clients/{customer}', ClientsShow::class)->name('clients.show');
 
     Route::get('/tarifs', ServicesIndex::class)->name('services.index');
+    Route::get('/tarifs/{service}/variantes', ServicesVariants::class)->name('services.variants');
 
     Route::get('/equipe', TeamIndex::class)->name('team.index');
     Route::get('/parametres', PressingSettings::class)->name('pressing.settings');

@@ -78,7 +78,7 @@ class SuperAdminGlobalViewsTest extends TestCase
         $pressingB = Pressing::factory()->create();
         $customerA = Customer::factory()->create(['first_name' => 'Awa', 'last_name' => 'Traore']);
         $pressingA->customers()->attach($customerA, ['joined_at' => now()]);
-        $customerB = Customer::factory()->create(['first_name' => 'Marc', 'last_name' => 'Koffi']);
+        $customerB = Customer::factory()->create(['first_name' => 'Ouedraogo', 'last_name' => 'Nikiema']);
         $pressingB->customers()->attach($customerB, ['joined_at' => now()]);
 
         $orderA = (new CreateOrderAction)->handle($pressingA, $customerA, [
@@ -93,10 +93,10 @@ class SuperAdminGlobalViewsTest extends TestCase
         Livewire::test(AdminOrdersIndex::class)
             ->assertSee($orderA->order_number)
             ->assertSee('Awa Traore')
-            ->assertSee('Marc Koffi')
+            ->assertSee('Ouedraogo Nikiema')
             ->set('search', 'Awa')
             ->assertSee('Awa Traore')
-            ->assertDontSee('Marc Koffi')
+            ->assertDontSee('Ouedraogo Nikiema')
             ->set('search', '')
             ->set('status', OrderStatus::Recuperee->value)
             ->assertDontSee('Awa Traore');

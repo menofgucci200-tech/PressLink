@@ -6,14 +6,12 @@
         <h1 class="font-display text-2xl font-bold">Nouveau pressing</h1>
     </div>
 
-    @if ($createdPressing && $generatedPassword)
+    @if ($createdPressing)
         <div class="mb-6 p-4 rounded-lg bg-(--color-success-tint) text-(--color-success-text) text-sm">
             <p class="font-semibold mb-1">Pressing "{{ $createdPressing->name }}" créé avec succès.</p>
             <p class="mb-1">Code pressing : <span class="font-mono font-semibold">{{ $createdPressing->code }}</span></p>
-            <p>Mot de passe temporaire de l'administrateur (à transmettre vous-même, il ne sera plus affiché) :
-                <span class="font-mono font-semibold tabular-nums">{{ $generatedPassword }}</span>
-            </p>
-            <a href="{{ route('admin.pressings.show', $createdPressing) }}" class="inline-block mt-2 font-medium underline">Voir le pressing →</a>
+            <p>Ce pressing n'a pas encore d'administrateur — assignez-lui-en un depuis le menu Administrateurs.</p>
+            <a href="{{ route('admin.administrators.index', ['pressing' => $createdPressing->id]) }}" class="inline-block mt-2 font-medium underline">Créer son administrateur →</a>
         </div>
     @endif
 
@@ -24,6 +22,11 @@
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom</label>
                 <input type="text" wire:model="name" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                 @error('name') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Code pressing (facultatif — généré si vide)</label>
+                <input type="text" wire:model="code" placeholder="PE-4821" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary) uppercase">
+                @error('code') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone</label>
@@ -45,27 +48,8 @@
                 <input type="text" wire:model="address" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                 @error('address') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
-        </div>
-
-        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 grid grid-cols-2 gap-4">
-            <div class="col-span-2 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Premier administrateur</div>
-            <div class="col-span-2">
-                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom complet</label>
-                <input type="text" wire:model="adminName" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
-                @error('adminName') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Email</label>
-                <input type="email" wire:model="adminEmail" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
-                @error('adminEmail') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone</label>
-                <input type="text" wire:model="adminPhone" placeholder="+2250708124400" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
-                @error('adminPhone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
-            </div>
             <p class="col-span-2 text-xs text-(--color-text-muted)">
-                Un abonnement d'essai de 14 jours (plan Starter) est créé automatiquement.
+                Un abonnement d'essai de 14 jours (plan Starter) est créé automatiquement. L'administrateur se crée ensuite depuis le menu Administrateurs.
             </p>
         </div>
 

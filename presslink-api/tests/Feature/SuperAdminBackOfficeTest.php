@@ -112,7 +112,7 @@ class SuperAdminBackOfficeTest extends TestCase
         $this->assertSame(PressingStatus::Active, $pressing->fresh()->status);
     }
 
-    public function test_super_admin_can_create_a_pressing_with_its_first_admin_and_trial_subscription(): void
+    public function test_super_admin_can_create_a_pressing_with_a_trial_subscription_and_no_admin_yet(): void
     {
         $superAdmin = $this->makeSuperAdmin();
 
@@ -121,19 +121,13 @@ class SuperAdminBackOfficeTest extends TestCase
         Livewire::test(AdminPressingsCreate::class)
             ->set('name', 'Pressing Nouveau')
             ->set('phone', '+2250701020304')
-            ->set('adminName', 'Fatou Diabate')
-            ->set('adminEmail', 'fatou@pressing-nouveau.test')
-            ->set('adminPhone', '+2250701020305')
             ->call('create')
-            ->assertSet('generatedPassword', fn ($password) => is_string($password) && strlen($password) > 0);
+            ->assertSet('createdPressing', fn ($pressing) => $pressing !== null);
 
         $pressing = Pressing::where('name', 'Pressing Nouveau')->firstOrFail();
-        $admin = User::where('email', 'fatou@pressing-nouveau.test')->firstOrFail();
 
-        $this->assertSame(
-            PressingRole::Admin,
-            $pressing->staff()->where('users.id', $admin->id)->first()->pivot->role,
-        );
+        $this->assertSame(0, $pressing->staff()->count());
+        $this->assertNotEmpty($pressing->code);
 
         $subscription = Subscription::where('pressing_id', $pressing->id)->firstOrFail();
         $this->assertSame(SubscriptionPlan::Starter, $subscription->plan);
@@ -141,30 +135,20 @@ class SuperAdminBackOfficeTest extends TestCase
         $this->assertSame(SubscriptionPlan::Starter->ordersLimit(), $subscription->orders_limit);
     }
 
-    public function test_the_admin_created_for_a_new_pressing_can_log_in(): void
+    public function test_super_admin_can_set_a_custom_pressing_code_on_creation(): void
     {
         $superAdmin = $this->makeSuperAdmin();
 
         $this->actingAs($superAdmin);
 
-        $component = Livewire::test(AdminPressingsCreate::class)
+        Livewire::test(AdminPressingsCreate::class)
             ->set('name', 'Pressing Nouveau')
+            ->set('code', 'pn-1234')
             ->set('phone', '+2250701020304')
-            ->set('adminName', 'Fatou Diabate')
-            ->set('adminEmail', 'fatou@pressing-nouveau.test')
-            ->set('adminPhone', '+2250701020305')
             ->call('create');
 
-        $password = $component->get('generatedPassword');
-
-        $this->post('/logout');
-
-        Livewire::test(Login::class)
-            ->set('login', 'fatou@pressing-nouveau.test')
-            ->set('password', $password)
-            ->call('authenticate');
-
-        $this->assertAuthenticatedAs(User::where('email', 'fatou@pressing-nouveau.test')->firstOrFail());
+        $pressing = Pressing::where('name', 'Pressing Nouveau')->firstOrFail();
+        $this->assertSame('PN-1234', $pressing->code);
     }
 
     public function test_super_admin_can_view_pressing_detail_and_update_its_subscription(): void

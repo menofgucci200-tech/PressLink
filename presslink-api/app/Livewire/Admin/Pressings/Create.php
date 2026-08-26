@@ -2,25 +2,25 @@
 
 namespace App\Livewire\Admin\Pressings;
 
-use App\Enums\PressingRole;
 use App\Enums\SubscriptionPlan;
 use App\Enums\SubscriptionStatus;
 use App\Models\Pressing;
 use App\Models\Subscription;
-use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
  * Onboarding d'un nouveau pressing par le Super Admin — Phase 7.
- * Crée le pressing, son abonnement d'essai (14 jours, plan Starter) et le
- * premier compte administrateur (mot de passe généré, affiché une fois).
+ * Crée le pressing (avec son code, généré ou saisi) et son abonnement
+ * d'essai (14 jours, plan Starter). Le pressing n'a pas encore
+ * d'administrateur : on lui en assigne un depuis le menu Administrateurs.
  */
 class Create extends Component
 {
     public string $name = '';
+
+    public string $code = '';
 
     public string $phone = '';
 
@@ -29,14 +29,6 @@ class Create extends Component
     public string $city = '';
 
     public string $address = '';
-
-    public string $adminName = '';
-
-    public string $adminEmail = '';
-
-    public string $adminPhone = '';
-
-    public ?string $generatedPassword = null;
 
     public ?Pressing $createdPressing = null;
 
@@ -49,34 +41,22 @@ class Create extends Component
     {
         $this->validate([
             'name' => ['required', 'string', 'max:150'],
+            'code' => ['nullable', 'string', 'max:20', 'alpha_dash', 'unique:pressings,code'],
             'phone' => ['required', 'string', 'regex:/^\+2250[0-9]{9}$/'],
             'email' => ['nullable', 'email', 'max:255'],
             'city' => ['nullable', 'string', 'max:100'],
             'address' => ['nullable', 'string', 'max:255'],
-            'adminName' => ['required', 'string', 'max:100'],
-            'adminEmail' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'adminPhone' => ['required', 'string', 'regex:/^\+2250[0-9]{9}$/', 'unique:users,phone'],
         ]);
 
-        $password = Str::password(10);
-
-        $pressing = DB::transaction(function () use ($password) {
+        $pressing = DB::transaction(function () {
             $pressing = Pressing::create([
                 'name' => $this->name,
+                'code' => $this->code !== '' ? mb_strtoupper($this->code) : null,
                 'phone' => $this->phone,
                 'email' => $this->email ?: null,
                 'city' => $this->city ?: null,
                 'address' => $this->address ?: null,
             ]);
-
-            $admin = User::create([
-                'name' => $this->adminName,
-                'email' => $this->adminEmail,
-                'phone' => $this->adminPhone,
-                'password' => $password,
-            ]);
-
-            $pressing->staff()->attach($admin, ['role' => PressingRole::Admin->value, 'is_active' => true]);
 
             Subscription::create([
                 'pressing_id' => $pressing->id,
@@ -92,8 +72,7 @@ class Create extends Component
         });
 
         $this->createdPressing = $pressing;
-        $this->generatedPassword = $password;
-        $this->reset(['name', 'phone', 'email', 'city', 'address', 'adminName', 'adminEmail', 'adminPhone']);
+        $this->reset(['name', 'code', 'phone', 'email', 'city', 'address']);
     }
 
     #[Layout('layouts.admin', ['active' => 'pressings', 'title' => 'Nouveau pressing'])]

@@ -10,6 +10,7 @@
     <body class="bg-(--color-bg) text-(--color-text-primary)">
         @php
             $user = auth()->user();
+            $isOverviewMode = $user->hasMultiplePressings() && ! session()->has('active_pressing_id');
             $pressing = $user->currentPressing();
             $isAdmin = $pressing && $user->isAdminOf($pressing);
             $navItem = fn (string $key, string $route, string $label, string $icon) => [
@@ -34,6 +35,30 @@
                 <div class="flex items-center gap-2 px-5 pb-6">
                     <span class="font-display text-lg font-bold">Press<span class="text-(--color-primary)">Link</span></span>
                 </div>
+
+                @if ($user->hasMultiplePressings())
+                    <div class="px-3 pb-4">
+                        <details class="relative group">
+                            <summary class="cursor-pointer list-none flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-(--color-border) text-sm font-medium hover:bg-(--color-bg)">
+                                <span class="truncate">{{ $isOverviewMode ? "Vue d'ensemble" : $pressing?->name }}</span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><path d="m6 9 6 6 6-6"></path></svg>
+                            </summary>
+                            <div class="absolute left-0 right-0 mt-1 bg-(--color-surface) border border-(--color-border) rounded-lg shadow-lg py-1 z-10">
+                                <a href="{{ route('pressings.overview') }}"
+                                   class="block px-3 py-2 text-sm {{ $isOverviewMode ? 'text-(--color-primary) font-medium' : 'text-(--color-text-secondary)' }} hover:bg-(--color-bg)">
+                                    Vue d'ensemble
+                                </a>
+                                <div class="h-px bg-(--color-border) my-1"></div>
+                                @foreach ($user->activePressings() as $p)
+                                    <a href="{{ route('pressings.switch', $p) }}"
+                                       class="block px-3 py-2 text-sm truncate {{ ! $isOverviewMode && $pressing?->id === $p->id ? 'text-(--color-primary) font-medium' : 'text-(--color-text-secondary)' }} hover:bg-(--color-bg)">
+                                        {{ $p->name }}
+                                    </a>
+                                @endforeach
+                            </div>
+                        </details>
+                    </div>
+                @endif
 
                 <nav class="flex flex-col gap-0.5 px-3">
                     @foreach ($navItems as $item)
@@ -90,7 +115,7 @@
                 <header class="h-16 flex-none bg-(--color-surface) border-b border-(--color-border) flex items-center justify-end gap-4 px-7">
                     <div class="text-right">
                         <div class="text-sm font-medium leading-tight">{{ $user->name }}</div>
-                        <div class="text-xs text-(--color-text-muted)">{{ $isAdmin ? 'Administrateur' : 'Employé' }} · {{ $pressing?->name }}</div>
+                        <div class="text-xs text-(--color-text-muted)">{{ $isAdmin ? 'Administrateur' : 'Employé' }} · {{ $isOverviewMode ? "Vue d'ensemble" : $pressing?->name }}</div>
                     </div>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf

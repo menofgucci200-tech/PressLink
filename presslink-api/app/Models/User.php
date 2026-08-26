@@ -7,6 +7,7 @@ use App\Enums\PressingRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -73,12 +74,43 @@ class User extends Authenticatable
     }
 
     /**
-     * Pressing actif pour cette session de travail.
-     * MVP : un membre du staff opère sur un seul pressing à la fois
-     * (le multi-agences par utilisateur est hors périmètre MVP).
+     * Pressings actifs de ce membre du staff, triés par nom — pour le
+     * sélecteur multi-pressing dans la sidebar.
+     *
+     * @return Collection<int, Pressing>
+     */
+    public function activePressings(): Collection
+    {
+        return $this->pressings()->wherePivot('is_active', true)->orderBy('name')->get();
+    }
+
+    /** Un propriétaire multi-pressing voit une vue d'ensemble consolidée. */
+    public function hasMultiplePressings(): bool
+    {
+        return $this->pressings()->wherePivot('is_active', true)->count() > 1;
+    }
+
+    /**
+     * Pressing actif pour cette session de travail : celle explicitement
+     * choisie via le sélecteur (session), sinon la première par défaut —
+     * ce qui garde le comportement mono-pressing transparent pour un
+     * membre du staff qui n'a qu'un seul pressing.
      */
     public function currentPressing(): ?Pressing
     {
+        $activeId = session('active_pressing_id');
+
+        if ($activeId !== null) {
+            $selected = $this->pressings()
+                ->wherePivot('is_active', true)
+                ->where('pressings.id', $activeId)
+                ->first();
+
+            if ($selected !== null) {
+                return $selected;
+            }
+        }
+
         return $this->pressings()->wherePivot('is_active', true)->first();
     }
 }

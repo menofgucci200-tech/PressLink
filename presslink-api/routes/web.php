@@ -17,6 +17,7 @@ use App\Livewire\Services\Index as ServicesIndex;
 use App\Livewire\Services\Variants as ServicesVariants;
 use App\Livewire\Subscription\Show as SubscriptionShow;
 use App\Livewire\Team\Index as TeamIndex;
+use App\Models\Pressing;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -26,6 +27,20 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/', Dashboard::class)->name('dashboard');
+
+    Route::get('/vue-ensemble', function () {
+        session()->forget('active_pressing_id');
+
+        return redirect()->route('dashboard');
+    })->name('pressings.overview');
+
+    Route::get('/pressings/{pressing}/activer', function (Pressing $pressing) {
+        abort_unless(auth()->user()->belongsToPressing($pressing), 403);
+
+        session(['active_pressing_id' => $pressing->id]);
+
+        return redirect()->route('dashboard');
+    })->name('pressings.switch');
 
     Route::get('/commandes', OrdersIndex::class)->name('orders.index');
     Route::get('/commandes/nouvelle', OrdersCreate::class)->name('orders.create');

@@ -260,7 +260,7 @@ class Create extends Component
     {
         $this->errorMessage = null;
         $pressing = $this->pressing();
-        $customer = Customer::findOrFail($this->selectedCustomerId);
+        $customer = $pressing->customers()->findOrFail($this->selectedCustomerId);
 
         try {
             $order = (new CreateOrderAction)->handle(

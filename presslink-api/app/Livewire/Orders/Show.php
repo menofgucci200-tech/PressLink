@@ -29,8 +29,16 @@ class Show extends Component
     {
         $this->errorMessage = null;
 
+        $target = OrderStatus::tryFrom($status);
+
+        if ($target === null) {
+            $this->errorMessage = 'Statut inconnu.';
+
+            return;
+        }
+
         try {
-            $this->order->update(['status' => OrderStatus::from($status)]);
+            $this->order->update(['status' => $target]);
         } catch (RuntimeException $e) {
             $this->errorMessage = $e->getMessage();
 

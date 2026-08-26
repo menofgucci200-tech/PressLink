@@ -11,18 +11,55 @@
     </div>
 
     @if ($showCreateForm)
-        <form wire:submit="createService" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5 grid grid-cols-3 gap-4 items-start">
-            <div>
-                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom</label>
-                <input type="text" wire:model="name" placeholder="Chemise" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
-                @error('name') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+        <form wire:submit="createService" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5">
+            <div class="grid grid-cols-3 gap-4 items-start">
+                <div>
+                    <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom</label>
+                    <input type="text" wire:model="name" placeholder="Chemise" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                    @error('name') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Prix de base (FCFA)</label>
+                    <input type="number" wire:model="priceFcfa" placeholder="1000" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                    @error('priceFcfa') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                </div>
             </div>
-            <div>
-                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Prix (FCFA)</label>
-                <input type="number" wire:model="priceFcfa" placeholder="1000" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
-                @error('priceFcfa') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+
+            <div class="mt-5 pt-5 border-t border-(--color-border)">
+                <div class="flex items-center justify-between mb-3">
+                    <label class="text-xs font-medium text-(--color-text-secondary)">Variantes (facultatif — ex. "Manche courte", "Manche longue")</label>
+                    <button type="button" wire:click="addVariantRow" class="text-xs font-medium text-(--color-primary) hover:underline">
+                        + Ajouter une variante
+                    </button>
+                </div>
+
+                @if (empty($variantRows))
+                    <p class="text-xs text-(--color-text-muted)">Aucune variante — le service n'aura que son prix de base.</p>
+                @else
+                    <div class="flex flex-col gap-2">
+                        @foreach ($variantRows as $index => $row)
+                            <div class="grid grid-cols-3 gap-3 items-start">
+                                <div class="col-span-2">
+                                    <input type="text" wire:model="variantRows.{{ $index }}.name" placeholder="Nom de la variante"
+                                        class="w-full h-9 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                                    @error("variantRows.{$index}.name") <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" wire:model="variantRows.{{ $index }}.priceFcfa" placeholder="Prix FCFA"
+                                        class="w-full h-9 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                                    <button type="button" wire:click="removeVariantRow({{ $index }})"
+                                        class="flex-none w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-muted) hover:border-(--color-error) hover:text-(--color-error)">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path></svg>
+                                    </button>
+                                </div>
+                                @error("variantRows.{$index}.priceFcfa") <p class="text-xs text-(--color-error) col-span-3 -mt-1">{{ $message }}</p> @enderror
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
             </div>
-            <div class="flex items-end gap-2 justify-end">
+
+            <div class="flex items-center gap-2 justify-end mt-5">
                 <button type="button" wire:click="$set('showCreateForm', false)" class="h-10 px-4 rounded-lg border border-(--color-border) text-sm font-medium">Annuler</button>
                 <button type="submit" wire:loading.attr="disabled" wire:target="createService"
                         class="h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold disabled:opacity-60">

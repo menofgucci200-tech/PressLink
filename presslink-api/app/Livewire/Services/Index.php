@@ -14,10 +14,24 @@ class Index extends Component
 
     public string $priceFcfa = '';
 
+    /** @var array<int, array{name: string, priceFcfa: string}> */
+    public array $variantRows = [];
+
     public function mount(): void
     {
         $pressing = auth()->user()->currentPressing();
         abort_unless($pressing && auth()->user()->isAdminOf($pressing), 403);
+    }
+
+    public function addVariantRow(): void
+    {
+        $this->variantRows[] = ['name' => '', 'priceFcfa' => ''];
+    }
+
+    public function removeVariantRow(int $index): void
+    {
+        unset($this->variantRows[$index]);
+        $this->variantRows = array_values($this->variantRows);
     }
 
     public function createService(): void
@@ -27,15 +41,31 @@ class Index extends Component
         $this->validate([
             'name' => ['required', 'string', 'max:100'],
             'priceFcfa' => ['required', 'integer', 'min:0'],
+            'variantRows.*.name' => ['nullable', 'string', 'max:100'],
+            'variantRows.*.priceFcfa' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        $pressing->services()->create([
+        $service = $pressing->services()->create([
             'name' => $this->name,
             'price_fcfa' => $this->priceFcfa,
             'is_active' => true,
         ]);
 
-        $this->reset(['name', 'priceFcfa', 'showCreateForm']);
+        foreach ($this->variantRows as $row) {
+            $variantName = trim($row['name'] ?? '');
+
+            if ($variantName === '') {
+                continue;
+            }
+
+            $service->variants()->create([
+                'name' => $variantName,
+                'price_fcfa' => $row['priceFcfa'] !== '' ? (int) $row['priceFcfa'] : 0,
+                'is_active' => true,
+            ]);
+        }
+
+        $this->reset(['name', 'priceFcfa', 'variantRows', 'showCreateForm']);
     }
 
     public function toggleActive(Service $service): void

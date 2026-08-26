@@ -21,45 +21,53 @@
                 Aucun signalement {{ $status === 'open' ? 'en attente' : ($status === 'resolved' ? 'résolu' : '') }} pour le moment.
             </div>
         @else
-            <table class="w-full text-sm">
+            <table class="w-full text-sm table-fixed">
+                <colgroup>
+                    <col class="w-[12%]">
+                    <col class="w-[16%]">
+                    <col class="w-[18%]">
+                    <col class="w-[32%]">
+                    <col class="w-[12%]">
+                    <col class="w-[10%]">
+                </colgroup>
                 <thead>
                     <tr class="text-left text-xs text-(--color-text-muted) border-b border-(--color-border)">
-                        <th class="px-5 py-3 font-medium">Commande</th>
-                        <th class="px-5 py-3 font-medium">Client</th>
-                        <th class="px-5 py-3 font-medium">Problème</th>
-                        <th class="px-5 py-3 font-medium">Description</th>
-                        <th class="px-5 py-3 font-medium">Statut</th>
-                        <th class="px-5 py-3 font-medium"></th>
+                        <th class="px-4 py-3 font-medium">Commande</th>
+                        <th class="px-4 py-3 font-medium">Client</th>
+                        <th class="px-4 py-3 font-medium">Problème</th>
+                        <th class="px-4 py-3 font-medium">Description</th>
+                        <th class="px-4 py-3 font-medium">Statut</th>
+                        <th class="px-4 py-3 font-medium"></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($issues as $issue)
                         <tr class="border-b border-(--color-border) last:border-0">
-                            <td class="px-5 py-3">
+                            <td class="px-4 py-3 truncate">
                                 <a href="{{ route('orders.show', $issue->order) }}" class="font-medium text-(--color-primary) hover:underline">
                                     {{ $issue->order->order_number }}
                                 </a>
                             </td>
-                            <td class="px-5 py-3">{{ $issue->customer?->fullName() }}</td>
-                            <td class="px-5 py-3">{{ $issue->category->label() }}</td>
-                            <td class="px-5 py-3 text-(--color-text-secondary) max-w-xs truncate">{{ $issue->description ?: '—' }}</td>
-                            <td class="px-5 py-3">
+                            <td class="px-4 py-3 truncate">{{ $issue->customer?->fullName() }}</td>
+                            <td class="px-4 py-3 truncate">{{ $issue->category->label() }}</td>
+                            <td class="px-4 py-3 text-(--color-text-secondary) truncate">{{ $issue->description ?: '—' }}</td>
+                            <td class="px-4 py-3">
                                 @if ($issue->status->value === 'resolved')
                                     <span class="inline-flex items-center gap-1.5 text-xs font-medium text-(--color-success-text)">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-(--color-success-text)"></span>
+                                        <span class="w-1.5 h-1.5 rounded-full bg-(--color-success-text) flex-none"></span>
                                         Résolu
                                     </span>
                                 @else
                                     <span class="inline-flex items-center gap-1.5 text-xs font-medium text-(--color-error)">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-(--color-error)"></span>
+                                        <span class="w-1.5 h-1.5 rounded-full bg-(--color-error) flex-none"></span>
                                         En attente
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-5 py-3 text-right">
+                            <td class="px-4 py-3 text-right">
                                 @if ($issue->status->value !== 'resolved')
                                     <button wire:click="resolveIssue({{ $issue->id }})" wire:confirm="Marquer ce signalement comme résolu ?"
-                                        class="text-xs font-medium text-(--color-primary) hover:underline">
+                                        class="text-xs font-medium text-(--color-primary) hover:underline whitespace-nowrap">
                                         Marquer résolu
                                     </button>
                                 @endif

@@ -52,7 +52,7 @@ class Index extends Component
         $pressing = auth()->user()->currentPressing();
 
         return view('livewire.services.index', [
-            'services' => $pressing->services()->orderBy('name')->get(),
+            'services' => $pressing->services()->withCount('variants')->orderBy('name')->get(),
         ]);
     }
 }

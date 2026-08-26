@@ -5,6 +5,9 @@ namespace App\Livewire\Orders;
 use App\Actions\Orders\CreateOrderAction;
 use App\Models\Customer;
 use App\Models\Pressing;
+use App\Models\Service;
+use App\Models\ServiceVariant;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -31,8 +34,21 @@ class Create extends Component
     public string $newPhone = '';
 
     // Étape 2 — articles
-    /** @var array<int, array{service_id: int, name: string, unit_price_fcfa: int, quantity: int}> */
+    /** @var array<int, array{service_id: ?int, service_variant_id: ?int, name: string, color: ?string, unit_price_fcfa: int, quantity: int}> */
     public array $items = [];
+
+    // Étape 2 — formulaire d'ajout d'un article (service + variante + couleur)
+    public string $pickerService = '';
+
+    public string $pickerVariant = '';
+
+    public string $pickerCustomName = '';
+
+    public string $pickerCustomPrice = '';
+
+    public string $pickerColor = '';
+
+    public int $pickerQuantity = 1;
 
     // Étape 3 — détails
     public string $expectedAt = '';
@@ -65,7 +81,12 @@ class Create extends Component
         $customer = DB::transaction(function () use ($pressing) {
             $customer = Customer::firstOrCreate(
                 ['phone' => $this->newPhone],
-                ['first_name' => $this->newFirstName, 'last_name' => $this->newLastName, 'phone_verified_at' => now()],
+                [
+                    'first_name' => $this->newFirstName,
+                    'last_name' => $this->newLastName,
+                    'password' => Customer::DEFAULT_WALK_IN_PASSWORD,
+                    'phone_verified_at' => now(),
+                ],
             );
 
             $pressing->customers()->syncWithoutDetaching([$customer->id => ['joined_at' => now()]]);
@@ -78,24 +99,116 @@ class Create extends Component
         $this->reset(['newFirstName', 'newLastName', 'newPhone']);
     }
 
-    public function addItem(int $serviceId): void
+    public function updatedPickerService(): void
     {
-        $service = $this->pressing()->services()->findOrFail($serviceId);
+        $this->pickerVariant = '';
+        $this->pickerCustomName = '';
+        $this->pickerCustomPrice = '';
+    }
+
+    public function updatedPickerVariant(): void
+    {
+        $this->pickerCustomName = '';
+        $this->pickerCustomPrice = '';
+    }
+
+    /**
+     * Ajoute un article à la commande — Service + variante (chacune à son
+     * propre tarif, ex. Chemise manche courte vs manche longue) et une
+     * couleur libre, ou un article entièrement personnalisé via "Autre".
+     */
+    public function addPickedItem(): void
+    {
+        $this->validate([
+            'pickerService' => ['required', 'string'],
+            'pickerColor' => ['nullable', 'string', 'max:50'],
+            'pickerQuantity' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $serviceId = null;
+        $variantId = null;
+
+        if ($this->pickerService === 'other') {
+            $name = $this->validatedCustomName();
+            $price = $this->validatedCustomPrice();
+        } else {
+            $service = $this->pressing()->services()->where('is_active', true)->findOrFail((int) $this->pickerService);
+            $serviceId = $service->id;
+            $activeVariants = $service->variants()->where('is_active', true)->get();
+
+            if ($this->pickerVariant === 'other') {
+                $name = $service->name.' · '.$this->validatedCustomName();
+                $price = $this->validatedCustomPrice();
+            } elseif ($this->pickerVariant !== '') {
+                $variant = $activeVariants->firstWhere('id', (int) $this->pickerVariant);
+                abort_if($variant === null, 404);
+                $variantId = $variant->id;
+                $name = $service->name.' · '.$variant->name;
+                $price = $variant->price_fcfa;
+            } elseif ($activeVariants->isNotEmpty()) {
+                $this->addError('pickerVariant', 'Choisissez une variante pour ce service.');
+
+                return;
+            } else {
+                $name = $service->name;
+                $price = $service->price_fcfa;
+            }
+        }
+
+        $color = $this->pickerColor !== '' ? $this->pickerColor : null;
+        $displayName = $color !== null ? "{$name} · {$color}" : $name;
 
         foreach ($this->items as $i => $item) {
-            if ($item['service_id'] === $service->id) {
-                $this->items[$i]['quantity']++;
+            if ($item['service_id'] === $serviceId && $item['service_variant_id'] === $variantId && $item['name'] === $displayName) {
+                $this->items[$i]['quantity'] += $this->pickerQuantity;
+                $this->resetPicker();
 
                 return;
             }
         }
 
         $this->items[] = [
-            'service_id' => $service->id,
-            'name' => $service->name,
-            'unit_price_fcfa' => $service->price_fcfa,
-            'quantity' => 1,
+            'service_id' => $serviceId,
+            'service_variant_id' => $variantId,
+            'name' => $displayName,
+            'color' => $color,
+            'unit_price_fcfa' => $price,
+            'quantity' => $this->pickerQuantity,
         ];
+
+        $this->resetPicker();
+    }
+
+    private function validatedCustomName(): string
+    {
+        $this->validate(['pickerCustomName' => ['required', 'string', 'max:150']]);
+
+        return $this->pickerCustomName;
+    }
+
+    private function validatedCustomPrice(): int
+    {
+        $this->validate(['pickerCustomPrice' => ['required', 'integer', 'min:0']]);
+
+        return (int) $this->pickerCustomPrice;
+    }
+
+    private function resetPicker(): void
+    {
+        $this->reset(['pickerService', 'pickerVariant', 'pickerCustomName', 'pickerCustomPrice', 'pickerColor']);
+        $this->pickerQuantity = 1;
+    }
+
+    /** @return Collection<int, ServiceVariant> */
+    public function getPickerServiceVariantsProperty()
+    {
+        if ($this->pickerService === '' || $this->pickerService === 'other') {
+            return collect();
+        }
+
+        $service = Service::find((int) $this->pickerService);
+
+        return $service?->variants()->where('is_active', true)->orderBy('name')->get() ?? collect();
     }
 
     public function incrementItem(int $index): void
@@ -189,7 +302,11 @@ class Create extends Component
         }
 
         $selectedCustomer = $this->selectedCustomerId ? Customer::find($this->selectedCustomerId) : null;
-        $services = $pressing->services()->where('is_active', true)->orderBy('name')->get();
+        $services = $pressing->services()
+            ->where('is_active', true)
+            ->withCount(['variants' => fn ($q) => $q->where('is_active', true)])
+            ->orderBy('name')
+            ->get();
 
         return view('livewire.orders.create', [
             'clients' => $clients,

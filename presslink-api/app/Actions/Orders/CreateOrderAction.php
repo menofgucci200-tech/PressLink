@@ -19,7 +19,7 @@ use RuntimeException;
 class CreateOrderAction
 {
     /**
-     * @param  list<array{service_id: ?int, name: string, unit_price_fcfa: int, quantity: int}>  $items
+     * @param  list<array{service_id: ?int, service_variant_id: ?int, name: string, color: ?string, unit_price_fcfa: int, quantity: int}>  $items
      */
     public function handle(
         Pressing $pressing,

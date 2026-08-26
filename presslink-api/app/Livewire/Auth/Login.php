@@ -36,7 +36,7 @@ class Login extends Component
 
         session()->regenerate();
 
-        $this->redirect('/', navigate: false);
+        $this->redirect(Auth::user()->is_super_admin ? '/admin' : '/', navigate: false);
     }
 
     #[Layout('layouts.guest')]

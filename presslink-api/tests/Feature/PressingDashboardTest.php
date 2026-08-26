@@ -60,8 +60,9 @@ class PressingDashboardTest extends TestCase
         $component = Livewire::test(OrdersCreate::class)
             ->call('pickCustomer', $customer->id)
             ->call('next')
-            ->call('addItem', $service->id)
-            ->call('addItem', $service->id)
+            ->set('pickerService', (string) $service->id)
+            ->set('pickerQuantity', 2)
+            ->call('addPickedItem')
             ->call('next')
             ->call('next')
             ->call('create');

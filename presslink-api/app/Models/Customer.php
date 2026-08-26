@@ -22,6 +22,14 @@ class Customer extends Authenticatable
     /** @use HasFactory<CustomerFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
+    /**
+     * Mot de passe attribué par défaut à un client créé directement par le
+     * staff (walk-in, sans passer par l'inscription dans l'app) — à
+     * transmettre au client pour qu'il se connecte puis le change dans
+     * son profil.
+     */
+    public const DEFAULT_WALK_IN_PASSWORD = '123456';
+
     protected $fillable = [
         'first_name',
         'last_name',

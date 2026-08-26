@@ -27,9 +27,18 @@
                 <input type="text" wire:model="phone" placeholder="+2250708124400" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                 @error('phone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
+            <p class="col-span-3 text-xs text-(--color-text-muted)">
+                Le client pourra se connecter à l'app avec ce numéro et le mot de passe par défaut
+                <span class="font-mono font-semibold">{{ \App\Models\Customer::DEFAULT_WALK_IN_PASSWORD }}</span>,
+                qu'il pourra changer ensuite dans son profil.
+            </p>
             <div class="col-span-3 flex gap-2 justify-end">
                 <button type="button" wire:click="$set('showCreateForm', false)" class="h-10 px-4 rounded-lg border border-(--color-border) text-sm font-medium">Annuler</button>
-                <button type="submit" class="h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold">Créer</button>
+                <button type="submit" wire:loading.attr="disabled" wire:target="createClient"
+                        class="h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold disabled:opacity-60">
+                    <span wire:loading.remove wire:target="createClient">Créer</span>
+                    <span wire:loading wire:target="createClient">Création…</span>
+                </button>
             </div>
         </form>
     @endif
@@ -54,7 +63,7 @@
                 </thead>
                 <tbody>
                     @foreach ($clients as $client)
-                        <tr class="border-t border-(--color-border) hover:bg-(--color-bg)">
+                        <tr class="border-t border-(--color-border) hover:bg-(--color-bg) cursor-pointer" onclick="window.location='{{ route('clients.show', $client) }}'">
                             <td class="px-5 py-3.5 font-medium">{{ $client->fullName() }}</td>
                             <td class="px-5 py-3.5 text-(--color-text-secondary) tabular-nums">{{ $client->phone }}</td>
                             <td class="px-5 py-3.5 text-right tabular-nums">{{ $client->orders_count }}</td>

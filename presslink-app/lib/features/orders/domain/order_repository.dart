@@ -3,16 +3,21 @@ import '../../../core/network/api_error.dart';
 import '../../../core/theme/app_colors.dart';
 
 class OrderItemModel {
-  const OrderItemModel({required this.name, required this.quantity, required this.subtotalFcfa});
+  const OrderItemModel({required this.name, required this.quantity, required this.subtotalFcfa, this.color});
 
   final String name;
   final int quantity;
   final int subtotalFcfa;
 
+  /// Couleur de l'article, ex. "Bleu" — déjà incluse dans [name] pour
+  /// l'affichage, exposée séparément pour un usage futur (filtre, badge…).
+  final String? color;
+
   factory OrderItemModel.fromJson(Map<String, dynamic> json) => OrderItemModel(
         name: json['name'] as String,
         quantity: json['quantity'] as int,
         subtotalFcfa: json['subtotal_fcfa'] as int,
+        color: json['color'] as String?,
       );
 }
 

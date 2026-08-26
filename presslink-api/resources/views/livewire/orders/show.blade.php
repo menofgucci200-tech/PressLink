@@ -33,8 +33,11 @@
                                     <div class="text-xs text-(--color-text-muted) mt-1">{{ $issue->created_at->format('d/m/Y H:i') }} · {{ $issue->status->label() }}</div>
                                 </div>
                                 @if ($issue->status->value === 'open')
-                                    <button wire:click="resolveIssue({{ $issue->id }})" class="flex-none h-8 px-3 rounded-lg border border-(--color-border) text-xs font-medium hover:border-(--color-primary)">
-                                        Marquer résolu
+                                    <button wire:click="resolveIssue({{ $issue->id }})"
+                                            wire:loading.attr="disabled" wire:target="resolveIssue({{ $issue->id }})"
+                                            class="flex-none h-8 px-3 rounded-lg border border-(--color-border) text-xs font-medium hover:border-(--color-primary) disabled:opacity-60">
+                                        <span wire:loading.remove wire:target="resolveIssue({{ $issue->id }})">Marquer résolu</span>
+                                        <span wire:loading wire:target="resolveIssue({{ $issue->id }})">…</span>
                                     </button>
                                 @endif
                             </div>
@@ -99,8 +102,10 @@
                     <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1">Actions</div>
                     @foreach ($nextActions as $action)
                         <button wire:click="transitionTo('{{ $action->value }}')"
-                                class="h-10 rounded-lg text-sm font-semibold {{ $action->value === 'recuperee' || $action->value === 'prete' ? 'bg-(--color-primary) text-white hover:bg-(--color-primary-600)' : 'border border-(--color-border) hover:border-(--color-primary)' }}">
-                            Marquer {{ mb_strtolower($action->label()) }}
+                                wire:loading.attr="disabled" wire:target="transitionTo('{{ $action->value }}')"
+                                class="h-10 rounded-lg text-sm font-semibold disabled:opacity-60 {{ $action->value === 'recuperee' || $action->value === 'prete' ? 'bg-(--color-primary) text-white hover:bg-(--color-primary-600)' : 'border border-(--color-border) hover:border-(--color-primary)' }}">
+                            <span wire:loading.remove wire:target="transitionTo('{{ $action->value }}')">Marquer {{ mb_strtolower($action->label()) }}</span>
+                            <span wire:loading wire:target="transitionTo('{{ $action->value }}')">Mise à jour…</span>
                         </button>
                     @endforeach
                 </div>

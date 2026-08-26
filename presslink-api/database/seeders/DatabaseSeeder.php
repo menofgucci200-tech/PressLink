@@ -17,6 +17,14 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        User::factory()->create([
+            'name' => 'PressLink Admin',
+            'email' => 'superadmin@presslink.test',
+            'phone' => '+2250700000000',
+            'password' => Hash::make('password'),
+            'is_super_admin' => true,
+        ]);
+
         $admin = User::factory()->create([
             'name' => 'Awa Kouassi',
             'email' => 'admin@pressing-elegance.test',

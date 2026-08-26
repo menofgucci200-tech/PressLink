@@ -18,7 +18,7 @@ class PressingFactory extends Factory
         return [
             'name' => 'Pressing '.fake()->company(),
             'code' => Pressing::generateUniqueCode(),
-            'phone' => '+225'.fake()->numerify('0# ## ## ## ##'),
+            'phone' => '+225'.fake()->numerify('0#########'),
             'email' => fake()->companyEmail(),
             'address' => fake()->streetAddress(),
             'city' => $city,

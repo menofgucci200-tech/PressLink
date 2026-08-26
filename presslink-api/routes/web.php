@@ -8,6 +8,7 @@ use App\Livewire\Auth\Login;
 use App\Livewire\Clients\Index as ClientsIndex;
 use App\Livewire\Clients\Show as ClientsShow;
 use App\Livewire\Dashboard;
+use App\Livewire\Issues\Index as IssuesIndex;
 use App\Livewire\Orders\Create as OrdersCreate;
 use App\Livewire\Orders\Index as OrdersIndex;
 use App\Livewire\Orders\Show as OrdersShow;
@@ -32,6 +33,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/clients', ClientsIndex::class)->name('clients.index');
     Route::get('/clients/{customer}', ClientsShow::class)->name('clients.show');
+
+    Route::get('/signalements', IssuesIndex::class)->name('issues.index');
 
     Route::get('/tarifs', ServicesIndex::class)->name('services.index');
     Route::get('/tarifs/{service}/variantes', ServicesVariants::class)->name('services.variants');

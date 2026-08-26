@@ -20,7 +20,13 @@
                 $navItem('dashboard', 'dashboard', 'Dashboard', 'M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z|M9 21v-6h6v6'),
                 $navItem('orders', 'orders.index', 'Commandes', 'M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z|m3.3 7 8.7 5 8.7-5|M12 22V12'),
                 $navItem('clients', 'clients.index', 'Clients', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M9 11A4 4 0 1 0 9 3a4 4 0 0 0 0 8Z'),
+                $navItem('issues', 'issues.index', 'Signalements', 'M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z|M12 9v4|M12 17h.01'),
             ];
+            $openIssuesCount = $pressing
+                ? \App\Models\OrderIssue::whereHas('order', fn ($q) => $q->where('pressing_id', $pressing->id))
+                    ->where('status', \App\Enums\OrderIssueStatus::Open->value)
+                    ->count()
+                : 0;
         @endphp
 
         <div class="min-h-screen flex">
@@ -39,6 +45,11 @@
                                 @endforeach
                             </svg>
                             {{ $item['label'] }}
+                            @if ($item['key'] === 'issues' && $openIssuesCount > 0)
+                                <span class="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-(--color-error) text-white text-[11px] font-semibold">
+                                    {{ $openIssuesCount }}
+                                </span>
+                            @endif
                         </a>
                     @endforeach
 

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Suite dédiée aux tests de concurrence métier (load-testing/, Section 5).
+
+    Contrairement à phpunit.xml (SQLite en mémoire + RefreshDatabase), ces
+    tests pilotent un VRAI serveur PHP en cours d'exécution
+    (voir load-testing/README.md, commande "php artisan serve") via de
+    vraies requêtes HTTP concurrentes (Http pool). Le process de test et
+    le serveur doivent donc partager la MÊME base MySQL : RefreshDatabase
+    est inutilisable ici (elle isolerait chaque test dans une transaction
+    que le serveur, dans un autre process, ne verrait jamais).
+
+    Utilisation : vendor/bin/phpunit -c phpunit.concurrency.xml
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         stopOnFailure="false"
+>
+    <testsuites>
+        <testsuite name="Concurrency">
+            <directory>tests/Concurrency</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
+    <php>
+        <env name="APP_ENV" value="loadtest"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="DB_CONNECTION" value="mysql"/>
+        <env name="DB_HOST" value="127.0.0.1"/>
+        <env name="DB_PORT" value="3306"/>
+        <env name="DB_DATABASE" value="presslink_loadtest"/>
+        <env name="DB_USERNAME" value="loadtest"/>
+        <env name="DB_PASSWORD" value="loadtest_pw_2026"/>
+        <env name="SESSION_DRIVER" value="database"/>
+        <env name="QUEUE_CONNECTION" value="database"/>
+        <env name="CACHE_STORE" value="database"/>
+        <!-- URL du serveur PHP réel à cibler (voir load-testing/README.md) -->
+        <env name="CONCURRENCY_BASE_URL" value="http://127.0.0.1:8100"/>
+    </php>
+</phpunit>

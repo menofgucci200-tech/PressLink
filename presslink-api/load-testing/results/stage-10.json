@@ -1,0 +1,198 @@
+{
+    "metrics": {
+        "client_profile_errors": {
+            "count": 120,
+            "rate": 1.406599558583796
+        },
+        "vus": {
+            "min": 0,
+            "max": 10,
+            "value": 1
+        },
+        "http_req_blocked": {
+            "p(50)": 0.32983799999999996,
+            "p(90)": 0.4169454,
+            "p(95)": 0.4555263499999999,
+            "p(99)": 0.5306909600000002,
+            "max": 2.016517,
+            "avg": 0.3377578453987727,
+            "min": 0.122581,
+            "med": 0.32983799999999996
+        },
+        "http_reqs": {
+            "count": 1630,
+            "rate": 19.10631067076323
+        },
+        "data_sent": {
+            "count": 310025,
+            "rate": 3634.0085679161784
+        },
+        "http_req_sending": {
+            "med": 0.0800275,
+            "p(50)": 0.0800275,
+            "p(90)": 0.1194159,
+            "p(95)": 0.13455494999999998,
+            "p(99)": 0.17886889000000014,
+            "max": 1.142626,
+            "avg": 0.08766465828220853,
+            "min": 0.029128
+        },
+        "iterations": {
+            "count": 324,
+            "rate": 3.7978188081762494
+        },
+        "http_req_receiving": {
+            "avg": 0.751948109202455,
+            "min": 0.15113,
+            "med": 0.7283295,
+            "p(50)": 0.7283295,
+            "p(90)": 0.9116673000000001,
+            "p(95)": 0.98424035,
+            "p(99)": 1.1583060700000005,
+            "max": 3.513214
+        },
+        "http_req_duration{expected_response:true}": {
+            "p(50)": 27.8701295,
+            "p(90)": 43.4627299,
+            "p(95)": 51.392992449999994,
+            "p(99)": 69.14781187000006,
+            "max": 139.662173,
+            "avg": 30.828486017218566,
+            "min": 18.870548,
+            "med": 27.8701295
+        },
+        "http_req_tls_handshaking": {
+            "p(50)": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0,
+            "max": 0,
+            "avg": 0,
+            "min": 0,
+            "med": 0
+        },
+        "http_req_waiting": {
+            "p(90)": 42.99743200000002,
+            "p(95)": 51.27014105,
+            "p(99)": 68.25811036000003,
+            "max": 138.742059,
+            "avg": 30.089971017791427,
+            "min": 18.263994,
+            "med": 26.949457000000002,
+            "p(50)": 26.949457000000002
+        },
+        "http_req_duration": {
+            "max": 139.662173,
+            "avg": 30.929583785276094,
+            "min": 18.870548,
+            "med": 27.752043,
+            "p(50)": 27.752043,
+            "p(90)": 43.816324900000005,
+            "p(95)": 52.145826799999995,
+            "p(99)": 69.00382047000002,
+            "thresholds": {
+                "p(95)<800": false,
+                "p(99)<1500": false
+            }
+        },
+        "http_req_connecting": {
+            "max": 1.859659,
+            "avg": 0.20639470184049094,
+            "min": 0.074361,
+            "med": 0.200569,
+            "p(50)": 0.200569,
+            "p(90)": 0.26852500000000007,
+            "p(95)": 0.29301949999999993,
+            "p(99)": 0.3699519400000001
+        },
+        "iteration_duration": {
+            "min": 2222.063687,
+            "med": 2259.418505,
+            "p(50)": 2259.418505,
+            "p(90)": 2292.5933818999997,
+            "p(95)": 2306.8784032,
+            "p(99)": 2346.16559852,
+            "max": 2428.551854,
+            "avg": 2263.484349070988
+        },
+        "http_req_failed": {
+            "passes": 120,
+            "fails": 1510,
+            "thresholds": {
+                "rate<0.01": true
+            },
+            "value": 0.0736196319018405
+        },
+        "data_received": {
+            "count": 5869274,
+            "rate": 68797.6518133946
+        },
+        "vus_max": {
+            "value": 10,
+            "min": 10,
+            "max": 10
+        },
+        "checks": {
+            "fails": 120,
+            "passes": 1520,
+            "value": 0.926829268292683
+        }
+    },
+    "root_group": {
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+                "client login 200": {
+                    "id": "94c4242ca88bebc6b6385404822b0046",
+                    "passes": 10,
+                    "fails": 0,
+                    "name": "client login 200",
+                    "path": "::client login 200"
+                },
+                "client login renvoie un token": {
+                    "id": "af7f2cef742aa064673696b9e79c855a",
+                    "passes": 10,
+                    "fails": 0,
+                    "name": "client login renvoie un token",
+                    "path": "::client login renvoie un token"
+                },
+                "client profil 200": {
+                    "fails": 120,
+                    "name": "client profil 200",
+                    "path": "::client profil 200",
+                    "id": "844ab320c33384f3d6daf3495ab4c16e",
+                    "passes": 204
+                },
+                "client pressings 200": {
+                    "path": "::client pressings 200",
+                    "id": "d151193c714b7f064644b9c898b54a85",
+                    "passes": 324,
+                    "fails": 0,
+                    "name": "client pressings 200"
+                },
+                "client commandes 200": {
+                    "name": "client commandes 200",
+                    "path": "::client commandes 200",
+                    "id": "101c978fe2161e8576943aba80c79413",
+                    "passes": 324,
+                    "fails": 0
+                },
+                "client détail commande 200": {
+                    "path": "::client détail commande 200",
+                    "id": "90c22e5951e15adc3851294abe9aca67",
+                    "passes": 324,
+                    "fails": 0,
+                    "name": "client détail commande 200"
+                },
+                "client notifications 200": {
+                    "name": "client notifications 200",
+                    "path": "::client notifications 200",
+                    "id": "a710401ec77f77bec38c99efd0c73df3",
+                    "passes": 324,
+                    "fails": 0
+                }
+            },
+        "name": "",
+        "path": ""
+    }
+}

@@ -64,6 +64,8 @@ class Create extends Component
 
     public function pickCustomer(int $customerId): void
     {
+        abort_unless($this->pressing()->customers()->where('customers.id', $customerId)->exists(), 403);
+
         $this->selectedCustomerId = $customerId;
         $this->showNewClientForm = false;
     }
@@ -260,7 +262,8 @@ class Create extends Component
     {
         $this->errorMessage = null;
         $pressing = $this->pressing();
-        $customer = Customer::findOrFail($this->selectedCustomerId);
+        $customer = $pressing->customers()->find($this->selectedCustomerId);
+        abort_if($customer === null, 403);
 
         try {
             $order = (new CreateOrderAction)->handle(
@@ -301,7 +304,7 @@ class Create extends Component
             $clients = $pressing->customers()->orderByDesc('pressing_customers.joined_at')->limit(6)->get();
         }
 
-        $selectedCustomer = $this->selectedCustomerId ? Customer::find($this->selectedCustomerId) : null;
+        $selectedCustomer = $this->selectedCustomerId ? $pressing->customers()->find($this->selectedCustomerId) : null;
         $services = $pressing->services()
             ->where('is_active', true)
             ->withCount(['variants' => fn ($q) => $q->where('is_active', true)])

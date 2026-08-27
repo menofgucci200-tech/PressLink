@@ -32,6 +32,10 @@ class CreateOrderAction
             throw new InvalidArgumentException('Une commande doit contenir au moins un article.');
         }
 
+        if (! $pressing->customers()->where('customers.id', $customer->id)->exists()) {
+            throw new InvalidArgumentException('Ce client ne fait pas partie de ce pressing.');
+        }
+
         $subscription = $pressing->subscription;
 
         if ($subscription !== null && ! $subscription->allowsNewOrder()) {

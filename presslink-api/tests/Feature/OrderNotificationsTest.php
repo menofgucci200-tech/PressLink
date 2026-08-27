@@ -26,12 +26,21 @@ class OrderNotificationsTest extends TestCase
         return ['service_id' => null, 'name' => 'Chemise', 'unit_price_fcfa' => 1000, 'quantity' => 1];
     }
 
+    /** Un client doit appartenir au pressing (RB-03) avant qu'on puisse lui créer une commande. */
+    private function makeCustomerOf(Pressing $pressing): Customer
+    {
+        $customer = Customer::factory()->create();
+        $pressing->customers()->attach($customer, ['joined_at' => now()]);
+
+        return $customer;
+    }
+
     public function test_creating_an_order_notifies_the_customer(): void
     {
         Notification::fake();
 
         $pressing = Pressing::factory()->create();
-        $customer = Customer::factory()->create();
+        $customer = $this->makeCustomerOf($pressing);
 
         $order = (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
 
@@ -46,7 +55,7 @@ class OrderNotificationsTest extends TestCase
         Notification::fake();
 
         $pressing = Pressing::factory()->create();
-        $customer = Customer::factory()->create();
+        $customer = $this->makeCustomerOf($pressing);
         $order = (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
 
         $order->update(['status' => OrderStatus::Traitement]);
@@ -61,7 +70,7 @@ class OrderNotificationsTest extends TestCase
         Notification::fake();
 
         $pressing = Pressing::factory()->create();
-        $customer = Customer::factory()->create();
+        $customer = $this->makeCustomerOf($pressing);
         $order = (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
 
         $order->update(['status' => OrderStatus::Traitement]);
@@ -74,7 +83,7 @@ class OrderNotificationsTest extends TestCase
     public function test_customer_can_list_their_notifications(): void
     {
         $pressing = Pressing::factory()->create();
-        $customer = Customer::factory()->create();
+        $customer = $this->makeCustomerOf($pressing);
         (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
 
         $token = $customer->createToken('test')->plainTextToken;
@@ -90,7 +99,7 @@ class OrderNotificationsTest extends TestCase
     public function test_customer_can_mark_a_notification_as_read(): void
     {
         $pressing = Pressing::factory()->create();
-        $customer = Customer::factory()->create();
+        $customer = $this->makeCustomerOf($pressing);
         (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
 
         $notification = $customer->notifications()->first();
@@ -106,7 +115,7 @@ class OrderNotificationsTest extends TestCase
     public function test_customer_cannot_read_another_customers_notification(): void
     {
         $pressing = Pressing::factory()->create();
-        $owner = Customer::factory()->create();
+        $owner = $this->makeCustomerOf($pressing);
         $intruder = Customer::factory()->create();
         (new CreateOrderAction)->handle($pressing, $owner, [$this->makeItem()]);
 

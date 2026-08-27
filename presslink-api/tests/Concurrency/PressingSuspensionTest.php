@@ -11,20 +11,19 @@ use Tests\Concurrency\Support\LivewireSession;
 
 /**
  * Section 5 du plan de charge : "suspendre un pressing pendant une
- * tentative de création de commande". En creusant le code (voir
- * app/Livewire/Admin/Pressings/{Index,Show}.php et
- * app/Actions/Orders/CreateOrderAction.php), PressingStatus::Suspended
- * n'est en réalité vérifié NULLE PART côté staff : il ne sert qu'à
- * l'affichage dans le back-office Super Admin. Ce n'est donc même pas
- * une question de fenêtre de course — la suspension n'a aucun effet
- * bloquant, avec ou sans concurrence. On le documente ici avec le test le
- * plus simple possible (suspension AVANT la tentative, sans même avoir
- * besoin de concurrence pour le révéler), et on illustre en plus le cas
- * "concurrent" demandé (suspension pendant la création).
+ * tentative de création de commande".
+ *
+ * `PressingStatus::Suspended` était auparavant vérifié NULLE PART côté
+ * staff (uniquement affiché dans le back-office Super Admin) — voir
+ * load-testing/RAPPORT.md, finding B. `CreateOrderAction::handle()`
+ * refuse désormais toute création pour un pressing non actif. Ces tests
+ * vérifient le correctif, seul (sans concurrence nécessaire pour le
+ * révéler) et sous la course explicitement demandée par le plan de charge
+ * (suspension pendant la tentative de création).
  */
 class PressingSuspensionTest extends ConcurrencyTestCase
 {
-    public function test_a_suspended_pressing_can_still_have_orders_created_no_enforcement_exists(): void
+    public function test_a_suspended_pressing_cannot_have_orders_created(): void
     {
         ['pressing' => $pressing] = $this->makePressingWithAdmin(ordersLimit: 1000);
         $employee = $this->makeEmployeeOf($pressing);
@@ -35,7 +34,7 @@ class PressingSuspensionTest extends ConcurrencyTestCase
         $this->assertTrue($session->loginAsStaff($employee->email, self::PASSWORD));
 
         $page = $session->visit('/commandes/nouvelle');
-        $this->assertNotNull($page['snapshot'], 'Le staff d\'un pressing suspendu peut quand même ouvrir le formulaire de création.');
+        $this->assertNotNull($page['snapshot'], 'Le staff peut toujours ouvrir le formulaire — seule la création est bloquée.');
 
         $afterPick = $session->call($page['snapshot'], [
             'newFirstName' => 'Suspendu', 'newLastName' => 'Test', 'newPhone' => '+2250099998888',
@@ -49,21 +48,19 @@ class PressingSuspensionTest extends ConcurrencyTestCase
 
         $created = $session->call($afterAddItem['snapshot'], [], [['path' => '', 'method' => 'create', 'params' => []]]);
 
-        // FINDING (à documenter en ÉLEVÉ dans le rapport) : la création
-        // réussit malgré la suspension — aucune règle métier ne bloque ça.
-        $this->assertNotEmpty(
+        $this->assertEmpty(
             $created['effects']['redirect'] ?? null,
-            'Constat : la commande est créée même si le pressing est SUSPENDU — PressingStatus::Suspended n\'est vérifié nulle part côté staff (uniquement affiché côté Super Admin). Voir RAPPORT.md.'
+            'La création doit être refusée (pas de redirect) pour un pressing suspendu.'
         );
 
         $this->assertSame(
-            1,
+            0,
             Order::where('pressing_id', $pressing->id)->count(),
-            'Confirme qu\'une commande a bien été persistée pour un pressing suspendu.'
+            'Aucune commande ne doit être persistée pour un pressing suspendu.'
         );
     }
 
-    public function test_suspending_a_pressing_concurrently_with_an_order_creation_attempt_has_no_effect(): void
+    public function test_suspending_a_pressing_concurrently_with_an_order_creation_attempt_blocks_the_creation(): void
     {
         ['pressing' => $pressing] = $this->makePressingWithAdmin(ordersLimit: 1000);
         $employee = $this->makeEmployeeOf($pressing);
@@ -103,12 +100,20 @@ class PressingSuspensionTest extends ConcurrencyTestCase
         $createResult = LivewireSession::extractComponent($responses[0]);
 
         $pressing->refresh();
+        $ordersCreated = Order::where('pressing_id', $pressing->id)->count();
 
-        // Que la suspension gagne la course ou non, la création aboutit
-        // dans tous les cas : ce n'est pas un problème de timing, c'est
-        // une règle métier absente.
-        $this->assertNotEmpty($createResult['effects']['redirect'] ?? null);
-        $this->assertSame(1, Order::where('pressing_id', $pressing->id)->count());
+        // Deux requêtes véritablement concurrentes, sans verrou partagé
+        // entre la lecture du statut du pressing et sa mise à jour : la
+        // création peut légitimement lire "Actif" avant que la suspension
+        // ne committe (elle réussit alors, ce qui est correct — la requête
+        // a bien commencé avant la suspension), ou lire "Suspendu" après
+        // (elle échoue). Ce qui compte est la COHÉRENCE : le nombre de
+        // commandes créées doit toujours correspondre exactement à ce que
+        // la réponse HTTP a rapporté — jamais de commande "fantôme" ni de
+        // commande "perdue".
+        $created = ! empty($createResult['effects']['redirect'] ?? null);
+
+        $this->assertSame($created ? 1 : 0, $ordersCreated);
 
         $superAdmin->delete();
     }

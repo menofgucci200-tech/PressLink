@@ -5,6 +5,7 @@ namespace App\Livewire\Orders;
 use App\Enums\OrderIssueStatus;
 use App\Enums\OrderStatus;
 use App\Models\Order;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use RuntimeException;
@@ -21,12 +22,24 @@ class Show extends Component
         $this->order = $order;
     }
 
+    /**
+     * Verrou pessimiste (SELECT ... FOR UPDATE) : deux changements de
+     * statut concurrents sur la même commande sérialisent sur ce verrou au
+     * lieu de valider chacun contre son propre statut de départ en
+     * mémoire, ce qui évitait un "lost update" (les deux transitions
+     * acceptées, l'historique incohérent avec le statut final — voir
+     * load-testing/RAPPORT.md, finding D).
+     */
     public function transitionTo(string $status): void
     {
         $this->errorMessage = null;
+        $target = OrderStatus::from($status);
 
         try {
-            $this->order->update(['status' => OrderStatus::from($status)]);
+            DB::transaction(function () use ($target) {
+                $locked = Order::whereKey($this->order->id)->lockForUpdate()->firstOrFail();
+                $locked->update(['status' => $target]);
+            });
         } catch (RuntimeException $e) {
             $this->errorMessage = $e->getMessage();
 

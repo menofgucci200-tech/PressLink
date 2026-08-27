@@ -9,16 +9,19 @@ use Tests\Concurrency\Support\LivewireSession;
 
 /**
  * Section 5 du plan de charge : "deux employés modifient le même statut de
- * commande simultanément". OrderObserver::updating() valide la transition
- * en comparant au statut ORIGINAL du modèle Eloquent chargé pour la requête
- * en cours — pas un verrou pessimiste (SELECT ... FOR UPDATE) ni une
- * contrainte au niveau base. Ce test vérifie ce qui se passe réellement
- * quand deux transitions valides-depuis-le-même-état-de-départ sont
- * envoyées en même temps.
+ * commande simultanément".
+ *
+ * `Orders\Show::transitionTo()` prend désormais un verrou pessimiste
+ * (`lockForUpdate()`) et relit le statut sous ce verrou avant de valider
+ * la transition (voir load-testing/RAPPORT.md, finding D — corrigé). Les
+ * deux requêtes concurrentes se sérialisent donc sur ce verrou : la
+ * seconde voit le statut RÉELLEMENT à jour (celui laissé par la première),
+ * pas une copie potentiellement obsolète — plus de lost update ni
+ * d'incohérence entre l'historique et le statut final.
  */
 class OrderStatusConcurrencyTest extends ConcurrencyTestCase
 {
-    public function test_two_concurrent_valid_transitions_from_the_same_status_do_not_corrupt_the_order(): void
+    public function test_two_concurrent_transitions_from_the_same_status_serialize_without_lost_update(): void
     {
         ['pressing' => $pressing] = $this->makePressingWithAdmin(ordersLimit: 1000);
         $employeeA = $this->makeEmployeeOf($pressing);
@@ -60,28 +63,38 @@ class OrderStatusConcurrencyTest extends ConcurrencyTestCase
         $this->assertSame(200, $responses[1]->status());
 
         $order->refresh();
-        $finalStatus = $order->status;
 
-        // CONSTAT (à documenter dans le rapport, pas un bug qu'on corrige
-        // ici) : sans verrou pessimiste, les deux transitions peuvent
-        // toutes les deux être acceptées côté application puisque chacune
-        // valide contre SA PROPRE lecture de "Recue" — c'est un "lost
-        // update" classique : le statut final est celui de la requête qui
-        // a committé en dernier, pas nécessairement celui qu'on attendrait
-        // métier (ex. une annulation "perdue" par un passage en
-        // traitement, ou l'inverse).
         $this->assertContains(
-            $finalStatus,
+            $order->status,
             [OrderStatus::Traitement, OrderStatus::Annulee],
             'Le statut final doit être l\'une des deux transitions envoyées (pas une valeur corrompue/hybride).'
         );
 
-        $historyCount = $order->statusHistory()->count();
+        // Le verrou garantit une sérialisation stricte : chaque entrée de
+        // l'historique doit être une transition RÉELLEMENT valide depuis
+        // la précédente, et le statut final doit correspondre à la
+        // dernière entrée. Si la 2e requête (sous verrou) voit un statut
+        // qui ne permet plus sa transition demandée (ex. "Annulee" est un
+        // état terminal), elle est refusée — c'est le comportement
+        // attendu, pas une erreur.
+        // La toute première entrée est l'état initial posé par
+        // OrderObserver::created() (Recue) — ce n'est pas une transition,
+        // on la saute.
+        $history = $order->statusHistory()->orderBy('created_at')->orderBy('id')->get()->skip(1);
+        $previous = OrderStatus::Recue;
 
-        $this->assertGreaterThanOrEqual(
-            2,
-            $historyCount,
-            "Trouvaille : sur {$historyCount} entrée(s) d'historique pour 2 transitions concurrentes envoyées, l'historique peut contenir les DEUX transitions même si le statut final n'en reflète qu'une — l'audit trail peut donc afficher une transition qui n'a \"jamais vraiment eu lieu\" du point de vue de l'état final. Voir RAPPORT.md, finding concurrence statut."
+        foreach ($history as $entry) {
+            $this->assertTrue(
+                $previous->canTransitionTo($entry->status),
+                "Historique incohérent : transition {$previous->value} → {$entry->status->value} n'est pas valide."
+            );
+            $previous = $entry->status;
+        }
+
+        $this->assertSame(
+            $previous,
+            $order->status,
+            'Le statut final doit correspondre à la dernière entrée de l\'historique (plus de lost update).'
         );
     }
 }

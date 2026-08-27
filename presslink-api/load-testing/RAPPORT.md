@@ -10,6 +10,42 @@ contraire, rien dans `app/` n'a été modifié pour produire ce rapport.
 
 ---
 
+## Addendum (27/08/2026) — 4 findings corrigés avant mise en production
+
+Suite à ce rapport, les 4 findings jugés bloquants pour un déploiement
+public ont été corrigés (findings A, B, C, D ci-dessous — désormais
+marqués 🟢 CORRIGÉ). Les findings E et F (FAIBLE) n'ont pas été traités,
+conformément à leur priorité. Résumé des correctifs, chacun revalidé par
+les tests de concurrence (`vendor/bin/phpunit -c phpunit.concurrency.xml`,
+6/6 sur plusieurs runs) et la suite standard (`php artisan test`, 106/106) :
+
+- **A — Notifications synchrones** : `OrderNotification` implémente
+  désormais `ShouldQueueAfterCommit` (pas juste `ShouldQueue` — voir note
+  dans le fichier : ces notifications sont dispatchées DEPUIS
+  `OrderObserver`, DANS la transaction de `CreateOrderAction`, et
+  `after_commit` vaut `false` par défaut pour la queue `database` ; un
+  simple `ShouldQueue` pousse le job avant que la commande ne soit
+  committée — repéré en testant le correctif en conditions réelles avec
+  `queue:work`, qui a d'abord produit des `ModelNotFoundException` sur des
+  commandes non encore committées). Revalidé : `loadtest:notifications-flood
+  --count=50` puis `queue:work --stop-when-empty` → 100 jobs créés, 0 échec,
+  50 notifications correctement écrites en base.
+- **B — Suspension de pressing** : `CreateOrderAction::handle()` refuse
+  désormais toute création si `$pressing->status !== PressingStatus::Active`.
+- **C — Rate limiting** : `/me` et `/logout` sortis du throttle partagé
+  `15,1` avec `login`/`register`/`check-phone` ; nouveau throttle dédié
+  `120,1` (authentifié, moins sensible). Revalidé manuellement : 30 appels
+  consécutifs à `/me` avec un token valide → 30× `200`, 0× `429`.
+- **D — Lost update sur changement de statut** : `Orders\Show::transitionTo()`
+  prend désormais un verrou pessimiste (`lockForUpdate()`) et relit le
+  statut sous ce verrou avant de valider la transition.
+
+Détail des diagnostics originaux ci-dessous (§4), conservés tels quels
+pour la traçabilité — chaque finding corrigé porte maintenant une note
+🟢 renvoyant à cet addendum.
+
+---
+
 ## 0. Environnement de test et sa limite principale
 
 Tout a tourné **dans ce conteneur** (MySQL 8.0.46 dédié `presslink_loadtest`,
@@ -133,14 +169,14 @@ environnement de staging avec des identifiants Firebase sandbox.
 
 ### 🔴 ÉLEVÉ
 
-**A. Notifications synchrones — pas de `ShouldQueue`**
+**A. Notifications synchrones — pas de `ShouldQueue`** — 🟢 CORRIGÉ (voir addendum en tête de rapport)
 - **Où** : `app/Notifications/OrderNotification.php`, déclenché depuis `app/Observers/OrderObserver.php`
 - **Cause probable** : la classe de base des notifications de commande n'implémente pas `Illuminate\Contracts\Queue\ShouldQueue`, alors que `QUEUE_CONNECTION=database` est configuré et que la table `jobs` existe et fonctionne.
 - **Preuve** : `loadtest:notifications-flood` (§3) — 0 job créé dans `jobs` sur 1600 transitions de statut testées ; toutes les notifications (DB + tentative FCM) s'exécutent dans le thread de la requête HTTP.
 - **Impact** : chaque `create()` de commande et chaque changement de statut paie le coût de notification (DB + appel FCM potentiel) de façon synchrone. Sous charge réelle (ex. réouverture de service, plusieurs employés marquent des commandes prêtes en rafale), ce coût s'additionne pleinement à la latence perçue, sans possibilité d'absorption par des workers de queue.
 - **Recommandation** : `class OrderNotification extends Notification implements ShouldQueue` + `use Queueable;`, puis `php artisan queue:work` en production. Changement à 2 lignes, infrastructure déjà en place — **non appliqué ici** conformément à la consigne de ne pas ajouter/modifier de fonctionnalité produit dans cette tâche.
 
-**B. Suspension d'un pressing non appliquée côté staff**
+**B. Suspension d'un pressing non appliquée côté staff** — 🟢 CORRIGÉ (voir addendum en tête de rapport)
 - **Où** : `app/Actions/Orders/CreateOrderAction.php` (et plus largement, aucune route/middleware staff ne vérifie `PressingStatus`)
 - **Cause probable** : `PressingStatus::Suspended` n'est consommé que par l'affichage du back-office Super Admin (`app/Livewire/Admin/Pressings/{Index,Show}.php`) — jamais comme garde métier.
 - **Preuve** : `tests/Concurrency/PressingSuspensionTest.php` — une commande est créée avec succès pour un pressing explicitement suspendu, **sans même nécessiter de concurrence** pour le révéler (le test "seul" suffit ; la variante concurrente confirme juste qu'une suspension simultanée ne change rien).
@@ -149,14 +185,14 @@ environnement de staging avec des identifiants Firebase sandbox.
 
 ### 🟠 MOYEN
 
-**C. Rate limiting par IP trop large sur les routes client, y compris `/me`**
+**C. Rate limiting par IP trop large sur les routes client, y compris `/me`** — 🟢 CORRIGÉ (voir addendum en tête de rapport)
 - **Où** : `routes/api.php`, groupe `Route::prefix('auth/customer')->middleware('throttle:15,1')`
 - **Cause probable** : `/me` (lecture de profil, appelée fréquemment par une app mobile légitimement connectée) partage le même throttle IP-scoped que `/login`/`/register` (actions rares et sensibles).
 - **Preuve** : palier 10 VUs → 38 % de `client profil 200` en échec (429) ; palier 50 VUs → 93 % des tentatives de connexion CLIENT rejetées. Toutes les VUs de ce test partagent la même IP conteneur, ce qui amplifie l'effet — mais un réseau d'entreprise ou un NAT mobile réel produit la même signature IP partagée pour plusieurs utilisateurs distincts.
 - **Impact** : sous certaines topologies réseau réelles, des utilisateurs légitimes pourraient se bloquer mutuellement, y compris sur un simple rafraîchissement de profil. Complique aussi l'interprétation des résultats de charge (voir §2, "point de saturation").
 - **Recommandation** : sortir `/me` (et `/logout`) du groupe throttle partagé avec `login`/`register`/`check-phone` ; envisager une clé de throttle par utilisateur authentifié (plutôt que par IP) pour les routes déjà sous `auth:sanctum`.
 
-**D. Changement de statut concurrent : lost update possible, audit trail potentiellement incohérent**
+**D. Changement de statut concurrent : lost update possible, audit trail potentiellement incohérent** — 🟢 CORRIGÉ (voir addendum en tête de rapport)
 - **Où** : `app/Observers/OrderObserver.php` (`updating()`), pas de verrou pessimiste
 - **Cause probable** : la validation de transition compare au statut chargé au début de CHAQUE requête (`getOriginal('status')`), sans `lockForUpdate()` — deux requêtes concurrentes peuvent chacune valider une transition différente depuis le même statut de départ.
 - **Preuve** : `tests/Concurrency/OrderStatusConcurrencyTest.php` — deux transitions valides envoyées en parallèle (`Reçue→Traitement` et `Reçue→Annulée`) sont TOUTES LES DEUX acceptées côté application ; le statut final ne reflète que la dernière écriture committée, mais `order_status_histories` peut contenir les deux transitions comme si elles s'étaient enchaînées.
@@ -196,16 +232,17 @@ environnement de staging avec des identifiants Firebase sandbox.
 
 ## 6. Recommandations, par priorité
 
-1. **Avant tout capacity planning définitif** : ré-exécuter les paliers 100/250/500/1000 sur une vraie stack php-fpm+nginx, en neutralisant l'effet du rate-limiting IP pour isoler la capacité réelle du serveur applicatif (§2).
-2. **ÉLEVÉ — notifications** : implémenter `ShouldQueue` sur `OrderNotification` + déployer `php artisan queue:work` (finding A).
-3. **ÉLEVÉ — suspension** : faire respecter `PressingStatus::Suspended` dans `CreateOrderAction` a minima, idéalement via un middleware staff (finding B).
-4. **MOYEN — throttle** : séparer `/me`/`/logout` du throttle partagé avec `login`/`register` (finding C).
-5. **MOYEN — verrou de statut** : `lockForUpdate()` dans `OrderObserver` avant validation de transition (finding D).
-6. **FAIBLE — défense en profondeur** : `lockForUpdate()` sur la lecture d'abonnement dans `CreateOrderAction` (finding E).
+1. ~~**ÉLEVÉ — notifications** : implémenter `ShouldQueue` sur `OrderNotification` + déployer `php artisan queue:work` (finding A).~~ 🟢 **Fait** (voir addendum — `ShouldQueueAfterCommit`, pas juste `ShouldQueue`).
+2. ~~**ÉLEVÉ — suspension** : faire respecter `PressingStatus::Suspended` dans `CreateOrderAction` (finding B).~~ 🟢 **Fait** (voir addendum).
+3. ~~**MOYEN — throttle** : séparer `/me`/`/logout` du throttle partagé avec `login`/`register` (finding C).~~ 🟢 **Fait** (voir addendum).
+4. ~~**MOYEN — verrou de statut** : `lockForUpdate()` avant validation de transition (finding D).~~ 🟢 **Fait** (voir addendum).
+5. **Avant tout capacity planning définitif** : ré-exécuter les paliers 100/250/500/1000 sur une vraie stack php-fpm+nginx, en neutralisant l'effet du rate-limiting IP pour isoler la capacité réelle du serveur applicatif (§2). **Toujours ouvert** — nécessite une infra de production, indisponible dans ce conteneur.
+6. **FAIBLE — défense en profondeur** : `lockForUpdate()` sur la lecture d'abonnement dans `CreateOrderAction` (finding E). **Non traité**, priorité FAIBLE (aucun dépassement reproduit empiriquement), à faire par prudence lors d'un prochain passage.
 
-Aucune de ces recommandations n'a été appliquée dans le cadre de cette
-tâche (périmètre : tests de charge uniquement, pas de fonctionnalité ou
-correctif produit).
+Un middleware bloquant plus largement l'accès aux routes staff pour un
+pressing suspendu (au-delà de la seule création de commande) reste une
+amélioration possible mais plus large que le correctif appliqué ici —
+voir §7.
 
 ---
 
@@ -222,3 +259,9 @@ correctif produit).
   disponible dans ce conteneur — scripts livrés, prêts à l'emploi.
 - 4 cœurs CPU disponibles dans ce conteneur — une infra de production
   aura probablement un profil de ressources différent.
+- Le correctif de la suspension (finding B) reste ciblé sur
+  `CreateOrderAction` (le point concret testé et documenté) — un pressing
+  suspendu peut donc toujours techniquement accéder à d'autres pages
+  staff (dashboard, listes) sans en modifier les données. Un middleware
+  bloquant plus largement l'accès aux routes staff serait une itération
+  supplémentaire, plus large que le périmètre de ce correctif.

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/theme_mode_controller.dart';
+import '../../../core/widgets/app_back_button.dart';
 import '../../auth/presentation/auth_controller.dart';
 import 'change_password_screen.dart';
 import 'edit_profile_screen.dart';
@@ -27,7 +28,13 @@ class ProfileScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            Text('Profil', style: theme.textTheme.headlineSmall),
+            Row(
+              children: [
+                AppBackButton(onPressed: () => Navigator.of(context).pop()),
+                const SizedBox(width: AppSpacing.sm + 2),
+                Text('Profil', style: theme.textTheme.headlineSmall),
+              ],
+            ),
             const SizedBox(height: AppSpacing.lg),
             InkWell(
               onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const EditProfileScreen())),

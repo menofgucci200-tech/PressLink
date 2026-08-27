@@ -22,10 +22,19 @@ class OrderIssueTest extends TestCase
         return ['service_id' => null, 'name' => 'Chemise', 'unit_price_fcfa' => 1000, 'quantity' => 1];
     }
 
+    /** Un client doit appartenir au pressing (RB-03) avant qu'on puisse lui créer une commande. */
+    private function makeCustomerOf(Pressing $pressing): Customer
+    {
+        $customer = Customer::factory()->create();
+        $pressing->customers()->attach($customer, ['joined_at' => now()]);
+
+        return $customer;
+    }
+
     public function test_customer_can_report_an_issue_on_their_order(): void
     {
         $pressing = Pressing::factory()->create();
-        $customer = Customer::factory()->create();
+        $customer = $this->makeCustomerOf($pressing);
         $order = (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
         $token = $customer->createToken('test')->plainTextToken;
 
@@ -47,7 +56,7 @@ class OrderIssueTest extends TestCase
     public function test_customer_cannot_report_an_issue_on_someone_elses_order(): void
     {
         $pressing = Pressing::factory()->create();
-        $owner = Customer::factory()->create();
+        $owner = $this->makeCustomerOf($pressing);
         $intruder = Customer::factory()->create();
         $order = (new CreateOrderAction)->handle($pressing, $owner, [$this->makeItem()]);
         $token = $intruder->createToken('test')->plainTextToken;
@@ -60,7 +69,7 @@ class OrderIssueTest extends TestCase
     public function test_an_invalid_category_is_rejected(): void
     {
         $pressing = Pressing::factory()->create();
-        $customer = Customer::factory()->create();
+        $customer = $this->makeCustomerOf($pressing);
         $order = (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
         $token = $customer->createToken('test')->plainTextToken;
 
@@ -74,7 +83,7 @@ class OrderIssueTest extends TestCase
         $pressing = Pressing::factory()->create();
         $admin = User::factory()->create();
         $pressing->staff()->attach($admin, ['role' => PressingRole::Admin->value, 'is_active' => true]);
-        $customer = Customer::factory()->create();
+        $customer = $this->makeCustomerOf($pressing);
         $order = (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
         $issue = $order->issues()->create([
             'customer_id' => $customer->id,

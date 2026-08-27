@@ -1,0 +1,38 @@
+=== count=100 ===
+| Métrique | Valeur |
++---------------------------------------------+---------+
+| Commandes traitées | 100 |
+| Temps total | 0.631 s |
+| Temps moyen / commande | 6.31 ms |
+| Notifications DB créées (canal "database") | 100 |
+| Jobs créés dans la table "jobs" (canal FCM) | 0 |
+| Jobs en échec ("failed_jobs") | 0 |
++---------------------------------------------+---------+
+
+CONSTAT : 0 job créé dans la table "jobs" malgré QUEUE_CONNECTION=database.
+
+=== count=500 ===
+| Métrique | Valeur |
++---------------------------------------------+---------+
+| Commandes traitées | 500 |
+| Temps total | 3.305 s |
+| Temps moyen / commande | 6.61 ms |
+| Notifications DB créées (canal "database") | 500 |
+| Jobs créés dans la table "jobs" (canal FCM) | 0 |
+| Jobs en échec ("failed_jobs") | 0 |
++---------------------------------------------+---------+
+
+CONSTAT : 0 job créé dans la table "jobs" malgré QUEUE_CONNECTION=database.
+
+=== count=1000 ===
+| Métrique | Valeur |
++---------------------------------------------+---------+
+| Commandes traitées | 1000 |
+| Temps total | 5.976 s |
+| Temps moyen / commande | 5.98 ms |
+| Notifications DB créées (canal "database") | 1000 |
+| Jobs créés dans la table "jobs" (canal FCM) | 0 |
+| Jobs en échec ("failed_jobs") | 0 |
++---------------------------------------------+---------+
+
+CONSTAT : 0 job créé dans la table "jobs" malgré QUEUE_CONNECTION=database.

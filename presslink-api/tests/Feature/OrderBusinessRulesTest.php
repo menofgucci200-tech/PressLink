@@ -27,11 +27,20 @@ class OrderBusinessRulesTest extends TestCase
         return ['service_id' => null, 'name' => 'Chemise', 'unit_price_fcfa' => $unitPrice, 'quantity' => $quantity];
     }
 
+    /** Un client doit appartenir au pressing (RB-03) avant qu'on puisse lui créer une commande. */
+    private function makeCustomerOf(Pressing $pressing): Customer
+    {
+        $customer = Customer::factory()->create();
+        $pressing->customers()->attach($customer, ['joined_at' => now()]);
+
+        return $customer;
+    }
+
     public function test_order_requires_at_least_one_item(): void
     {
         // RB-04
         $pressing = Pressing::factory()->create();
-        $customer = Customer::factory()->create();
+        $customer = $this->makeCustomerOf($pressing);
 
         $this->expectException(InvalidArgumentException::class);
 
@@ -41,7 +50,7 @@ class OrderBusinessRulesTest extends TestCase
     public function test_order_total_is_computed_from_its_items(): void
     {
         $pressing = Pressing::factory()->create();
-        $customer = Customer::factory()->create();
+        $customer = $this->makeCustomerOf($pressing);
 
         $order = (new CreateOrderAction)->handle($pressing, $customer, [
             $this->makeItem(1000, 2),
@@ -54,7 +63,7 @@ class OrderBusinessRulesTest extends TestCase
     public function test_order_creation_generates_a_unique_order_number(): void
     {
         $pressing = Pressing::factory()->create();
-        $customer = Customer::factory()->create();
+        $customer = $this->makeCustomerOf($pressing);
 
         $order = (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
 
@@ -65,7 +74,7 @@ class OrderBusinessRulesTest extends TestCase
     {
         // RB-05
         $pressing = Pressing::factory()->create();
-        $customer = Customer::factory()->create();
+        $customer = $this->makeCustomerOf($pressing);
         $order = (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
 
         $order->update(['status' => OrderStatus::Traitement]);
@@ -81,7 +90,7 @@ class OrderBusinessRulesTest extends TestCase
     {
         // RB-07
         $pressing = Pressing::factory()->create();
-        $customer = Customer::factory()->create();
+        $customer = $this->makeCustomerOf($pressing);
         $order = (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
 
         $this->expectException(RuntimeException::class);
@@ -92,7 +101,7 @@ class OrderBusinessRulesTest extends TestCase
     public function test_recovering_an_order_stamps_who_and_when(): void
     {
         $pressing = Pressing::factory()->create();
-        $customer = Customer::factory()->create();
+        $customer = $this->makeCustomerOf($pressing);
         $order = (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
 
         $order->update(['status' => OrderStatus::Traitement]);
@@ -107,7 +116,7 @@ class OrderBusinessRulesTest extends TestCase
     {
         // RB-09
         $pressing = Pressing::factory()->create();
-        $customer = Customer::factory()->create();
+        $customer = $this->makeCustomerOf($pressing);
         Subscription::factory()->for($pressing)->create([
             'orders_limit' => 1,
             'orders_used' => 1,
@@ -122,7 +131,7 @@ class OrderBusinessRulesTest extends TestCase
     {
         // RB-10
         $pressing = Pressing::factory()->create();
-        $customer = Customer::factory()->create();
+        $customer = $this->makeCustomerOf($pressing);
         $order = (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
 
         $order->delete();
@@ -140,7 +149,7 @@ class OrderBusinessRulesTest extends TestCase
         $employee = User::factory()->create();
         $myPressing->staff()->attach($employee, ['role' => PressingRole::Employee->value, 'is_active' => true]);
 
-        $customer = Customer::factory()->create();
+        $customer = $this->makeCustomerOf($otherPressing);
         $order = (new CreateOrderAction)->handle($otherPressing, $customer, [$this->makeItem()]);
 
         $this->assertFalse($employee->can('view', $order));
@@ -152,7 +161,7 @@ class OrderBusinessRulesTest extends TestCase
         $admin = User::factory()->create();
         $pressing->staff()->attach($admin, ['role' => PressingRole::Admin->value, 'is_active' => true]);
 
-        $customer = Customer::factory()->create();
+        $customer = $this->makeCustomerOf($pressing);
         $order = (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
 
         $this->assertTrue($admin->can('view', $order));

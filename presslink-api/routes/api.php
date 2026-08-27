@@ -14,12 +14,23 @@ Route::prefix('v1')->group(function () {
         return $request->user();
     })->middleware('auth:sanctum');
 
+    // Routes sensibles/non authentifiées (vérif. de numéro, connexion,
+    // inscription) : throttle IP strict contre le brute-force.
     Route::prefix('auth/customer')->middleware('throttle:15,1')->group(function () {
         Route::post('/check-phone', [CustomerAuthController::class, 'checkPhone']);
         Route::post('/login', [CustomerAuthController::class, 'login']);
         Route::post('/register', [CustomerAuthController::class, 'register']);
-        Route::get('/me', [CustomerAuthController::class, 'me'])->middleware('auth:sanctum');
-        Route::post('/logout', [CustomerAuthController::class, 'logout'])->middleware('auth:sanctum');
+    });
+
+    // /me et /logout sont déjà protégées par auth:sanctum (un jeton valide
+    // suffit) et appelées fréquemment par une app connectée légitime — les
+    // laisser dans le throttle partagé avec login/register pénalisait des
+    // utilisateurs déjà authentifiés dès qu'une IP partagée (NAT, réseau
+    // d'entreprise) épuisait le quota via d'autres connexions (voir
+    // load-testing/RAPPORT.md, finding C).
+    Route::prefix('auth/customer')->middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
+        Route::get('/me', [CustomerAuthController::class, 'me']);
+        Route::post('/logout', [CustomerAuthController::class, 'logout']);
     });
 
     Route::middleware('auth:sanctum')->group(function () {

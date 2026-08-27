@@ -1,0 +1,317 @@
+{
+    "metrics": {
+        "iteration_duration": {
+            "p(99)": 30892.687139739995,
+            "max": 32504.753338,
+            "avg": 6687.673396373685,
+            "min": 1019.187286,
+            "med": 3432.881492,
+            "p(50)": 3432.881492,
+            "p(90)": 16416.417263400002,
+            "p(95)": 20027.77439319995
+        },
+        "http_req_blocked": {
+            "p(90)": 0.35999,
+            "p(95)": 0.39642,
+            "p(99)": 0.54344,
+            "max": 11.703564,
+            "avg": 0.2818566179945473,
+            "min": 0.091535,
+            "med": 0.265862,
+            "p(50)": 0.265862
+        },
+        "data_sent": {
+            "count": 2319775,
+            "rate": 22259.08145441063
+        },
+        "checks": {
+            "passes": 2100,
+            "fails": 1774,
+            "value": 0.5420753742901394
+        },
+        "http_req_duration{expected_response:true}": {
+            "p(95)": 2832.1848861,
+            "p(99)": 2921.518077,
+            "max": 3032.083481,
+            "avg": 2047.754675841339,
+            "min": 23.593053,
+            "med": 2285.7633109999997,
+            "p(50)": 2285.7633109999997,
+            "p(90)": 2744.8160850000004
+        },
+        "http_req_duration": {
+            "p(99)": 2920.9899,
+            "max": 3032.083481,
+            "avg": 2059.6487911229956,
+            "min": 17.883261,
+            "med": 2285.194099,
+            "p(50)": 2285.194099,
+            "p(90)": 2728.134854,
+            "p(95)": 2826.38141,
+            "thresholds": {
+                "p(95)<800": true,
+                "p(99)<1500": true
+            }
+        },
+        "http_req_sending": {
+            "min": 0.021093,
+            "med": 0.076347,
+            "p(50)": 0.076347,
+            "p(90)": 0.121254,
+            "p(95)": 0.137739,
+            "p(99)": 0.187807,
+            "max": 0.727108,
+            "avg": 0.0830386822175098
+        },
+        "vus_max": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "http_req_waiting": {
+            "max": 3031.198696,
+            "avg": 2058.7261064435042,
+            "min": 17.175816,
+            "med": 2284.373911,
+            "p(50)": 2284.373911,
+            "p(90)": 2727.38613,
+            "p(95)": 2825.282642,
+            "p(99)": 2920.028643
+        },
+        "client_profile_errors": {
+            "rate": 8.511086312276936,
+            "count": 887
+        },
+        "iterations": {
+            "count": 1239,
+            "rate": 11.888653822898673
+        },
+        "http_req_connecting": {
+            "med": 0.162228,
+            "p(50)": 0.162228,
+            "p(90)": 0.232936,
+            "p(95)": 0.262814,
+            "p(99)": 0.38276,
+            "max": 11.603629,
+            "avg": 0.177179736746441,
+            "min": 0.057719
+        },
+        "http_req_receiving": {
+            "max": 2.825115,
+            "avg": 0.8396459972735552,
+            "min": 0.155386,
+            "med": 0.824978,
+            "p(50)": 0.824978,
+            "p(90)": 1.083499,
+            "p(95)": 1.185803,
+            "p(99)": 1.412734
+        },
+        "vus": {
+            "value": 3,
+            "min": 3,
+            "max": 100
+        },
+        "http_req_failed": {
+            "passes": 887,
+            "fails": 2414,
+            "thresholds": {
+                "rate<0.01": true
+            },
+            "value": 0.2687064525901242
+        },
+        "http_reqs": {
+            "count": 3301,
+            "rate": 31.674290774324874
+        },
+        "data_received": {
+            "count": 44114931,
+            "rate": 423298.7434060219
+        },
+        "http_req_tls_handshaking": {
+            "p(50)": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0,
+            "max": 0,
+            "avg": 0,
+            "min": 0,
+            "med": 0
+        }
+    },
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {
+                "client login 200": {
+                    "name": "client login 200",
+                    "path": "::client login 200",
+                    "id": "94c4242ca88bebc6b6385404822b0046",
+                    "passes": 30,
+                    "fails": 887
+                },
+                "client login renvoie un token": {
+                    "name": "client login renvoie un token",
+                    "path": "::client login renvoie un token",
+                    "id": "af7f2cef742aa064673696b9e79c855a",
+                    "passes": 30,
+                    "fails": 887
+                },
+                "employé dashboard 200": {
+                    "name": "employé dashboard 200",
+                    "path": "::employé dashboard 200",
+                    "id": "d39ceb9b7aabec45a58309172e7021a0",
+                    "passes": 88,
+                    "fails": 0
+                },
+                "employé clients 200": {
+                    "name": "employé clients 200",
+                    "path": "::employé clients 200",
+                    "id": "77138f096aee0b4a7ed9370973249aa8",
+                    "passes": 88,
+                    "fails": 0
+                },
+                "employé commandes 200": {
+                    "fails": 0,
+                    "name": "employé commandes 200",
+                    "path": "::employé commandes 200",
+                    "id": "297365cb21ecaaf72bceec63049fe73f",
+                    "passes": 88
+                },
+                "employé recherche commandes 200": {
+                    "id": "e42290528ebe5122496a9a623644ff89",
+                    "passes": 87,
+                    "fails": 0,
+                    "name": "employé recherche commandes 200",
+                    "path": "::employé recherche commandes 200"
+                },
+                "admin admin_dashboard 200": {
+                    "fails": 0,
+                    "name": "admin admin_dashboard 200",
+                    "path": "::admin admin_dashboard 200",
+                    "id": "68d3b8c1ff90b24021e5014846ac15d9",
+                    "passes": 78
+                },
+                "employé page création 200": {
+                    "name": "employé page création 200",
+                    "path": "::employé page création 200",
+                    "id": "e0815a633043c1ef88bda64d600b439b",
+                    "passes": 85,
+                    "fails": 0
+                },
+                "admin admin_clients 200": {
+                    "name": "admin admin_clients 200",
+                    "path": "::admin admin_clients 200",
+                    "id": "be83037f28b2345e9b1e86fbd5445c58",
+                    "passes": 78,
+                    "fails": 0
+                },
+                "employé création commande redirige": {
+                    "name": "employé création commande redirige",
+                    "path": "::employé création commande redirige",
+                    "id": "97178cb4765f44569edecbba2850b297",
+                    "passes": 81,
+                    "fails": 0
+                },
+                "admin admin_orders 200": {
+                    "name": "admin admin_orders 200",
+                    "path": "::admin admin_orders 200",
+                    "id": "cf3099b0d06947528417a6428ee4e9a3",
+                    "passes": 78,
+                    "fails": 0
+                },
+                "super admin dashboard 200": {
+                    "name": "super admin dashboard 200",
+                    "path": "::super admin dashboard 200",
+                    "id": "6fcde71c01f663f0ed4c023731c4cfdc",
+                    "passes": 48,
+                    "fails": 0
+                },
+                "employé détail commande 200": {
+                    "path": "::employé détail commande 200",
+                    "id": "32de41da7861b922a256f9c8c45d7f08",
+                    "passes": 80,
+                    "fails": 0,
+                    "name": "employé détail commande 200"
+                },
+                "admin admin_services 200": {
+                    "name": "admin admin_services 200",
+                    "path": "::admin admin_services 200",
+                    "id": "9af747f75aae110aae7c8f65b0c1311d",
+                    "passes": 78,
+                    "fails": 0
+                },
+                "employé changement statut 200": {
+                    "name": "employé changement statut 200",
+                    "path": "::employé changement statut 200",
+                    "id": "24cfd7e1358676968a0be59884308258",
+                    "passes": 80,
+                    "fails": 0
+                },
+                "super admin pressings 200": {
+                    "name": "super admin pressings 200",
+                    "path": "::super admin pressings 200",
+                    "id": "1e52352df16da9538ea399c6f967ab8a",
+                    "passes": 48,
+                    "fails": 0
+                },
+                "admin admin_team 200": {
+                    "name": "admin admin_team 200",
+                    "path": "::admin admin_team 200",
+                    "id": "c31b2de80260a295e6159828c1335b4a",
+                    "passes": 78,
+                    "fails": 0
+                },
+                "client profil 200": {
+                    "name": "client profil 200",
+                    "path": "::client profil 200",
+                    "id": "844ab320c33384f3d6daf3495ab4c16e",
+                    "passes": 151,
+                    "fails": 0
+                },
+                "super admin détail pressing 200": {
+                    "fails": 0,
+                    "name": "super admin détail pressing 200",
+                    "path": "::super admin détail pressing 200",
+                    "id": "96a8d0727cb29db50f2b6383be46836e",
+                    "passes": 48
+                },
+                "admin admin_subscription 200": {
+                    "name": "admin admin_subscription 200",
+                    "path": "::admin admin_subscription 200",
+                    "id": "13f207024ad8b5e0a25cedc2819e9e0b",
+                    "passes": 75,
+                    "fails": 0
+                },
+                "client pressings 200": {
+                    "name": "client pressings 200",
+                    "path": "::client pressings 200",
+                    "id": "d151193c714b7f064644b9c898b54a85",
+                    "passes": 151,
+                    "fails": 0
+                },
+                "client commandes 200": {
+                    "path": "::client commandes 200",
+                    "id": "101c978fe2161e8576943aba80c79413",
+                    "passes": 151,
+                    "fails": 0,
+                    "name": "client commandes 200"
+                },
+                "client détail commande 200": {
+                    "fails": 0,
+                    "name": "client détail commande 200",
+                    "path": "::client détail commande 200",
+                    "id": "90c22e5951e15adc3851294abe9aca67",
+                    "passes": 151
+                },
+                "client notifications 200": {
+                    "name": "client notifications 200",
+                    "path": "::client notifications 200",
+                    "id": "a710401ec77f77bec38c99efd0c73df3",
+                    "passes": 150,
+                    "fails": 0
+                }
+            }
+    }
+}

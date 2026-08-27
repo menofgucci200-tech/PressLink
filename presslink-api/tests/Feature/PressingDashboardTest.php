@@ -81,6 +81,7 @@ class PressingDashboardTest extends TestCase
         $otherPressing = Pressing::factory()->create();
         $otherAdmin = $this->makeStaff($otherPressing, PressingRole::Admin);
         $customer = Customer::factory()->create();
+        $pressing->customers()->attach($customer, ['joined_at' => now()]);
 
         $order = (new CreateOrderAction)->handle($pressing, $customer, [
             ['service_id' => null, 'name' => 'Chemise', 'unit_price_fcfa' => 1000, 'quantity' => 1],

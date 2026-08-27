@@ -14,9 +14,10 @@ use RuntimeException;
 
 /**
  * Création d'une commande — applique :
- * RB-03 (1 pressing + 1 client), RB-04 (≥ 1 article), RB-09 (quota
- * d'abonnement respecté avant toute création), et le blocage d'un
- * pressing suspendu par le Super Admin.
+ * RB-03 (1 pressing + 1 client, et le client doit appartenir au
+ * pressing), RB-04 (≥ 1 article), RB-09 (quota d'abonnement respecté
+ * avant toute création), et refuse toute création pour un pressing
+ * suspendu par le Super Admin (voir load-testing/RAPPORT.md, finding B).
  */
 class CreateOrderAction
 {
@@ -35,7 +36,11 @@ class CreateOrderAction
         }
 
         if ($pressing->status !== PressingStatus::Active) {
-            throw new RuntimeException('Ce pressing est suspendu : impossible de créer une nouvelle commande.');
+            throw new RuntimeException('Ce pressing est suspendu : impossible de créer une commande.');
+        }
+
+        if (! $pressing->customers()->where('customers.id', $customer->id)->exists()) {
+            throw new InvalidArgumentException('Ce client ne fait pas partie de ce pressing.');
         }
 
         $subscription = $pressing->subscription;

@@ -8,6 +8,8 @@ use Livewire\Component;
 
 class Dashboard extends Component
 {
+    public bool $showExportMenu = false;
+
     #[Layout('layouts.dashboard', ['active' => 'dashboard', 'title' => 'Dashboard'])]
     public function render()
     {

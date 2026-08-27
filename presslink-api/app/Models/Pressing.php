@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\PressingRole;
 use App\Enums\PressingStatus;
 use Database\Factories\PressingFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -75,6 +76,45 @@ class Pressing extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Commandes du pressing filtrées — utilisé à la fois par l'affichage
+     * (Orders\Index, Dashboard) et par les exports, pour garantir qu'un
+     * export "avec filtres" contient exactement ce qui est affiché.
+     *
+     * @param  array{status?: ?string, search?: ?string, date_from?: ?string, date_to?: ?string}  $filters
+     * @return HasMany<Order, $this>
+     */
+    public function filteredOrders(array $filters = []): HasMany
+    {
+        $query = $this->orders()->with('customer');
+
+        if (! empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (! empty($filters['search'])) {
+            $term = $filters['search'];
+            $query->where(function (Builder $q) use ($term) {
+                $q->where('order_number', 'like', "%{$term}%")
+                    ->orWhereHas('customer', function (Builder $c) use ($term) {
+                        $c->where('first_name', 'like', "%{$term}%")
+                            ->orWhere('last_name', 'like', "%{$term}%")
+                            ->orWhere('phone', 'like', "%{$term}%");
+                    });
+            });
+        }
+
+        if (! empty($filters['date_from'])) {
+            $query->whereDate('dropped_off_at', '>=', $filters['date_from']);
+        }
+
+        if (! empty($filters['date_to'])) {
+            $query->whereDate('dropped_off_at', '<=', $filters['date_to']);
+        }
+
+        return $query;
     }
 
     /** @return HasOne<Subscription, $this> */

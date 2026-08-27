@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\OrderExportController;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Admin\Pressings\Create as AdminPressingsCreate;
 use App\Livewire\Admin\Pressings\Index as AdminPressingsIndex;
@@ -28,6 +29,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/commandes', OrdersIndex::class)->name('orders.index');
     Route::get('/commandes/nouvelle', OrdersCreate::class)->name('orders.create');
+    Route::get('/commandes/export/{format}', OrderExportController::class)
+        ->name('orders.export')
+        ->where('format', 'csv|xlsx|pdf');
     Route::get('/commandes/{order}', OrdersShow::class)->name('orders.show');
 
     Route::get('/clients', ClientsIndex::class)->name('clients.index');

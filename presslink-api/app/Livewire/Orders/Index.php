@@ -3,7 +3,6 @@
 namespace App\Livewire\Orders;
 
 use App\Enums\OrderStatus;
-use App\Models\Pressing;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -16,6 +15,12 @@ class Index extends Component
 
     public string $status = '';
 
+    public string $dateFrom = '';
+
+    public string $dateTo = '';
+
+    public bool $showExportMenu = false;
+
     public function updatingSearch(): void
     {
         $this->resetPage();
@@ -26,35 +31,37 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function updatingDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingDateTo(): void
+    {
+        $this->resetPage();
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset(['search', 'status', 'dateFrom', 'dateTo']);
+        $this->resetPage();
+    }
+
     #[Layout('layouts.dashboard', ['active' => 'orders', 'title' => 'Commandes'])]
     public function render()
     {
-        /** @var Pressing|null $pressing */
         $pressing = auth()->user()->currentPressing();
 
         $orders = collect();
         $counts = [];
 
         if ($pressing !== null) {
-            $query = $pressing->orders()->with('customer')->latest();
-
-            if ($this->status !== '') {
-                $query->where('status', $this->status);
-            }
-
-            if ($this->search !== '') {
-                $term = $this->search;
-                $query->where(function ($q) use ($term) {
-                    $q->where('order_number', 'like', "%{$term}%")
-                        ->orWhereHas('customer', function ($c) use ($term) {
-                            $c->where('first_name', 'like', "%{$term}%")
-                                ->orWhere('last_name', 'like', "%{$term}%")
-                                ->orWhere('phone', 'like', "%{$term}%");
-                        });
-                });
-            }
-
-            $orders = $query->paginate(15);
+            $orders = $pressing->filteredOrders([
+                'status' => $this->status ?: null,
+                'search' => $this->search ?: null,
+                'date_from' => $this->dateFrom ?: null,
+                'date_to' => $this->dateTo ?: null,
+            ])->latest()->paginate(15);
 
             $counts = $pressing->orders()
                 ->selectRaw('status, count(*) as aggregate')

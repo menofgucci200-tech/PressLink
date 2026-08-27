@@ -10,7 +10,6 @@ use App\Models\Customer;
 use App\Models\Pressing;
 use App\Models\Service;
 use App\Models\User;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -51,15 +50,14 @@ class SecurityAuditFindingsTest extends TestCase
         $foreignCustomer = Customer::factory()->create();
         $otherPressing->customers()->attach($foreignCustomer, ['joined_at' => now()]);
 
-        $this->expectException(ModelNotFoundException::class);
-
         Livewire::actingAs($admin)
             ->test(OrdersCreate::class)
             ->set('selectedCustomerId', $foreignCustomer->id)
             ->set('pickerService', (string) $service->id)
             ->set('pickerQuantity', 1)
             ->call('addPickedItem')
-            ->call('create');
+            ->call('create')
+            ->assertForbidden();
 
         $this->assertSame(0, $pressing->orders()->count());
     }

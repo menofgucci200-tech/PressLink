@@ -262,7 +262,8 @@ class Create extends Component
     {
         $this->errorMessage = null;
         $pressing = $this->pressing();
-        $customer = $pressing->customers()->findOrFail($this->selectedCustomerId);
+        $customer = $pressing->customers()->find($this->selectedCustomerId);
+        abort_if($customer === null, 403);
 
         try {
             $order = (new CreateOrderAction)->handle(

@@ -35,16 +35,17 @@ class SuperAdminMultiPressingCreationTest extends TestCase
         Livewire::test(AdminPressingsCreate::class)
             ->set('type', 'multi')
             ->set('ownerName', 'Fatou Diabate')
-            ->set('ownerEmail', 'fatou@groupe-nouveau.test')
+            ->set('ownerLogin', 'fatou.diabate')
+            ->set('ownerPassword', 'mot-de-passe-solide')
             ->set('ownerPhone', '+2250701020305')
             ->set('pressingRows.0.name', 'Pressing Groupe Nord')
             ->set('pressingRows.0.phone', '+2250701020306')
             ->set('pressingRows.1.name', 'Pressing Groupe Sud')
             ->set('pressingRows.1.phone', '+2250701020307')
             ->call('createGroup')
-            ->assertSet('generatedPassword', fn ($password) => is_string($password) && strlen($password) > 0);
+            ->assertSet('createdPressings', fn ($pressings) => $pressings !== null);
 
-        $owner = User::where('email', 'fatou@groupe-nouveau.test')->firstOrFail();
+        $owner = User::where('login', 'fatou.diabate')->firstOrFail();
         $pressingNord = Pressing::where('name', 'Pressing Groupe Nord')->firstOrFail();
         $pressingSud = Pressing::where('name', 'Pressing Groupe Sud')->firstOrFail();
 
@@ -66,7 +67,8 @@ class SuperAdminMultiPressingCreationTest extends TestCase
         Livewire::test(AdminPressingsCreate::class)
             ->set('type', 'multi')
             ->set('ownerName', 'Fatou Diabate')
-            ->set('ownerEmail', 'fatou@groupe-nouveau.test')
+            ->set('ownerLogin', 'fatou.diabate')
+            ->set('ownerPassword', 'mot-de-passe-solide')
             ->set('ownerPhone', '+2250701020305')
             ->call('removePressingRow', 1)
             ->set('pressingRows.0.name', 'Pressing Solo')
@@ -86,7 +88,8 @@ class SuperAdminMultiPressingCreationTest extends TestCase
         Livewire::test(AdminPressingsCreate::class)
             ->set('type', 'multi')
             ->set('ownerName', 'Fatou Diabate')
-            ->set('ownerEmail', 'fatou@groupe-nouveau.test')
+            ->set('ownerLogin', 'fatou.diabate')
+            ->set('ownerPassword', 'mot-de-passe-solide')
             ->set('ownerPhone', '+2250701020305')
             ->set('pressingRows.0.name', 'Pressing Groupe Nord')
             ->set('pressingRows.0.code', 'DUP-01')
@@ -109,7 +112,8 @@ class SuperAdminMultiPressingCreationTest extends TestCase
         $component = Livewire::test(AdminPressingsCreate::class)
             ->set('type', 'multi')
             ->set('ownerName', 'Fatou Diabate')
-            ->set('ownerEmail', 'fatou@groupe-nouveau.test')
+            ->set('ownerLogin', 'fatou.diabate')
+            ->set('ownerPassword', 'mot-de-passe-solide')
             ->set('ownerPhone', '+2250701020305')
             ->set('pressingRows.0.name', 'Pressing Groupe Nord')
             ->set('pressingRows.0.phone', '+2250701020306')
@@ -117,16 +121,14 @@ class SuperAdminMultiPressingCreationTest extends TestCase
             ->set('pressingRows.1.phone', '+2250701020307')
             ->call('createGroup');
 
-        $password = $component->get('generatedPassword');
-
         $this->post('/logout');
 
         Livewire::test(Login::class)
-            ->set('login', 'fatou@groupe-nouveau.test')
-            ->set('password', $password)
+            ->set('login', 'fatou.diabate')
+            ->set('password', 'mot-de-passe-solide')
             ->call('authenticate');
 
-        $this->assertAuthenticatedAs(User::where('email', 'fatou@groupe-nouveau.test')->firstOrFail());
+        $this->assertAuthenticatedAs(User::where('login', 'fatou.diabate')->firstOrFail());
     }
 
     public function test_standard_pressing_creation_still_works_and_creates_no_admin(): void

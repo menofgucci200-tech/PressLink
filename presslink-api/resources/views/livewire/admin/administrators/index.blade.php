@@ -10,12 +10,10 @@
         </button>
     </div>
 
-    @if ($createdAdmin && $generatedPassword)
+    @if ($createdAdmin)
         <div class="mb-6 p-4 rounded-lg bg-(--color-success-tint) text-(--color-success-text) text-sm">
             <p class="font-semibold mb-1">Administrateur "{{ $createdAdmin->name }}" créé avec succès.</p>
-            <p>Mot de passe temporaire (à transmettre vous-même, il ne sera plus affiché) :
-                <span class="font-mono font-semibold tabular-nums">{{ $generatedPassword }}</span>
-            </p>
+            <p>Identifiant de connexion : <span class="font-mono font-semibold">{{ $createdAdmin->login }}</span> — communiquez-lui avec le mot de passe que vous venez de définir.</p>
         </div>
     @endif
 
@@ -52,12 +50,17 @@
                 @error('name') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
-                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Email</label>
-                <input type="email" wire:model="email" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
-                @error('email') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Login</label>
+                <input type="text" wire:model="login" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                @error('login') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
-                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone</label>
+                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Mot de passe</label>
+                <input type="text" wire:model="password" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                @error('password') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+            </div>
+            <div class="col-span-2">
+                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone (facultatif)</label>
                 <input type="text" wire:model="phone" placeholder="+2250708124400" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                 @error('phone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
@@ -74,7 +77,7 @@
 
     <div class="relative max-w-sm mb-5">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-(--color-text-muted)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-        <input type="text" wire:model.live.debounce.400ms="search" placeholder="Nom, email ou téléphone…"
+        <input type="text" wire:model.live.debounce.400ms="search" placeholder="Nom, login ou téléphone…"
                class="w-full h-10 pl-9 pr-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-white">
     </div>
 
@@ -86,7 +89,7 @@
                 <thead>
                     <tr class="bg-(--color-bg) text-left">
                         <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Nom</th>
-                        <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Contact</th>
+                        <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Identifiants</th>
                         <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Pressing(s)</th>
                     </tr>
                 </thead>
@@ -95,7 +98,7 @@
                         <tr class="border-t border-(--color-border) hover:bg-(--color-bg)">
                             <td class="px-5 py-3.5 font-medium">{{ $admin->name }}</td>
                             <td class="px-5 py-3.5 text-(--color-text-secondary)">
-                                <div>{{ $admin->email }}</div>
+                                <div class="font-mono">{{ $admin->login }}</div>
                                 <div class="text-xs tabular-nums">{{ $admin->phone }}</div>
                             </td>
                             <td class="px-5 py-3.5">

@@ -11,7 +11,6 @@ use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -45,9 +44,11 @@ class Create extends Component
     // Groupe de pressings (multi)
     public string $ownerName = '';
 
-    public string $ownerEmail = '';
+    public string $ownerLogin = '';
 
     public string $ownerPhone = '';
+
+    public string $ownerPassword = '';
 
     /** @var array<int, array{name: string, code: string, phone: string, city: string}> */
     public array $pressingRows = [
@@ -59,8 +60,6 @@ class Create extends Component
 
     /** @var Collection<int, Pressing>|null */
     public ?Collection $createdPressings = null;
-
-    public ?string $generatedPassword = null;
 
     public function mount(): void
     {
@@ -120,14 +119,16 @@ class Create extends Component
         $validator = Validator::make(
             [
                 'ownerName' => $this->ownerName,
-                'ownerEmail' => $this->ownerEmail,
+                'ownerLogin' => $this->ownerLogin,
                 'ownerPhone' => $this->ownerPhone,
+                'ownerPassword' => $this->ownerPassword,
                 'pressingRows' => $this->pressingRows,
             ],
             [
                 'ownerName' => ['required', 'string', 'max:100'],
-                'ownerEmail' => ['required', 'email', 'max:255', 'unique:users,email'],
-                'ownerPhone' => ['required', 'string', 'regex:/^\+2250[0-9]{9}$/', 'unique:users,phone'],
+                'ownerLogin' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9._-]+$/', 'unique:users,login'],
+                'ownerPhone' => ['nullable', 'string', 'regex:/^\+2250[0-9]{9}$/', 'unique:users,phone'],
+                'ownerPassword' => ['required', 'string', 'min:8'],
                 'pressingRows' => ['array', 'min:2'],
                 'pressingRows.*.name' => ['required', 'string', 'max:150'],
                 'pressingRows.*.code' => ['nullable', 'string', 'max:20', 'alpha_dash', 'unique:pressings,code'],
@@ -148,17 +149,15 @@ class Create extends Component
 
         $validator->validate();
 
-        [$pressings, $password] = DB::transaction(function () {
-            $password = Str::password(10);
-
+        $pressings = DB::transaction(function () {
             $owner = User::create([
                 'name' => $this->ownerName,
-                'email' => $this->ownerEmail,
-                'phone' => $this->ownerPhone,
-                'password' => $password,
+                'login' => $this->ownerLogin,
+                'phone' => $this->ownerPhone ?: null,
+                'password' => $this->ownerPassword,
             ]);
 
-            $pressings = collect($this->pressingRows)->map(function (array $row) use ($owner) {
+            return collect($this->pressingRows)->map(function (array $row) use ($owner) {
                 $pressing = Pressing::create([
                     'name' => $row['name'],
                     'code' => $row['code'] !== '' ? $row['code'] : null,
@@ -172,13 +171,10 @@ class Create extends Component
 
                 return $pressing;
             });
-
-            return [$pressings, $password];
         });
 
         $this->createdPressings = $pressings;
-        $this->generatedPassword = $password;
-        $this->reset(['ownerName', 'ownerEmail', 'ownerPhone', 'pressingRows']);
+        $this->reset(['ownerName', 'ownerLogin', 'ownerPhone', 'ownerPassword', 'pressingRows']);
         $this->pressingRows = [
             ['name' => '', 'code' => '', 'phone' => '', 'city' => ''],
             ['name' => '', 'code' => '', 'phone' => '', 'city' => ''],

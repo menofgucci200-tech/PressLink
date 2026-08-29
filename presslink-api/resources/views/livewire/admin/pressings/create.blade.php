@@ -15,7 +15,7 @@
         </div>
     @endif
 
-    @if ($createdPressings && $generatedPassword)
+    @if ($createdPressings)
         <div class="mb-6 p-4 rounded-lg bg-(--color-success-tint) text-(--color-success-text) text-sm">
             <p class="font-semibold mb-1">Groupe de {{ $createdPressings->count() }} pressings créé avec succès.</p>
             <ul class="mb-2 list-disc list-inside">
@@ -23,9 +23,7 @@
                     <li>{{ $p->name }} — code <span class="font-mono font-semibold">{{ $p->code }}</span></li>
                 @endforeach
             </ul>
-            <p>Mot de passe temporaire du propriétaire (administrateur des {{ $createdPressings->count() }} pressings, à transmettre vous-même, il ne sera plus affiché) :
-                <span class="font-mono font-semibold tabular-nums">{{ $generatedPassword }}</span>
-            </p>
+            <p>Communiquez au propriétaire le login et le mot de passe que vous venez de définir pour son compte.</p>
         </div>
     @endif
 
@@ -99,12 +97,17 @@
                     @error('ownerName') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Email</label>
-                    <input type="email" wire:model="ownerEmail" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
-                    @error('ownerEmail') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                    <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Login</label>
+                    <input type="text" wire:model="ownerLogin" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                    @error('ownerLogin') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone</label>
+                    <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Mot de passe</label>
+                    <input type="text" wire:model="ownerPassword" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                    @error('ownerPassword') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone (facultatif)</label>
                     <input type="text" wire:model="ownerPhone" placeholder="+2250708124400" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                     @error('ownerPhone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                 </div>

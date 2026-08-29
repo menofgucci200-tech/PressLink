@@ -5,7 +5,6 @@ namespace App\Livewire\Admin\Administrators;
 use App\Enums\PressingRole;
 use App\Models\Pressing;
 use App\Models\User;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -25,13 +24,13 @@ class Index extends Component
 
     public string $name = '';
 
-    public string $email = '';
+    public string $login = '';
 
     public string $phone = '';
 
-    public string $pressingId = '';
+    public string $password = '';
 
-    public ?string $generatedPassword = null;
+    public string $pressingId = '';
 
     public ?User $createdAdmin = null;
 
@@ -62,26 +61,25 @@ class Index extends Component
     {
         $this->validate([
             'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'phone' => ['required', 'string', 'regex:/^\+2250[0-9]{9}$/', 'unique:users,phone'],
+            'login' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9._-]+$/', 'unique:users,login'],
+            'phone' => ['nullable', 'string', 'regex:/^\+2250[0-9]{9}$/', 'unique:users,phone'],
+            'password' => ['required', 'string', 'min:8'],
             'pressingId' => ['required', 'exists:pressings,id'],
         ]);
 
         $pressing = Pressing::findOrFail($this->pressingId);
-        $password = Str::password(10);
 
         $admin = User::create([
             'name' => $this->name,
-            'email' => $this->email,
-            'phone' => $this->phone,
-            'password' => $password,
+            'login' => $this->login,
+            'phone' => $this->phone ?: null,
+            'password' => $this->password,
         ]);
 
         $pressing->staff()->attach($admin, ['role' => PressingRole::Admin->value, 'is_active' => true]);
 
         $this->createdAdmin = $admin;
-        $this->generatedPassword = $password;
-        $this->reset(['name', 'email', 'phone', 'pressingId', 'showCreateForm']);
+        $this->reset(['name', 'login', 'phone', 'password', 'pressingId', 'showCreateForm']);
     }
 
     #[Layout('layouts.admin', ['active' => 'administrators', 'title' => 'Administrateurs'])]
@@ -95,7 +93,7 @@ class Index extends Component
         if ($this->search !== '') {
             $term = $this->search;
             $query->where(fn ($q) => $q->where('name', 'like', "%{$term}%")
-                ->orWhere('email', 'like', "%{$term}%")
+                ->orWhere('login', 'like', "%{$term}%")
                 ->orWhere('phone', 'like', "%{$term}%"));
         }
 

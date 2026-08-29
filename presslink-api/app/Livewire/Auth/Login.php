@@ -2,14 +2,15 @@
 
 namespace App\Livewire\Auth;
 
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * Connexion staff (employé/admin) — téléphone ou email + mot de passe.
- * Cahier §3.2 / User Flows §9.
+ * Connexion staff (employé/admin) — login, téléphone ou email + mot de
+ * passe. Cahier §3.2 / User Flows §9.
  */
 class Login extends Component
 {
@@ -26,7 +27,11 @@ class Login extends Component
             'password' => ['required', 'string'],
         ]);
 
-        $field = str_contains($this->login, '@') ? 'email' : 'phone';
+        $field = match (true) {
+            str_contains($this->login, '@') => 'email',
+            User::where('login', $this->login)->exists() => 'login',
+            default => 'phone',
+        };
 
         if (! Auth::attempt([$field => $this->login, 'password' => $this->password], $this->remember)) {
             throw ValidationException::withMessages([

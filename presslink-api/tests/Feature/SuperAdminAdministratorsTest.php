@@ -53,12 +53,13 @@ class SuperAdminAdministratorsTest extends TestCase
         Livewire::test(AdminAdministratorsIndex::class)
             ->set('pressingId', (string) $pressing->id)
             ->set('name', 'Fatou Diabate')
-            ->set('email', 'fatou@pressing-nouveau.test')
+            ->set('login', 'fatou.diabate')
+            ->set('password', 'mot-de-passe-solide')
             ->set('phone', '+2250701020305')
             ->call('createAdministrator')
-            ->assertSet('generatedPassword', fn ($password) => is_string($password) && strlen($password) > 0);
+            ->assertSet('createdAdmin', fn ($admin) => $admin !== null);
 
-        $admin = User::where('email', 'fatou@pressing-nouveau.test')->firstOrFail();
+        $admin = User::where('login', 'fatou.diabate')->firstOrFail();
 
         $this->assertSame(
             PressingRole::Admin,
@@ -73,23 +74,22 @@ class SuperAdminAdministratorsTest extends TestCase
 
         $this->actingAs($superAdmin);
 
-        $component = Livewire::test(AdminAdministratorsIndex::class)
+        Livewire::test(AdminAdministratorsIndex::class)
             ->set('pressingId', (string) $pressing->id)
             ->set('name', 'Fatou Diabate')
-            ->set('email', 'fatou@pressing-nouveau.test')
+            ->set('login', 'fatou.diabate')
+            ->set('password', 'mot-de-passe-solide')
             ->set('phone', '+2250701020305')
             ->call('createAdministrator');
-
-        $password = $component->get('generatedPassword');
 
         $this->post('/logout');
 
         Livewire::test(Login::class)
-            ->set('login', 'fatou@pressing-nouveau.test')
-            ->set('password', $password)
+            ->set('login', 'fatou.diabate')
+            ->set('password', 'mot-de-passe-solide')
             ->call('authenticate');
 
-        $this->assertAuthenticatedAs(User::where('email', 'fatou@pressing-nouveau.test')->firstOrFail());
+        $this->assertAuthenticatedAs(User::where('login', 'fatou.diabate')->firstOrFail());
     }
 
     public function test_administrators_list_shows_the_pressings_they_administer(): void

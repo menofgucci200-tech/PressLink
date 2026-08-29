@@ -15,6 +15,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    buildFeatures {
+        resValues = true
+    }
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.presslink.presslink_app"
@@ -31,6 +35,31 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+
+    // Flavors d'environnement — coexistence dev/staging/prod sur un même
+    // appareil (App ID distinct par flavor). `prod` garde l'App ID
+    // d'origine, donc rien ne change pour la config Firebase existante.
+    // `dev` et `staging` ont besoin de leur propre app enregistrée dans
+    // Firebase Console avant de pouvoir compiler (voir android/README.md).
+    flavorDimensions += "environment"
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            resValue("string", "app_name", "PressLink Dev")
+        }
+        create("staging") {
+            dimension = "environment"
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-staging"
+            resValue("string", "app_name", "PressLink Staging")
+        }
+        create("prod") {
+            dimension = "environment"
+            resValue("string", "app_name", "PressLink")
         }
     }
 }

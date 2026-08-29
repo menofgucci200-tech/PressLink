@@ -198,9 +198,16 @@ class _OrderDetailBody extends StatelessWidget {
                     border: Border(bottom: BorderSide(color: theme.dividerTheme.color!)),
                   ),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('${item.name} × ${item.quantity}', style: theme.textTheme.bodyLarge?.copyWith(fontSize: 14)),
+                      Expanded(
+                        child: Text(
+                          '${item.name} × ${item.quantity}',
+                          style: theme.textTheme.bodyLarge?.copyWith(fontSize: 14),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
                       Text('${_formatFcfa(item.subtotalFcfa)} F', style: const TextStyle(fontWeight: FontWeight.w500)),
                     ],
                   ),

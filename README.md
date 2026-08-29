@@ -29,4 +29,18 @@ flutter pub get
 flutter run
 ```
 
-L'app pointe par défaut sur `http://127.0.0.1:8000` (voir `lib/core/network/api_client.dart`, surchargeable via `--dart-define=API_HOST=<ip>`).
+L'app pointe par défaut sur `http://127.0.0.1:8000/api/v1` (voir `lib/core/config/app_config.dart`). Configuration par environnement via `--dart-define` :
+
+| Environnement | Commande |
+|---|---|
+| Dev (Chrome/desktop) | `flutter run` |
+| Dev (émulateur Android) | `flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1` |
+| Dev (appareil physique) | `flutter run --dart-define=API_BASE_URL=http://<ip-lan>:8000/api/v1` |
+| Staging | `flutter build apk --dart-define=APP_ENV=staging --dart-define=API_BASE_URL=https://api-staging.presslink.org/api/v1` |
+| Production | `flutter build apk --dart-define=APP_ENV=production --dart-define=API_BASE_URL=https://api.presslink.org/api/v1` |
+
+En staging/production, l'app refuse de démarrer si `API_BASE_URL` n'est pas en `https://` (voir `assertSafeNetworkConfig()`), pour éviter de livrer par erreur une build qui parle en clair.
+
+#### Flavors dev / staging / prod (Android & iOS)
+
+Trois flavors natifs, App ID/Bundle ID distincts, permettent d'installer dev/staging/prod en même temps sur un même appareil — voir [`android/README.md`](presslink-app/android/README.md) et [`ios/README.md`](presslink-app/ios/README.md) pour les commandes de build complètes et les prérequis Firebase par flavor.

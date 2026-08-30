@@ -27,18 +27,34 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   String? _error;
   String? _success;
 
+  // Au lancement de l'app, la session est restaurée depuis le token stocké
+  // et `customer` peut donc ne pas encore être chargé quand cet écran
+  // s'ouvre (voir AuthController._restoreSession, appel réseau asynchrone).
+  // On ne pré-remplit les champs qu'une seule fois, dès que les données
+  // arrivent, pour ne pas écraser une saisie en cours de l'utilisateur à
+  // chaque mise à jour ultérieure du provider (ex. changement de photo).
+  bool _fieldsInitialized = false;
+
   @override
   void initState() {
     super.initState();
+    _firstNameController = TextEditingController();
+    _lastNameController = TextEditingController();
+    _emailController = TextEditingController();
     final customer = ref.read(authControllerProvider).customer;
-    _firstNameController = TextEditingController(text: customer?.firstName ?? '');
-    _lastNameController = TextEditingController(text: customer?.lastName ?? '');
-    _emailController = TextEditingController(text: customer?.email ?? '');
-    _gender = customer?.gender == 'femme'
+    if (customer != null) _populateFields(customer);
+  }
+
+  void _populateFields(Customer customer) {
+    _firstNameController.text = customer.firstName;
+    _lastNameController.text = customer.lastName;
+    _emailController.text = customer.email ?? '';
+    _gender = customer.gender == 'femme'
         ? Gender.femme
-        : customer?.gender == 'homme'
+        : customer.gender == 'homme'
             ? Gender.homme
             : null;
+    _fieldsInitialized = true;
   }
 
   Future<void> _pickPhoto(ImageSource source) async {
@@ -159,6 +175,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final customer = ref.watch(authControllerProvider).customer;
+
+    if (!_fieldsInitialized && customer != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _fieldsInitialized) return;
+        setState(() => _populateFields(customer));
+      });
+    }
 
     return Scaffold(
       body: SafeArea(

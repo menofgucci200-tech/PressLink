@@ -41,13 +41,14 @@ class TeamManagementTest extends TestCase
 
         Livewire::test(TeamIndex::class)
             ->set('name', 'Marc Koffi')
-            ->set('email', 'marc@pressing-elegance.test')
+            ->set('login', 'marc.koffi')
             ->set('phone', '+2250700000099')
+            ->set('password', 'mot-de-passe-solide')
             ->set('role', PressingRole::Employee->value)
             ->call('inviteEmployee')
-            ->assertSet('generatedPassword', fn ($password) => is_string($password) && strlen($password) > 0);
+            ->assertSet('createdMember', fn ($member) => $member !== null);
 
-        $employee = User::where('email', 'marc@pressing-elegance.test')->firstOrFail();
+        $employee = User::where('login', 'marc.koffi')->firstOrFail();
         $this->assertTrue($pressing->staff()->where('users.id', $employee->id)->exists());
         $this->assertSame(
             PressingRole::Employee,
@@ -55,21 +56,44 @@ class TeamManagementTest extends TestCase
         );
     }
 
-    public function test_admin_cannot_add_an_employee_with_a_duplicate_email(): void
+    public function test_admin_can_add_another_admin_for_their_own_pressing(): void
     {
         $pressing = Pressing::factory()->create();
         $admin = $this->makeStaff($pressing, PressingRole::Admin);
-        User::factory()->create(['email' => 'taken@pressing-elegance.test']);
+
+        $this->actingAs($admin);
+
+        Livewire::test(TeamIndex::class)
+            ->set('name', 'Aya N\'Guessan')
+            ->set('login', 'aya.nguessan')
+            ->set('password', 'mot-de-passe-solide')
+            ->set('role', PressingRole::Admin->value)
+            ->call('inviteEmployee')
+            ->assertSet('createdMember', fn ($member) => $member !== null);
+
+        $newAdmin = User::where('login', 'aya.nguessan')->firstOrFail();
+        $this->assertSame(
+            PressingRole::Admin,
+            $pressing->staff()->where('users.id', $newAdmin->id)->first()->pivot->role,
+        );
+    }
+
+    public function test_admin_cannot_add_a_member_with_a_duplicate_login(): void
+    {
+        $pressing = Pressing::factory()->create();
+        $admin = $this->makeStaff($pressing, PressingRole::Admin);
+        User::factory()->create(['login' => 'taken-login']);
 
         $this->actingAs($admin);
 
         Livewire::test(TeamIndex::class)
             ->set('name', 'Marc Koffi')
-            ->set('email', 'taken@pressing-elegance.test')
+            ->set('login', 'taken-login')
             ->set('phone', '+2250700000099')
+            ->set('password', 'mot-de-passe-solide')
             ->set('role', PressingRole::Employee->value)
             ->call('inviteEmployee')
-            ->assertHasErrors(['email']);
+            ->assertHasErrors(['login']);
     }
 
     public function test_admin_can_deactivate_an_employee(): void

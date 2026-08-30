@@ -35,8 +35,8 @@ class AuthController extends StateNotifier<AuthState> {
   final AuthRepository _repository;
 
   Future<void> _restoreSession() async {
-    final valid = await _repository.hasValidSession();
-    state = AuthState(status: valid ? AuthStatus.loggedIn : AuthStatus.loggedOut);
+    final check = await _repository.hasValidSession();
+    state = AuthState(status: check.valid ? AuthStatus.loggedIn : AuthStatus.loggedOut, customer: check.customer);
   }
 
   /// Retourne true si un compte existe déjà pour ce numéro, null en cas d'erreur réseau.

@@ -66,7 +66,7 @@ class CustomerAuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        return response()->json($request->user());
+        return response()->json($this->formatCustomer($request->user()));
     }
 
     public function logout(Request $request): JsonResponse

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\OrderExportController;
+use App\Livewire\Account\Settings as AccountSettings;
 use App\Livewire\Admin\Administrators\Index as AdminAdministratorsIndex;
 use App\Livewire\Admin\Clients\Index as AdminClientsIndex;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
@@ -60,6 +61,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/tarifs', ServicesIndex::class)->name('services.index');
     Route::get('/tarifs/{service}/variantes', ServicesVariants::class)->name('services.variants');
+
+    Route::get('/mon-compte', AccountSettings::class)->name('account.settings');
 
     Route::get('/equipe', TeamIndex::class)->name('team.index');
     Route::get('/parametres', PressingSettings::class)->name('pressing.settings');

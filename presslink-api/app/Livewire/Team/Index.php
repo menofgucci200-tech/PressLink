@@ -4,7 +4,6 @@ namespace App\Livewire\Team;
 
 use App\Enums\PressingRole;
 use App\Models\User;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -13,9 +12,9 @@ use RuntimeException;
 /**
  * Gestion de l'équipe du pressing — Phase 2 du dashboard (RB-08).
  *
- * Pas d'infrastructure d'envoi d'email/SMS au MVP : l'admin crée le
- * compte employé directement et le mot de passe généré est affiché une
- * seule fois pour qu'il le transmette lui-même.
+ * Pas d'infrastructure d'envoi d'email/SMS au MVP : l'admin choisit
+ * lui-même le login et le mot de passe du nouveau membre (employé ou
+ * co-administrateur) et les lui transmet directement.
  */
 class Index extends Component
 {
@@ -23,13 +22,15 @@ class Index extends Component
 
     public string $name = '';
 
-    public string $email = '';
+    public string $login = '';
 
     public string $phone = '';
 
+    public string $password = '';
+
     public string $role = 'employee';
 
-    public ?string $generatedPassword = null;
+    public ?User $createdMember = null;
 
     public ?string $errorMessage = null;
 
@@ -41,35 +42,35 @@ class Index extends Component
 
     public function inviteEmployee(): void
     {
-        $this->generatedPassword = null;
+        $this->createdMember = null;
 
         $this->validate([
             'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'phone' => ['required', 'string', 'regex:/^\+2250[0-9]{9}$/', 'unique:users,phone'],
+            'login' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9._-]+$/', 'unique:users,login'],
+            'phone' => ['nullable', 'string', 'regex:/^\+2250[0-9]{9}$/', 'unique:users,phone'],
+            'password' => ['required', 'string', 'min:8'],
             'role' => ['required', Rule::enum(PressingRole::class)],
         ]);
 
         $pressing = auth()->user()->currentPressing();
-        $password = Str::password(10);
 
-        $employee = User::create([
+        $member = User::create([
             'name' => $this->name,
-            'email' => $this->email,
-            'phone' => $this->phone,
-            'password' => $password,
+            'login' => $this->login,
+            'phone' => $this->phone ?: null,
+            'password' => $this->password,
         ]);
 
-        $pressing->staff()->attach($employee, ['role' => $this->role, 'is_active' => true]);
+        $pressing->staff()->attach($member, ['role' => $this->role, 'is_active' => true]);
 
-        $this->generatedPassword = $password;
-        $this->reset(['name', 'email', 'phone', 'role', 'showCreateForm']);
+        $this->createdMember = $member;
+        $this->reset(['name', 'login', 'phone', 'password', 'role', 'showCreateForm']);
     }
 
     public function toggleActive(int $memberId): void
     {
         $this->errorMessage = null;
-        $this->generatedPassword = null;
+        $this->createdMember = null;
 
         $pressing = auth()->user()->currentPressing();
         $member = $pressing->staff()->findOrFail($memberId);

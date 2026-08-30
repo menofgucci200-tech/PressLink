@@ -44,6 +44,13 @@ class Customer {
       );
 }
 
+class SessionCheck {
+  const SessionCheck({required this.valid, this.customer});
+
+  final bool valid;
+  final Customer? customer;
+}
+
 /// Authentification client — Cahier §3.1 (revu le 26/08) :
 /// téléphone d'abord, puis mot de passe (compte existant) ou inscription.
 class AuthRepository {
@@ -97,20 +104,25 @@ class AuthRepository {
   /// (401/403). Toute autre erreur (pas de réseau, backend injoignable,
   /// 5xx) laisse la session locale intacte : on ne veut jamais déconnecter
   /// un client simplement parce qu'il est hors-ligne au démarrage de l'app.
-  Future<bool> hasValidSession() async {
+  ///
+  /// Retourne le [Customer] déjà chargé plutôt qu'un simple booléen, pour
+  /// que l'écran profil ait ses données dès le premier affichage au lieu
+  /// d'attendre une action ultérieure (login, mise à jour…) qui les
+  /// remplirait après coup.
+  Future<SessionCheck> hasValidSession() async {
     final token = await _tokenStorage.readToken();
-    if (token == null) return false;
+    if (token == null) return const SessionCheck(valid: false);
 
     try {
-      await _apiClient.dio.get('/auth/customer/me');
-      return true;
+      final response = await _apiClient.dio.get('/auth/customer/me');
+      return SessionCheck(valid: true, customer: Customer.fromJson(response.data as Map<String, dynamic>));
     } on DioException catch (e) {
       final status = e.response?.statusCode;
       if (status == 401 || status == 403) {
         await _tokenStorage.clearToken();
-        return false;
+        return const SessionCheck(valid: false);
       }
-      return true;
+      return const SessionCheck(valid: true);
     }
   }
 

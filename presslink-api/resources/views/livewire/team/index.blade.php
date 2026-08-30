@@ -6,7 +6,7 @@
         </div>
         <button wire:click="$toggle('showCreateForm')" class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            Ajouter un employé
+            Ajouter un membre
         </button>
     </div>
 
@@ -14,12 +14,10 @@
         <div class="mb-5 p-3 rounded-lg bg-(--color-error-tint) text-(--color-error) text-sm">{{ $errorMessage }}</div>
     @endif
 
-    @if ($generatedPassword)
+    @if ($createdMember)
         <div class="mb-5 p-4 rounded-lg bg-(--color-success-tint) text-(--color-success-text) text-sm">
-            <p class="font-semibold mb-1">Compte créé avec succès.</p>
-            <p>Mot de passe temporaire (à transmettre vous-même, il ne sera plus affiché) :
-                <span class="font-mono font-semibold tabular-nums">{{ $generatedPassword }}</span>
-            </p>
+            <p class="font-semibold mb-1">Compte "{{ $createdMember->name }}" créé avec succès.</p>
+            <p>Identifiant de connexion : <span class="font-mono font-semibold">{{ $createdMember->login }}</span> — communiquez-lui avec le mot de passe que vous venez de définir.</p>
         </div>
     @endif
 
@@ -40,12 +38,17 @@
                 @error('role') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
-                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Email</label>
-                <input type="email" wire:model="email" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
-                @error('email') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Login</label>
+                <input type="text" wire:model="login" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                @error('login') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
-                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone</label>
+                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Mot de passe</label>
+                <input type="text" wire:model="password" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                @error('password') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+            </div>
+            <div class="col-span-2">
+                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone (facultatif)</label>
                 <input type="text" wire:model="phone" placeholder="+2250708124400" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                 @error('phone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
@@ -84,7 +87,7 @@
                                 @endif
                             </td>
                             <td class="px-5 py-3.5 text-(--color-text-secondary)">
-                                <div>{{ $member->email }}</div>
+                                <div class="font-mono">{{ $member->login }}</div>
                                 <div class="tabular-nums text-xs">{{ $member->phone }}</div>
                             </td>
                             <td class="px-5 py-3.5">{{ $member->pivot->role->label() }}</td>

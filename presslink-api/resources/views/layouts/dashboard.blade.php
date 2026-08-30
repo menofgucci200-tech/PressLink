@@ -113,10 +113,15 @@
 
             <div class="flex-1 min-w-0 flex flex-col">
                 <header class="h-16 flex-none bg-(--color-surface) border-b border-(--color-border) flex items-center justify-end gap-4 px-7">
-                    <div class="text-right">
+                    <a href="{{ route('account.settings') }}" class="text-right hover:opacity-70">
                         <div class="text-sm font-medium leading-tight">{{ $user->name }}</div>
                         <div class="text-xs text-(--color-text-muted)">{{ $isAdmin ? 'Administrateur' : 'Employé' }} · {{ $isOverviewMode ? "Vue d'ensemble" : $pressing?->name }}</div>
-                    </div>
+                    </a>
+                    <a href="{{ route('account.settings') }}"
+                       class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary) {{ ($active ?? null) === 'account' ? 'border-(--color-primary) text-(--color-primary)' : '' }}"
+                       title="Mon compte">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-error) hover:text-(--color-error)" title="Se déconnecter">

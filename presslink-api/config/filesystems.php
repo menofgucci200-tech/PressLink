@@ -40,7 +40,14 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
+            // `public_path('storage')` plutôt que le classique
+            // `storage_path('app/public')` + lien symbolique : certains
+            // hébergements mutualisés (LWS notamment) désactivent le suivi
+            // des liens symboliques par Apache (FollowSymLinks), ce qui
+            // rend les fichiers uploadés inaccessibles (403) même avec un
+            // lien `storage:link` valide et des permissions correctes.
+            // Écrire directement dans public/ élimine le problème.
+            'root' => public_path('storage'),
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
             'visibility' => 'public',
             'throw' => false,

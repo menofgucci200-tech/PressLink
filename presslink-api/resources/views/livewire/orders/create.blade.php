@@ -22,7 +22,7 @@
         @endforeach
     </div>
 
-    <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-7">
+    <div wire:key="wizard-step-{{ $step }}" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-7 animate-step">
 
         {{-- Étape 1 : Client --}}
         @if ($step === 1)

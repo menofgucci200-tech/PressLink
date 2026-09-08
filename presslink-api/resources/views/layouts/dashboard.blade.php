@@ -44,14 +44,14 @@
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><path d="m6 9 6 6 6-6"></path></svg>
                             </summary>
                             <div class="absolute left-0 right-0 mt-1 bg-(--color-surface) border border-(--color-border) rounded-lg shadow-lg py-1 z-10">
-                                <a href="{{ route('pressings.overview') }}"
-                                   class="block px-3 py-2 text-sm {{ $isOverviewMode ? 'text-(--color-primary) font-medium' : 'text-(--color-text-secondary)' }} hover:bg-(--color-bg)">
+                                <a href="{{ route('pressings.overview') }}" wire:navigate
+                                   class="block px-3 py-2 text-sm transition-colors duration-150 {{ $isOverviewMode ? 'text-(--color-primary) font-medium' : 'text-(--color-text-secondary)' }} hover:bg-(--color-bg)">
                                     Vue d'ensemble
                                 </a>
                                 <div class="h-px bg-(--color-border) my-1"></div>
                                 @foreach ($user->activePressings() as $p)
-                                    <a href="{{ route('pressings.switch', $p) }}"
-                                       class="block px-3 py-2 text-sm truncate {{ ! $isOverviewMode && $pressing?->id === $p->id ? 'text-(--color-primary) font-medium' : 'text-(--color-text-secondary)' }} hover:bg-(--color-bg)">
+                                    <a href="{{ route('pressings.switch', $p) }}" wire:navigate
+                                       class="block px-3 py-2 text-sm truncate transition-colors duration-150 {{ ! $isOverviewMode && $pressing?->id === $p->id ? 'text-(--color-primary) font-medium' : 'text-(--color-text-secondary)' }} hover:bg-(--color-bg)">
                                         {{ $p->name }}
                                     </a>
                                 @endforeach
@@ -62,8 +62,8 @@
 
                 <nav class="flex flex-col gap-0.5 px-3">
                     @foreach ($navItems as $item)
-                        <a href="{{ route($item['route']) }}"
-                           class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium {{ $item['active'] ? 'bg-(--color-primary-tint) text-(--color-primary)' : 'text-(--color-text-secondary) hover:bg-(--color-bg)' }}">
+                        <a href="{{ route($item['route']) }}" wire:navigate
+                           class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 {{ $item['active'] ? 'bg-(--color-primary-tint) text-(--color-primary)' : 'text-(--color-text-secondary) hover:bg-(--color-bg)' }}">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
                                 @foreach (explode('|', $item['icon']) as $path)
                                     <path d="{{ $path }}"></path>
@@ -79,18 +79,18 @@
                     @endforeach
 
                     @if ($isAdmin)
-                        <a href="{{ route('services.index') }}"
-                           class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium {{ ($active ?? null) === 'services' ? 'bg-(--color-primary-tint) text-(--color-primary)' : 'text-(--color-text-secondary) hover:bg-(--color-bg)' }}">
+                        <a href="{{ route('services.index') }}" wire:navigate
+                           class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 {{ ($active ?? null) === 'services' ? 'bg-(--color-primary-tint) text-(--color-primary)' : 'text-(--color-text-secondary) hover:bg-(--color-bg)' }}">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"></circle><path d="M18.09 10.37A6 6 0 1 1 10.34 18"></path></svg>
                             Tarifs
                         </a>
-                        <a href="{{ route('team.index') }}"
-                           class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium {{ ($active ?? null) === 'team' ? 'bg-(--color-primary-tint) text-(--color-primary)' : 'text-(--color-text-secondary) hover:bg-(--color-bg)' }}">
+                        <a href="{{ route('team.index') }}" wire:navigate
+                           class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 {{ ($active ?? null) === 'team' ? 'bg-(--color-primary-tint) text-(--color-primary)' : 'text-(--color-text-secondary) hover:bg-(--color-bg)' }}">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                             Équipe
                         </a>
-                        <a href="{{ route('pressing.settings') }}"
-                           class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium {{ ($active ?? null) === 'settings' ? 'bg-(--color-primary-tint) text-(--color-primary)' : 'text-(--color-text-secondary) hover:bg-(--color-bg)' }}">
+                        <a href="{{ route('pressing.settings') }}" wire:navigate
+                           class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 {{ ($active ?? null) === 'settings' ? 'bg-(--color-primary-tint) text-(--color-primary)' : 'text-(--color-text-secondary) hover:bg-(--color-bg)' }}">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg>
                             Paramètres
                         </a>
@@ -102,8 +102,8 @@
                 @if ($isAdmin)
                     <div class="px-3">
                         <div class="h-px bg-(--color-border) mx-3 mb-3"></div>
-                        <a href="{{ route('subscription.show') }}"
-                           class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium {{ ($active ?? null) === 'subscription' ? 'bg-(--color-primary-tint) text-(--color-primary)' : 'text-(--color-text-secondary) hover:bg-(--color-bg)' }}">
+                        <a href="{{ route('subscription.show') }}" wire:navigate
+                           class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 {{ ($active ?? null) === 'subscription' ? 'bg-(--color-primary-tint) text-(--color-primary)' : 'text-(--color-text-secondary) hover:bg-(--color-bg)' }}">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
                             Abonnement
                         </a>
@@ -113,12 +113,12 @@
 
             <div class="flex-1 min-w-0 flex flex-col">
                 <header class="h-16 flex-none bg-(--color-surface) border-b border-(--color-border) flex items-center justify-end gap-4 px-7">
-                    <a href="{{ route('account.settings') }}" class="text-right hover:opacity-70">
+                    <a href="{{ route('account.settings') }}" wire:navigate class="text-right hover:opacity-70 transition-opacity duration-150">
                         <div class="text-sm font-medium leading-tight">{{ $user->name }}</div>
                         <div class="text-xs text-(--color-text-muted)">{{ $isAdmin ? 'Administrateur' : 'Employé' }} · {{ $isOverviewMode ? "Vue d'ensemble" : $pressing?->name }}</div>
                     </a>
-                    <a href="{{ route('account.settings') }}"
-                       class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary) {{ ($active ?? null) === 'account' ? 'border-(--color-primary) text-(--color-primary)' : '' }}"
+                    <a href="{{ route('account.settings') }}" wire:navigate
+                       class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) transition-colors duration-150 hover:border-(--color-primary) hover:text-(--color-primary) {{ ($active ?? null) === 'account' ? 'border-(--color-primary) text-(--color-primary)' : '' }}"
                        title="Mon compte">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     </a>

@@ -35,3 +35,100 @@
     --radius-lg: 12px;
     --radius-xl: 16px;
 }
+
+/*
+ * Micro-interactions globales — Dashboard pressing & Super Admin.
+ *
+ * Objectif : que chaque clic/survol/changement d'état réagisse en douceur
+ * (au lieu du rendu "brut" par défaut du navigateur), sans avoir à retoucher
+ * chaque vue Blade une par une. Ces règles s'appliquent donc aux sélecteurs
+ * eux-mêmes plutôt qu'à des classes utilitaires ajoutées partout.
+ */
+
+button,
+a,
+input,
+select,
+textarea,
+summary {
+    transition:
+        background-color 150ms ease,
+        border-color 150ms ease,
+        color 150ms ease,
+        opacity 150ms ease,
+        box-shadow 150ms ease,
+        transform 100ms ease;
+}
+
+button:active,
+a[role='button']:active,
+summary:active {
+    transform: scale(0.97);
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    box-shadow: 0 0 0 3px var(--color-primary-tint);
+}
+
+/* Lignes de tableau (listes commandes, clients, équipe, administrateurs…). */
+table tbody tr {
+    transition: background-color 150ms ease;
+}
+
+/* Cartes/panneaux avec ombre au survol, quand ils sont cliquables. */
+a.card-hover,
+[wire\:click] {
+    transition:
+        background-color 150ms ease,
+        border-color 150ms ease,
+        box-shadow 150ms ease,
+        transform 100ms ease;
+}
+
+/* Apparition douce du contenu de page — première peinture et après une
+   navigation `wire:navigate` (barre de progression Livewire déjà native). */
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+main {
+    animation: fade-in-up 220ms ease-out;
+}
+
+/* Étapes d'un formulaire multi-étapes (ex. Nouvelle commande) : le
+   `wire:key` change à chaque étape, donc Livewire remplace le bloc plutôt
+   que de le patcher, ce qui rejoue l'animation à chaque passage. */
+.animate-step {
+    animation: fade-in-up 220ms ease-out;
+}
+
+/* Alertes/bannières de succès/erreur affichées après une action Livewire. */
+[class*='bg-(--color-success-tint)'],
+[class*='bg-(--color-error-tint)'],
+[class*='bg-(--color-warning-tint)'] {
+    animation: fade-in-up 200ms ease-out;
+}
+
+/* Barre de progression Livewire (wire:navigate) aux couleurs PressLink au
+   lieu du bleu par défaut du plugin. */
+:root {
+    --livewire-progress-bar-color: #2563eb;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        transition-duration: 0.001ms !important;
+    }
+}

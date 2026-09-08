@@ -32,8 +32,8 @@
 
                 <nav class="flex flex-col gap-0.5 px-3">
                     @foreach ($navItems as $item)
-                        <a href="{{ route($item['route']) }}"
-                           class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium {{ $item['active'] ? 'bg-(--color-primary-tint) text-(--color-primary)' : 'text-(--color-text-secondary) hover:bg-(--color-bg)' }}">
+                        <a href="{{ route($item['route']) }}" wire:navigate
+                           class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 {{ $item['active'] ? 'bg-(--color-primary-tint) text-(--color-primary)' : 'text-(--color-text-secondary) hover:bg-(--color-bg)' }}">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
                                 @foreach (explode('|', $item['icon']) as $path)
                                     <path d="{{ $path }}"></path>

@@ -42,9 +42,7 @@ dependencies:
   intl: ^0.20.3
   shared_preferences: ^2.5.5
   image_picker: ^1.2.3
-  firebase_core: ^4.14.0
-  firebase_messaging: ^16.6.0
-
+  onesignal_flutter: ^5.6.8
 dev_dependencies:
   flutter_test:
     sdk: flutter

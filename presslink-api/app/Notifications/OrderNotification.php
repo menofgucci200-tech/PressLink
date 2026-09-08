@@ -3,7 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Order;
-use App\Notifications\Channels\FcmChannel;
+use App\Notifications\Channels\OneSignalChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
 use Illuminate\Notifications\Notification;
@@ -11,11 +11,11 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * Base commune aux notifications de commande — Cahier §9.
- * MVP : canal push (FcmChannel) + persistance en base pour la liste
+ * MVP : canal push (OneSignalChannel) + persistance en base pour la liste
  * "Notifications" de l'app client.
  *
  * ShouldQueueAfterCommit (pas juste ShouldQueue) : l'écriture en base et
- * l'appel FCM sont déportés sur un worker de queue au lieu de s'exécuter
+ * l'appel push sont déportés sur un worker de queue au lieu de s'exécuter
  * dans la requête HTTP qui déclenche le changement de statut (voir
  * load-testing/RAPPORT.md, finding A). "AfterCommit" est indispensable ici
  * : ces notifications sont envoyées depuis OrderObserver, DANS la
@@ -36,7 +36,7 @@ abstract class OrderNotification extends Notification implements ShouldQueueAfte
      */
     public function via(mixed $notifiable): array
     {
-        return ['database', FcmChannel::class];
+        return ['database', OneSignalChannel::class];
     }
 
     abstract public function title(): string;
@@ -60,7 +60,7 @@ abstract class OrderNotification extends Notification implements ShouldQueueAfte
     /**
      * @return array{title: string, body: string, data: array<string, mixed>}
      */
-    public function toFcm(mixed $notifiable): array
+    public function toOneSignal(mixed $notifiable): array
     {
         return [
             'title' => $this->title(),

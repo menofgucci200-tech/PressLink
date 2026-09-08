@@ -23,6 +23,12 @@ class AppConfig {
     defaultValue: 'http://127.0.0.1:8000/api/v1',
   );
 
+  /// App ID OneSignal (pas un secret — visible côté client par nature,
+  /// comme un client ID OAuth). Récupéré dans OneSignal > Settings > Keys
+  /// & IDs. Vide par défaut : les notifications se dégradent alors en
+  /// no-op plutôt que de faire planter l'app (voir PushNotificationService).
+  static const String oneSignalAppId = String.fromEnvironment('ONESIGNAL_APP_ID');
+
   static bool get isDevelopment => environment == 'development';
   static bool get isStaging => environment == 'staging';
   static bool get isProduction => environment == 'production';

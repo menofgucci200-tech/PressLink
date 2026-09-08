@@ -39,6 +39,7 @@ class Customer extends Authenticatable
         'email',
         'photo_path',
         'fcm_token',
+        'onesignal_player_id',
         'phone_verified_at',
         'last_login_at',
         'is_active',
@@ -88,8 +89,8 @@ class Customer extends Authenticatable
         return $this->hasMany(Order::class);
     }
 
-    public function routeNotificationForFcm(): ?string
+    public function routeNotificationForOneSignal(): ?string
     {
-        return $this->fcm_token;
+        return $this->onesignal_player_id;
     }
 }

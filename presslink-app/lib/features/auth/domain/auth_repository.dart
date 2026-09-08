@@ -163,8 +163,8 @@ class AuthRepository {
     });
   }
 
-  Future<void> updateFcmToken(String fcmToken) async {
-    await _apiClient.dio.put('/customer/fcm-token', data: {'fcm_token': fcmToken});
+  Future<void> updateOnesignalPlayerId(String playerId) async {
+    await _apiClient.dio.put('/customer/onesignal-player-id', data: {'player_id': playerId});
   }
 
   Future<void> logout() async {

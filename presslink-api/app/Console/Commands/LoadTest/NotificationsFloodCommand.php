@@ -15,8 +15,8 @@ use Illuminate\Support\Facades\DB;
  * d'un coup, et mesure le coût réel du pipeline de notification actuel.
  *
  * N'envoie jamais de vraie notification (voir app/Notifications/Channels/
- * FcmChannel.php — se dégrade en no-op loggué si aucun token FCM
- * n'est enregistré, ce qui est le cas de tout le jeu de données de charge).
+ * OneSignalChannel.php — se dégrade en no-op loggué si aucun player ID
+ * OneSignal n'est enregistré, ce qui est le cas de tout le jeu de données de charge).
  */
 class NotificationsFloodCommand extends Command
 {
@@ -78,7 +78,7 @@ class NotificationsFloodCommand extends Command
                 ['Temps total', number_format($elapsedSeconds, 3).' s'],
                 ['Temps moyen / commande', number_format(($elapsedSeconds / max($orders->count(), 1)) * 1000, 2).' ms'],
                 ['Notifications DB créées (canal "database")', $notificationsCreated],
-                ['Jobs créés dans la table "jobs" (canal FCM)', $jobsCreated],
+                ['Jobs créés dans la table "jobs" (canal push)', $jobsCreated],
                 ['Jobs en échec ("failed_jobs")', $failedJobsCreated],
             ]
         );
@@ -88,16 +88,16 @@ class NotificationsFloodCommand extends Command
         if ($jobsCreated === 0) {
             $this->warn('CONSTAT : 0 job créé dans la table "jobs" malgré QUEUE_CONNECTION=database.');
             $this->warn('OrderNotification n\'implémente pas ShouldQueue (voir app/Notifications/OrderNotification.php) :');
-            $this->warn('le canal FCM et l\'écriture en base sont exécutés de manière SYNCHRONE, dans la requête HTTP');
+            $this->warn('le canal push et l\'écriture en base sont exécutés de manière SYNCHRONE, dans la requête HTTP');
             $this->warn('qui déclenche le changement de statut. Le temps ci-dessus ("Temps moyen / commande") est donc');
             $this->warn('directement ajouté à la latence perçue par le staff qui clique sur "Marquer prête".');
         }
 
-        $this->warn('LIMITE DE CET ENVIRONNEMENT : Firebase n\'est pas configuré et aucun client de charge n\'a de');
-        $this->warn('fcm_token — 100% des envois FCM se dégradent en no-op loggué (voir storage/logs/laravel.log,');
-        $this->warn('"FCM (mock) ... aucun token enregistré"). Le comportement réel de FCM sous charge (latence API');
-        $this->warn('Google, taux d\'échec, retry sur token invalide) ne peut être mesuré que sur un vrai environnement');
-        $this->warn('de staging avec des identifiants Firebase sandbox — non disponible dans ce conteneur.');
+        $this->warn('LIMITE DE CET ENVIRONNEMENT : OneSignal n\'est pas configuré et aucun client de charge n\'a de');
+        $this->warn('onesignal_player_id — 100% des envois se dégradent en no-op loggué (voir storage/logs/laravel.log,');
+        $this->warn('"OneSignal (mock) ... aucun player ID enregistré"). Le comportement réel sous charge (latence API,');
+        $this->warn('taux d\'échec, retry sur player ID invalide) ne peut être mesuré que sur un vrai environnement');
+        $this->warn('de staging avec des identifiants OneSignal sandbox — non disponible dans ce conteneur.');
 
         return self::SUCCESS;
     }

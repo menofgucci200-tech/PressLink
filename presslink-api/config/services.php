@@ -35,10 +35,11 @@ return [
         ],
     ],
 
-    'fcm' => [
-        // Vide en dev/pilote : les notifications sont loguées au lieu d'être
-        // réellement envoyées (cf. App\Notifications\Channels\FcmChannel).
-        'server_key' => env('FCM_SERVER_KEY'),
+    'onesignal' => [
+        // Vides en dev/pilote : les notifications sont loguées au lieu
+        // d'être réellement envoyées (cf. App\Notifications\Channels\OneSignalChannel).
+        'app_id' => env('ONESIGNAL_APP_ID'),
+        'rest_api_key' => env('ONESIGNAL_REST_API_KEY'),
     ],
 
 ];

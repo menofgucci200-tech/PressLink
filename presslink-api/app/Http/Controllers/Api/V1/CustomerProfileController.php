@@ -71,12 +71,12 @@ class CustomerProfileController extends Controller
         return response()->json($customer->fresh());
     }
 
-    public function updateFcmToken(Request $request): JsonResponse
+    public function updateOnesignalPlayerId(Request $request): JsonResponse
     {
-        $request->validate(['fcm_token' => ['required', 'string']]);
+        $request->validate(['player_id' => ['required', 'string']]);
 
-        $request->user()->update(['fcm_token' => $request->string('fcm_token')->toString()]);
+        $request->user()->update(['onesignal_player_id' => $request->string('player_id')->toString()]);
 
-        return response()->json(['message' => 'Token enregistré.']);
+        return response()->json(['message' => 'Identifiant OneSignal enregistré.']);
     }
 }

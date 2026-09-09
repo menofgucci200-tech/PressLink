@@ -40,15 +40,21 @@ return [
 
         'public' => [
             'driver' => 'local',
-            // `public_path('uploads')` plutôt que le classique
-            // `storage_path('app/public')` + lien symbolique `public/storage` :
-            // sur cet hébergement mutualisé (LWS), Apache renvoie un 403 sur
-            // TOUT chemin contenant `/storage/` — lien symbolique ou non,
-            // permissions correctes ou non — probablement un filtrage de
-            // sécurité générique par nom de dossier propre à leur
-            // configuration Laravel par défaut. On écrit donc directement
-            // dans public/ sous un nom qui n'est pas filtré.
-            'root' => public_path('uploads'),
+            // Écrit directement dans le dossier public (pas de lien
+            // symbolique `public/storage`) pour deux raisons cumulées,
+            // découvertes en production sur l'hébergement LWS :
+            // 1. Apache y renvoie un 403 sur TOUT chemin contenant
+            //    `/storage/` — lien symbolique ou non, permissions
+            //    correctes ou non — un filtrage de sécurité générique par
+            //    nom de dossier propre à leur configuration par défaut.
+            // 2. Le docroot Apache réel (`/htdocs`, un `index.php`
+            //    autonome qui démarre Laravel depuis cette app) est un
+            //    dossier séparé de `public/` de ce dépôt — `public_path()`
+            //    n'y correspond donc pas du tout en prod. `PUBLIC_DISK_ROOT`
+            //    permet de le pointer explicitement sans coder ce chemin
+            //    serveur en dur dans un fichier versionné ; par défaut
+            //    (dev local, où public/ EST le docroot), il vaut public_path('uploads').
+            'root' => env('PUBLIC_DISK_ROOT', public_path('uploads')),
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/uploads',
             'visibility' => 'public',
             'throw' => false,

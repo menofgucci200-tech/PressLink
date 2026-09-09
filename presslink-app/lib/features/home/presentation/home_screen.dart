@@ -95,12 +95,14 @@ class HomeScreen extends ConsumerWidget {
                   onRetry: () => ref.invalidate(ordersProvider),
                 ),
                 data: (orders) {
-                  if (orders.isEmpty) {
+                  final activeOrders = orders.where((o) => o.status != OrderStatus.recuperee).toList();
+
+                  if (activeOrders.isEmpty) {
                     return Text('Aucune commande pour le moment.', style: theme.textTheme.bodyMedium);
                   }
                   return Column(
                     children: [
-                      for (final order in orders.take(3)) ...[
+                      for (final order in activeOrders.take(3)) ...[
                         OrderCard(
                           order: OrderSummary(
                             orderNumber: order.orderNumber,

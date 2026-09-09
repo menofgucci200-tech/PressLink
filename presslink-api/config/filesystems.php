@@ -40,15 +40,16 @@ return [
 
         'public' => [
             'driver' => 'local',
-            // `public_path('storage')` plutôt que le classique
-            // `storage_path('app/public')` + lien symbolique : certains
-            // hébergements mutualisés (LWS notamment) désactivent le suivi
-            // des liens symboliques par Apache (FollowSymLinks), ce qui
-            // rend les fichiers uploadés inaccessibles (403) même avec un
-            // lien `storage:link` valide et des permissions correctes.
-            // Écrire directement dans public/ élimine le problème.
-            'root' => public_path('storage'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            // `public_path('uploads')` plutôt que le classique
+            // `storage_path('app/public')` + lien symbolique `public/storage` :
+            // sur cet hébergement mutualisé (LWS), Apache renvoie un 403 sur
+            // TOUT chemin contenant `/storage/` — lien symbolique ou non,
+            // permissions correctes ou non — probablement un filtrage de
+            // sécurité générique par nom de dossier propre à leur
+            // configuration Laravel par défaut. On écrit donc directement
+            // dans public/ sous un nom qui n'est pas filtré.
+            'root' => public_path('uploads'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/uploads',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#06B6D4</color>
+    <!-- Teinte l'icône (silhouette blanche) dans la barre de notification et
+         son cadre — lu automatiquement par le SDK Android OneSignal. -->
+    <color name="onesignal_accent_color">#FF2563EB</color>
 </resources>

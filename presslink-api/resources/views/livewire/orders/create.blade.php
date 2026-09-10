@@ -9,14 +9,16 @@
         @foreach ($labels as $n => $label)
             <div class="flex items-center flex-1 min-w-0 last:flex-none">
                 <div class="flex items-center gap-2.5 flex-none">
-                    <div class="w-7 h-7 rounded-full flex items-center justify-center text-[13px] font-semibold
+                    <div class="w-7 h-7 rounded-full flex items-center justify-center text-[13px] font-semibold transition-all duration-300 {{ $n === $step ? 'scale-110' : '' }}
                         {{ $n < $step ? 'bg-(--color-success) text-white' : ($n === $step ? 'bg-(--color-primary) text-white' : 'bg-(--color-border) text-(--color-text-muted)') }}">
                         @if ($n < $step) ✓ @else {{ $n }} @endif
                     </div>
-                    <span class="text-[13.5px] font-medium {{ $n <= $step ? 'text-(--color-text-primary)' : 'text-(--color-text-muted)' }}">{{ $label }}</span>
+                    <span class="text-[13.5px] font-medium transition-colors duration-300 {{ $n <= $step ? 'text-(--color-text-primary)' : 'text-(--color-text-muted)' }}">{{ $label }}</span>
                 </div>
                 @if ($n < 4)
-                    <div class="flex-1 h-px mx-3.5 {{ $n < $step ? 'bg-(--color-success)' : 'bg-(--color-border)' }}"></div>
+                    <div class="flex-1 h-px mx-3.5 bg-(--color-border) overflow-hidden">
+                        <div class="h-full bg-(--color-success) transition-all duration-500 ease-out" style="width:{{ $n < $step ? '100' : '0' }}%"></div>
+                    </div>
                 @endif
             </div>
         @endforeach
@@ -39,8 +41,8 @@
             <div class="flex flex-col gap-2.5 mb-5">
                 @forelse ($clients as $client)
                     <button type="button" wire:click="pickCustomer({{ $client->id }})"
-                            class="flex items-center gap-3.5 w-full text-left px-4 py-3.5 rounded-lg border {{ $selectedCustomerId === $client->id ? 'border-(--color-primary) bg-(--color-primary-tint)' : 'border-(--color-border)' }}">
-                        <span class="w-9 h-9 rounded-full bg-(--color-primary-tint) text-(--color-primary) flex items-center justify-center text-[13px] font-semibold flex-none">
+                            class="flex items-center gap-3.5 w-full text-left px-4 py-3.5 rounded-lg border transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px {{ $selectedCustomerId === $client->id ? 'border-(--color-primary) bg-(--color-primary-tint)' : 'border-(--color-border)' }}">
+                        <span class="w-9 h-9 rounded-full bg-(--color-primary-tint) text-(--color-primary) flex items-center justify-center text-[13px] font-semibold flex-none transition-transform duration-150 {{ $selectedCustomerId === $client->id ? 'scale-110' : '' }}">
                             {{ mb_strtoupper(mb_substr($client->first_name, 0, 1).mb_substr($client->last_name, 0, 1)) }}
                         </span>
                         <span class="min-w-0">
@@ -164,20 +166,22 @@
             @else
                 <div class="flex flex-col mb-4">
                     @foreach ($items as $i => $item)
-                        <div class="flex items-center justify-between py-3.5 border-b border-(--color-border) first:border-t">
+                        <div wire:key="item-{{ $i }}-{{ $item['name'] }}" class="flex items-center justify-between py-3.5 border-b border-(--color-border) first:border-t animate-step">
                             <span class="text-sm font-medium">{{ $item['name'] }}</span>
                             <div class="flex items-center gap-3">
-                                <button type="button" wire:click="decrementItem({{ $i }})" class="w-7 h-7 rounded-md border border-(--color-border) flex items-center justify-center text-sm">−</button>
+                                <button type="button" wire:click="decrementItem({{ $i }})"
+                                        class="w-7 h-7 rounded-md border border-(--color-border) flex items-center justify-center text-sm transition-colors duration-150 hover:border-(--color-primary) hover:text-(--color-primary)">−</button>
                                 <span class="w-4 text-center font-semibold tabular-nums">{{ $item['quantity'] }}</span>
-                                <button type="button" wire:click="incrementItem({{ $i }})" class="w-7 h-7 rounded-md border border-(--color-border) flex items-center justify-center text-sm">+</button>
+                                <button type="button" wire:click="incrementItem({{ $i }})"
+                                        class="w-7 h-7 rounded-md border border-(--color-border) flex items-center justify-center text-sm transition-colors duration-150 hover:border-(--color-primary) hover:text-(--color-primary)">+</button>
                                 <span class="w-20 text-right font-semibold tabular-nums">{{ number_format($item['unit_price_fcfa'] * $item['quantity'], 0, ',', ' ') }} F</span>
                             </div>
                         </div>
                     @endforeach
                 </div>
-                <div class="flex justify-between items-center pt-4 border-t border-dashed border-(--color-border)">
+                <div wire:key="total-{{ $this->total }}" class="flex justify-between items-center pt-4 border-t border-dashed border-(--color-border)">
                     <span class="text-sm text-(--color-text-secondary)">Total</span>
-                    <span class="font-display text-2xl font-bold tabular-nums">{{ number_format($this->total, 0, ',', ' ') }} FCFA</span>
+                    <span class="font-display text-2xl font-bold tabular-nums animate-step">{{ number_format($this->total, 0, ',', ' ') }} FCFA</span>
                 </div>
             @endif
         @endif
@@ -241,17 +245,17 @@
 
     <div class="flex justify-between mt-5">
         <button type="button" wire:click="back" @if($step===1) disabled @endif
-                class="h-10 px-4 rounded-lg border border-(--color-border) text-sm font-medium {{ $step === 1 ? 'opacity-40 cursor-not-allowed' : '' }}">
+                class="h-10 px-4 rounded-lg border border-(--color-border) text-sm font-medium transition-colors duration-150 {{ $step === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:border-(--color-text-muted)' }}">
             ← Retour
         </button>
 
         @if ($step < 4)
-            <button type="button" wire:click="next" class="h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
+            <button type="button" wire:click="next" class="h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold transition-colors duration-150 hover:bg-(--color-primary-600)">
                 Continuer →
             </button>
         @else
             <button type="button" wire:click="create" wire:loading.attr="disabled" wire:target="create"
-                    class="h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600) disabled:opacity-60">
+                    class="h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold transition-colors duration-150 hover:bg-(--color-primary-600) disabled:opacity-60">
                 <span wire:loading.remove wire:target="create">Créer la commande</span>
                 <span wire:loading wire:target="create">Création…</span>
             </button>

@@ -138,8 +138,9 @@
                 </div>
             </aside>
 
-            <div class="flex-1 min-w-0 flex flex-col">
-                <header class="h-16 flex-none bg-(--color-surface) border-b border-(--color-border) flex items-center gap-3 px-6 sticky top-0 z-10">
+            <div class="flex-1 min-w-0 flex flex-col" x-data="{ scrolled: false }">
+                <header class="h-16 flex-none bg-(--color-surface) border-b border-(--color-border) flex items-center gap-3 px-6 sticky top-0 z-10 transition-shadow duration-200"
+                        :class="scrolled ? 'shadow-[0_4px_14px_-8px_rgba(15,23,42,.25)]' : ''">
                     <div class="hidden md:flex flex-1 min-w-0 max-w-[360px] items-center gap-2 bg-(--color-bg) border border-(--color-border) rounded-lg px-3 py-2.5 text-(--color-text-muted)">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
                         <span class="text-[13.5px] flex-1 truncate">Rechercher un n° ou un client…</span>
@@ -173,7 +174,7 @@
                     </form>
                 </header>
 
-                <main class="flex-1 overflow-y-auto p-8">
+                <main class="flex-1 overflow-y-auto p-8" @scroll="scrolled = $event.target.scrollTop > 4">
                     {{ $slot }}
                 </main>
             </div>

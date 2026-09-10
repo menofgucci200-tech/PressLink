@@ -40,6 +40,10 @@ return [
         // d'être réellement envoyées (cf. App\Notifications\Channels\OneSignalChannel).
         'app_id' => env('ONESIGNAL_APP_ID'),
         'rest_api_key' => env('ONESIGNAL_REST_API_KEY'),
+        // Canal Android "Commandes" (son personnalisé) créé dans le
+        // dashboard OneSignal — null pour laisser Android/OneSignal
+        // utiliser le canal générique par défaut.
+        'android_channel_id' => env('ONESIGNAL_ANDROID_CHANNEL_ID'),
     ],
 
 ];

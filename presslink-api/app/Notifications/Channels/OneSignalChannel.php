@@ -52,6 +52,8 @@ class OneSignalChannel
             return;
         }
 
+        $androidChannelId = config('services.onesignal.android_channel_id');
+
         $response = Http::withHeaders([
             'Authorization' => "Basic {$restApiKey}",
             'Content-Type' => 'application/json',
@@ -61,6 +63,7 @@ class OneSignalChannel
             'headings' => ['en' => $payload['title'] ?? ''],
             'contents' => ['en' => $payload['body'] ?? ''],
             'data' => $payload['data'] ?? [],
+            ...($androidChannelId ? ['android_channel_id' => $androidChannelId] : []),
         ]);
 
         if ($response->failed()) {

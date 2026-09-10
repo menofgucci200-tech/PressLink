@@ -104,6 +104,76 @@ main {
     animation: fade-in-up 220ms ease-out;
 }
 
+/* Sidebar dashboard pressing — item de nav actif "découpé" dans le fond de
+   page, comme un onglet qui rejoint le contenu (au lieu d'un simple fond
+   coloré). Les deux coins arrondis (nav-notch-*) sont l'astuce classique du
+   box-shadow : un carré dont on n'affiche que le coin arrondi opposé. */
+.nav-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 14px;
+    margin-right: 20px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #dbeafe;
+    cursor: pointer;
+    transition:
+        color 150ms ease,
+        background-color 150ms ease,
+        transform 100ms ease;
+}
+.nav-item:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+.nav-item:active {
+    transform: scale(0.97);
+}
+.nav-item-active,
+.nav-item-active:hover {
+    margin-right: 0;
+    border-radius: 16px 0 0 16px;
+    font-weight: 600;
+    color: #1d4ed8;
+    background: var(--color-bg);
+}
+.nav-notch {
+    position: absolute;
+    right: 0;
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+}
+.nav-notch-top {
+    top: -16px;
+    border-bottom-right-radius: 16px;
+    box-shadow: 8px 8px 0 8px var(--color-bg);
+}
+.nav-notch-bottom {
+    top: 100%;
+    border-top-right-radius: 16px;
+    box-shadow: 8px -8px 0 8px var(--color-bg);
+}
+
+@keyframes pulse-dot {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.35;
+        transform: scale(0.8);
+    }
+}
+.animate-pulse-dot {
+    display: inline-block;
+    animation: pulse-dot 2s infinite;
+}
+
 /* Étapes d'un formulaire multi-étapes (ex. Nouvelle commande) : le
    `wire:key` change à chaque étape, donc Livewire remplace le bloc plutôt
    que de le patcher, ce qui rejoue l'animation à chaque passage. */

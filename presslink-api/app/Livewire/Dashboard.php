@@ -7,6 +7,7 @@ use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -142,6 +143,15 @@ class Dashboard extends Component
         $spark = $last7->map(fn ($day) => (int) ($revenueByDay[$day] ?? 0));
         $sparkMax = max($spark->max(), 1);
 
+        // Initiale du jour de la semaine pour chaque jour réel de la fenêtre
+        // glissante (et non "L M M J V S D" fixe, qui ne correspond qu'aux
+        // fenêtres se terminant un dimanche).
+        $sparkLabels = $last7->map(fn ($day) => mb_strtoupper(mb_substr(
+            Carbon::parse($day)->locale('fr')->dayName,
+            0,
+            1,
+        )));
+
         return view('livewire.dashboard', [
             'pressing' => $pressing,
             'counts' => $counts,
@@ -152,6 +162,7 @@ class Dashboard extends Component
             'revenueChangePct' => $revenueChangePct,
             'spark' => $spark,
             'sparkMax' => $sparkMax,
+            'sparkLabels' => $sparkLabels,
         ]);
     }
 }

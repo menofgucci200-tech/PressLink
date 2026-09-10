@@ -146,13 +146,14 @@
                     @else
                         <div class="text-xs text-(--color-text-muted) mt-1">Pas de comparaison disponible</div>
                     @endif
+                    @php $bestDayIndex = $spark->max() > 0 ? $spark->search($spark->max()) : null; @endphp
                     <div class="flex items-end gap-[5px] h-[52px] mt-[18px]">
                         @foreach ($spark as $i => $value)
-                            <div class="flex-1 rounded animate-step" style="height:{{ max(4, round($value / $sparkMax * 100)) }}%;background:{{ $i === $spark->count() - 1 ? 'var(--color-success)' : '#1e293b' }};animation-delay:{{ $i * 60 }}ms"></div>
+                            <div class="flex-1 rounded animate-step" style="height:{{ max(4, round($value / $sparkMax * 100)) }}%;background:{{ $i === $bestDayIndex ? 'var(--color-success)' : '#1e293b' }};animation-delay:{{ $i * 60 }}ms"></div>
                         @endforeach
                     </div>
                     <div class="flex justify-between mt-2 text-[9.5px] text-(--color-text-muted)">
-                        @foreach (['L', 'M', 'M', 'J', 'V', 'S', 'D'] as $d)
+                        @foreach ($sparkLabels as $d)
                             <span>{{ $d }}</span>
                         @endforeach
                     </div>

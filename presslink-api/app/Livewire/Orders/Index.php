@@ -4,6 +4,7 @@ namespace App\Livewire\Orders;
 
 use App\Enums\OrderStatus;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -11,6 +12,11 @@ class Index extends Component
 {
     use WithPagination;
 
+    /**
+     * Synchronisé avec `?search=` dans l'URL : permet à la recherche
+     * globale de l'en-tête d'atterrir ici avec le terme déjà pré-rempli.
+     */
+    #[Url]
     public string $search = '';
 
     public string $status = '';

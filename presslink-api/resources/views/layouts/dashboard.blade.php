@@ -64,7 +64,7 @@
 
                 <nav class="flex flex-col gap-1.5">
                     @foreach ($navItems as $item)
-                        <a href="{{ route($item['route']) }}" wire:navigate class="nav-item {{ $item['active'] ? 'nav-item-active' : '' }}">
+                        <a href="{{ route($item['route']) }}" wire:navigate style="--nav-i:{{ $loop->index }}" class="nav-item {{ $item['active'] ? 'nav-item-active' : '' }}">
                             @if ($item['active'])
                                 <span class="nav-notch nav-notch-top"></span>
                                 <span class="nav-notch nav-notch-bottom"></span>
@@ -85,17 +85,17 @@
 
                     @if ($isAdmin)
                         @php $active = $active ?? null; @endphp
-                        <a href="{{ route('services.index') }}" wire:navigate class="nav-item {{ $active === 'services' ? 'nav-item-active' : '' }}">
+                        <a href="{{ route('services.index') }}" wire:navigate style="--nav-i:4" class="nav-item {{ $active === 'services' ? 'nav-item-active' : '' }}">
                             @if ($active === 'services') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><circle cx="8" cy="8" r="6"></circle><path d="M18.09 10.37A6 6 0 1 1 10.34 18"></path></svg>
                             <span class="truncate">Tarifs</span>
                         </a>
-                        <a href="{{ route('team.index') }}" wire:navigate class="nav-item {{ $active === 'team' ? 'nav-item-active' : '' }}">
+                        <a href="{{ route('team.index') }}" wire:navigate style="--nav-i:5" class="nav-item {{ $active === 'team' ? 'nav-item-active' : '' }}">
                             @if ($active === 'team') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                             <span class="truncate">Équipe</span>
                         </a>
-                        <a href="{{ route('pressing.settings') }}" wire:navigate class="nav-item {{ $active === 'settings' ? 'nav-item-active' : '' }}">
+                        <a href="{{ route('pressing.settings') }}" wire:navigate style="--nav-i:6" class="nav-item {{ $active === 'settings' ? 'nav-item-active' : '' }}">
                             @if ($active === 'settings') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg>
                             <span class="truncate">Paramètres</span>
@@ -141,18 +141,31 @@
             <div class="flex-1 min-w-0 flex flex-col" x-data="{ scrolled: false }">
                 <header class="h-16 flex-none bg-(--color-surface) border-b border-(--color-border) flex items-center gap-3 px-6 sticky top-0 z-10 transition-shadow duration-200"
                         :class="scrolled ? 'shadow-[0_4px_14px_-8px_rgba(15,23,42,.25)]' : ''">
-                    <div class="hidden md:flex flex-1 min-w-0 max-w-[360px] items-center gap-2 bg-(--color-bg) border border-(--color-border) rounded-lg px-3 py-2.5 text-(--color-text-muted)">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-                        <span class="text-[13.5px] flex-1 truncate">Rechercher un n° ou un client…</span>
-                        <span class="text-[10px] border border-(--color-border) rounded px-1 py-px">⌘K</span>
-                    </div>
+                    @php
+                        $searchTarget = ($active ?? null) === 'clients' ? route('clients.index') : route('orders.index');
+                        $searchPlaceholder = ($active ?? null) === 'clients' ? 'Rechercher un client…' : 'Rechercher un n° ou un client…';
+                    @endphp
+                    <form method="GET" action="{{ $searchTarget }}"
+                          class="hidden md:flex flex-1 min-w-0 max-w-[360px] items-center gap-2 bg-(--color-bg) border border-(--color-border) rounded-lg px-3 py-2.5 text-(--color-text-muted) transition-colors duration-150 focus-within:border-(--color-primary)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="flex-none"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+                        <input id="global-search" type="text" name="search" value="{{ request('search') }}" placeholder="{{ $searchPlaceholder }}"
+                               class="flex-1 min-w-0 bg-transparent text-[13.5px] text-(--color-text-primary) placeholder:text-(--color-text-muted) outline-none">
+                        <kbd class="text-[10px] border border-(--color-border) rounded px-1 py-px font-sans">⌘K</kbd>
+                    </form>
                     <div class="flex-1"></div>
 
                     @if ($pressing)
-                        @php $isOpen = $pressing->status === \App\Enums\PressingStatus::Active; @endphp
-                        <div class="flex items-center gap-1.5 rounded-full pl-2.5 pr-3 py-1.5 {{ $isOpen ? 'bg-(--color-success-tint)' : 'bg-(--color-error-tint)' }}">
-                            <span class="w-1.5 h-1.5 rounded-full {{ $isOpen ? 'bg-(--color-success) animate-pulse-dot' : 'bg-(--color-error)' }}"></span>
-                            <span class="text-xs font-semibold {{ $isOpen ? 'text-(--color-success-text)' : 'text-(--color-error)' }}">{{ $isOpen ? 'Ouvert' : 'Suspendu' }}</span>
+                        @php
+                            $isSuspended = $pressing->status === \App\Enums\PressingStatus::Suspended;
+                            $isOpen = ! $isSuspended && $pressing->isOpenNow();
+                            $statusLabel = $isSuspended ? 'Suspendu' : ($isOpen ? 'Ouvert' : 'Fermé');
+                            $statusBg = $isSuspended ? 'bg-(--color-error-tint)' : ($isOpen ? 'bg-(--color-success-tint)' : 'bg-(--color-bg)');
+                            $statusDot = $isSuspended ? 'bg-(--color-error)' : ($isOpen ? 'bg-(--color-success) animate-pulse-dot' : 'bg-(--color-text-muted)');
+                            $statusText = $isSuspended ? 'text-(--color-error)' : ($isOpen ? 'text-(--color-success-text)' : 'text-(--color-text-muted)');
+                        @endphp
+                        <div class="flex items-center gap-1.5 rounded-full pl-2.5 pr-3 py-1.5 {{ $statusBg }}" title="D'après les horaires définis dans Paramètres">
+                            <span class="w-1.5 h-1.5 rounded-full {{ $statusDot }}"></span>
+                            <span class="text-xs font-semibold {{ $statusText }}">{{ $statusLabel }}</span>
                         </div>
                         <div class="w-px h-6 bg-(--color-border)"></div>
                     @endif

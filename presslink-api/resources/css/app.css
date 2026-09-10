@@ -114,6 +114,14 @@ a.card-hover,
 
 main {
     animation: fade-in-up 220ms ease-out;
+    transition: opacity 120ms ease;
+}
+
+/* Posé par app.js sur `livewire:navigate` (juste avant le remplacement du
+   DOM) et retiré sur `livewire:navigated` — la page sortante s'estompe au
+   lieu d'être coupée net, avant que fade-in-up ne fasse entrer la suivante. */
+main.is-navigating {
+    opacity: 0.4;
 }
 
 /* Sidebar dashboard pressing — item de nav actif "découpé" dans le fond de
@@ -136,6 +144,12 @@ main {
         color 150ms ease,
         background-color 150ms ease,
         transform 100ms ease;
+    /* Légère entrée en cascade au montage de la sidebar (premier chargement
+       et à chaque `wire:navigate`, la page — donc la sidebar — étant
+       reconstruite à chaque fois) : chaque lien apparaît juste après le
+       précédent au lieu d'un bloc figé qui s'affiche d'un coup. */
+    animation: fade-in-up 260ms ease-out backwards;
+    animation-delay: calc(var(--nav-i, 0) * 35ms);
 }
 .nav-item:hover {
     color: #ffffff;

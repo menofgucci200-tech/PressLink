@@ -66,6 +66,29 @@ class Pressing extends Model
         return $code;
     }
 
+    /**
+     * Le pressing est-il ouvert à l'instant, d'après ses horaires
+     * (Pressing\Settings) ? Indépendant du statut de compte/abonnement
+     * (`status`), qui ne dit rien sur les horaires du jour.
+     */
+    public function isOpenNow(): bool
+    {
+        if (empty($this->opening_hours)) {
+            return true;
+        }
+
+        $day = mb_strtolower(now()->locale('fr')->dayName);
+        $today = $this->opening_hours[$day] ?? null;
+
+        if ($today === null || ($today['closed'] ?? false)) {
+            return false;
+        }
+
+        $now = now()->format('H:i');
+
+        return $now >= ($today['open'] ?? '00:00') && $now <= ($today['close'] ?? '23:59');
+    }
+
     /** @return HasMany<Service, $this> */
     public function services(): HasMany
     {

@@ -5,6 +5,7 @@ namespace App\Livewire\Clients;
 use App\Models\Customer;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -12,6 +13,11 @@ class Index extends Component
 {
     use WithPagination;
 
+    /**
+     * Synchronisé avec `?search=` dans l'URL : permet à la recherche
+     * globale de l'en-tête d'atterrir ici avec le terme déjà pré-rempli.
+     */
+    #[Url]
     public string $search = '';
 
     public bool $showCreateForm = false;

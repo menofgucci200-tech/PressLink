@@ -7,6 +7,7 @@ import '../../../core/widgets/app_back_button.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../orders/presentation/order_detail_screen.dart';
+import '../../orders/presentation/orders_controller.dart';
 import '../domain/notification_repository.dart';
 import 'notifications_controller.dart';
 
@@ -91,9 +92,9 @@ class NotificationsScreen extends ConsumerWidget {
                               }
                             }
                             if (n.orderId != null && context.mounted) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: n.orderId!)),
-                              );
+                              Navigator.of(context)
+                                  .push(MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: n.orderId!)))
+                                  .then((_) => ref.invalidate(ordersProvider));
                             }
                           },
                         );

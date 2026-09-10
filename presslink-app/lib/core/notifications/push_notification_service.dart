@@ -4,6 +4,7 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/orders/presentation/order_detail_screen.dart';
+import '../../features/orders/presentation/orders_controller.dart';
 import '../../main.dart';
 import '../config/app_config.dart';
 
@@ -67,10 +68,17 @@ class PushNotificationService {
             : null;
     if (orderId == null) return;
 
+    // La commande a forcément changé côté serveur pour qu'une notification
+    // soit envoyée : invalider tout de suite évite que l'écran d'accueil
+    // (déjà monté sous l'écran de détail qu'on va pousser, donc jamais
+    // recréé) ne continue d'afficher son ancien statut en cache une fois
+    // qu'on revient dessus.
+    _ref.invalidate(ordersProvider);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      rootNavigatorKey.currentState?.push(
-        MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: orderId)),
-      );
+      rootNavigatorKey.currentState
+          ?.push(MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: orderId)))
+          .then((_) => _ref.invalidate(ordersProvider));
     });
   }
 

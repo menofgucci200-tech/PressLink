@@ -113,9 +113,9 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
                               status: order.status,
                               totalFcfa: order.totalFcfa,
                             ),
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: order.id)),
-                            ),
+                            onTap: () => Navigator.of(context)
+                                .push(MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: order.id)))
+                                .then((_) => ref.invalidate(ordersProvider)),
                           );
                         },
                       ),

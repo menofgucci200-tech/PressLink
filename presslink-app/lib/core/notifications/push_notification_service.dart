@@ -5,6 +5,7 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/orders/presentation/order_detail_screen.dart';
 import '../../features/orders/presentation/orders_controller.dart';
+import '../../features/notifications/presentation/notifications_controller.dart';
 import '../../main.dart';
 import '../config/app_config.dart';
 
@@ -52,6 +53,12 @@ class PushNotificationService {
         // et getInitialMessage()).
         OneSignal.Notifications.addClickListener(_openOrderFromNotification);
 
+        // Notification reçue pendant que l'app est déjà ouverte au premier
+        // plan (aucun tap requis) : la liste des commandes et le badge de
+        // notifications doivent se rafraîchir tout de suite, pas seulement
+        // au retour d'un écran ou au prochain relancement de l'app.
+        OneSignal.Notifications.addForegroundWillDisplayListener((_) => _refreshAfterNotification());
+
         _listening = true;
       }
     } catch (e) {
@@ -66,20 +73,25 @@ class PushNotificationService {
         : rawOrderId is num
             ? rawOrderId.toInt()
             : null;
-    if (orderId == null) return;
+    _refreshAfterNotification();
 
-    // La commande a forcément changé côté serveur pour qu'une notification
-    // soit envoyée : invalider tout de suite évite que l'écran d'accueil
-    // (déjà monté sous l'écran de détail qu'on va pousser, donc jamais
-    // recréé) ne continue d'afficher son ancien statut en cache une fois
-    // qu'on revient dessus.
-    _ref.invalidate(ordersProvider);
+    if (orderId == null) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       rootNavigatorKey.currentState
           ?.push(MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: orderId)))
-          .then((_) => _ref.invalidate(ordersProvider));
+          .then((_) => _refreshAfterNotification());
     });
+  }
+
+  /// Une notification (reçue ou tapée) signale toujours qu'une commande a
+  /// changé côté serveur : la liste des commandes et le badge de
+  /// notifications ne doivent jamais rester affichés avec des données
+  /// périmées en attendant une action manuelle de l'utilisateur.
+  void _refreshAfterNotification() {
+    _ref.invalidate(ordersProvider);
+    _ref.invalidate(notificationsProvider);
+    _ref.invalidate(unreadNotificationsCountProvider);
   }
 
   Future<void> syncTokenIfLoggedIn() async {

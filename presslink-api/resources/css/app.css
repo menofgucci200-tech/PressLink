@@ -66,6 +66,18 @@ summary:active {
     transform: scale(0.97);
 }
 
+/* Le reset Tailwind laisse `cursor: default` sur les boutons — le curseur
+   "main" est pourtant le signal visuel standard qu'un élément est
+   cliquable, sur tout le dashboard (pressing comme Super Admin). */
+button:not(:disabled),
+[role='button'],
+summary {
+    cursor: pointer;
+}
+button:disabled {
+    cursor: not-allowed;
+}
+
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {

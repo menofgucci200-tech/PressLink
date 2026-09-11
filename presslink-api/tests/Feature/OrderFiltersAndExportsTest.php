@@ -88,6 +88,41 @@ class OrderFiltersAndExportsTest extends TestCase
             ->assertDontSee('PL-888888');
     }
 
+    public function test_search_filter_matches_order_amount(): void
+    {
+        $pressing = Pressing::factory()->create();
+        $admin = $this->makeStaff($pressing, PressingRole::Admin);
+
+        $customer = $this->makeCustomerOf($pressing);
+        $order = (new CreateOrderAction)->handle($pressing, $customer, [
+            ['service_id' => null, 'name' => 'Costume', 'unit_price_fcfa' => 12345, 'quantity' => 1],
+        ]);
+        $order->forceFill(['order_number' => 'PL-000003'])->save();
+        $this->makeOrder($pressing, 'PL-000004', OrderStatus::Recue, '2026-01-11');
+
+        $this->actingAs($admin);
+
+        Livewire::test(OrdersIndex::class)
+            ->set('search', '12345')
+            ->assertSee('PL-000003')
+            ->assertDontSee('PL-000004');
+    }
+
+    public function test_search_filter_matches_drop_off_date(): void
+    {
+        $pressing = Pressing::factory()->create();
+        $admin = $this->makeStaff($pressing, PressingRole::Admin);
+        $this->makeOrder($pressing, 'PL-000005', OrderStatus::Recue, '2026-03-14');
+        $this->makeOrder($pressing, 'PL-000006', OrderStatus::Recue, '2026-01-11');
+
+        $this->actingAs($admin);
+
+        Livewire::test(OrdersIndex::class)
+            ->set('search', '14/03')
+            ->assertSee('PL-000005')
+            ->assertDontSee('PL-000006');
+    }
+
     public function test_date_range_filter_narrows_the_orders_list(): void
     {
         $pressing = Pressing::factory()->create();
@@ -102,6 +137,27 @@ class OrderFiltersAndExportsTest extends TestCase
             ->set('dateTo', '2026-02-28')
             ->assertSee('PL-000002')
             ->assertDontSee('PL-000001');
+    }
+
+    public function test_status_and_date_range_filters_combine(): void
+    {
+        $pressing = Pressing::factory()->create();
+        $admin = $this->makeStaff($pressing, PressingRole::Admin);
+        // Même statut, périodes différentes : seule la première doit matcher.
+        $this->makeOrder($pressing, 'PL-000007', OrderStatus::Recue, '2026-02-10');
+        $this->makeOrder($pressing, 'PL-000008', OrderStatus::Recue, '2026-03-10');
+        // Même période, statut différent : ne doit pas matcher non plus.
+        $this->makeOrder($pressing, 'PL-000009', OrderStatus::Prete, '2026-02-12');
+
+        $this->actingAs($admin);
+
+        Livewire::test(OrdersIndex::class)
+            ->set('status', OrderStatus::Recue->value)
+            ->set('dateFrom', '2026-02-01')
+            ->set('dateTo', '2026-02-28')
+            ->assertSee('PL-000007')
+            ->assertDontSee('PL-000008')
+            ->assertDontSee('PL-000009');
     }
 
     public function test_reset_filters_clears_search_status_and_dates(): void

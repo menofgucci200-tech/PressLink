@@ -47,7 +47,7 @@
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
+            <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px animate-step">
                 <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-3">Commandes ce mois-ci</div>
                 @if ($subscription->orders_limit === null)
                     <div class="font-display text-2xl font-bold tabular-nums">{{ $subscription->orders_used }}</div>
@@ -58,12 +58,12 @@
                         {{ $subscription->orders_used }} <span class="text-(--color-text-muted) text-base font-normal">/ {{ $subscription->orders_limit }}</span>
                     </div>
                     <div class="h-1.5 rounded-full bg-(--color-border) overflow-hidden">
-                        <div class="h-full rounded-full {{ $ratio >= 1 ? 'bg-(--color-error)' : 'bg-(--color-primary)' }}" style="width: {{ $ratio * 100 }}%"></div>
+                        <div class="h-full rounded-full transition-[width] duration-500 ease-out {{ $ratio >= 1 ? 'bg-(--color-error)' : 'bg-(--color-primary)' }}" style="width: {{ $ratio * 100 }}%"></div>
                     </div>
                 @endif
             </div>
 
-            <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
+            <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px animate-step">
                 <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-3">
                     {{ $subscription->status === \App\Enums\SubscriptionStatus::Trialing ? "Fin de l'essai" : 'Période en cours' }}
                 </div>

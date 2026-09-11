@@ -14,11 +14,24 @@
                 @if ($showExportMenu)
                     @php
                         $exportParams = ['status' => $status, 'search' => $search, 'date_from' => $dateFrom, 'date_to' => $dateTo];
+                        $hasFilters = $status !== '' || $search !== '' || $dateFrom !== '' || $dateTo !== '';
                     @endphp
-                    <div class="absolute right-0 mt-2 w-44 bg-(--color-surface) border border-(--color-border) rounded-lg shadow-lg overflow-hidden z-10">
-                        <a href="{{ route('orders.export', ['format' => 'csv', ...$exportParams]) }}" class="block px-4 py-2.5 text-sm hover:bg-(--color-bg)">CSV</a>
-                        <a href="{{ route('orders.export', ['format' => 'xlsx', ...$exportParams]) }}" class="block px-4 py-2.5 text-sm hover:bg-(--color-bg)">Excel (.xlsx)</a>
-                        <a href="{{ route('orders.export', ['format' => 'pdf', ...$exportParams]) }}" class="block px-4 py-2.5 text-sm hover:bg-(--color-bg)">PDF</a>
+                    <div class="absolute right-0 mt-2 w-56 bg-(--color-surface) border border-(--color-border) rounded-lg shadow-lg overflow-hidden z-10 animate-step">
+                        <div class="px-4 pt-3 pb-2 text-[11px] text-(--color-text-muted) border-b border-(--color-border)">
+                            {{ $hasFilters ? 'Avec les filtres actuels' : 'Toutes les commandes' }}
+                        </div>
+                        <a href="{{ route('orders.export', ['format' => 'csv', ...$exportParams]) }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-(--color-bg)">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-none text-(--color-text-muted)"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                            CSV
+                        </a>
+                        <a href="{{ route('orders.export', ['format' => 'xlsx', ...$exportParams]) }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-(--color-bg)">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-none text-(--color-success)"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="9" y1="13" x2="15" y2="19"></line><line x1="15" y1="13" x2="9" y2="19"></line></svg>
+                            Excel (.xlsx)
+                        </a>
+                        <a href="{{ route('orders.export', ['format' => 'pdf', ...$exportParams]) }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm hover:bg-(--color-bg)">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-none text-(--color-error)"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="10" y1="15" x2="10" y2="18"></line><line x1="13" y1="13" x2="13" y2="18"></line></svg>
+                            PDF
+                        </a>
                     </div>
                 @endif
             </div>

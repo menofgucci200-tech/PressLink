@@ -9,12 +9,36 @@ use App\Models\OrderStatusHistory;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class Dashboard extends Component
 {
     public bool $showExportMenu = false;
+
+    /** Filtre l'aperçu "Commandes récentes" — même champs que Orders\Index. */
+    public string $search = '';
+
+    /** 'today' | '7d' | '30d' | 'custom' — période des 4 cartes stats. */
+    #[Url]
+    public string $period = 'today';
+
+    #[Url]
+    public string $customFrom = '';
+
+    #[Url]
+    public string $customTo = '';
+
+    public function setPeriod(string $period): void
+    {
+        $this->period = $period;
+
+        if ($period !== 'custom') {
+            $this->reset(['customFrom', 'customTo']);
+        }
+    }
 
     #[Layout('layouts.dashboard', ['active' => 'dashboard', 'title' => 'Dashboard'])]
     public function render()
@@ -70,6 +94,45 @@ class Dashboard extends Component
         ]);
     }
 
+    /**
+     * Bornes [début, fin] de la période sélectionnée pour les cartes stats,
+     * et la période de même durée immédiatement avant (pour le delta).
+     *
+     * @return array{0: Carbon, 1: Carbon, 2: Carbon, 3: Carbon, 4: string}
+     */
+    private function resolvePeriod(): array
+    {
+        [$start, $end, $label] = match ($this->period) {
+            '7d' => [now()->subDays(6)->startOfDay(), now()->endOfDay(), 'sur 7 jours'],
+            '30d' => [now()->subDays(29)->startOfDay(), now()->endOfDay(), 'sur 30 jours'],
+            'custom' => $this->resolveCustomPeriod(),
+            default => [now()->startOfDay(), now()->endOfDay(), "aujourd'hui"],
+        };
+
+        $lengthInDays = $start->diffInDays($end) + 1;
+        $previousEnd = $start->copy()->subSecond();
+        $previousStart = $previousEnd->copy()->subDays($lengthInDays - 1)->startOfDay();
+
+        return [$start, $end, $previousStart, $previousEnd, $label];
+    }
+
+    /** @return array{0: Carbon, 1: Carbon, 2: string} */
+    private function resolveCustomPeriod(): array
+    {
+        try {
+            $start = $this->customFrom !== '' ? Carbon::parse($this->customFrom)->startOfDay() : now()->startOfDay();
+            $end = $this->customTo !== '' ? Carbon::parse($this->customTo)->endOfDay() : now()->endOfDay();
+        } catch (\Exception) {
+            return [now()->startOfDay(), now()->endOfDay(), "aujourd'hui"];
+        }
+
+        if ($end->lt($start)) {
+            $end = $start->copy()->endOfDay();
+        }
+
+        return [$start, $end, 'du '.$start->format('d/m').' au '.$end->format('d/m')];
+    }
+
     private function renderSinglePressing(User $user): View
     {
         $pressing = $user->currentPressing();
@@ -82,87 +145,144 @@ class Dashboard extends Component
         ];
 
         $recent = collect();
-        $tasks = ['readyOverdue' => 0, 'received' => 0, 'openIssues' => 0];
+        $tasks = [];
         $revenueByDay = collect();
+
+        [$rangeStart, $rangeEnd, $previousStart, $previousEnd, $periodLabel] = $this->resolvePeriod();
 
         if ($pressing !== null) {
             $counts = array_merge(
                 $counts,
                 $pressing->orders()
                     ->selectRaw('status, count(*) as aggregate')
-                    ->whereDate('created_at', today())
+                    ->whereBetween('created_at', [$rangeStart, $rangeEnd])
                     ->groupBy('status')
                     ->pluck('aggregate', 'status')
                     ->all(),
             );
 
-            $recent = $pressing->orders()->with('customer')->latest()->take(8)->get();
+            $recent = $pressing->filteredOrders(['search' => $this->search ?: null])->latest()->take(8)->get();
 
-            $countsYesterday = $pressing->orders()
+            $countsPrevious = $pressing->orders()
                 ->selectRaw('status, count(*) as aggregate')
-                ->whereDate('created_at', today()->subDay())
+                ->whereBetween('created_at', [$previousStart, $previousEnd])
                 ->groupBy('status')
                 ->pluck('aggregate', 'status');
 
+            // "À traiter aujourd'hui" reste indépendant de la période choisie
+            // pour les cartes : c'est toujours l'état actuel de l'atelier,
+            // pas un historique. On récupère l'id de la première commande
+            // concernée pour pouvoir y renvoyer directement quand il n'y en
+            // a qu'une (sinon, la liste filtrée par statut).
+            $readyOverdueOrders = $pressing->orders()
+                ->where('status', OrderStatus::Prete->value)
+                ->where('updated_at', '<=', now()->subDays(5))
+                ->pluck('id');
+
+            $receivedOrders = $pressing->orders()->where('status', OrderStatus::Recue->value)->pluck('id');
+
+            $openIssueOrders = $pressing->orders()
+                ->whereHas('issues', fn ($q) => $q->where('status', OrderIssueStatus::Open->value))
+                ->pluck('id');
+
             $tasks = [
-                // Encore "prête" 5 jours après le dernier passage à ce statut : le
-                // client n'est pas revenu la récupérer, à relancer.
-                'readyOverdue' => $pressing->orders()
-                    ->where('status', OrderStatus::Prete->value)
-                    ->where('updated_at', '<=', now()->subDays(5))
-                    ->count(),
-                'received' => $pressing->orders()->where('status', OrderStatus::Recue->value)->count(),
-                'openIssues' => $pressing->orders()
-                    ->whereHas('issues', fn ($q) => $q->where('status', OrderIssueStatus::Open->value))
-                    ->count(),
+                'readyOverdue' => ['count' => $readyOverdueOrders->count(), 'orderId' => $readyOverdueOrders->first()],
+                'received' => ['count' => $receivedOrders->count(), 'orderId' => $receivedOrders->first()],
+                'openIssues' => ['count' => $openIssueOrders->count(), 'orderId' => $openIssueOrders->first()],
             ];
 
             // "Encaissé" = commandes marquées récupérées (le paiement se fait au
             // retrait) — le montant du jour est agrégé sur le passage à ce statut,
-            // pas sur la date de création de la commande.
+            // pas sur la date de création de la commande. Récupéré sur toute la
+            // fenêtre [période précédente → période courante] pour pouvoir
+            // calculer le delta avec une seule requête.
             $revenueByDay = OrderStatusHistory::query()
                 ->join('orders', 'orders.id', '=', 'order_status_histories.order_id')
                 ->where('orders.pressing_id', $pressing->id)
                 ->where('order_status_histories.status', OrderStatus::Recuperee->value)
-                ->where('order_status_histories.created_at', '>=', now()->subDays(13)->startOfDay())
+                ->whereBetween('order_status_histories.created_at', [$previousStart, $rangeEnd])
                 ->selectRaw('DATE(order_status_histories.created_at) as day, SUM(orders.total_fcfa) as total')
                 ->groupBy('day')
                 ->pluck('total', 'day');
         }
 
-        $last7 = collect(range(6, 0))->map(fn ($i) => now()->subDays($i)->toDateString());
-        $previous7 = collect(range(13, 7))->map(fn ($i) => now()->subDays($i)->toDateString());
+        $revenuePeriod = $this->sumRevenueBetween($revenueByDay, $rangeStart, $rangeEnd);
+        $revenuePrevious = $this->sumRevenueBetween($revenueByDay, $previousStart, $previousEnd);
 
-        $revenueLast7 = $last7->sum(fn ($day) => (int) ($revenueByDay[$day] ?? 0));
-        $revenuePrevious7 = $previous7->sum(fn ($day) => (int) ($revenueByDay[$day] ?? 0));
-
-        $revenueChangePct = $revenuePrevious7 > 0
-            ? (int) round((($revenueLast7 - $revenuePrevious7) / $revenuePrevious7) * 100)
+        $revenueChangePct = $revenuePrevious > 0
+            ? (int) round((($revenuePeriod - $revenuePrevious) / $revenuePrevious) * 100)
             : null;
 
-        $spark = $last7->map(fn ($day) => (int) ($revenueByDay[$day] ?? 0));
+        $buckets = $this->buildRevenueBuckets($revenueByDay, $rangeStart, $rangeEnd);
+        $spark = $buckets->pluck('total');
         $sparkMax = max($spark->max(), 1);
-
-        // Initiale du jour de la semaine pour chaque jour réel de la fenêtre
-        // glissante (et non "L M M J V S D" fixe, qui ne correspond qu'aux
-        // fenêtres se terminant un dimanche).
-        $sparkLabels = $last7->map(fn ($day) => mb_strtoupper(mb_substr(
-            Carbon::parse($day)->locale('fr')->dayName,
-            0,
-            1,
-        )));
+        $sparkLabels = $buckets->pluck('label');
 
         return view('livewire.dashboard', [
             'pressing' => $pressing,
             'counts' => $counts,
-            'countsYesterday' => $countsYesterday ?? collect(),
+            'countsPrevious' => $countsPrevious ?? collect(),
+            'periodLabel' => $periodLabel,
+            // Pour que "Exporter" respecte la période affichée (Aujourd'hui,
+            // 7/30 jours, personnalisée) au lieu de toujours tout exporter.
+            'exportParams' => [
+                'status' => null,
+                'search' => $this->search ?: null,
+                'date_from' => $rangeStart->toDateString(),
+                'date_to' => $rangeEnd->toDateString(),
+            ],
             'recent' => $recent,
             'tasks' => $tasks,
-            'revenueLast7' => $revenueLast7,
+            'revenuePeriod' => $revenuePeriod,
             'revenueChangePct' => $revenueChangePct,
             'spark' => $spark,
             'sparkMax' => $sparkMax,
             'sparkLabels' => $sparkLabels,
         ]);
+    }
+
+    /** @param  Collection<string, int>  $revenueByDay */
+    private function sumRevenueBetween($revenueByDay, Carbon $start, Carbon $end): int
+    {
+        $total = 0;
+        for ($day = $start->copy()->startOfDay(); $day->lte($end); $day->addDay()) {
+            $total += (int) ($revenueByDay[$day->toDateString()] ?? 0);
+        }
+
+        return $total;
+    }
+
+    /**
+     * Répartit la période en au plus 7 tranches (un jour chacune si la
+     * période fait 7 jours ou moins, sinon des groupes de plusieurs jours)
+     * pour que le mini-graphique reste lisible quelle que soit la période
+     * choisie — 1 jour, 7 jours, 30 jours ou une plage personnalisée.
+     *
+     * @param  Collection<string, int>  $revenueByDay
+     * @return Collection<int, array{total: int, label: string}>
+     */
+    private function buildRevenueBuckets($revenueByDay, Carbon $start, Carbon $end): Collection
+    {
+        $totalDays = $start->diffInDays($end) + 1;
+        $bucketSize = (int) ceil($totalDays / 7);
+
+        $buckets = collect();
+        $cursor = $start->copy()->startOfDay();
+
+        while ($cursor->lte($end)) {
+            $bucketEnd = min($cursor->copy()->addDays($bucketSize - 1), $end->copy()->startOfDay());
+
+            $total = $this->sumRevenueBetween($revenueByDay, $cursor, $bucketEnd);
+
+            $label = $bucketSize === 1
+                ? mb_strtoupper(mb_substr($cursor->locale('fr')->dayName, 0, 1))
+                : $cursor->format('d/m').($bucketEnd->ne($cursor) ? '-'.$bucketEnd->format('d/m') : '');
+
+            $buckets->push(['total' => $total, 'label' => $label]);
+
+            $cursor = $bucketEnd->copy()->addDay();
+        }
+
+        return $buckets;
     }
 }

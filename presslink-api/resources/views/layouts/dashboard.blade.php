@@ -141,17 +141,10 @@
             <div class="flex-1 min-w-0 flex flex-col" x-data="{ scrolled: false }">
                 <header class="h-16 flex-none bg-(--color-surface) border-b border-(--color-border) flex items-center gap-3 px-6 sticky top-0 z-10 transition-shadow duration-200"
                         :class="scrolled ? 'shadow-[0_4px_14px_-8px_rgba(15,23,42,.25)]' : ''">
-                    @php
-                        $searchTarget = ($active ?? null) === 'clients' ? route('clients.index') : route('orders.index');
-                        $searchPlaceholder = ($active ?? null) === 'clients' ? 'Rechercher un client…' : 'Rechercher un n° ou un client…';
-                    @endphp
-                    <form method="GET" action="{{ $searchTarget }}"
-                          class="hidden md:flex flex-1 min-w-0 max-w-[360px] items-center gap-2 bg-(--color-bg) border border-(--color-border) rounded-lg px-3 py-2.5 text-(--color-text-muted) transition-colors duration-150 focus-within:border-(--color-primary)">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="flex-none"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-                        <input id="global-search" type="text" name="search" value="{{ request('search') }}" placeholder="{{ $searchPlaceholder }}"
-                               class="flex-1 min-w-0 bg-transparent text-[13.5px] text-(--color-text-primary) placeholder:text-(--color-text-muted) outline-none">
-                        <kbd class="text-[10px] border border-(--color-border) rounded px-1 py-px font-sans">⌘K</kbd>
-                    </form>
+                    {{-- Pas de recherche globale ici : une recherche sur "tout" n'a de sens
+                         que par rapport à ce qui est affiché sur la page courante — elle vit
+                         donc directement sur chaque page qui en a besoin (Commandes, Clients…),
+                         pas dans ce layout partagé par toutes les pages. --}}
                     <div class="flex-1"></div>
 
                     @if ($pressing)

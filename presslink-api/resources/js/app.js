@@ -1,13 +1,20 @@
-// Raccourci ⌘K / Ctrl+K — focus la recherche globale de l'en-tête depuis
-// n'importe où sur le dashboard, sans passer par la souris.
+// Raccourci ⌘K / Ctrl+K — focus le champ de recherche de la page courante
+// (chaque page qui en a besoin a la sienne, il n'y a pas de recherche
+// globale unique), sans passer par la souris.
 document.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        const input = document.getElementById('global-search');
-        if (input) {
-            e.preventDefault();
-            input.focus();
-            input.select();
-        }
+    if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'k') return;
+
+    // Les modificateurs Livewire (`.live.debounce.300ms`) font partie du
+    // NOM de l'attribut, pas de sa valeur — un sélecteur CSS classique
+    // (`[wire\\:model*="search"]`) ne peut donc pas le cibler : il faut
+    // inspecter les attributs un par un.
+    const input = Array.from(document.querySelectorAll('main input')).find((el) => Array.from(el.attributes)
+        .some((attr) => attr.name.startsWith('wire:model') && attr.value === 'search'));
+
+    if (input) {
+        e.preventDefault();
+        input.focus();
+        input.select();
     }
 });
 

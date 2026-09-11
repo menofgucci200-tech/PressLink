@@ -10,15 +10,15 @@
     </div>
 
     <div class="grid grid-cols-3 gap-4 mb-6">
-        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
+        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px animate-step">
             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1.5">Commandes</div>
             <div class="font-display text-2xl font-bold tabular-nums">{{ $orders->count() }}</div>
         </div>
-        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
+        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px animate-step">
             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1.5">Total dépensé</div>
             <div class="font-display text-2xl font-bold tabular-nums">{{ number_format($totalSpentFcfa, 0, ',', ' ') }} F</div>
         </div>
-        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
+        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px animate-step">
             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1.5">Client depuis</div>
             <div class="font-display text-2xl font-bold tabular-nums">{{ $joinedAt?->format('d/m/Y') ?? '—' }}</div>
         </div>

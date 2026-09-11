@@ -35,6 +35,8 @@ class Settings extends Component
     /** @var array<string, array{closed: bool, open: string, close: string}> */
     public array $openingHours = [];
 
+    public bool $showPricingToCustomers = false;
+
     public $logo = null;
 
     public bool $saved = false;
@@ -52,6 +54,7 @@ class Settings extends Component
         $this->city = $pressing->city ?? '';
         $this->description = $pressing->description ?? '';
         $this->openingHours = $this->normalizeOpeningHours($pressing->opening_hours);
+        $this->showPricingToCustomers = $pressing->show_pricing_to_customers;
     }
 
     public function save(): void
@@ -79,6 +82,7 @@ class Settings extends Component
             'city' => $this->city ?: null,
             'description' => $this->description ?: null,
             'opening_hours' => $this->openingHours,
+            'show_pricing_to_customers' => $this->showPricingToCustomers,
         ];
 
         if ($this->logo) {

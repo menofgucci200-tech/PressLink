@@ -20,7 +20,19 @@ class PressingController extends Controller
             ->withCount(['orders' => fn ($q) => $q->where('customer_id', $request->user()->id)])
             ->get();
 
-        return response()->json($pressings);
+        $pressings->loadMissing(['services' => fn ($q) => $q->where('is_active', true), 'services.variants']);
+
+        $data = $pressings->map(function (Pressing $pressing) {
+            $array = $pressing->toArray();
+
+            if (! $pressing->show_pricing_to_customers) {
+                unset($array['services']);
+            }
+
+            return $array;
+        });
+
+        return response()->json($data);
     }
 
     public function join(Request $request): JsonResponse

@@ -101,6 +101,17 @@
             </div>
         </div>
 
+        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
+            <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-4">Grille tarifaire</div>
+            <label class="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" wire:model="showPricingToCustomers" class="mt-0.5 rounded border-(--color-border)">
+                <span class="text-sm">
+                    Afficher ma grille tarifaire à mes clients
+                    <span class="block text-xs text-(--color-text-muted) mt-0.5">Vos clients pourront consulter les prix de vos services depuis l'application mobile, sur la fiche de votre pressing.</span>
+                </span>
+            </label>
+        </div>
+
         <div class="flex justify-end">
             <button type="submit" wire:loading.attr="disabled" wire:target="save"
                     class="h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600) disabled:opacity-60">

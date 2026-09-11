@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Customer;
 use App\Models\Pressing;
+use App\Models\Service;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -46,6 +47,38 @@ class CustomerPressingApiTest extends TestCase
             ->getJson('/api/v1/pressings/mine')
             ->assertOk()
             ->assertJsonFragment(['id' => $pressing->id]);
+    }
+
+    public function test_pricing_grid_is_hidden_when_pressing_disables_it(): void
+    {
+        $pressing = Pressing::factory()->create(['show_pricing_to_customers' => false]);
+        Service::factory()->create(['pressing_id' => $pressing->id, 'is_active' => true]);
+        $customer = Customer::factory()->create();
+        $customer->pressings()->attach($pressing, ['joined_at' => now()]);
+        $token = $customer->createToken('test')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/v1/pressings/mine')
+            ->assertOk();
+
+        $this->assertArrayNotHasKey('services', $response->json()[0]);
+    }
+
+    public function test_pricing_grid_is_visible_when_pressing_enables_it(): void
+    {
+        $pressing = Pressing::factory()->create(['show_pricing_to_customers' => true]);
+        $service = Service::factory()->create(['pressing_id' => $pressing->id, 'is_active' => true, 'name' => 'Chemise']);
+        $customer = Customer::factory()->create();
+        $customer->pressings()->attach($pressing, ['joined_at' => now()]);
+        $token = $customer->createToken('test')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/v1/pressings/mine')
+            ->assertOk();
+
+        $services = $response->json()[0]['services'];
+        $this->assertCount(1, $services);
+        $this->assertSame($service->id, $services[0]['id']);
     }
 
     public function test_customer_can_leave_a_pressing(): void

@@ -7,14 +7,14 @@
     </div>
 
     <div class="grid grid-cols-2 gap-4 mb-7">
-        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
+        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px animate-step">
             <div class="flex items-center gap-2 mb-3">
                 <span class="w-2 h-2 rounded-full" style="background:var(--color-info)"></span>
                 <span class="text-[13px] font-medium text-(--color-text-secondary)">Commandes aujourd'hui (tous pressings)</span>
             </div>
             <div class="text-3xl font-bold tabular-nums">{{ $totals['today_count'] }}</div>
         </div>
-        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
+        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px animate-step">
             <div class="flex items-center gap-2 mb-3">
                 <span class="w-2 h-2 rounded-full" style="background:var(--color-secondary)"></span>
                 <span class="text-[13px] font-medium text-(--color-text-secondary)">Commandes en cours (tous pressings)</span>
@@ -27,7 +27,7 @@
     <div class="grid grid-cols-2 gap-4 mb-7">
         @foreach ($rows as $row)
             <a href="{{ route('pressings.switch', $row['pressing']) }}"
-               class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 hover:border-(--color-primary) transition-colors">
+               class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 transition-all duration-150 hover:border-(--color-primary) hover:-translate-y-px hover:shadow-sm animate-step">
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <div class="font-semibold text-sm mb-0.5">{{ $row['pressing']->name }}</div>
@@ -70,7 +70,7 @@
                 </thead>
                 <tbody>
                     @foreach ($recent as $order)
-                        <tr class="border-t border-(--color-border)">
+                        <tr class="border-t border-(--color-border) hover:bg-(--color-bg)">
                             <td class="px-5 py-3.5 font-semibold tabular-nums">{{ $order->order_number }}</td>
                             <td class="px-5 py-3.5">
                                 <a href="{{ route('pressings.switch', $order->pressing) }}" class="text-(--color-primary) hover:underline">

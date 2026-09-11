@@ -48,7 +48,8 @@
             ];
         @endphp
         @foreach ($kpis as $kpi)
-            <div class="rounded-xl p-5" style="background:{{ $kpi['bg'] }}">
+            <div wire:key="admin-kpi-{{ $loop->index }}-{{ $period }}-{{ $city }}-{{ $administratorId }}-{{ $kpi['value'] }}"
+                 class="rounded-xl p-5 transition-transform duration-150 hover:-translate-y-px animate-step" style="background:{{ $kpi['bg'] }}">
                 <div class="w-9 h-9 rounded-lg flex items-center justify-center mb-4 bg-white/60">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{ $kpi['fg'] }}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         @foreach (explode('|', $kpi['icon']) as $path)
@@ -65,7 +66,7 @@
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden">
         <div class="flex items-center justify-between px-5 py-4 border-b border-(--color-border)">
             <h2 class="font-semibold text-sm">Pressings récents</h2>
-            <a href="{{ route('admin.pressings.index') }}" class="text-sm font-medium text-(--color-primary)">Voir tout →</a>
+            <a href="{{ route('admin.pressings.index') }}" class="text-sm font-medium text-(--color-primary) hover:underline">Voir tout →</a>
         </div>
         @if ($recentPressings->isEmpty())
             <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucun pressing pour ces filtres.</div>

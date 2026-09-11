@@ -19,10 +19,14 @@ class Index extends Component
     #[Url]
     public string $search = '';
 
+    /** Permet de deep-linker depuis le dashboard (ex. tâches "à traiter"). */
+    #[Url]
     public string $status = '';
 
+    #[Url]
     public string $dateFrom = '';
 
+    #[Url]
     public string $dateTo = '';
 
     public bool $showExportMenu = false;

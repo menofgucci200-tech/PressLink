@@ -30,6 +30,7 @@ class Pressing extends Model
         'city',
         'description',
         'opening_hours',
+        'show_pricing_to_customers',
         'status',
     ];
 
@@ -39,6 +40,7 @@ class Pressing extends Model
     {
         return [
             'opening_hours' => 'array',
+            'show_pricing_to_customers' => 'boolean',
             'status' => PressingStatus::class,
         ];
     }
@@ -119,8 +121,20 @@ class Pressing extends Model
 
         if (! empty($filters['search'])) {
             $term = $filters['search'];
-            $query->where(function (Builder $q) use ($term) {
+            // MySQL (prod) et SQLite (tests) n'utilisent pas la même syntaxe
+            // pour extraire un format de date — DATE_FORMAT vs strftime.
+            $isSqlite = $this->getConnection()->getDriverName() === 'sqlite';
+            [$dmy, $dm] = $isSqlite
+                ? ["strftime('%d/%m/%Y', dropped_off_at)", "strftime('%d/%m', dropped_off_at)"]
+                : ["DATE_FORMAT(dropped_off_at, '%d/%m/%Y')", "DATE_FORMAT(dropped_off_at, '%d/%m')"];
+
+            $query->where(function (Builder $q) use ($term, $dmy, $dm) {
                 $q->where('order_number', 'like', "%{$term}%")
+                    ->orWhere('total_fcfa', 'like', "%{$term}%")
+                    // Date de dépôt, dans les deux formats qu'un utilisateur
+                    // tape naturellement (avec ou sans l'année).
+                    ->orWhereRaw("{$dmy} LIKE ?", ["%{$term}%"])
+                    ->orWhereRaw("{$dm} LIKE ?", ["%{$term}%"])
                     ->orWhereHas('customer', function (Builder $c) use ($term) {
                         $c->where('first_name', 'like', "%{$term}%")
                             ->orWhere('last_name', 'like', "%{$term}%")

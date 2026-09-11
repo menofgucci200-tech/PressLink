@@ -21,25 +21,28 @@
                 $navItem('clients', 'admin.clients.index', 'Clients', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M9 11A4 4 0 1 0 9 3a4 4 0 0 0 0 8Z'),
                 $navItem('administrators', 'admin.administrators.index', 'Administrateurs', 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2|M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z|M22 21v-2a4 4 0 0 0-3-3.87|M16 3.13a4 4 0 0 1 0 7.75'),
             ];
+            $userInitials = collect(explode(' ', $user->name))->filter()->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->take(2)->implode('');
         @endphp
 
         <div class="min-h-screen flex">
-            <aside class="w-60 flex-none bg-(--color-surface) border-r border-(--color-border) flex flex-col py-5">
-                <div class="flex items-center gap-2 px-5 pb-1">
-                    <span class="font-display text-lg font-bold">Press<span class="text-(--color-primary)">Link</span></span>
-                </div>
-                <div class="px-5 pb-6 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Super Admin</div>
+            <aside class="w-[239px] flex-none flex flex-col py-[22px] pl-5 overflow-hidden text-white"
+                   style="background:linear-gradient(180deg, #1e3a8a 0%, #1e40af 45%, #2563eb 100%);">
+                <div class="font-display text-[21px] font-bold tracking-tight pr-1 pb-[6px]">Press<span class="text-(--color-primary-tint)">Link</span></div>
+                <div class="pr-5 pb-[24px] text-[11px] font-semibold uppercase tracking-wide text-blue-200">Super Admin</div>
 
-                <nav class="flex flex-col gap-0.5 px-3">
+                <nav class="flex flex-col gap-1.5">
                     @foreach ($navItems as $item)
-                        <a href="{{ route($item['route']) }}" wire:navigate
-                           class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 {{ $item['active'] ? 'bg-(--color-primary-tint) text-(--color-primary)' : 'text-(--color-text-secondary) hover:bg-(--color-bg)' }}">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                        <a href="{{ route($item['route']) }}" wire:navigate style="--nav-i:{{ $loop->index }}" class="nav-item {{ $item['active'] ? 'nav-item-active' : '' }}">
+                            @if ($item['active'])
+                                <span class="nav-notch nav-notch-top"></span>
+                                <span class="nav-notch nav-notch-bottom"></span>
+                            @endif
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none">
                                 @foreach (explode('|', $item['icon']) as $path)
                                     <path d="{{ $path }}"></path>
                                 @endforeach
                             </svg>
-                            {{ $item['label'] }}
+                            <span class="truncate">{{ $item['label'] }}</span>
                         </a>
                     @endforeach
                 </nav>
@@ -47,11 +50,17 @@
                 <div class="flex-1"></div>
             </aside>
 
-            <div class="flex-1 min-w-0 flex flex-col">
-                <header class="h-16 flex-none bg-(--color-surface) border-b border-(--color-border) flex items-center justify-end gap-4 px-7">
-                    <div class="text-right">
-                        <div class="text-sm font-medium leading-tight">{{ $user->name }}</div>
-                        <div class="text-xs text-(--color-text-muted)">Super Administrateur</div>
+            <div class="flex-1 min-w-0 flex flex-col" x-data="{ scrolled: false }">
+                <header class="h-16 flex-none bg-(--color-surface) border-b border-(--color-border) flex items-center gap-3 px-6 sticky top-0 z-10 transition-shadow duration-200"
+                        :class="scrolled ? 'shadow-[0_4px_14px_-8px_rgba(15,23,42,.25)]' : ''">
+                    <div class="flex-1"></div>
+
+                    <div class="hidden sm:block text-right min-w-0">
+                        <div class="text-sm font-semibold leading-tight truncate">{{ $user->name }}</div>
+                        <div class="text-xs text-(--color-text-muted) truncate">Super Administrateur</div>
+                    </div>
+                    <div class="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white" style="background:#1e3a8a;">
+                        {{ $userInitials ?: '?' }}
                     </div>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
@@ -61,7 +70,7 @@
                     </form>
                 </header>
 
-                <main class="flex-1 overflow-y-auto p-8">
+                <main class="flex-1 overflow-y-auto p-8" @scroll="scrolled = $event.target.scrollTop > 4">
                     {{ $slot }}
                 </main>
             </div>

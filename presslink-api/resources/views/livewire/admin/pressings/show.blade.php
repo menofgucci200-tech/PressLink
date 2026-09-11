@@ -18,15 +18,15 @@
     </div>
 
     <div class="grid grid-cols-3 gap-4 mb-6">
-        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
+        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px animate-step">
             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1.5">Équipe</div>
             <div class="font-display text-2xl font-bold tabular-nums">{{ $pressing->staff_count }}</div>
         </div>
-        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
+        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px animate-step">
             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1.5">Clients</div>
             <div class="font-display text-2xl font-bold tabular-nums">{{ $pressing->customers_count }}</div>
         </div>
-        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
+        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px animate-step">
             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1.5">Commandes</div>
             <div class="font-display text-2xl font-bold tabular-nums">{{ $pressing->orders_count }}</div>
         </div>
@@ -58,7 +58,7 @@
             <table class="w-full text-sm">
                 <tbody>
                     @foreach ($staff as $member)
-                        <tr class="border-t border-(--color-border) first:border-t-0">
+                        <tr class="border-t border-(--color-border) first:border-t-0 hover:bg-(--color-bg)">
                             <td class="px-5 py-3 font-medium">{{ $member->name }}</td>
                             <td class="px-5 py-3 text-(--color-text-secondary)">{{ $member->email }}</td>
                             <td class="px-5 py-3">{{ $member->pivot->role->label() }}</td>
@@ -70,7 +70,7 @@
                                     <button wire:click="resetStaffPassword({{ $member->id }})"
                                             wire:confirm="Générer un nouveau mot de passe pour {{ $member->name }} ? L'ancien ne fonctionnera plus."
                                             wire:loading.attr="disabled" wire:target="resetStaffPassword({{ $member->id }})"
-                                            class="text-xs font-medium text-(--color-primary) disabled:opacity-60">
+                                            class="text-xs font-medium text-(--color-primary) hover:underline disabled:opacity-60">
                                         Réinitialiser le mot de passe
                                     </button>
                                 @endif

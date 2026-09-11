@@ -35,7 +35,7 @@
                     </thead>
                     <tbody>
                         @foreach ($issues as $issue)
-                            <tr class="border-b border-(--color-border) last:border-0">
+                            <tr class="border-b border-(--color-border) last:border-0 hover:bg-(--color-bg)">
                                 <td class="px-4 py-3 whitespace-nowrap align-top">
                                     <a href="{{ route('orders.show', $issue->order) }}" class="font-medium text-(--color-primary) hover:underline">
                                         {{ $issue->order->order_number }}
@@ -74,7 +74,7 @@
                                 </td>
                             </tr>
                             @if ($resolvingIssueId === $issue->id)
-                                <tr class="border-b border-(--color-border) last:border-0 bg-(--color-bg)">
+                                <tr wire:key="resolving-{{ $issue->id }}" class="border-b border-(--color-border) last:border-0 bg-(--color-bg) animate-step">
                                     <td colspan="6" class="px-4 py-4">
                                         <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">
                                             Comment ce problème a-t-il été résolu ? (ex. "Chemise retrouvée et remise au client")

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 
+import '../widgets/app_page_route.dart';
 import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/orders/presentation/order_detail_screen.dart';
 import '../../features/orders/presentation/orders_controller.dart';
@@ -27,7 +28,9 @@ class PushNotificationService {
   /// pouvoir bloquer le reste de l'application.
   Future<void> init() async {
     if (AppConfig.oneSignalAppId.isEmpty) {
-      debugPrint('PushNotificationService: ONESIGNAL_APP_ID absent — notifications désactivées.');
+      debugPrint(
+        'PushNotificationService: ONESIGNAL_APP_ID absent — notifications désactivées.',
+      );
 
       return;
     }
@@ -57,12 +60,16 @@ class PushNotificationService {
         // plan (aucun tap requis) : la liste des commandes et le badge de
         // notifications doivent se rafraîchir tout de suite, pas seulement
         // au retour d'un écran ou au prochain relancement de l'app.
-        OneSignal.Notifications.addForegroundWillDisplayListener((_) => _refreshAfterNotification());
+        OneSignal.Notifications.addForegroundWillDisplayListener(
+          (_) => _refreshAfterNotification(),
+        );
 
         _listening = true;
       }
     } catch (e) {
-      debugPrint('PushNotificationService: initialisation OneSignal impossible ($e)');
+      debugPrint(
+        'PushNotificationService: initialisation OneSignal impossible ($e)',
+      );
     }
   }
 
@@ -71,15 +78,17 @@ class PushNotificationService {
     final orderId = rawOrderId is String
         ? int.tryParse(rawOrderId)
         : rawOrderId is num
-            ? rawOrderId.toInt()
-            : null;
+        ? rawOrderId.toInt()
+        : null;
     _refreshAfterNotification();
 
     if (orderId == null) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       rootNavigatorKey.currentState
-          ?.push(MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: orderId)))
+          ?.push(
+            AppPageRoute(builder: (_) => OrderDetailScreen(orderId: orderId)),
+          )
           .then((_) => _refreshAfterNotification());
     });
   }
@@ -107,11 +116,15 @@ class PushNotificationService {
     try {
       await _ref.read(authRepositoryProvider).updateOnesignalPlayerId(playerId);
     } catch (e) {
-      debugPrint('PushNotificationService: échec envoi du player ID OneSignal ($e)');
+      debugPrint(
+        'PushNotificationService: échec envoi du player ID OneSignal ($e)',
+      );
     }
   }
 }
 
-final pushNotificationServiceProvider = Provider<PushNotificationService>((ref) {
+final pushNotificationServiceProvider = Provider<PushNotificationService>((
+  ref,
+) {
   return PushNotificationService(ref);
 });

@@ -52,15 +52,19 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _gender = customer.gender == 'femme'
         ? Gender.femme
         : customer.gender == 'homme'
-            ? Gender.homme
-            : null;
+        ? Gender.homme
+        : null;
     _fieldsInitialized = true;
   }
 
   Future<void> _pickPhoto(ImageSource source) async {
     final XFile? picked;
     try {
-      picked = await ImagePicker().pickImage(source: source, maxWidth: 1024, imageQuality: 85);
+      picked = await ImagePicker().pickImage(
+        source: source,
+        maxWidth: 1024,
+        imageQuality: 85,
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -77,7 +81,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       _error = null;
     });
 
-    final ok = await ref.read(authControllerProvider.notifier).uploadPhoto(picked.path);
+    final ok = await ref
+        .read(authControllerProvider.notifier)
+        .uploadPhoto(picked.path);
 
     if (!mounted) return;
     setState(() {
@@ -102,10 +108,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   void _showPhotoOptions() {
-    final hasPhoto = ref.read(authControllerProvider).customer?.photoUrl != null;
+    final hasPhoto =
+        ref.read(authControllerProvider).customer?.photoUrl != null;
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -128,8 +137,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             ),
             if (hasPhoto)
               ListTile(
-                leading: const Icon(Icons.delete_outline, color: AppColors.error),
-                title: const Text('Supprimer la photo', style: TextStyle(color: AppColors.error)),
+                leading: const Icon(
+                  Icons.delete_outline,
+                  color: AppColors.error,
+                ),
+                title: const Text(
+                  'Supprimer la photo',
+                  style: TextStyle(color: AppColors.error),
+                ),
                 onTap: () {
                   Navigator.of(context).pop();
                   _removePhoto();
@@ -153,11 +168,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       _success = null;
     });
 
-    final ok = await ref.read(authControllerProvider.notifier).updateProfile(
+    final ok = await ref
+        .read(authControllerProvider.notifier)
+        .updateProfile(
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
           gender: _gender!,
-          email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+          email: _emailController.text.trim().isEmpty
+              ? null
+              : _emailController.text.trim(),
         );
 
     if (!mounted) return;
@@ -194,7 +213,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 children: [
                   AppBackButton(onPressed: () => Navigator.of(context).pop()),
                   const SizedBox(width: AppSpacing.sm + 2),
-                  Text('Modifier mon profil', style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, fontSize: 16)),
+                  Text(
+                    'Modifier mon profil',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -206,13 +231,25 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       CircleAvatar(
                         radius: 44,
                         backgroundColor: AppColors.primaryTint,
-                        backgroundImage: customer?.photoUrl != null ? NetworkImage(customer!.photoUrl!) : null,
+                        backgroundImage: customer?.photoUrl != null
+                            ? NetworkImage(customer!.photoUrl!)
+                            : null,
                         child: customer?.photoUrl == null
                             ? Text(
                                 customer != null && customer.fullName.isNotEmpty
-                                    ? customer.fullName.trim().split(' ').map((w) => w.isNotEmpty ? w[0] : '').take(2).join().toUpperCase()
+                                    ? customer.fullName
+                                          .trim()
+                                          .split(' ')
+                                          .map((w) => w.isNotEmpty ? w[0] : '')
+                                          .take(2)
+                                          .join()
+                                          .toUpperCase()
                                     : '?',
-                                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 26),
+                                style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 26,
+                                ),
                               )
                             : null,
                       ),
@@ -230,9 +267,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           child: _photoLoading
                               ? const Padding(
                                   padding: EdgeInsets.all(6),
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
                                 )
-                              : const Icon(Icons.camera_alt, size: 14, color: Colors.white),
+                              : const Icon(
+                                  Icons.camera_alt,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
                         ),
                       ),
                     ],
@@ -243,30 +287,76 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(child: AppTextField(controller: _firstNameController, label: 'Prénom', textCapitalization: TextCapitalization.words)),
+                  Expanded(
+                    child: AppTextField(
+                      controller: _firstNameController,
+                      label: 'Prénom',
+                      textCapitalization: TextCapitalization.words,
+                    ),
+                  ),
                   const SizedBox(width: AppSpacing.sm),
-                  Expanded(child: AppTextField(controller: _lastNameController, label: 'Nom', textCapitalization: TextCapitalization.words)),
+                  Expanded(
+                    child: AppTextField(
+                      controller: _lastNameController,
+                      label: 'Nom',
+                      textCapitalization: TextCapitalization.words,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
-              Text('Genre', style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12, fontWeight: FontWeight.w500)),
+              Text(
+                'Genre',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               const SizedBox(height: 6),
               Row(
                 children: [
-                  Expanded(child: _GenderButton(gender: Gender.homme, selected: _gender, onTap: (g) => setState(() => _gender = g))),
+                  Expanded(
+                    child: _GenderButton(
+                      gender: Gender.homme,
+                      selected: _gender,
+                      onTap: (g) => setState(() => _gender = g),
+                    ),
+                  ),
                   const SizedBox(width: AppSpacing.sm),
-                  Expanded(child: _GenderButton(gender: Gender.femme, selected: _gender, onTap: (g) => setState(() => _gender = g))),
+                  Expanded(
+                    child: _GenderButton(
+                      gender: Gender.femme,
+                      selected: _gender,
+                      onTap: (g) => setState(() => _gender = g),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
-              AppTextField(controller: _emailController, label: 'Email (facultatif)', keyboardType: TextInputType.emailAddress),
+              AppTextField(
+                controller: _emailController,
+                label: 'Email (facultatif)',
+                keyboardType: TextInputType.emailAddress,
+              ),
               if (_error != null) ...[
                 const SizedBox(height: AppSpacing.sm),
-                Text(_error!, style: TextStyle(color: theme.colorScheme.error, fontSize: 13)),
+                Text(
+                  _error!,
+                  style: TextStyle(
+                    color: theme.colorScheme.error,
+                    fontSize: 13,
+                  ),
+                ),
               ],
               if (_success != null) ...[
                 const SizedBox(height: AppSpacing.sm),
-                Text(_success!, style: const TextStyle(color: AppColors.successText, fontSize: 13)),
+                Text(
+                  _success!,
+                  style: const TextStyle(
+                    color: AppColors.successText,
+                    fontSize: 13,
+                  ),
+                ),
               ],
               const SizedBox(height: AppSpacing.lg),
               SizedBox(
@@ -275,7 +365,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 child: ElevatedButton(
                   onPressed: _loading ? null : _submit,
                   child: _loading
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : const Text('Enregistrer'),
                 ),
               ),
@@ -288,7 +385,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 }
 
 class _GenderButton extends StatelessWidget {
-  const _GenderButton({required this.gender, required this.selected, required this.onTap});
+  const _GenderButton({
+    required this.gender,
+    required this.selected,
+    required this.onTap,
+  });
 
   final Gender gender;
   final Gender? selected;
@@ -303,11 +404,20 @@ class _GenderButton extends StatelessWidget {
         onPressed: () => onTap(gender),
         style: OutlinedButton.styleFrom(
           backgroundColor: isSelected ? AppColors.primaryTint : Colors.white,
-          side: BorderSide(color: isSelected ? AppColors.primary : AppColors.border),
-          foregroundColor: isSelected ? AppColors.primary : AppColors.textSecondary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          side: BorderSide(
+            color: isSelected ? AppColors.primary : AppColors.border,
+          ),
+          foregroundColor: isSelected
+              ? AppColors.primary
+              : AppColors.textSecondary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
-        child: Text(gender.label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+        child: Text(
+          gender.label,
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+        ),
       ),
     );
   }

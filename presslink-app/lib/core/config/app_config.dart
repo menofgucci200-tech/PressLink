@@ -27,7 +27,9 @@ class AppConfig {
   /// comme un client ID OAuth). Récupéré dans OneSignal > Settings > Keys
   /// & IDs. Vide par défaut : les notifications se dégradent alors en
   /// no-op plutôt que de faire planter l'app (voir PushNotificationService).
-  static const String oneSignalAppId = String.fromEnvironment('ONESIGNAL_APP_ID');
+  static const String oneSignalAppId = String.fromEnvironment(
+    'ONESIGNAL_APP_ID',
+  );
 
   static bool get isDevelopment => environment == 'development';
   static bool get isStaging => environment == 'staging';

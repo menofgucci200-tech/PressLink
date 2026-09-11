@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../theme/app_colors.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/notifications/presentation/notifications_controller.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
@@ -18,7 +19,8 @@ class MainShell extends ConsumerStatefulWidget {
   ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserver {
+class _MainShellState extends ConsumerState<MainShell>
+    with WidgetsBindingObserver {
   int _index = 0;
 
   static const _screens = [
@@ -69,16 +71,88 @@ class _MainShellState extends ConsumerState<MainShell> with WidgetsBindingObserv
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // `IndexedStack` (pas de rebuild des onglets cachés, cf. commentaire
+      // plus haut) : on ne peut donc pas faire un crossfade classique entre
+      // écrans sans les reconstruire. La touche de fluidité vient plutôt
+      // d'une transition douce sur la barre elle-même (icône/label animés).
       body: IndexedStack(index: _index, children: _screens),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _index,
-        onTap: _onTap,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Accueil'),
-          BottomNavigationBarItem(icon: Icon(Icons.inventory_2_outlined), activeIcon: Icon(Icons.inventory_2), label: 'Commandes'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications_outlined), activeIcon: Icon(Icons.notifications), label: 'Notifs'),
-          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
-        ],
+      bottomNavigationBar: _AnimatedBottomNav(index: _index, onTap: _onTap),
+    );
+  }
+}
+
+class _AnimatedBottomNav extends StatelessWidget {
+  const _AnimatedBottomNav({required this.index, required this.onTap});
+
+  final int index;
+  final ValueChanged<int> onTap;
+
+  static const _items = [
+    (icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Accueil'),
+    (
+      icon: Icons.inventory_2_outlined,
+      activeIcon: Icons.inventory_2,
+      label: 'Commandes',
+    ),
+    (
+      icon: Icons.notifications_outlined,
+      activeIcon: Icons.notifications,
+      label: 'Notifs',
+    ),
+    (icon: Icons.menu, activeIcon: Icons.menu, label: 'Menu'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return BottomAppBar(
+      padding: EdgeInsets.zero,
+      child: SizedBox(
+        height: 60,
+        child: Row(
+          children: [
+            for (var i = 0; i < _items.length; i++)
+              Expanded(
+                child: InkWell(
+                  onTap: () => onTap(i),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TweenAnimationBuilder<double>(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOutBack,
+                        tween: Tween(begin: 1, end: i == index ? 1.12 : 1.0),
+                        builder: (context, scale, child) =>
+                            Transform.scale(scale: scale, child: child),
+                        child: Icon(
+                          i == index ? _items[i].activeIcon : _items[i].icon,
+                          color: i == index
+                              ? AppColors.primary
+                              : theme.textTheme.bodyMedium?.color,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 200),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: i == index
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                          color: i == index
+                              ? AppColors.primary
+                              : theme.textTheme.bodyMedium?.color,
+                        ),
+                        child: Text(_items[i].label),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

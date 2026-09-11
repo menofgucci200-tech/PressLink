@@ -7,7 +7,11 @@ import '../theme/app_spacing.dart';
 /// Sélecteur d'indicatif pays — drapeau + code, ouvre une liste
 /// recherchable plutôt que de laisser l'utilisateur taper l'indicatif.
 class CountryCodePicker extends StatelessWidget {
-  const CountryCodePicker({required this.selected, required this.onChanged, super.key});
+  const CountryCodePicker({
+    required this.selected,
+    required this.onChanged,
+    super.key,
+  });
 
   final Country selected;
   final ValueChanged<Country> onChanged;
@@ -36,7 +40,9 @@ class CountryCodePicker extends StatelessWidget {
         height: 52,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm + 2),
         decoration: BoxDecoration(
-          border: Border.all(color: theme.dividerTheme.color ?? AppColors.border),
+          border: Border.all(
+            color: theme.dividerTheme.color ?? AppColors.border,
+          ),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
@@ -44,9 +50,16 @@ class CountryCodePicker extends StatelessWidget {
           children: [
             Text(selected.flag, style: const TextStyle(fontSize: 20)),
             const SizedBox(width: 6),
-            Text(selected.dialCode, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+            Text(
+              selected.dialCode,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+            ),
             const SizedBox(width: 2),
-            Icon(Icons.keyboard_arrow_down, size: 18, color: theme.textTheme.bodyMedium?.color),
+            Icon(
+              Icons.keyboard_arrow_down,
+              size: 18,
+              color: theme.textTheme.bodyMedium?.color,
+            ),
           ],
         ),
       ),
@@ -69,7 +82,9 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
     final theme = Theme.of(context);
     final results = kCountries.where((c) {
       final q = _query.toLowerCase();
-      return q.isEmpty || c.name.toLowerCase().contains(q) || c.dialCode.contains(q);
+      return q.isEmpty ||
+          c.name.toLowerCase().contains(q) ||
+          c.dialCode.contains(q);
     }).toList();
 
     return SafeArea(
@@ -82,11 +97,17 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
               width: 36,
               height: 4,
               margin: const EdgeInsets.only(bottom: AppSpacing.md),
-              decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2)),
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-              child: Text('Choisir un pays', style: theme.textTheme.headlineSmall?.copyWith(fontSize: 17)),
+              child: Text(
+                'Choisir un pays',
+                style: theme.textTheme.headlineSmall?.copyWith(fontSize: 17),
+              ),
             ),
             const SizedBox(height: AppSpacing.sm),
             Padding(
@@ -108,9 +129,15 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
                 itemBuilder: (context, index) {
                   final country = results[index];
                   return ListTile(
-                    leading: Text(country.flag, style: const TextStyle(fontSize: 22)),
+                    leading: Text(
+                      country.flag,
+                      style: const TextStyle(fontSize: 22),
+                    ),
                     title: Text(country.name),
-                    trailing: Text(country.dialCode, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    trailing: Text(
+                      country.dialCode,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
                     onTap: () => Navigator.of(context).pop(country),
                   );
                 },

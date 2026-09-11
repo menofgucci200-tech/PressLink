@@ -7,6 +7,8 @@ final pressingRepositoryProvider = Provider<PressingRepository>((ref) {
   return PressingRepository(ref.watch(apiClientProvider));
 });
 
-final myPressingsProvider = FutureProvider.autoDispose<List<PressingModel>>((ref) {
+final myPressingsProvider = FutureProvider.autoDispose<List<PressingModel>>((
+  ref,
+) {
   return ref.watch(pressingRepositoryProvider).mine();
 });

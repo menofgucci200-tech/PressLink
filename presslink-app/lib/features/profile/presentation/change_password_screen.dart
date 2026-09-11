@@ -12,7 +12,8 @@ class ChangePasswordScreen extends ConsumerStatefulWidget {
   const ChangePasswordScreen({super.key});
 
   @override
-  ConsumerState<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
+  ConsumerState<ChangePasswordScreen> createState() =>
+      _ChangePasswordScreenState();
 }
 
 class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
@@ -26,11 +27,15 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
 
   Future<void> _submit() async {
     if (_passwordController.text.length < 4) {
-      setState(() => _error = 'Le mot de passe doit contenir au moins 4 caractères.');
+      setState(
+        () => _error = 'Le mot de passe doit contenir au moins 4 caractères.',
+      );
       return;
     }
     if (_passwordController.text != _confirmController.text) {
-      setState(() => _error = 'La confirmation du mot de passe ne correspond pas.');
+      setState(
+        () => _error = 'La confirmation du mot de passe ne correspond pas.',
+      );
       return;
     }
 
@@ -40,7 +45,9 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
       _success = null;
     });
 
-    final ok = await ref.read(authControllerProvider.notifier).updatePassword(
+    final ok = await ref
+        .read(authControllerProvider.notifier)
+        .updatePassword(
           currentPassword: _currentController.text,
           password: _passwordController.text,
         );
@@ -73,7 +80,13 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                 children: [
                   AppBackButton(onPressed: () => Navigator.of(context).pop()),
                   const SizedBox(width: AppSpacing.sm + 2),
-                  Text('Changer de mot de passe', style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, fontSize: 16)),
+                  Text(
+                    'Changer de mot de passe',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -95,18 +108,34 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                 label: 'Confirmer le nouveau mot de passe',
                 obscureText: _obscure,
                 suffixIcon: IconButton(
-                  icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                  icon: Icon(
+                    _obscure
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                  ),
                   onPressed: () => setState(() => _obscure = !_obscure),
                 ),
                 onSubmitted: (_) => _submit(),
               ),
               if (_error != null) ...[
                 const SizedBox(height: AppSpacing.sm),
-                Text(_error!, style: TextStyle(color: theme.colorScheme.error, fontSize: 13)),
+                Text(
+                  _error!,
+                  style: TextStyle(
+                    color: theme.colorScheme.error,
+                    fontSize: 13,
+                  ),
+                ),
               ],
               if (_success != null) ...[
                 const SizedBox(height: AppSpacing.sm),
-                Text(_success!, style: const TextStyle(color: AppColors.successText, fontSize: 13)),
+                Text(
+                  _success!,
+                  style: const TextStyle(
+                    color: AppColors.successText,
+                    fontSize: 13,
+                  ),
+                ),
               ],
               const SizedBox(height: AppSpacing.lg),
               SizedBox(
@@ -115,7 +144,14 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                 child: ElevatedButton(
                   onPressed: _loading ? null : _submit,
                   child: _loading
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : const Text('Mettre à jour'),
                 ),
               ),

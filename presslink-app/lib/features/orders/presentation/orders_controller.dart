@@ -11,6 +11,9 @@ final ordersProvider = FutureProvider.autoDispose<List<OrderModel>>((ref) {
   return ref.watch(orderRepositoryProvider).list();
 });
 
-final orderDetailProvider = FutureProvider.autoDispose.family<OrderModel, int>((ref, id) {
+final orderDetailProvider = FutureProvider.autoDispose.family<OrderModel, int>((
+  ref,
+  id,
+) {
   return ref.watch(orderRepositoryProvider).show(id);
 });

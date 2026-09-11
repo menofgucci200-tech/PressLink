@@ -7,9 +7,11 @@ final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
   return NotificationRepository(ref.watch(apiClientProvider));
 });
 
-final notificationsProvider = FutureProvider.autoDispose<List<AppNotification>>((ref) {
-  return ref.watch(notificationRepositoryProvider).list();
-});
+final notificationsProvider = FutureProvider.autoDispose<List<AppNotification>>(
+  (ref) {
+    return ref.watch(notificationRepositoryProvider).list();
+  },
+);
 
 final unreadNotificationsCountProvider = FutureProvider.autoDispose<int>((ref) {
   return ref.watch(notificationRepositoryProvider).unreadCount();

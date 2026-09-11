@@ -53,22 +53,22 @@ abstract final class AppTheme {
   }
 
   static ThemeData get light => _build(
-        background: AppColors.background,
-        surface: AppColors.surface,
-        border: AppColors.border,
-        textPrimary: AppColors.textPrimary,
-        textSecondary: AppColors.textSecondary,
-        brightness: Brightness.light,
-      );
+    background: AppColors.background,
+    surface: AppColors.surface,
+    border: AppColors.border,
+    textPrimary: AppColors.textPrimary,
+    textSecondary: AppColors.textSecondary,
+    brightness: Brightness.light,
+  );
 
   static ThemeData get dark => _build(
-        background: AppColors.backgroundDark,
-        surface: AppColors.surfaceDark,
-        border: AppColors.borderDark,
-        textPrimary: AppColors.textPrimaryDark,
-        textSecondary: AppColors.textSecondaryDark,
-        brightness: Brightness.dark,
-      );
+    background: AppColors.backgroundDark,
+    surface: AppColors.surfaceDark,
+    border: AppColors.borderDark,
+    textPrimary: AppColors.textPrimaryDark,
+    textSecondary: AppColors.textSecondaryDark,
+    brightness: Brightness.dark,
+  );
 
   static ThemeData _build({
     required Color background,

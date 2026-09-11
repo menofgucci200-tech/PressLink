@@ -39,7 +39,9 @@ class NotificationRepository {
   Future<List<AppNotification>> list() async {
     final response = await _apiClient.dio.get('/notifications');
     final data = (response.data as Map<String, dynamic>)['data'] as List;
-    return data.map((e) => AppNotification.fromJson(e as Map<String, dynamic>)).toList();
+    return data
+        .map((e) => AppNotification.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<int> unreadCount() async {
@@ -49,5 +51,9 @@ class NotificationRepository {
 
   Future<void> markAsRead(String id) async {
     await _apiClient.dio.post('/notifications/$id/read');
+  }
+
+  Future<void> markAllAsRead() async {
+    await _apiClient.dio.post('/notifications/read-all');
   }
 }

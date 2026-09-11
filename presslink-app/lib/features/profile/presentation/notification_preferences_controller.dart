@@ -25,5 +25,5 @@ class NotificationPreferencesController extends StateNotifier<bool> {
 
 final notificationPreferencesControllerProvider =
     StateNotifierProvider<NotificationPreferencesController, bool>((ref) {
-  return NotificationPreferencesController();
-});
+      return NotificationPreferencesController();
+    });

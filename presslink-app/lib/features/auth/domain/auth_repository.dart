@@ -34,14 +34,14 @@ class Customer {
   String get fullName => '$firstName $lastName'.trim();
 
   factory Customer.fromJson(Map<String, dynamic> json) => Customer(
-        id: json['id'] as int,
-        firstName: json['first_name'] as String? ?? '',
-        lastName: json['last_name'] as String? ?? '',
-        phone: json['phone'] as String,
-        email: json['email'] as String?,
-        gender: json['gender'] as String?,
-        photoUrl: json['photo_url'] as String?,
-      );
+    id: json['id'] as int,
+    firstName: json['first_name'] as String? ?? '',
+    lastName: json['last_name'] as String? ?? '',
+    phone: json['phone'] as String,
+    email: json['email'] as String?,
+    gender: json['gender'] as String?,
+    photoUrl: json['photo_url'] as String?,
+  );
 }
 
 class SessionCheck {
@@ -60,15 +60,21 @@ class AuthRepository {
   final TokenStorage _tokenStorage;
 
   Future<bool> checkPhoneExists(String phone) async {
-    final response = await _apiClient.dio.post('/auth/customer/check-phone', data: {'phone': phone});
+    final response = await _apiClient.dio.post(
+      '/auth/customer/check-phone',
+      data: {'phone': phone},
+    );
     return (response.data as Map<String, dynamic>)['exists'] as bool;
   }
 
-  Future<Customer> login({required String phone, required String password}) async {
-    final response = await _apiClient.dio.post('/auth/customer/login', data: {
-      'phone': phone,
-      'password': password,
-    });
+  Future<Customer> login({
+    required String phone,
+    required String password,
+  }) async {
+    final response = await _apiClient.dio.post(
+      '/auth/customer/login',
+      data: {'phone': phone, 'password': password},
+    );
 
     return _saveSessionAndReturnCustomer(response);
   }
@@ -81,15 +87,18 @@ class AuthRepository {
     required String password,
     String? email,
   }) async {
-    final response = await _apiClient.dio.post('/auth/customer/register', data: {
-      'phone': phone,
-      'first_name': firstName,
-      'last_name': lastName,
-      'gender': gender.value,
-      'email': email,
-      'password': password,
-      'password_confirmation': password,
-    });
+    final response = await _apiClient.dio.post(
+      '/auth/customer/register',
+      data: {
+        'phone': phone,
+        'first_name': firstName,
+        'last_name': lastName,
+        'gender': gender.value,
+        'email': email,
+        'password': password,
+        'password_confirmation': password,
+      },
+    );
 
     return _saveSessionAndReturnCustomer(response);
   }
@@ -115,7 +124,10 @@ class AuthRepository {
 
     try {
       final response = await _apiClient.dio.get('/auth/customer/me');
-      return SessionCheck(valid: true, customer: Customer.fromJson(response.data as Map<String, dynamic>));
+      return SessionCheck(
+        valid: true,
+        customer: Customer.fromJson(response.data as Map<String, dynamic>),
+      );
     } on DioException catch (e) {
       final status = e.response?.statusCode;
       if (status == 401 || status == 403) {
@@ -132,12 +144,15 @@ class AuthRepository {
     required Gender gender,
     String? email,
   }) async {
-    final response = await _apiClient.dio.put('/customer/profile', data: {
-      'first_name': firstName,
-      'last_name': lastName,
-      'gender': gender.value,
-      'email': email,
-    });
+    final response = await _apiClient.dio.put(
+      '/customer/profile',
+      data: {
+        'first_name': firstName,
+        'last_name': lastName,
+        'gender': gender.value,
+        'email': email,
+      },
+    );
 
     return Customer.fromJson(response.data as Map<String, dynamic>);
   }
@@ -155,16 +170,25 @@ class AuthRepository {
     return Customer.fromJson(response.data as Map<String, dynamic>);
   }
 
-  Future<void> updatePassword({required String currentPassword, required String password}) async {
-    await _apiClient.dio.put('/customer/password', data: {
-      'current_password': currentPassword,
-      'password': password,
-      'password_confirmation': password,
-    });
+  Future<void> updatePassword({
+    required String currentPassword,
+    required String password,
+  }) async {
+    await _apiClient.dio.put(
+      '/customer/password',
+      data: {
+        'current_password': currentPassword,
+        'password': password,
+        'password_confirmation': password,
+      },
+    );
   }
 
   Future<void> updateOnesignalPlayerId(String playerId) async {
-    await _apiClient.dio.put('/customer/onesignal-player-id', data: {'player_id': playerId});
+    await _apiClient.dio.put(
+      '/customer/onesignal-player-id',
+      data: {'player_id': playerId},
+    );
   }
 
   Future<void> logout() async {

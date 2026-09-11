@@ -12,14 +12,23 @@ class AppNameText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = GoogleFonts.inter(fontSize: fontSize, fontWeight: FontWeight.w700);
+    final style = GoogleFonts.inter(
+      fontSize: fontSize,
+      fontWeight: FontWeight.w700,
+    );
 
     return RichText(
       text: TextSpan(
         style: style,
         children: [
-          TextSpan(text: 'Press', style: TextStyle(color: AppColors.textPrimary)),
-          TextSpan(text: 'Link', style: TextStyle(color: AppColors.primary)),
+          TextSpan(
+            text: 'Press',
+            style: TextStyle(color: AppColors.textPrimary),
+          ),
+          TextSpan(
+            text: 'Link',
+            style: TextStyle(color: AppColors.primary),
+          ),
         ],
       ),
     );

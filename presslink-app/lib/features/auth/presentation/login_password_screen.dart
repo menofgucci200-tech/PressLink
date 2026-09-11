@@ -13,7 +13,8 @@ class LoginPasswordScreen extends ConsumerStatefulWidget {
   final String phone;
 
   @override
-  ConsumerState<LoginPasswordScreen> createState() => _LoginPasswordScreenState();
+  ConsumerState<LoginPasswordScreen> createState() =>
+      _LoginPasswordScreenState();
 }
 
 class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
@@ -28,10 +29,9 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
       _error = null;
     });
 
-    final ok = await ref.read(authControllerProvider.notifier).login(
-          phone: widget.phone,
-          password: _passwordController.text,
-        );
+    final ok = await ref
+        .read(authControllerProvider.notifier)
+        .login(phone: widget.phone, password: _passwordController.text);
 
     if (!mounted) return;
     setState(() => _loading = false);
@@ -59,9 +59,17 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
             children: [
               AppBackButton(onPressed: () => Navigator.of(context).pop()),
               const SizedBox(height: AppSpacing.lg),
-              Text('Content de vous revoir', style: theme.textTheme.headlineSmall),
+              Text(
+                'Content de vous revoir',
+                style: theme.textTheme.headlineSmall,
+              ),
               const SizedBox(height: 6),
-              Text(widget.phone, style: theme.textTheme.bodyMedium?.copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
+              Text(
+                widget.phone,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
               const SizedBox(height: AppSpacing.lg),
               AppTextField(
                 controller: _passwordController,
@@ -70,13 +78,23 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
                 autofocus: true,
                 onSubmitted: (_) => _submit(),
                 suffixIcon: IconButton(
-                  icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                  icon: Icon(
+                    _obscure
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                  ),
                   onPressed: () => setState(() => _obscure = !_obscure),
                 ),
               ),
               if (_error != null) ...[
                 const SizedBox(height: AppSpacing.sm),
-                Text(_error!, style: TextStyle(color: theme.colorScheme.error, fontSize: 13)),
+                Text(
+                  _error!,
+                  style: TextStyle(
+                    color: theme.colorScheme.error,
+                    fontSize: 13,
+                  ),
+                ),
               ],
               const SizedBox(height: AppSpacing.lg),
               SizedBox(
@@ -84,13 +102,20 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
                 height: 52,
                 child: ElevatedButton(
                   onPressed: _loading ? null : _submit,
-                  child: _loading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Text('Se connecter'),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 180),
+                    child: _loading
+                        ? const SizedBox(
+                            key: ValueKey('loading'),
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Se connecter', key: ValueKey('label')),
+                  ),
                 ),
               ),
             ],

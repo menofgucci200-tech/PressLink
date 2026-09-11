@@ -33,7 +33,9 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
     });
 
     try {
-      final pressing = await ref.read(pressingRepositoryProvider).join(_codeController.text.trim());
+      final pressing = await ref
+          .read(pressingRepositoryProvider)
+          .join(_codeController.text.trim());
       if (!mounted) return;
       setState(() {
         _found = pressing;
@@ -61,17 +63,37 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
             children: [
               Row(
                 children: [
-                  AppBackButton(onPressed: () => Navigator.of(context).pop(_found != null)),
+                  AppBackButton(
+                    onPressed: () => Navigator.of(context).pop(_found != null),
+                  ),
                   const SizedBox(width: AppSpacing.sm + 2),
-                  Text('Ajouter un pressing', style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, fontSize: 16)),
+                  Text(
+                    'Ajouter un pressing',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: AppSpacing.lg + 6),
-              Text('Rejoignez votre pressing', style: theme.textTheme.headlineSmall?.copyWith(fontSize: 20)),
+              Text(
+                'Rejoignez votre pressing',
+                style: theme.textTheme.headlineSmall?.copyWith(fontSize: 20),
+              ),
               const SizedBox(height: 8),
-              Text('Entrez le code que votre pressing vous a communiqué.', style: theme.textTheme.bodyMedium),
+              Text(
+                'Entrez le code que votre pressing vous a communiqué.',
+                style: theme.textTheme.bodyMedium,
+              ),
               const SizedBox(height: AppSpacing.lg),
-              Text('Code du pressing', style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12, fontWeight: FontWeight.w500)),
+              Text(
+                'Code du pressing',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               const SizedBox(height: 6),
               SizedBox(
                 height: 52,
@@ -79,7 +101,11 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
                   controller: _codeController,
                   textCapitalization: TextCapitalization.characters,
                   enabled: _found == null,
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17, letterSpacing: 1.2),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 17,
+                    letterSpacing: 1.2,
+                  ),
                   decoration: const InputDecoration(hintText: 'PE-4821'),
                 ),
               ),
@@ -89,7 +115,9 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
                   padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     color: AppColors.successTint,
-                    border: Border.all(color: AppColors.success.withValues(alpha: 0.4)),
+                    border: Border.all(
+                      color: AppColors.success.withValues(alpha: 0.4),
+                    ),
                     borderRadius: BorderRadius.circular(AppRadius.lg),
                   ),
                   child: Column(
@@ -97,9 +125,20 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.check_circle, size: 15, color: AppColors.successText),
+                          const Icon(
+                            Icons.check_circle,
+                            size: 15,
+                            color: AppColors.successText,
+                          ),
                           const SizedBox(width: 6),
-                          Text('Pressing trouvé', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.successText)),
+                          Text(
+                            'Pressing trouvé',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.successText,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: AppSpacing.sm + 6),
@@ -108,15 +147,30 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
                         height: 56,
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          border: Border.all(color: AppColors.success.withValues(alpha: 0.4)),
+                          border: Border.all(
+                            color: AppColors.success.withValues(alpha: 0.4),
+                          ),
                           borderRadius: BorderRadius.circular(AppRadius.lg),
                         ),
                         child: Center(
-                          child: Text(_found!.initials, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.successText)),
+                          child: Text(
+                            _found!.initials,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.successText,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.sm + 4),
-                      Text(_found!.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      Text(
+                        _found!.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       if (_found!.city != null) ...[
                         const SizedBox(height: 3),
                         Text(_found!.city!, style: theme.textTheme.bodyMedium),
@@ -127,7 +181,13 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
               ],
               if (_error != null) ...[
                 const SizedBox(height: AppSpacing.sm),
-                Text(_error!, style: TextStyle(color: theme.colorScheme.error, fontSize: 13)),
+                Text(
+                  _error!,
+                  style: TextStyle(
+                    color: theme.colorScheme.error,
+                    fontSize: 13,
+                  ),
+                ),
               ],
               const SizedBox(height: AppSpacing.lg),
               SizedBox(
@@ -136,7 +196,14 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
                 child: ElevatedButton(
                   onPressed: _loading ? null : _submit,
                   child: _loading
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : Text(_found != null ? 'Continuer' : 'Rejoindre'),
                 ),
               ),

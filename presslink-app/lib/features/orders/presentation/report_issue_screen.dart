@@ -11,7 +11,11 @@ import 'orders_controller.dart';
 /// Signaler un problème sur une commande — ex. article manquant,
 /// article qui n'appartient pas au client.
 class ReportIssueScreen extends ConsumerStatefulWidget {
-  const ReportIssueScreen({required this.orderId, required this.orderNumber, super.key});
+  const ReportIssueScreen({
+    required this.orderId,
+    required this.orderNumber,
+    super.key,
+  });
 
   final int orderId;
   final String orderNumber;
@@ -38,10 +42,14 @@ class _ReportIssueScreenState extends ConsumerState<ReportIssueScreen> {
     });
 
     try {
-      await ref.read(orderRepositoryProvider).reportIssue(
+      await ref
+          .read(orderRepositoryProvider)
+          .reportIssue(
             orderId: widget.orderId,
             category: _category!,
-            description: _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
+            description: _descriptionController.text.trim().isEmpty
+                ? null
+                : _descriptionController.text.trim(),
           );
 
       if (!mounted) return;
@@ -70,13 +78,25 @@ class _ReportIssueScreenState extends ConsumerState<ReportIssueScreen> {
                 children: [
                   AppBackButton(onPressed: () => Navigator.of(context).pop()),
                   const SizedBox(width: AppSpacing.sm + 2),
-                  Text('Signaler un problème', style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, fontSize: 16)),
+                  Text(
+                    'Signaler un problème',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: AppSpacing.lg),
-              Text('Commande ${widget.orderNumber}', style: theme.textTheme.headlineSmall?.copyWith(fontSize: 18)),
+              Text(
+                'Commande ${widget.orderNumber}',
+                style: theme.textTheme.headlineSmall?.copyWith(fontSize: 18),
+              ),
               const SizedBox(height: 6),
-              Text('Quel est le problème avec cette commande ?', style: theme.textTheme.bodyMedium),
+              Text(
+                'Quel est le problème avec cette commande ?',
+                style: theme.textTheme.bodyMedium,
+              ),
               const SizedBox(height: AppSpacing.lg),
               for (final category in IssueCategory.values) ...[
                 _CategoryOption(
@@ -94,7 +114,13 @@ class _ReportIssueScreenState extends ConsumerState<ReportIssueScreen> {
               ),
               if (_error != null) ...[
                 const SizedBox(height: AppSpacing.sm),
-                Text(_error!, style: TextStyle(color: theme.colorScheme.error, fontSize: 13)),
+                Text(
+                  _error!,
+                  style: TextStyle(
+                    color: theme.colorScheme.error,
+                    fontSize: 13,
+                  ),
+                ),
               ],
               const SizedBox(height: AppSpacing.lg),
               SizedBox(
@@ -103,7 +129,14 @@ class _ReportIssueScreenState extends ConsumerState<ReportIssueScreen> {
                 child: ElevatedButton(
                   onPressed: _loading ? null : _submit,
                   child: _loading
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : const Text('Envoyer le signalement'),
                 ),
               ),
@@ -116,7 +149,11 @@ class _ReportIssueScreenState extends ConsumerState<ReportIssueScreen> {
 }
 
 class _CategoryOption extends StatelessWidget {
-  const _CategoryOption({required this.category, required this.selected, required this.onTap});
+  const _CategoryOption({
+    required this.category,
+    required this.selected,
+    required this.onTap,
+  });
 
   final IssueCategory category;
   final bool selected;
@@ -129,16 +166,23 @@ class _CategoryOption extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppRadius.md),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm + 6),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm + 6,
+        ),
         decoration: BoxDecoration(
           color: selected ? AppColors.primaryTint : Colors.white,
-          border: Border.all(color: selected ? AppColors.primary : AppColors.border),
+          border: Border.all(
+            color: selected ? AppColors.primary : AppColors.border,
+          ),
           borderRadius: BorderRadius.circular(AppRadius.md),
         ),
         child: Row(
           children: [
             Icon(
-              selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              selected
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
               size: 20,
               color: selected ? AppColors.primary : AppColors.textMuted,
             ),

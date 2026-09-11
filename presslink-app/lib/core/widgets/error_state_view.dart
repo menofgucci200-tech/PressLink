@@ -25,9 +25,17 @@ class ErrorStateView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.wifi_off_rounded, size: 32, color: AppColors.textMuted),
+            const Icon(
+              Icons.wifi_off_rounded,
+              size: 32,
+              color: AppColors.textMuted,
+            ),
             const SizedBox(height: AppSpacing.sm),
-            Text(message, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium,
+            ),
             const SizedBox(height: AppSpacing.sm + 4),
             OutlinedButton.icon(
               onPressed: onRetry,

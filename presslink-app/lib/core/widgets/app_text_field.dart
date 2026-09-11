@@ -39,7 +39,10 @@ class AppTextField extends StatelessWidget {
         if (label != null) ...[
           Text(
             label!,
-            style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12, fontWeight: FontWeight.w500),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           const SizedBox(height: 6),
         ],
@@ -52,7 +55,10 @@ class AppTextField extends StatelessWidget {
             autofocus: autofocus,
             textCapitalization: textCapitalization,
             onSubmitted: onSubmitted,
-            style: theme.textTheme.bodyLarge?.copyWith(fontSize: 15, fontWeight: FontWeight.w600),
+            style: theme.textTheme.bodyLarge?.copyWith(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
             decoration: InputDecoration(
               hintText: hintText,
               suffixIcon: suffixIcon,
@@ -61,7 +67,9 @@ class AppTextField extends StatelessWidget {
                 fontWeight: FontWeight.w400,
                 color: AppColors.textMuted,
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+              ),
             ),
           ),
         ),

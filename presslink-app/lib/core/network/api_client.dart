@@ -4,7 +4,8 @@ import '../config/app_config.dart';
 import '../storage/token_storage.dart';
 
 class ApiClient {
-  ApiClient(this._tokenStorage) : dio = Dio(BaseOptions(baseUrl: AppConfig.apiBaseUrl)) {
+  ApiClient(this._tokenStorage)
+    : dio = Dio(BaseOptions(baseUrl: AppConfig.apiBaseUrl)) {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {

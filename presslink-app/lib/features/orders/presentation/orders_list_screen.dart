@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/app_page_route.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/order_card.dart';
+import '../../../core/widgets/staggered_fade_in.dart';
 import '../domain/order_repository.dart';
 import '../../../shared/models/order_summary.dart';
 import '../../pressings/presentation/join_pressing_screen.dart';
@@ -26,11 +28,13 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
   _Filter _filter = _Filter.toutes;
 
   bool _matches(OrderModel order) => switch (_filter) {
-        _Filter.toutes => true,
-        _Filter.enCours => order.status == OrderStatus.recue || order.status == OrderStatus.traitement,
-        _Filter.pretes => order.status == OrderStatus.prete,
-        _Filter.historique => order.status == OrderStatus.recuperee,
-      };
+    _Filter.toutes => true,
+    _Filter.enCours =>
+      order.status == OrderStatus.recue ||
+          order.status == OrderStatus.traitement,
+    _Filter.pretes => order.status == OrderStatus.prete,
+    _Filter.historique => order.status == OrderStatus.recuperee,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +55,11 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
                 child: Row(
                   children: [
                     for (final f in _Filter.values) ...[
-                      _FilterChip(label: _labelFor(f), selected: _filter == f, onTap: () => setState(() => _filter = f)),
+                      _FilterChip(
+                        label: _labelFor(f),
+                        selected: _filter == f,
+                        onTap: () => setState(() => _filter = f),
+                      ),
                       const SizedBox(width: AppSpacing.xs + 4),
                     ],
                   ],
@@ -60,7 +68,8 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
               const SizedBox(height: AppSpacing.md),
               Expanded(
                 child: ordersAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                   error: (e, _) => ErrorStateView(
                     message: apiErrorMessage(e),
                     onRetry: () => ref.invalidate(ordersProvider),
@@ -74,13 +83,21 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.receipt_long_outlined, size: 32, color: theme.textTheme.bodyMedium?.color),
+                              Icon(
+                                Icons.receipt_long_outlined,
+                                size: 32,
+                                color: theme.textTheme.bodyMedium?.color,
+                              ),
                               const SizedBox(height: AppSpacing.sm),
-                              const Text('Vous n\'avez encore aucune commande.'),
+                              const Text(
+                                'Vous n\'avez encore aucune commande.',
+                              ),
                               const SizedBox(height: AppSpacing.sm + 4),
                               OutlinedButton.icon(
                                 onPressed: () => Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (_) => const JoinPressingScreen()),
+                                  AppPageRoute(
+                                    builder: (_) => const JoinPressingScreen(),
+                                  ),
                                 ),
                                 icon: const Icon(Icons.add, size: 18),
                                 label: const Text('Rejoindre un pressing'),
@@ -92,7 +109,10 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
                     }
                     if (filtered.isEmpty) {
                       return Center(
-                        child: Text('Aucune commande ici.', style: theme.textTheme.bodyMedium),
+                        child: Text(
+                          'Aucune commande ici.',
+                          style: theme.textTheme.bodyMedium,
+                        ),
                       );
                     }
                     return RefreshIndicator(
@@ -102,20 +122,30 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
                       },
                       child: ListView.separated(
                         itemCount: filtered.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+                        separatorBuilder: (_, _) =>
+                            const SizedBox(height: AppSpacing.sm),
                         itemBuilder: (context, index) {
                           final order = filtered[index];
-                          return OrderCard(
-                            order: OrderSummary(
-                              orderNumber: order.orderNumber,
-                              pressingName: order.pressingName,
-                              items: order.itemsLabel,
-                              status: order.status,
-                              totalFcfa: order.totalFcfa,
+                          return StaggeredFadeIn(
+                            key: ValueKey('$_filter-${order.id}'),
+                            index: index,
+                            child: OrderCard(
+                              order: OrderSummary(
+                                orderNumber: order.orderNumber,
+                                pressingName: order.pressingName,
+                                items: order.itemsLabel,
+                                status: order.status,
+                                totalFcfa: order.totalFcfa,
+                              ),
+                              onTap: () => Navigator.of(context)
+                                  .push(
+                                    AppPageRoute(
+                                      builder: (_) =>
+                                          OrderDetailScreen(orderId: order.id),
+                                    ),
+                                  )
+                                  .then((_) => ref.invalidate(ordersProvider)),
                             ),
-                            onTap: () => Navigator.of(context)
-                                .push(MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: order.id)))
-                                .then((_) => ref.invalidate(ordersProvider)),
                           );
                         },
                       ),
@@ -131,15 +161,19 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
   }
 
   String _labelFor(_Filter f) => switch (f) {
-        _Filter.toutes => 'Toutes',
-        _Filter.enCours => 'En cours',
-        _Filter.pretes => 'Prêtes',
-        _Filter.historique => 'Historique',
-      };
+    _Filter.toutes => 'Toutes',
+    _Filter.enCours => 'En cours',
+    _Filter.pretes => 'Prêtes',
+    _Filter.historique => 'Historique',
+  };
 }
 
 class _FilterChip extends StatelessWidget {
-  const _FilterChip({required this.label, required this.selected, required this.onTap});
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   final String label;
   final bool selected;
@@ -150,16 +184,25 @@ class _FilterChip extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(999),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: selected ? AppColors.primary : Colors.white,
-          border: Border.all(color: selected ? AppColors.primary : AppColors.border),
+          border: Border.all(
+            color: selected ? AppColors.primary : AppColors.border,
+          ),
           borderRadius: BorderRadius.circular(999),
         ),
-        child: Text(
-          label,
-          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: selected ? Colors.white : AppColors.textSecondary),
+        child: AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 200),
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: selected ? Colors.white : AppColors.textSecondary,
+          ),
+          child: Text(label),
         ),
       ),
     );

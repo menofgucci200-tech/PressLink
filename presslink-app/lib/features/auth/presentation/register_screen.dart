@@ -37,11 +37,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
     if (_passwordController.text.length < 4) {
-      setState(() => _error = 'Le mot de passe doit contenir au moins 4 caractères.');
+      setState(
+        () => _error = 'Le mot de passe doit contenir au moins 4 caractères.',
+      );
       return;
     }
     if (_passwordController.text != _confirmController.text) {
-      setState(() => _error = 'La confirmation du mot de passe ne correspond pas.');
+      setState(
+        () => _error = 'La confirmation du mot de passe ne correspond pas.',
+      );
       return;
     }
 
@@ -50,13 +54,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       _error = null;
     });
 
-    final ok = await ref.read(authControllerProvider.notifier).register(
+    final ok = await ref
+        .read(authControllerProvider.notifier)
+        .register(
           phone: widget.phone,
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
           gender: _gender!,
           password: _passwordController.text,
-          email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+          email: _emailController.text.trim().isEmpty
+              ? null
+              : _emailController.text.trim(),
         );
 
     if (!mounted) return;
@@ -87,7 +95,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               const SizedBox(height: AppSpacing.lg),
               Text('Créer votre compte', style: theme.textTheme.headlineSmall),
               const SizedBox(height: 6),
-              Text(widget.phone, style: theme.textTheme.bodyMedium?.copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
+              Text(
+                widget.phone,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
               const SizedBox(height: AppSpacing.lg),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,13 +124,31 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
-              Text('Genre', style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12, fontWeight: FontWeight.w500)),
+              Text(
+                'Genre',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               const SizedBox(height: 6),
               Row(
                 children: [
-                  Expanded(child: _GenderButton(gender: Gender.homme, selected: _gender, onTap: (g) => setState(() => _gender = g))),
+                  Expanded(
+                    child: _GenderButton(
+                      gender: Gender.homme,
+                      selected: _gender,
+                      onTap: (g) => setState(() => _gender = g),
+                    ),
+                  ),
                   const SizedBox(width: AppSpacing.sm),
-                  Expanded(child: _GenderButton(gender: Gender.femme, selected: _gender, onTap: (g) => setState(() => _gender = g))),
+                  Expanded(
+                    child: _GenderButton(
+                      gender: Gender.femme,
+                      selected: _gender,
+                      onTap: (g) => setState(() => _gender = g),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
@@ -132,7 +163,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 label: 'Mot de passe (4 caractères min.)',
                 obscureText: _obscure,
                 suffixIcon: IconButton(
-                  icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                  icon: Icon(
+                    _obscure
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                  ),
                   onPressed: () => setState(() => _obscure = !_obscure),
                 ),
               ),
@@ -145,7 +180,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
               if (_error != null) ...[
                 const SizedBox(height: AppSpacing.sm),
-                Text(_error!, style: TextStyle(color: theme.colorScheme.error, fontSize: 13)),
+                Text(
+                  _error!,
+                  style: TextStyle(
+                    color: theme.colorScheme.error,
+                    fontSize: 13,
+                  ),
+                ),
               ],
               const SizedBox(height: AppSpacing.lg),
               SizedBox(
@@ -153,13 +194,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 height: 52,
                 child: ElevatedButton(
                   onPressed: _loading ? null : _submit,
-                  child: _loading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Text('Créer mon compte'),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 180),
+                    child: _loading
+                        ? const SizedBox(
+                            key: ValueKey('loading'),
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Créer mon compte',
+                            key: ValueKey('label'),
+                          ),
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -172,7 +223,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 }
 
 class _GenderButton extends StatelessWidget {
-  const _GenderButton({required this.gender, required this.selected, required this.onTap});
+  const _GenderButton({
+    required this.gender,
+    required this.selected,
+    required this.onTap,
+  });
 
   final Gender gender;
   final Gender? selected;
@@ -187,11 +242,20 @@ class _GenderButton extends StatelessWidget {
         onPressed: () => onTap(gender),
         style: OutlinedButton.styleFrom(
           backgroundColor: isSelected ? AppColors.primaryTint : Colors.white,
-          side: BorderSide(color: isSelected ? AppColors.primary : AppColors.border),
-          foregroundColor: isSelected ? AppColors.primary : AppColors.textSecondary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          side: BorderSide(
+            color: isSelected ? AppColors.primary : AppColors.border,
+          ),
+          foregroundColor: isSelected
+              ? AppColors.primary
+              : AppColors.textSecondary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
-        child: Text(gender.label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+        child: Text(
+          gender.label,
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+        ),
       ),
     );
   }

@@ -22,7 +22,12 @@ void main() async {
   await initializeDateFormatting('fr_FR');
   final container = ProviderContainer();
   await container.read(pushNotificationServiceProvider).init();
-  runApp(UncontrolledProviderScope(container: container, child: const PressLinkApp()));
+  runApp(
+    UncontrolledProviderScope(
+      container: container,
+      child: const PressLinkApp(),
+    ),
+  );
 }
 
 class PressLinkApp extends ConsumerWidget {
@@ -53,26 +58,57 @@ class AuthGate extends ConsumerWidget {
     final auth = ref.watch(authControllerProvider);
 
     ref.listen(authControllerProvider, (previous, next) {
-      if (next.status == AuthStatus.loggedIn && previous?.status != AuthStatus.loggedIn) {
+      if (next.status == AuthStatus.loggedIn &&
+          previous?.status != AuthStatus.loggedIn) {
         ref.read(pushNotificationServiceProvider).syncTokenIfLoggedIn();
       }
     });
 
-    return switch (auth.status) {
-      AuthStatus.checking => const _Splash(),
-      AuthStatus.loggedOut => const PhoneScreen(),
-      AuthStatus.loggedIn => const MainShell(),
-    };
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 320),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      transitionBuilder: (child, animation) =>
+          FadeTransition(opacity: animation, child: child),
+      child: switch (auth.status) {
+        AuthStatus.checking => const _Splash(key: ValueKey('splash')),
+        AuthStatus.loggedOut => const PhoneScreen(key: ValueKey('phone')),
+        AuthStatus.loggedIn => const MainShell(key: ValueKey('main')),
+      },
+    );
   }
 }
 
-class _Splash extends StatelessWidget {
-  const _Splash();
+class _Splash extends StatefulWidget {
+  const _Splash({super.key});
+
+  @override
+  State<_Splash> createState() => _SplashState();
+}
+
+class _SplashState extends State<_Splash> with SingleTickerProviderStateMixin {
+  late final _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: AppNameText(fontSize: 36)),
+    return Scaffold(
+      body: Center(
+        child: FadeTransition(
+          opacity: Tween<double>(begin: 0.6, end: 1).animate(
+            CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+          ),
+          child: const AppNameText(fontSize: 36),
+        ),
+      ),
     );
   }
 }

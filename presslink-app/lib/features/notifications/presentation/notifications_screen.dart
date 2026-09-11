@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/app_page_route.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/widgets/error_state_view.dart';
+import '../../../core/widgets/staggered_fade_in.dart';
 import '../../orders/presentation/order_detail_screen.dart';
 import '../../orders/presentation/orders_controller.dart';
 import '../domain/notification_repository.dart';
@@ -28,7 +30,12 @@ class NotificationsScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.sm,
+                AppSpacing.md,
+                0,
+              ),
               child: Row(
                 children: [
                   if (canPop) ...[
@@ -36,6 +43,53 @@ class NotificationsScreen extends ConsumerWidget {
                     const SizedBox(width: AppSpacing.sm + 2),
                   ],
                   Text('Notifications', style: theme.textTheme.headlineSmall),
+                  const Spacer(),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 220),
+                    transitionBuilder: (child, animation) => FadeTransition(
+                      opacity: animation,
+                      child: ScaleTransition(scale: animation, child: child),
+                    ),
+                    child:
+                        (ref
+                                    .watch(unreadNotificationsCountProvider)
+                                    .valueOrNull ??
+                                0) >
+                            0
+                        ? TextButton(
+                            key: const ValueKey('mark-all-read'),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.sm,
+                              ),
+                            ),
+                            onPressed: () async {
+                              try {
+                                await ref
+                                    .read(notificationRepositoryProvider)
+                                    .markAllAsRead();
+                                ref.invalidate(notificationsProvider);
+                                ref.invalidate(
+                                  unreadNotificationsCountProvider,
+                                );
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(apiErrorMessage(e))),
+                                  );
+                                }
+                              }
+                            },
+                            child: const Text(
+                              'Tout marquer comme lu',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(key: ValueKey('no-unread')),
+                  ),
                 ],
               ),
             ),
@@ -57,7 +111,11 @@ class NotificationsScreen extends ConsumerWidget {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.notifications_none, size: 40, color: theme.textTheme.bodyMedium?.color),
+                            Icon(
+                              Icons.notifications_none,
+                              size: 40,
+                              color: theme.textTheme.bodyMedium?.color,
+                            ),
                             const SizedBox(height: AppSpacing.sm),
                             const Text('Aucune notification pour le moment.'),
                           ],
@@ -75,28 +133,45 @@ class NotificationsScreen extends ConsumerWidget {
                     child: ListView.separated(
                       padding: const EdgeInsets.all(AppSpacing.md),
                       itemCount: notifications.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+                      separatorBuilder: (_, _) =>
+                          const SizedBox(height: AppSpacing.sm),
                       itemBuilder: (context, index) {
                         final n = notifications[index];
-                        return _NotificationTile(
-                          notification: n,
-                          onTap: () async {
-                            if (!n.isRead) {
-                              try {
-                                await ref.read(notificationRepositoryProvider).markAsRead(n.id);
-                                ref.invalidate(notificationsProvider);
-                                ref.invalidate(unreadNotificationsCountProvider);
-                              } catch (_) {
-                                // Le marquage comme lu n'est pas critique : on continue
-                                // vers la commande même s'il échoue silencieusement.
+                        return StaggeredFadeIn(
+                          key: ValueKey(n.id),
+                          index: index,
+                          child: _NotificationTile(
+                            notification: n,
+                            onTap: () async {
+                              if (!n.isRead) {
+                                try {
+                                  await ref
+                                      .read(notificationRepositoryProvider)
+                                      .markAsRead(n.id);
+                                  ref.invalidate(notificationsProvider);
+                                  ref.invalidate(
+                                    unreadNotificationsCountProvider,
+                                  );
+                                } catch (_) {
+                                  // Le marquage comme lu n'est pas critique : on continue
+                                  // vers la commande même s'il échoue silencieusement.
+                                }
                               }
-                            }
-                            if (n.orderId != null && context.mounted) {
-                              Navigator.of(context)
-                                  .push(MaterialPageRoute(builder: (_) => OrderDetailScreen(orderId: n.orderId!)))
-                                  .then((_) => ref.invalidate(ordersProvider));
-                            }
-                          },
+                              if (n.orderId != null && context.mounted) {
+                                Navigator.of(context)
+                                    .push(
+                                      AppPageRoute(
+                                        builder: (_) => OrderDetailScreen(
+                                          orderId: n.orderId!,
+                                        ),
+                                      ),
+                                    )
+                                    .then(
+                                      (_) => ref.invalidate(ordersProvider),
+                                    );
+                              }
+                            },
+                          ),
                         );
                       },
                     ),
@@ -119,8 +194,10 @@ class _NotificationTile extends StatelessWidget {
 
   ({IconData icon, Color color}) get _iconStyle {
     final title = notification.title.toLowerCase();
-    if (title.contains('prête')) return (icon: Icons.local_laundry_service, color: AppColors.success);
-    if (title.contains('récupérée')) return (icon: Icons.check_circle, color: AppColors.textSecondary);
+    if (title.contains('prête'))
+      return (icon: Icons.local_laundry_service, color: AppColors.success);
+    if (title.contains('récupérée'))
+      return (icon: Icons.check_circle, color: AppColors.textSecondary);
     return (icon: Icons.receipt_long, color: AppColors.primary);
   }
 
@@ -132,10 +209,14 @@ class _NotificationTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppRadius.lg),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
         padding: const EdgeInsets.all(AppSpacing.md - 1),
         decoration: BoxDecoration(
-          color: notification.isRead ? theme.cardTheme.color : AppColors.primaryTint,
+          color: notification.isRead
+              ? theme.cardTheme.color
+              : AppColors.primaryTint,
           border: Border.all(color: theme.dividerTheme.color!),
           borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
@@ -156,11 +237,23 @@ class _NotificationTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(notification.title, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, fontSize: 14)),
+                  Text(
+                    notification.title,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
                   const SizedBox(height: 3),
-                  Text(notification.body, style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13)),
+                  Text(
+                    notification.body,
+                    style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13),
+                  ),
                   const SizedBox(height: 6),
-                  Text(_relativeTime(notification.createdAt), style: theme.textTheme.labelSmall),
+                  Text(
+                    _relativeTime(notification.createdAt),
+                    style: theme.textTheme.labelSmall,
+                  ),
                 ],
               ),
             ),
@@ -170,7 +263,10 @@ class _NotificationTile extends StatelessWidget {
                 width: 8,
                 height: 8,
                 margin: const EdgeInsets.only(top: 4),
-                decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                ),
               ),
             ],
           ],

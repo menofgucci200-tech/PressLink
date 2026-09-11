@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/app_page_route.dart';
 import '../../../core/data/countries.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -25,7 +26,8 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
   bool _loading = false;
   String? _error;
 
-  String get _fullPhone => '${_country.dialCode}${_phoneController.text.replaceAll(' ', '')}';
+  String get _fullPhone =>
+      '${_country.dialCode}${_phoneController.text.replaceAll(' ', '')}';
 
   Future<void> _submit() async {
     setState(() {
@@ -33,7 +35,9 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
       _error = null;
     });
 
-    final exists = await ref.read(authControllerProvider.notifier).checkPhoneExists(_fullPhone);
+    final exists = await ref
+        .read(authControllerProvider.notifier)
+        .checkPhoneExists(_fullPhone);
 
     if (!mounted) return;
     setState(() => _loading = false);
@@ -44,8 +48,10 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
     }
 
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => exists ? LoginPasswordScreen(phone: _fullPhone) : RegisterScreen(phone: _fullPhone),
+      AppPageRoute(
+        builder: (_) => exists
+            ? LoginPasswordScreen(phone: _fullPhone)
+            : RegisterScreen(phone: _fullPhone),
       ),
     );
   }
@@ -63,15 +69,23 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
               const SizedBox(height: AppSpacing.xxxl),
               RichText(
                 text: TextSpan(
-                  style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                   children: [
                     const TextSpan(text: 'Press'),
-                    TextSpan(text: 'Link', style: TextStyle(color: AppColors.primary)),
+                    TextSpan(
+                      text: 'Link',
+                      style: TextStyle(color: AppColors.primary),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-              Text('Votre numéro de téléphone', style: theme.textTheme.headlineSmall),
+              Text(
+                'Votre numéro de téléphone',
+                style: theme.textTheme.headlineSmall,
+              ),
               const SizedBox(height: 6),
               Text(
                 'Nous nous en servirons pour retrouver ou créer votre compte.',
@@ -80,7 +94,10 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
               const SizedBox(height: AppSpacing.lg),
               Text(
                 'Téléphone',
-                style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12, fontWeight: FontWeight.w500),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               const SizedBox(height: 6),
               Row(
@@ -103,7 +120,13 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
               ),
               if (_error != null) ...[
                 const SizedBox(height: AppSpacing.sm),
-                Text(_error!, style: TextStyle(color: theme.colorScheme.error, fontSize: 13)),
+                Text(
+                  _error!,
+                  style: TextStyle(
+                    color: theme.colorScheme.error,
+                    fontSize: 13,
+                  ),
+                ),
               ],
               const SizedBox(height: AppSpacing.lg),
               SizedBox(
@@ -111,13 +134,20 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
                 height: 52,
                 child: ElevatedButton(
                   onPressed: _loading ? null : _submit,
-                  child: _loading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Text('Continuer'),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 180),
+                    child: _loading
+                        ? const SizedBox(
+                            key: ValueKey('loading'),
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Continuer', key: ValueKey('label')),
+                  ),
                 ),
               ),
             ],

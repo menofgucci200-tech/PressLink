@@ -7,7 +7,8 @@ class TokenStorage {
 
   static const _tokenKey = 'presslink_customer_token';
 
-  Future<void> saveToken(String token) => _storage.write(key: _tokenKey, value: token);
+  Future<void> saveToken(String token) =>
+      _storage.write(key: _tokenKey, value: token);
 
   Future<String?> readToken() => _storage.read(key: _tokenKey);
 

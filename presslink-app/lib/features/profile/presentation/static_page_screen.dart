@@ -6,7 +6,11 @@ import '../../../core/widgets/app_back_button.dart';
 /// Écran générique pour les pages de contenu statique
 /// (Aide, Conditions d'utilisation, Politique de confidentialité).
 class StaticPageScreen extends StatelessWidget {
-  const StaticPageScreen({required this.title, required this.sections, super.key});
+  const StaticPageScreen({
+    required this.title,
+    required this.sections,
+    super.key,
+  });
 
   final String title;
   final List<(String heading, String body)> sections;
@@ -24,15 +28,27 @@ class StaticPageScreen extends StatelessWidget {
                 AppBackButton(onPressed: () => Navigator.of(context).pop()),
                 const SizedBox(width: AppSpacing.sm + 2),
                 Expanded(
-                  child: Text(title, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, fontSize: 16)),
+                  child: Text(
+                    title,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
             for (final (heading, body) in sections) ...[
-              Text(heading, style: theme.textTheme.headlineSmall?.copyWith(fontSize: 15)),
+              Text(
+                heading,
+                style: theme.textTheme.headlineSmall?.copyWith(fontSize: 15),
+              ),
               const SizedBox(height: 8),
-              Text(body, style: theme.textTheme.bodyMedium?.copyWith(height: 1.5)),
+              Text(
+                body,
+                style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
+              ),
               const SizedBox(height: AppSpacing.lg),
             ],
           ],

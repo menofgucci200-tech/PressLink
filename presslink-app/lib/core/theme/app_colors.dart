@@ -49,29 +49,29 @@ enum OrderStatus { recue, traitement, prete, recuperee, attente, annulee }
 
 extension OrderStatusStyle on OrderStatus {
   String get label => switch (this) {
-        OrderStatus.recue => 'Reçue',
-        OrderStatus.traitement => 'En traitement',
-        OrderStatus.prete => 'Prête',
-        OrderStatus.recuperee => 'Récupérée',
-        OrderStatus.attente => 'En attente',
-        OrderStatus.annulee => 'Annulée',
-      };
+    OrderStatus.recue => 'Reçue',
+    OrderStatus.traitement => 'En traitement',
+    OrderStatus.prete => 'Prête',
+    OrderStatus.recuperee => 'Récupérée',
+    OrderStatus.attente => 'En attente',
+    OrderStatus.annulee => 'Annulée',
+  };
 
   Color get color => switch (this) {
-        OrderStatus.recue => AppColors.info,
-        OrderStatus.traitement => AppColors.secondary,
-        OrderStatus.prete => AppColors.successText,
-        OrderStatus.recuperee => AppColors.textSecondary,
-        OrderStatus.attente => AppColors.warningText,
-        OrderStatus.annulee => AppColors.error,
-      };
+    OrderStatus.recue => AppColors.info,
+    OrderStatus.traitement => AppColors.secondary,
+    OrderStatus.prete => AppColors.successText,
+    OrderStatus.recuperee => AppColors.textSecondary,
+    OrderStatus.attente => AppColors.warningText,
+    OrderStatus.annulee => AppColors.error,
+  };
 
   Color get tint => switch (this) {
-        OrderStatus.recue => AppColors.infoTint,
-        OrderStatus.traitement => AppColors.secondary.withValues(alpha: 0.14),
-        OrderStatus.prete => AppColors.successTint,
-        OrderStatus.recuperee => AppColors.border,
-        OrderStatus.attente => AppColors.warningTint,
-        OrderStatus.annulee => AppColors.errorTint,
-      };
+    OrderStatus.recue => AppColors.infoTint,
+    OrderStatus.traitement => AppColors.secondary.withValues(alpha: 0.14),
+    OrderStatus.prete => AppColors.successTint,
+    OrderStatus.recuperee => AppColors.border,
+    OrderStatus.attente => AppColors.warningTint,
+    OrderStatus.annulee => AppColors.errorTint,
+  };
 }

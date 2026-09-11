@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/widgets/app_page_route.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/widgets/error_state_view.dart';
+import '../../pressings/domain/pressing_repository.dart';
+import '../../pressings/presentation/pressing_detail_screen.dart';
+import '../../pressings/presentation/pressings_controller.dart';
 import '../domain/order_repository.dart';
 import 'orders_controller.dart';
 import 'report_issue_screen.dart';
@@ -47,21 +51,22 @@ class OrderDetailScreen extends ConsumerWidget {
               ),
             ],
           ),
-          data: (order) => _OrderDetailBody(order: order, canonicalSteps: _canonicalSteps),
+          data: (order) =>
+              _OrderDetailBody(order: order, canonicalSteps: _canonicalSteps),
         ),
       ),
     );
   }
 }
 
-class _OrderDetailBody extends StatelessWidget {
+class _OrderDetailBody extends ConsumerWidget {
   const _OrderDetailBody({required this.order, required this.canonicalSteps});
 
   final OrderModel order;
   final List<OrderStatus> canonicalSteps;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final dateFormat = DateFormat('d MMMM', 'fr_FR');
     final currentIndex = canonicalSteps.indexOf(order.status);
@@ -76,8 +81,45 @@ class _OrderDetailBody extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Commande ${order.orderNumber}', style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700, fontSize: 16)),
-                Text(order.pressingName, style: theme.textTheme.labelSmall),
+                Text(
+                  'Commande ${order.orderNumber}',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: order.pressingId == null
+                      ? null
+                      : () {
+                          final pressings =
+                              ref.read(myPressingsProvider).valueOrNull ?? [];
+                          PressingModel? pressing;
+                          for (final p in pressings) {
+                            if (p.id == order.pressingId) {
+                              pressing = p;
+                              break;
+                            }
+                          }
+                          final found = pressing;
+                          if (found != null) {
+                            Navigator.of(context).push(
+                              AppPageRoute(
+                                builder: (_) =>
+                                    PressingDetailScreen(pressing: found),
+                              ),
+                            );
+                          }
+                        },
+                  child: Text(
+                    order.pressingName,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      decoration: order.pressingId != null
+                          ? TextDecoration.underline
+                          : null,
+                    ),
+                  ),
+                ),
               ],
             ),
           ],
@@ -87,10 +129,15 @@ class _OrderDetailBody extends StatelessWidget {
         // Hero de statut
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 26, horizontal: AppSpacing.md),
+          padding: const EdgeInsets.symmetric(
+            vertical: 26,
+            horizontal: AppSpacing.md,
+          ),
           decoration: BoxDecoration(
             color: order.status.tint,
-            border: Border.all(color: order.status.color.withValues(alpha: 0.3)),
+            border: Border.all(
+              color: order.status.color.withValues(alpha: 0.3),
+            ),
             borderRadius: BorderRadius.circular(AppRadius.xl),
           ),
           child: Column(
@@ -98,13 +145,21 @@ class _OrderDetailBody extends StatelessWidget {
               Container(
                 width: 48,
                 height: 48,
-                decoration: BoxDecoration(color: order.status.color, shape: BoxShape.circle),
+                decoration: BoxDecoration(
+                  color: order.status.color,
+                  shape: BoxShape.circle,
+                ),
                 child: const Icon(Icons.check, color: Colors.white, size: 24),
               ),
               const SizedBox(height: AppSpacing.sm + 6),
               Text(
                 order.status.label.toUpperCase(),
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700, letterSpacing: 0.5, color: order.status.color),
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                  color: order.status.color,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -118,7 +173,10 @@ class _OrderDetailBody extends StatelessWidget {
         const SizedBox(height: AppSpacing.lg),
 
         if (order.issues.isNotEmpty) ...[
-          Text('SIGNALEMENTS', style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6)),
+          Text(
+            'SIGNALEMENTS',
+            style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6),
+          ),
           const SizedBox(height: AppSpacing.sm + 4),
           for (final issue in order.issues) ...[
             Container(
@@ -126,16 +184,22 @@ class _OrderDetailBody extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.sm + 6),
               margin: const EdgeInsets.only(bottom: AppSpacing.sm),
               decoration: BoxDecoration(
-                color: issue.isResolved ? AppColors.border.withValues(alpha: 0.2) : AppColors.errorTint,
+                color: issue.isResolved
+                    ? AppColors.border.withValues(alpha: 0.2)
+                    : AppColors.errorTint,
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(
-                    issue.isResolved ? Icons.check_circle_outline : Icons.error_outline,
+                    issue.isResolved
+                        ? Icons.check_circle_outline
+                        : Icons.error_outline,
                     size: 18,
-                    color: issue.isResolved ? AppColors.textSecondary : AppColors.error,
+                    color: issue.isResolved
+                        ? AppColors.textSecondary
+                        : AppColors.error,
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
@@ -147,15 +211,27 @@ class _OrderDetailBody extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: issue.isResolved ? AppColors.textSecondary : AppColors.error,
+                            color: issue.isResolved
+                                ? AppColors.textSecondary
+                                : AppColors.error,
                           ),
                         ),
                         if (issue.description != null) ...[
                           const SizedBox(height: 2),
-                          Text(issue.description!, style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12.5)),
+                          Text(
+                            issue.description!,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontSize: 12.5,
+                            ),
+                          ),
                         ],
                         const SizedBox(height: 2),
-                        Text(issue.isResolved ? 'Résolu' : 'En attente de traitement', style: theme.textTheme.labelSmall),
+                        Text(
+                          issue.isResolved
+                              ? 'Résolu'
+                              : 'En attente de traitement',
+                          style: theme.textTheme.labelSmall,
+                        ),
                       ],
                     ),
                   ),
@@ -167,7 +243,10 @@ class _OrderDetailBody extends StatelessWidget {
         ],
 
         // Progression
-        Text('PROGRESSION', style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6)),
+        Text(
+          'PROGRESSION',
+          style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6),
+        ),
         const SizedBox(height: AppSpacing.sm + 4),
         for (var i = 0; i < canonicalSteps.length; i++)
           _TimelineRow(
@@ -180,7 +259,10 @@ class _OrderDetailBody extends StatelessWidget {
         const SizedBox(height: AppSpacing.lg),
 
         // Articles
-        Text('ARTICLES', style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6)),
+        Text(
+          'ARTICLES',
+          style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6),
+        ),
         const SizedBox(height: AppSpacing.sm + 4),
         Container(
           decoration: BoxDecoration(
@@ -195,7 +277,9 @@ class _OrderDetailBody extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   decoration: BoxDecoration(
-                    border: Border(bottom: BorderSide(color: theme.dividerTheme.color!)),
+                    border: Border(
+                      bottom: BorderSide(color: theme.dividerTheme.color!),
+                    ),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,11 +288,16 @@ class _OrderDetailBody extends StatelessWidget {
                       Expanded(
                         child: Text(
                           '${item.name} × ${item.quantity}',
-                          style: theme.textTheme.bodyLarge?.copyWith(fontSize: 14),
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontSize: 14,
+                          ),
                         ),
                       ),
                       const SizedBox(width: AppSpacing.sm),
-                      Text('${_formatFcfa(item.subtotalFcfa)} F', style: const TextStyle(fontWeight: FontWeight.w500)),
+                      Text(
+                        '${_formatFcfa(item.subtotalFcfa)} F',
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
                     ],
                   ),
                 ),
@@ -217,10 +306,18 @@ class _OrderDetailBody extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Total', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                    const Text(
+                      'Total',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
                     Text(
                       '${_formatFcfa(order.totalFcfa)} FCFA',
-                      style: theme.textTheme.headlineSmall?.copyWith(fontSize: 18),
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontSize: 18,
+                      ),
                     ),
                   ],
                 ),
@@ -233,12 +330,18 @@ class _OrderDetailBody extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: _DateCard(label: 'Déposée le', date: dateFormat.format(order.droppedOffAt)),
+              child: _DateCard(
+                label: 'Déposée le',
+                date: dateFormat.format(order.droppedOffAt),
+              ),
             ),
             const SizedBox(width: AppSpacing.sm + 2),
             if (order.expectedAt != null)
               Expanded(
-                child: _DateCard(label: 'Retrait prévu', date: dateFormat.format(order.expectedAt!)),
+                child: _DateCard(
+                  label: 'Retrait prévu',
+                  date: dateFormat.format(order.expectedAt!),
+                ),
               ),
           ],
         ),
@@ -249,13 +352,28 @@ class _OrderDetailBody extends StatelessWidget {
           height: 48,
           child: OutlinedButton.icon(
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => ReportIssueScreen(orderId: order.id, orderNumber: order.orderNumber),
+              AppPageRoute(
+                builder: (_) => ReportIssueScreen(
+                  orderId: order.id,
+                  orderNumber: order.orderNumber,
+                ),
               ),
             ),
-            icon: const Icon(Icons.flag_outlined, size: 18, color: AppColors.error),
-            label: const Text('Signaler un problème', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600)),
-            style: OutlinedButton.styleFrom(side: const BorderSide(color: Color(0xFFFECACA))),
+            icon: const Icon(
+              Icons.flag_outlined,
+              size: 18,
+              color: AppColors.error,
+            ),
+            label: const Text(
+              'Signaler un problème',
+              style: TextStyle(
+                color: AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: Color(0xFFFECACA)),
+            ),
           ),
         ),
       ],
@@ -263,13 +381,14 @@ class _OrderDetailBody extends StatelessWidget {
   }
 
   String _heroMessage(OrderModel order) => switch (order.status) {
-        OrderStatus.prete => 'Votre commande est prête à être récupérée.',
-        OrderStatus.recuperee => 'Cette commande a été récupérée. Merci de votre confiance !',
-        OrderStatus.traitement => 'Vos vêtements sont en cours de traitement.',
-        OrderStatus.attente => 'Votre commande est en attente.',
-        OrderStatus.annulee => 'Cette commande a été annulée.',
-        OrderStatus.recue => 'Votre commande a bien été enregistrée.',
-      };
+    OrderStatus.prete => 'Votre commande est prête à être récupérée.',
+    OrderStatus.recuperee =>
+      'Cette commande a été récupérée. Merci de votre confiance !',
+    OrderStatus.traitement => 'Vos vêtements sont en cours de traitement.',
+    OrderStatus.attente => 'Votre commande est en attente.',
+    OrderStatus.annulee => 'Cette commande a été annulée.',
+    OrderStatus.recue => 'Votre commande a bien été enregistrée.',
+  };
 
   String? _timeFor(OrderStatus status) {
     final event = order.history.where((h) => h.status == status).firstOrNull;
@@ -289,7 +408,12 @@ class _OrderDetailBody extends StatelessWidget {
 }
 
 class _TimelineRow extends StatelessWidget {
-  const _TimelineRow({required this.status, required this.isDone, required this.isLast, this.time});
+  const _TimelineRow({
+    required this.status,
+    required this.isDone,
+    required this.isLast,
+    this.time,
+  });
 
   final OrderStatus status;
   final bool isDone;
@@ -307,13 +431,44 @@ class _TimelineRow extends StatelessWidget {
         children: [
           Column(
             children: [
-              Container(
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 350),
+                curve: Curves.easeOutBack,
                 width: 22,
                 height: 22,
-                decoration: BoxDecoration(color: isDone ? color : Colors.white, shape: BoxShape.circle, border: Border.all(color: color, width: 2)),
-                child: isDone ? const Icon(Icons.check, size: 12, color: Colors.white) : null,
+                decoration: BoxDecoration(
+                  color: isDone ? color : Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: color, width: 2),
+                ),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: isDone
+                      ? const Icon(
+                          Icons.check,
+                          size: 12,
+                          color: Colors.white,
+                          key: ValueKey('done'),
+                        )
+                      : const SizedBox.shrink(key: ValueKey('pending')),
+                ),
               ),
-              if (!isLast) Expanded(child: Container(width: 2, color: color)),
+              if (!isLast)
+                Expanded(
+                  child: TweenAnimationBuilder<double>(
+                    duration: const Duration(milliseconds: 450),
+                    curve: Curves.easeOut,
+                    tween: Tween(begin: 0, end: isDone ? 1.0 : 0.0),
+                    builder: (context, value, _) => Container(
+                      width: 2,
+                      color: Color.lerp(
+                        AppColors.border,
+                        AppColors.success,
+                        value,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
           const SizedBox(width: AppSpacing.sm + 6),
@@ -323,9 +478,20 @@ class _TimelineRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    status.label,
-                    style: theme.textTheme.bodyLarge?.copyWith(fontSize: 14, fontWeight: isDone ? FontWeight.w600 : FontWeight.w400, color: isDone ? null : AppColors.textMuted),
+                  AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 250),
+                    style:
+                        theme.textTheme.bodyLarge?.copyWith(
+                          fontSize: 14,
+                          fontWeight: isDone
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                          color: isDone
+                              ? theme.textTheme.bodyLarge?.color
+                              : AppColors.textMuted,
+                        ) ??
+                        const TextStyle(),
+                    child: Text(status.label),
                   ),
                   if (time != null) ...[
                     const SizedBox(height: 2),
@@ -362,7 +528,10 @@ class _DateCard extends StatelessWidget {
         children: [
           Text(label, style: theme.textTheme.labelSmall),
           const SizedBox(height: 4),
-          Text(date, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+          Text(
+            date,
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+          ),
         ],
       ),
     );

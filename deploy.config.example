@@ -1,0 +1,17 @@
+# Copiez ce fichier en "deploy.config" (à la racine du repo, à côté de
+# deploy.sh) et remplissez vos vrais identifiants. deploy.config est
+# ignoré par git (voir .gitignore) — ne le committez jamais.
+
+# Accès SFTP LWS (le même compte que celui utilisé pour FTP/FileZilla).
+# Attention : ce serveur n'autorise QUE le SFTP (pas de vrai shell), donc
+# deploy.sh transfère des fichiers mais ne peut pas exécuter de commandes
+# côté serveur (composer, artisan migrate, etc.) — voir les instructions
+# affichées à la fin de chaque déploiement.
+SSH_HOST=ftp.presslink.org
+SSH_USER=press2855966
+SSH_PASS=changeme
+
+# Chemins absolus côté serveur (vus dans l'arborescence LWS).
+REMOTE_API_DIR=/home/PressLink/presslink-api
+REMOTE_APP_DIR=/home/PressLink/presslink-app
+REMOTE_WEBROOT=/htdocs

@@ -27,16 +27,24 @@
                 @enderror
             </div>
 
-            <div>
+            <div x-data="{ show: false }">
                 <label for="password" class="block text-sm font-medium text-(--color-text-primary) mb-1.5">
                     Mot de passe
                 </label>
-                <input
-                    id="password"
-                    type="password"
-                    wire:model="password"
-                    class="w-full h-11 px-3 rounded-(--radius-md) border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)"
-                >
+                <div class="relative">
+                    <input
+                        id="password"
+                        :type="show ? 'text' : 'password'"
+                        wire:model="password"
+                        class="w-full h-11 px-3 pr-10 rounded-(--radius-md) border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)"
+                    >
+                    <button type="button" @click="show = !show"
+                            class="absolute inset-y-0 right-0 flex items-center px-3 text-(--color-text-muted) hover:text-(--color-text-secondary)"
+                            :aria-label="show ? 'Masquer le mot de passe' : 'Afficher le mot de passe'" tabindex="-1">
+                        <svg x-show="!show" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <svg x-show="show" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 11 7 11 7a13.16 13.16 0 0 1-1.67 2.68"></path><path d="M6.61 6.61A13.526 13.526 0 0 0 1 12s4 7 11 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>
+                    </button>
+                </div>
                 @error('password')
                     <p class="mt-1.5 text-sm text-(--color-error)">{{ $message }}</p>
                 @enderror

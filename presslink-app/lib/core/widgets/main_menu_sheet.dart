@@ -4,6 +4,7 @@ import 'app_page_route.dart';
 import '../../features/orders/presentation/select_order_for_issue_screen.dart';
 import '../../features/pressings/presentation/my_pressings_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/support/presentation/support_screen.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import 'staggered_fade_in.dart';
@@ -29,78 +30,93 @@ class _MainMenuSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.md,
-          AppSpacing.sm,
-          AppSpacing.md,
-          AppSpacing.md,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: AppColors.border,
-                  borderRadius: BorderRadius.circular(2),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.sm,
+            AppSpacing.md,
+            AppSpacing.md,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            Text(
-              'Menu',
-              style: theme.textTheme.headlineSmall?.copyWith(fontSize: 17),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            StaggeredFadeIn(
-              index: 0,
-              child: _MenuTile(
-                icon: Icons.person_outline,
-                label: 'Profil',
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(
-                    context,
-                  ).push(AppPageRoute(builder: (_) => const ProfileScreen()));
-                },
+              Text(
+                'Menu',
+                style: theme.textTheme.headlineSmall?.copyWith(fontSize: 17),
               ),
-            ),
-            StaggeredFadeIn(
-              index: 1,
-              child: _MenuTile(
-                icon: Icons.store_outlined,
-                label: 'Mes pressings',
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(
-                    AppPageRoute(builder: (_) => const MyPressingsScreen()),
-                  );
-                },
+              const SizedBox(height: AppSpacing.md),
+              StaggeredFadeIn(
+                index: 0,
+                child: _MenuTile(
+                  icon: Icons.person_outline,
+                  label: 'Profil',
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(
+                      context,
+                    ).push(AppPageRoute(builder: (_) => const ProfileScreen()));
+                  },
+                ),
               ),
-            ),
-            StaggeredFadeIn(
-              index: 2,
-              child: _MenuTile(
-                icon: Icons.flag_outlined,
-                label: 'Signaler un problème',
-                iconColor: AppColors.error,
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(
-                    AppPageRoute(
-                      builder: (_) => const SelectOrderForIssueScreen(),
-                    ),
-                  );
-                },
+              StaggeredFadeIn(
+                index: 1,
+                child: _MenuTile(
+                  icon: Icons.store_outlined,
+                  label: 'Mes pressings',
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(
+                      AppPageRoute(builder: (_) => const MyPressingsScreen()),
+                    );
+                  },
+                ),
               ),
-            ),
-            // Les prochains menus (fidélité, promotions, statistiques…) viendront
-            // s'ajouter ici au fil des évolutions V1/V2 du cahier des fonctionnalités.
-          ],
+              StaggeredFadeIn(
+                index: 2,
+                child: _MenuTile(
+                  icon: Icons.flag_outlined,
+                  label: 'Signaler un problème',
+                  iconColor: AppColors.error,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(
+                      AppPageRoute(
+                        builder: (_) => const SelectOrderForIssueScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              StaggeredFadeIn(
+                index: 3,
+                child: _MenuTile(
+                  icon: Icons.support_agent_outlined,
+                  label: 'Aide & support',
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(
+                      context,
+                    ).push(AppPageRoute(builder: (_) => const SupportScreen()));
+                  },
+                ),
+              ),
+              // Les prochains menus (fidélité, promotions, statistiques…) viendront
+              // s'ajouter ici au fil des évolutions V1/V2 du cahier des fonctionnalités.
+            ],
+          ),
         ),
       ),
     );

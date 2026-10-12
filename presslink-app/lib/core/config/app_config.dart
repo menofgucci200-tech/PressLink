@@ -31,6 +31,10 @@ class AppConfig {
     'ONESIGNAL_APP_ID',
   );
 
+  /// Support client — ce numéro est aussi celui du WhatsApp du support.
+  static const String supportPhoneE164 = '+2250718002293';
+  static const String supportPhoneDisplay = '07 18 00 22 93';
+
   static bool get isDevelopment => environment == 'development';
   static bool get isStaging => environment == 'staging';
   static bool get isProduction => environment == 'production';

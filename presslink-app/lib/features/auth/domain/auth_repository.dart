@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_error.dart';
@@ -157,9 +158,16 @@ class AuthRepository {
     return Customer.fromJson(response.data as Map<String, dynamic>);
   }
 
-  Future<Customer> uploadPhoto(String filePath) async {
+  /// Envoie les octets plutôt qu'un chemin de fichier : `dart:io` n'existe
+  /// pas dans un navigateur (PWA), alors que `XFile.readAsBytes()` marche
+  /// partout.
+  Future<Customer> uploadPhoto(XFile file) async {
     final form = FormData.fromMap({
-      'photo': await MultipartFile.fromFile(filePath),
+      'photo': MultipartFile.fromBytes(
+        await file.readAsBytes(),
+        filename: file.name.isNotEmpty ? file.name : 'photo.jpg',
+        contentType: DioMediaType.parse(file.mimeType ?? 'image/jpeg'),
+      ),
     });
     final response = await _apiClient.dio.post('/customer/photo', data: form);
     return Customer.fromJson(response.data as Map<String, dynamic>);

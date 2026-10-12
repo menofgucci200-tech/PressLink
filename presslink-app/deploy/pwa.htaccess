@@ -1,0 +1,17 @@
+# PressLink PWA, servie sous /app/ — réglages Apache.
+# Déployé par `./deploy.sh pwa` (voir deploy.sh). Chaque bloc est enveloppé
+# dans <IfModule> : si le module n'existe pas chez l'hébergeur, il est ignoré
+# au lieu de provoquer une erreur 500.
+
+<IfModule mod_headers.c>
+    # Le point d'entrée, le service worker et le manifeste ne doivent jamais
+    # être servis depuis un cache périmé, sinon une nouvelle version de l'app
+    # n'est détectée qu'avec retard.
+    <FilesMatch "^(index\.html|flutter_bootstrap\.js|flutter_service_worker\.js|version\.json|manifest\.json)$">
+        Header set Cache-Control "no-cache"
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>

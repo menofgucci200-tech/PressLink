@@ -7,6 +7,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/country_code_picker.dart';
+import '../../../core/widgets/pwa_install_banner.dart';
+import '../../support/presentation/support_screen.dart';
 import 'auth_controller.dart';
 import 'login_password_screen.dart';
 import 'register_screen.dart';
@@ -147,6 +149,20 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
                             ),
                           )
                         : const Text('Continuer', key: ValueKey('label')),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              const PwaInstallBanner(),
+              Center(
+                child: TextButton.icon(
+                  onPressed: () => Navigator.of(
+                    context,
+                  ).push(AppPageRoute(builder: (_) => const SupportScreen())),
+                  icon: const Icon(Icons.support_agent, size: 24),
+                  label: const Text(
+                    'Contacter le support',
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
               ),

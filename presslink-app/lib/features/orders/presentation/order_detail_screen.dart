@@ -78,49 +78,53 @@ class _OrderDetailBody extends ConsumerWidget {
           children: [
             const AppBackButton(),
             const SizedBox(width: AppSpacing.sm + 2),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Commande ${order.orderNumber}',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                  ),
-                ),
-                GestureDetector(
-                  onTap: order.pressingId == null
-                      ? null
-                      : () {
-                          final pressings =
-                              ref.read(myPressingsProvider).valueOrNull ?? [];
-                          PressingModel? pressing;
-                          for (final p in pressings) {
-                            if (p.id == order.pressingId) {
-                              pressing = p;
-                              break;
-                            }
-                          }
-                          final found = pressing;
-                          if (found != null) {
-                            Navigator.of(context).push(
-                              AppPageRoute(
-                                builder: (_) =>
-                                    PressingDetailScreen(pressing: found),
-                              ),
-                            );
-                          }
-                        },
-                  child: Text(
-                    order.pressingName,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      decoration: order.pressingId != null
-                          ? TextDecoration.underline
-                          : null,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Commande ${order.orderNumber}',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
                     ),
                   ),
-                ),
-              ],
+                  GestureDetector(
+                    onTap: order.pressingId == null
+                        ? null
+                        : () {
+                            final pressings =
+                                ref.read(myPressingsProvider).valueOrNull ?? [];
+                            PressingModel? pressing;
+                            for (final p in pressings) {
+                              if (p.id == order.pressingId) {
+                                pressing = p;
+                                break;
+                              }
+                            }
+                            final found = pressing;
+                            if (found != null) {
+                              Navigator.of(context).push(
+                                AppPageRoute(
+                                  builder: (_) =>
+                                      PressingDetailScreen(pressing: found),
+                                ),
+                              );
+                            }
+                          },
+                    child: Text(
+                      order.pressingName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        decoration: order.pressingId != null
+                            ? TextDecoration.underline
+                            : null,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

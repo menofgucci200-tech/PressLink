@@ -30,23 +30,28 @@ class OrderCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          order.pressingName,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            order.pressingName,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          order.orderNumber,
-                          style: theme.textTheme.labelSmall,
-                        ),
-                      ],
+                          const SizedBox(height: 2),
+                          Text(
+                            order.orderNumber,
+                            style: theme.textTheme.labelSmall,
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: AppSpacing.sm),
                     StatusBadge(status: order.status),
                   ],
                 ),

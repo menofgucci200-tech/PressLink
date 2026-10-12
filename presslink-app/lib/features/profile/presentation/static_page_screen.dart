@@ -76,7 +76,7 @@ class StaticPages {
     ),
     (
       'Besoin d\'aide supplémentaire ?',
-      'Contactez directement votre pressing : ses coordonnées sont visibles depuis l\'onglet Accueil, section "Mes pressings".',
+      'Contactez le support PressLink au 07 18 00 22 93 (appel ou WhatsApp) depuis Menu > Aide & support. Pour une question sur une commande, vous pouvez aussi joindre directement votre pressing : ses coordonnées sont visibles depuis l\'onglet Accueil, section "Mes pressings".',
     ),
   ];
 

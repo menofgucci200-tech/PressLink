@@ -43,6 +43,7 @@ dependencies:
   shared_preferences: ^2.5.5
   image_picker: ^1.2.3
   onesignal_flutter: ^5.6.8
+  url_launcher: ^6.3.3
 dev_dependencies:
   flutter_test:
     sdk: flutter

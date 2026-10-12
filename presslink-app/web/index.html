@@ -1,4 +1,4 @@
-<!DOCTYPE html><html><head>
+<!DOCTYPE html><html lang="fr"><head>
   <!--
     If you are serving your web app in a path other than the root, change the
     href value below to reflect the base path you are serving from.
@@ -16,18 +16,53 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="Suivez vos vêtements au pressing en temps réel et recevez une notification dès que votre commande est prête. Application gratuite, à installer sur votre téléphone.">
+  <meta name="keywords" content="application pressing, suivi commande pressing, pressing Abidjan, pressing Côte d'Ivoire, notification pressing, PressLink">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://presslink.org/app/">
+
+  <!-- Aperçu lors d'un partage (WhatsApp, Facebook…) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="PressLink">
+  <meta property="og:locale" content="fr_CI">
+  <meta property="og:title" content="PressLink — Suivi de commandes de pressing">
+  <meta property="og:description" content="Suivez vos vêtements au pressing et soyez prévenu dès que votre commande est prête. Application gratuite.">
+  <meta property="og:url" content="https://presslink.org/app/">
+  <meta property="og:image" content="https://presslink.org/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PressLink — Suivi de commandes de pressing">
+  <meta name="twitter:description" content="Suivez vos vêtements au pressing et soyez prévenu dès que votre commande est prête.">
+  <meta name="twitter:image" content="https://presslink.org/og-image.png">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "PressLink",
+    "applicationCategory": "LifestyleApplication",
+    "operatingSystem": "Android, iOS (application web installable)",
+    "url": "https://presslink.org/app/",
+    "description": "Application de suivi de commandes de pressing : statut en temps réel, notifications et historique.",
+    "inLanguage": "fr",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "XOF" },
+    "publisher": { "@type": "Organization", "name": "PressLink", "url": "https://presslink.org/" }
+  }
+  </script>
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="presslink_app">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="PressLink">
+  <meta name="theme-color" content="#2563EB">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png">
 
-  <title>presslink_app</title>
+  <title>PressLink — Suivi de commandes de pressing</title>
   <link rel="manifest" href="manifest.json">
   
   
@@ -92,6 +127,52 @@
       right: 0;
     }
   </style>
+  <script id="pwa-install-script">
+    // Aide à l'installation de la PWA, consommée côté Dart (lib/core/pwa).
+    // Android/Chrome : on garde l'événement "beforeinstallprompt" pour
+    // pouvoir déclencher l'invite native depuis un bouton de l'app.
+    // iOS/Safari : aucune invite n'existe — l'app doit expliquer le geste
+    // "Partager > Sur l'écran d'accueil". Tout est évalué à l'appel (pas au
+    // chargement) pour refléter l'état réel au moment de l'affichage.
+    (function () {
+      var deferredPrompt = null;
+      var listeners = [];
+      function notify() { listeners.forEach(function (cb) { try { cb(); } catch (e) {} }); }
+
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        notify();
+      });
+      window.addEventListener('appinstalled', function () {
+        deferredPrompt = null;
+        notify();
+      });
+
+      window.presslinkPwa = {
+        isStandalone: function () {
+          return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+            window.navigator.standalone === true;
+        },
+        isIosSafari: function () {
+          var ua = window.navigator.userAgent || '';
+          var isIos = /iPad|iPhone|iPod/.test(ua) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+          var isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+          return isIos && isSafari;
+        },
+        canInstall: function () { return deferredPrompt !== null; },
+        promptInstall: function () {
+          if (!deferredPrompt) return Promise.resolve('unavailable');
+          var p = deferredPrompt;
+          deferredPrompt = null;
+          p.prompt();
+          return p.userChoice.then(function (c) { notify(); return c.outcome; });
+        },
+        onChange: function (cb) { listeners.push(cb); }
+      };
+    })();
+  </script>
   <script id="splash-screen-script">
     function removeSplashFromWeb() {
       document.getElementById("splash")?.remove();
@@ -101,6 +182,11 @@
   </script>
 </head>
 <body>
+  <noscript>
+    <h1>PressLink — Suivi de commandes de pressing</h1>
+    <p>PressLink vous permet de suivre vos vêtements au pressing en temps réel et de recevoir une notification dès que votre commande est prête. Application gratuite pour les clients des pressings de Côte d'Ivoire.</p>
+    <p>Cette application nécessite JavaScript. Pour en savoir plus, rendez-vous sur <a href="https://presslink.org/">presslink.org</a>. Support : 07 18 00 22 93 (appel ou WhatsApp).</p>
+  </noscript>
   <picture id="splash">
       <source srcset="splash/img/light-1x.png 1x, splash/img/light-2x.png 2x, splash/img/light-3x.png 3x, splash/img/light-4x.png 4x" media="(prefers-color-scheme: light)">
       <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x, splash/img/dark-3x.png 3x, splash/img/dark-4x.png 4x" media="(prefers-color-scheme: dark)">

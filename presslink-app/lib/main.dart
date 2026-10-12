@@ -8,6 +8,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_mode_controller.dart';
 import 'core/widgets/app_name_text.dart';
 import 'core/widgets/main_shell.dart';
+import 'core/widgets/responsive_frame.dart';
 import 'features/auth/presentation/auth_controller.dart';
 import 'features/auth/presentation/phone_screen.dart';
 
@@ -44,6 +45,8 @@ class PressLinkApp extends ConsumerWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
+      builder: (context, child) =>
+          ResponsiveFrame(child: child ?? const SizedBox.shrink()),
       home: const AuthGate(),
     );
   }

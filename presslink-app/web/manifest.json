@@ -1,23 +1,29 @@
 {
-    "name": "presslink_app",
-    "short_name": "presslink_app",
+    "name": "PressLink",
+    "short_name": "PressLink",
+    "id": "/app/",
     "start_url": ".",
+    "scope": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
     "orientation": "portrait-primary",
+    "lang": "fr",
+    "background_color": "#FFFFFF",
+    "theme_color": "#2563EB",
+    "description": "Suivez vos commandes de pressing en temps réel : statut, notifications et historique.",
+    "categories": ["lifestyle", "utilities"],
     "prefer_related_applications": false,
     "icons": [
         {
             "src": "icons/Icon-192.png",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
         },
         {
             "src": "icons/Icon-512.png",
             "sizes": "512x512",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
         },
         {
             "src": "icons/Icon-maskable-192.png",

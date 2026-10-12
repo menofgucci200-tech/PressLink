@@ -209,10 +209,13 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
               ),
               if (_found == null) ...[
                 const SizedBox(height: AppSpacing.md),
-                Text(
-                  'Vous ne connaissez pas votre code ?\nDemandez-le à votre pressing.',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.labelSmall,
+                SizedBox(
+                  width: double.infinity,
+                  child: Text(
+                    'Vous ne connaissez pas votre code ?\nDemandez-le à votre pressing.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelSmall,
+                  ),
                 ),
               ],
             ],

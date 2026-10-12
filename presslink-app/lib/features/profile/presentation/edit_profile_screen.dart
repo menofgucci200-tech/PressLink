@@ -83,7 +83,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
     final ok = await ref
         .read(authControllerProvider.notifier)
-        .uploadPhoto(picked.path);
+        .uploadPhoto(picked);
 
     if (!mounted) return;
     setState(() {

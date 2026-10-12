@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/network/providers.dart';
 import '../domain/auth_repository.dart';
@@ -118,9 +119,9 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
-  Future<bool> uploadPhoto(String filePath) async {
+  Future<bool> uploadPhoto(XFile file) async {
     try {
-      final customer = await _repository.uploadPhoto(filePath);
+      final customer = await _repository.uploadPhoto(file);
       state = state.copyWith(customer: customer);
       return true;
     } catch (e) {

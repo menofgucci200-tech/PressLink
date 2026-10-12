@@ -10,6 +10,10 @@
         </button>
     </div>
 
+    @if ($errorMessage)
+        <div class="mb-5 p-3 rounded-lg bg-(--color-error-tint) text-(--color-error) text-sm">{{ $errorMessage }}</div>
+    @endif
+
     @if ($showCreateForm)
         <form wire:submit="createService" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5">
             <div class="grid grid-cols-3 gap-4 items-start">

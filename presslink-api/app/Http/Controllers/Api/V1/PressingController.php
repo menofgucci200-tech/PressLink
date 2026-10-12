@@ -53,6 +53,15 @@ class PressingController extends Controller
             ], 403);
         }
 
+        $alreadyJoined = $pressing->customers()->where('customers.id', $request->user()->id)->exists();
+        $subscription = $pressing->subscription;
+
+        if (! $alreadyJoined && $subscription !== null && ! $subscription->allowsNewClient()) {
+            return response()->json([
+                'message' => 'Ce pressing a atteint sa capacité maximale de clients pour le moment.',
+            ], 403);
+        }
+
         $request->user()->pressings()->syncWithoutDetaching([
             $pressing->id => ['joined_at' => now()],
         ]);

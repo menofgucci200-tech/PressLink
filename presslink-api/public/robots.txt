@@ -1,2 +1,22 @@
+# PressLink — presslink.org
+# Pages publiques indexables : l'accueil (/) et l'application web (/app/).
+# Les espaces connectés (pressing, administration) et l'API ne doivent pas être indexés.
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /login
+Disallow: /admin
+Disallow: /api/
+Disallow: /tableau-de-bord
+Disallow: /vue-ensemble
+Disallow: /pressings/
+Disallow: /commandes
+Disallow: /clients
+Disallow: /signalements
+Disallow: /tarifs
+Disallow: /equipe
+Disallow: /parametres
+Disallow: /abonnement
+Disallow: /mon-compte
+Disallow: /logout
+
+Sitemap: https://presslink.org/sitemap.xml

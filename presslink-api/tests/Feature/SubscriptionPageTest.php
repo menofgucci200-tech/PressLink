@@ -51,7 +51,7 @@ class SubscriptionPageTest extends TestCase
             ->assertStatus(200)
             ->assertSee('Starter')
             ->assertSee('3')
-            ->assertSee('150')
+            ->assertSee('1500')
             ->assertDontSee('Création de commandes bloquée');
     }
 
@@ -62,7 +62,7 @@ class SubscriptionPageTest extends TestCase
         Subscription::factory()->for($pressing)->create([
             'plan' => SubscriptionPlan::Starter,
             'orders_limit' => SubscriptionPlan::Starter->ordersLimit(),
-            'orders_used' => 150,
+            'orders_used' => 1500,
         ]);
 
         $this->actingAs($admin);

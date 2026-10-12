@@ -111,7 +111,7 @@ class SeedCommand extends Command
                 'email' => "pressing{$index}@loadtest.presslink.local",
             ]);
 
-            Subscription::factory()->active(SubscriptionPlan::Pro)->create([
+            Subscription::factory()->active(SubscriptionPlan::Business)->create([
                 'pressing_id' => $pressing->id,
                 'orders_limit' => 100_000,
             ]);

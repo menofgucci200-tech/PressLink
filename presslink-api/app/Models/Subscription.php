@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\SubscriptionPlan;
+use App\Casts\SubscriptionPlanCast;
 use App\Enums\SubscriptionStatus;
 use Database\Factories\SubscriptionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,6 +23,8 @@ class Subscription extends Model
         'plan',
         'status',
         'billing_cycle',
+        'setup_fee_fcfa',
+        'setup_fee_paid_at',
         'orders_limit',
         'orders_used',
         'trial_ends_at',
@@ -33,8 +35,9 @@ class Subscription extends Model
     protected function casts(): array
     {
         return [
-            'plan' => SubscriptionPlan::class,
+            'plan' => SubscriptionPlanCast::class,
             'status' => SubscriptionStatus::class,
+            'setup_fee_paid_at' => 'datetime',
             'trial_ends_at' => 'datetime',
             'current_period_starts_at' => 'datetime',
             'current_period_ends_at' => 'datetime',
@@ -70,5 +73,59 @@ class Subscription extends Model
     public function incrementOrdersUsed(): void
     {
         $this->increment('orders_used');
+    }
+
+    /** Limite d'employés (hors administrateurs) de la formule. */
+    public function allowsNewEmployee(): bool
+    {
+        $limit = $this->plan->employeesLimit();
+
+        if ($limit === null) {
+            return true;
+        }
+
+        return $this->pressing->employees()->wherePivot('is_active', true)->count() < $limit;
+    }
+
+    /** Limite de comptes administrateur de la formule. */
+    public function allowsNewAdmin(): bool
+    {
+        $limit = $this->plan->adminsLimit();
+
+        if ($limit === null) {
+            return true;
+        }
+
+        return $this->pressing->admins()->wherePivot('is_active', true)->count() < $limit;
+    }
+
+    /** Limite de clients rattachés au pressing de la formule. */
+    public function allowsNewClient(): bool
+    {
+        $limit = $this->plan->clientsLimit();
+
+        if ($limit === null) {
+            return true;
+        }
+
+        return $this->pressing->customers()->count() < $limit;
+    }
+
+    /** Limite de services/tarifs de la formule. */
+    public function allowsNewService(): bool
+    {
+        $limit = $this->plan->servicesLimit();
+
+        if ($limit === null) {
+            return true;
+        }
+
+        return $this->pressing->services()->count() < $limit;
+    }
+
+    /** Le ticket d'entrée de la formule a-t-il été réglé ? */
+    public function isSetupFeePaid(): bool
+    {
+        return $this->setup_fee_paid_at !== null;
     }
 }

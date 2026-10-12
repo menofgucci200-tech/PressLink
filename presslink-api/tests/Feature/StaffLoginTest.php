@@ -15,7 +15,7 @@ class StaffLoginTest extends TestCase
 
     public function test_dashboard_redirects_guests_to_login(): void
     {
-        $this->get('/')->assertRedirect('/login');
+        $this->get('/tableau-de-bord')->assertRedirect('/login');
     }
 
     public function test_staff_can_log_in_with_email(): void

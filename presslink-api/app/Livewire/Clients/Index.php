@@ -28,6 +28,8 @@ class Index extends Component
 
     public string $phone = '';
 
+    public ?string $errorMessage = null;
+
     public function updatingSearch(): void
     {
         $this->resetPage();
@@ -35,6 +37,7 @@ class Index extends Component
 
     public function createClient(): void
     {
+        $this->errorMessage = null;
         $pressing = auth()->user()->currentPressing();
 
         $this->validate([
@@ -42,6 +45,15 @@ class Index extends Component
             'lastName' => ['required', 'string', 'max:100'],
             'phone' => ['required', 'string', 'regex:/^\+2250[0-9]{9}$/'],
         ]);
+
+        $subscription = $pressing->subscription;
+        $alreadyLinked = $pressing->customers()->where('phone', $this->phone)->exists();
+
+        if (! $alreadyLinked && $subscription !== null && ! $subscription->allowsNewClient()) {
+            $this->errorMessage = "Limite atteinte : votre formule {$subscription->plan->label()} autorise jusqu'à {$subscription->plan->clientsLimit()} client(s).";
+
+            return;
+        }
 
         DB::transaction(function () use ($pressing) {
             $customer = Customer::firstOrCreate(

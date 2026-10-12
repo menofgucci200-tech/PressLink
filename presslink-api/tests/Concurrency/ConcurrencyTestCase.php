@@ -97,7 +97,7 @@ abstract class ConcurrencyTestCase extends TestCase
         ]);
         $pressing->staff()->attach($admin, ['role' => PressingRole::Admin->value, 'is_active' => true]);
 
-        $subscription = Subscription::factory()->active(SubscriptionPlan::Pro)->create([
+        $subscription = Subscription::factory()->active(SubscriptionPlan::Business)->create([
             'pressing_id' => $pressing->id,
             'orders_limit' => $ordersLimit,
             'orders_used' => 0,

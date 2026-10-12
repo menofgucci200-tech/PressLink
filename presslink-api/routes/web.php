@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OrderExportController;
+use App\Http\Controllers\SitemapController;
 use App\Livewire\Account\Settings as AccountSettings;
 use App\Livewire\Admin\Administrators\Index as AdminAdministratorsIndex;
 use App\Livewire\Admin\Clients\Index as AdminClientsIndex;
@@ -26,12 +28,17 @@ use App\Models\Pressing;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+// Pages publiques (référencement) : accueil + sitemap. L'accueil renvoie un
+// utilisateur déjà connecté vers son espace (tableau de bord ou /admin).
+Route::get('/', LandingController::class)->name('home');
+Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/', Dashboard::class)->name('dashboard');
+    Route::get('/tableau-de-bord', Dashboard::class)->name('dashboard');
 
     Route::get('/vue-ensemble', function () {
         session()->forget('active_pressing_id');

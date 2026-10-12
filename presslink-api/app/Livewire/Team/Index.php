@@ -53,6 +53,26 @@ class Index extends Component
         ]);
 
         $pressing = auth()->user()->currentPressing();
+        $subscription = $pressing->subscription;
+        $role = PressingRole::from($this->role);
+
+        if ($subscription !== null) {
+            $allowed = $role === PressingRole::Admin
+                ? $subscription->allowsNewAdmin()
+                : $subscription->allowsNewEmployee();
+
+            if (! $allowed) {
+                $limit = $role === PressingRole::Admin
+                    ? $subscription->plan->adminsLimit()
+                    : $subscription->plan->employeesLimit();
+
+                $this->addError('role', $role === PressingRole::Admin
+                    ? "Limite atteinte : votre formule {$subscription->plan->label()} autorise jusqu'à {$limit} administrateur(s)."
+                    : "Limite atteinte : votre formule {$subscription->plan->label()} autorise jusqu'à {$limit} employé(s).");
+
+                return;
+            }
+        }
 
         $member = User::create([
             'name' => $this->name,

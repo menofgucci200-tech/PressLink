@@ -17,6 +17,8 @@ class Index extends Component
     /** @var array<int, array{name: string, priceFcfa: string}> */
     public array $variantRows = [];
 
+    public ?string $errorMessage = null;
+
     public function mount(): void
     {
         $pressing = auth()->user()->currentPressing();
@@ -36,6 +38,7 @@ class Index extends Component
 
     public function createService(): void
     {
+        $this->errorMessage = null;
         $pressing = auth()->user()->currentPressing();
 
         $this->validate([
@@ -44,6 +47,14 @@ class Index extends Component
             'variantRows.*.name' => ['nullable', 'string', 'max:100'],
             'variantRows.*.priceFcfa' => ['nullable', 'integer', 'min:0'],
         ]);
+
+        $subscription = $pressing->subscription;
+
+        if ($subscription !== null && ! $subscription->allowsNewService()) {
+            $this->errorMessage = "Limite atteinte : votre formule {$subscription->plan->label()} autorise jusqu'à {$subscription->plan->servicesLimit()} service(s).";
+
+            return;
+        }
 
         $service = $pressing->services()->create([
             'name' => $this->name,

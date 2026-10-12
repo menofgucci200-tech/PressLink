@@ -15,7 +15,7 @@ class SubscriptionFactory extends Factory
 {
     public function definition(): array
     {
-        $plan = SubscriptionPlan::Pro;
+        $plan = SubscriptionPlan::Business;
 
         return [
             'pressing_id' => Pressing::factory(),
@@ -30,7 +30,7 @@ class SubscriptionFactory extends Factory
         ];
     }
 
-    public function active(SubscriptionPlan $plan = SubscriptionPlan::Pro): static
+    public function active(SubscriptionPlan $plan = SubscriptionPlan::Business): static
     {
         return $this->state(fn () => [
             'plan' => $plan,

@@ -3,8 +3,9 @@
 # Déploiement PressLink vers LWS (presslink.org).
 #
 #   ./deploy.sh backend    # API/dashboard Laravel (presslink-api)
-#   ./deploy.sh frontend   # app mobile Flutter (presslink-app)
-#   ./deploy.sh all        # les deux
+#   ./deploy.sh frontend   # code source de l'app mobile Flutter (presslink-app)
+#   ./deploy.sh pwa        # PWA : build Flutter web publié sur presslink.org/app/
+#   ./deploy.sh all        # les trois
 #
 # IMPORTANT — ce que ce script fait et ne fait PAS :
 #   Le compte LWS n'autorise que le SFTP (pas de vrai shell distant :
@@ -39,6 +40,11 @@ for var in SSH_HOST SSH_USER SSH_PASS REMOTE_API_DIR REMOTE_APP_DIR REMOTE_WEBRO
     exit 1
   fi
 done
+
+# Optionnels : valeurs par défaut si absents de deploy.config.
+REMOTE_PWA_DIR="${REMOTE_PWA_DIR:-$REMOTE_WEBROOT/app}"
+PWA_URL="${PWA_URL:-https://presslink.org/app/}"
+PWA_API_BASE_URL="${PWA_API_BASE_URL:-https://presslink.org/api/v1}"
 
 if ! command -v lftp >/dev/null 2>&1; then
   echo "Erreur : lftp n'est pas installé. Sur macOS : brew install lftp" >&2
@@ -123,6 +129,15 @@ deploy_backend() {
       '$API_DIR/public/build' '$REMOTE_WEBROOT/build';
   "
 
+  log "Backend — fichiers statiques à la racine du webroot (SEO : robots, favicon, images de partage, QR)"
+  # Le webroot ($REMOTE_WEBROOT) est une copie séparée de presslink-api/public :
+  # ces fichiers n'y arrivent que si on les envoie. favicon.ico y était vide
+  # (0 octet) et robots.txt était celui par défaut.
+  local static_file
+  for static_file in robots.txt favicon.ico apple-touch-icon.png og-image.png qr-presslink-app.png; do
+    lftp_run "put '$API_DIR/public/$static_file' -o $REMOTE_WEBROOT/$static_file;"
+  done
+
   print_followup_backend
 }
 
@@ -159,17 +174,90 @@ deploy_frontend() {
   echo "  utilisez vos process habituels (flutter build appbundle / ipa) pour ça."
 }
 
+deploy_pwa() {
+  if ! command -v flutter >/dev/null 2>&1; then
+    echo "Erreur : flutter n'est pas installé ou pas dans le PATH." >&2
+    exit 1
+  fi
+
+  # Garde-fou : ce dossier est purgé en partie à chaque déploiement ; il ne
+  # doit jamais pointer sur le webroot lui-même (qui sert Laravel).
+  if [[ "$REMOTE_PWA_DIR" == "$REMOTE_WEBROOT" || "$REMOTE_PWA_DIR" == "/" ]]; then
+    echo "Erreur : REMOTE_PWA_DIR ($REMOTE_PWA_DIR) ne doit pas être le webroot." >&2
+    exit 1
+  fi
+
+  log "PWA — build Flutter web (release, servie sous /app/)"
+  (cd "$APP_DIR" && flutter build web --release --base-href /app/ \
+    --dart-define=APP_ENV=production \
+    --dart-define=API_BASE_URL="$PWA_API_BASE_URL")
+
+  log "PWA — purge des dossiers générés côté serveur avant renvoi"
+  # Même raison que vendor/composer : main.dart.js, flutter_service_worker.js
+  # (qui référence le hash de chaque fichier) et assets/ sont générés
+  # ENSEMBLE. Un mirror basé sur les dates pourrait en laisser une moitié
+  # périmée, d'où une PWA cassée. On purge donc avant de renvoyer.
+  lftp_run "
+    mkdir -p $REMOTE_PWA_DIR;
+    rm -rf $REMOTE_PWA_DIR/assets;
+    rm -rf $REMOTE_PWA_DIR/icons;
+    rm -rf $REMOTE_PWA_DIR/splash;
+    rm -rf $REMOTE_PWA_DIR/canvaskit;
+  "
+
+  log "PWA — envoi vers $REMOTE_PWA_DIR"
+  # canvaskit/ (~40 Mo) est exclu : par défaut, Flutter charge le moteur de
+  # rendu depuis le CDN de Google (gstatic.com), pas depuis notre serveur.
+  lftp_run "
+    mirror --reverse --verbose --parallel=3 --ignore-time \
+      --exclude-glob canvaskit/ \
+      --exclude .DS_Store \
+      '$APP_DIR/build/web' '$REMOTE_PWA_DIR';
+    put '$APP_DIR/deploy/pwa.htaccess' -o $REMOTE_PWA_DIR/.htaccess;
+  "
+
+  log "PWA — préchauffage de la compression (Brotli/gzip) de main.dart.js"
+  # Observé au premier déploiement : la toute première requête d'un navigateur
+  # sur main.dart.js (3 Mo) a échoué une fois (net::ERR_HTTP2_PROTOCOL_ERROR)
+  # alors que les suivantes passaient — très probablement la compression à la
+  # volée du serveur sur un gros fichier jamais encore servi. On la déclenche
+  # ici, une fois par encodage, pour que ce soit le script qui l'absorbe plutôt
+  # que le premier visiteur.
+  local enc
+  for enc in br gzip; do
+    curl -s -H "Accept-Encoding: $enc" -o /dev/null "${PWA_URL}main.dart.js" \
+      || warn "  préchauffage $enc : échec (non bloquant)"
+  done
+
+  log "PWA — vérification de $PWA_URL"
+  local url code
+  for url in "$PWA_URL" "${PWA_URL}manifest.json" "${PWA_URL}main.dart.js"; do
+    code="$(curl -s -o /dev/null -w '%{http_code}' "$url" || true)"
+    if [[ "$code" == "200" ]]; then
+      echo "  OK  $code  $url"
+    else
+      warn "  KO  $code  $url"
+    fi
+  done
+  echo
+  echo "  Pour installer : ouvrez $PWA_URL sur le téléphone."
+  echo "  Android/Chrome : bouton « Installer » de la bannière. iPhone/Safari :"
+  echo "  Partager > Sur l'écran d'accueil."
+}
+
 usage() {
-  echo "Usage: $0 {backend|frontend|all}" >&2
+  echo "Usage: $0 {backend|frontend|pwa|all}" >&2
   exit 1
 }
 
 case "${1:-}" in
   backend) deploy_backend ;;
   frontend) deploy_frontend ;;
+  pwa) deploy_pwa ;;
   all)
     deploy_backend
     deploy_frontend
+    deploy_pwa
     ;;
   *) usage ;;
 esac

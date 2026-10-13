@@ -41,6 +41,16 @@ class Show extends Component
 
     public ?string $generatedPassword = null;
 
+    public bool $editingInfo = false;
+
+    public bool $infoSaved = false;
+
+    /** @var array{name: string, phone: string, email: string, city: string, address: string, description: string} */
+    public array $info = ['name' => '', 'phone' => '', 'email' => '', 'city' => '', 'address' => '', 'description' => ''];
+
+    /** Code du pressing ressaisi pour confirmer la suppression. */
+    public string $deleteConfirmation = '';
+
     public function mount(Pressing $pressing): void
     {
         abort_unless(auth()->user()->is_super_admin, 403);
@@ -57,6 +67,73 @@ class Show extends Component
                 : PressingStatus::Active,
         ]);
         $this->pressing->refresh();
+    }
+
+    public function editInfo(): void
+    {
+        $this->info = [
+            'name' => $this->pressing->name,
+            'phone' => (string) $this->pressing->phone,
+            'email' => (string) $this->pressing->email,
+            'city' => (string) $this->pressing->city,
+            'address' => (string) $this->pressing->address,
+            'description' => (string) $this->pressing->description,
+        ];
+        $this->resetErrorBag();
+        $this->infoSaved = false;
+        $this->editingInfo = true;
+    }
+
+    public function cancelEditInfo(): void
+    {
+        $this->editingInfo = false;
+        $this->resetErrorBag();
+    }
+
+    public function saveInfo(): void
+    {
+        abort_unless(auth()->user()->is_super_admin, 403);
+
+        $this->validate([
+            'info.name' => ['required', 'string', 'max:150'],
+            'info.phone' => ['required', 'string', 'regex:/^\+2250[0-9]{9}$/'],
+            'info.email' => ['nullable', 'email', 'max:255'],
+            'info.city' => ['nullable', 'string', 'max:100'],
+            'info.address' => ['nullable', 'string', 'max:255'],
+            'info.description' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'info.phone.regex' => 'Le téléphone doit être au format +2250XXXXXXXXX.',
+        ], [
+            'info.name' => 'nom', 'info.phone' => 'téléphone', 'info.email' => 'email',
+            'info.city' => 'ville', 'info.address' => 'adresse', 'info.description' => 'description',
+        ]);
+
+        $this->pressing->update(array_map(fn (string $value) => trim($value) === '' ? null : trim($value), $this->info));
+
+        $this->editingInfo = false;
+        $this->infoSaved = true;
+    }
+
+    /**
+     * Suppression définitive : commandes, services, abonnement et
+     * rattachements partent en cascade. Les comptes de l'équipe sont
+     * conservés (ils peuvent appartenir à d'autres pressings).
+     */
+    public function deletePressing(): void
+    {
+        abort_unless(auth()->user()->is_super_admin, 403);
+
+        if (trim($this->deleteConfirmation) !== $this->pressing->code) {
+            $this->addError('deleteConfirmation', 'Saisissez exactement le code '.$this->pressing->code.' pour confirmer.');
+
+            return;
+        }
+
+        $name = $this->pressing->name;
+        $this->pressing->delete();
+
+        session()->flash('status', "Le pressing « {$name} » a été supprimé.");
+        $this->redirectRoute('admin.pressings.index', navigate: true);
     }
 
     public function resetStaffPassword(int $userId): void
@@ -127,7 +204,7 @@ class Show extends Component
     #[Layout('layouts.admin', ['active' => 'pressings', 'title' => 'Pressing'])]
     public function render()
     {
-        $this->pressing->loadCount(['staff', 'customers', 'orders']);
+        $this->pressing->loadCount(['staff', 'customers', 'orders', 'services']);
 
         return view('livewire.admin.pressings.show', [
             'staff' => $this->pressing->staff()->orderByDesc('pressing_users.created_at')->get(),

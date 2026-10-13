@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminExportController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OrderExportController;
 use App\Http\Controllers\SitemapController;
@@ -100,6 +101,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/commandes', AdminOrdersIndex::class)->name('orders.index');
         Route::get('/clients', AdminClientsIndex::class)->name('clients.index');
         Route::get('/administrateurs', AdminAdministratorsIndex::class)->name('administrators.index');
+        Route::get('/export/{type}', AdminExportController::class)->whereIn('type', ['pressings', 'orders', 'clients'])->name('export');
     });
 
     Route::post('/logout', function () {

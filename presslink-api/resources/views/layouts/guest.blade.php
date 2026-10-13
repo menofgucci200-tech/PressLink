@@ -7,16 +7,16 @@
         <title>{{ $title ?? config('app.name') }}</title>
         <meta name="robots" content="noindex, nofollow">
         <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+        <link rel="icon" type="image/png" href="{{ asset('favicon-96.png') }}" sizes="96x96">
         <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         @livewireStyles
     </head>
-    <body class="bg-(--color-bg)">
-        <div class="min-h-screen flex items-center justify-center p-6">
-            {{ $slot }}
-        </div>
+    {{-- Chaque portail (pressing / super admin) gère son propre fond et sa mise en page. --}}
+    <body class="min-h-screen antialiased">
+        {{ $slot }}
 
         @livewireScripts
     </body>

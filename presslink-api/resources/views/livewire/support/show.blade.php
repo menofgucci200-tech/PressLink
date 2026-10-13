@@ -12,12 +12,16 @@
         <p class="font-display text-3xl sm:text-4xl font-extrabold text-(--color-primary-600) tabular-nums mb-6" data-testid="support-phone">{{ $phoneDisplay }}</p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
             <a href="tel:{{ $phoneE164 }}" class="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl bg-(--color-primary) text-white font-semibold hover:bg-(--color-primary-600)">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z"></path></svg>
+                <img src="{{ asset('images/phone.png') }}" alt="" width="26" height="26" class="rounded-full ring-2 ring-white">
                 Appeler le support
             </a>
             <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl bg-[#25D366] text-white font-semibold hover:brightness-95">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"></path></svg>
+                <img src="{{ asset('images/whatsapp.png') }}" alt="" width="26" height="26" class="rounded-full ring-2 ring-white">
                 Écrire sur WhatsApp
+            </a>
+            <a href="mailto:{{ config('presslink.support.email') }}" class="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl border border-(--color-border) bg-(--color-surface) font-semibold hover:border-(--color-primary)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+                {{ config('presslink.support.email') }}
             </a>
         </div>
     </div>

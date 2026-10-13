@@ -34,6 +34,7 @@ class AppConfig {
   /// Support client — ce numéro est aussi celui du WhatsApp du support.
   static const String supportPhoneE164 = '+2250718002293';
   static const String supportPhoneDisplay = '07 18 00 22 93';
+  static const String supportEmail = 'contact@presslink.org';
 
   /// Pages juridiques complètes, publiées sur le site (source unique).
   static const String termsUrl = 'https://presslink.org/conditions-generales';

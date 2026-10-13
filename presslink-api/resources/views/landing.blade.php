@@ -17,6 +17,7 @@
                 'contactPoint' => [
                     '@type' => 'ContactPoint',
                     'telephone' => $supportPhoneE164,
+                    'email' => config('presslink.support.email'),
                     'contactType' => 'customer support',
                     'availableLanguage' => 'fr',
                     'areaServed' => 'CI',

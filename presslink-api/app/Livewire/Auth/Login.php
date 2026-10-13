@@ -39,14 +39,36 @@ class Login extends Component
             ]);
         }
 
+        if (! $this->allowsUser(Auth::user())) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'login' => $this->deniedMessage(),
+            ]);
+        }
+
         session()->regenerate();
 
         $this->redirect(Auth::user()->is_super_admin ? '/admin' : route('dashboard'), navigate: false);
     }
 
+    /**
+     * Le portail accepte-t-il ce compte ? (L'espace pressing accepte tout
+     * compte staff ; un super admin y est simplement renvoyé vers /admin.)
+     */
+    protected function allowsUser(User $user): bool
+    {
+        return true;
+    }
+
+    protected function deniedMessage(): string
+    {
+        return 'Identifiants incorrects.';
+    }
+
     #[Layout('layouts.guest')]
     public function render()
     {
-        return view('livewire.auth.login');
+        return view('livewire.auth.login')->title('Espace pressing — PressLink');
     }
 }

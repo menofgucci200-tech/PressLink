@@ -42,7 +42,7 @@ class SupportScreen extends ConsumerWidget {
         mode: kIsWeb
             ? LaunchMode.platformDefault
             : LaunchMode.externalApplication,
-        webOnlyWindowName: uri.scheme == 'tel' ? '_self' : '_blank',
+        webOnlyWindowName: uri.scheme == 'https' ? '_blank' : '_self',
       );
     } catch (_) {
       opened = false;
@@ -124,7 +124,7 @@ class SupportScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    'Contactez l\'équipe PressLink : par appel ou directement sur WhatsApp.',
+                    'Contactez l\'équipe PressLink : par appel, sur WhatsApp ou par email.',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -184,6 +184,23 @@ class SupportScreen extends ConsumerWidget {
                 ),
                 icon: const _ContactIcon('assets/icons/whatsapp.png'),
                 label: const Text('Écrire sur WhatsApp'),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm + 2),
+            SizedBox(
+              height: 52,
+              child: OutlinedButton.icon(
+                onPressed: () => _open(
+                  context,
+                  Uri(
+                    scheme: 'mailto',
+                    path: AppConfig.supportEmail,
+                    query:
+                        'subject=${Uri.encodeComponent('Support PressLink')}',
+                  ),
+                ),
+                icon: const Icon(Icons.mail_outline, size: 22),
+                label: const Text(AppConfig.supportEmail),
               ),
             ),
             const SizedBox(height: AppSpacing.lg),

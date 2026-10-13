@@ -4,6 +4,7 @@
             <p class="font-display text-lg font-bold">Press<span class="text-(--color-primary)">Link</span></p>
             <p class="mt-2 text-(--color-text-muted)">Le lien entre votre pressing et vos clients.</p>
             <x-site.contact-buttons class="mt-4" size="sm" />
+            <a href="mailto:{{ config('presslink.support.email') }}" class="mt-3 inline-block font-semibold text-(--color-text-secondary) hover:text-(--color-primary)">{{ config('presslink.support.email') }}</a>
         </div>
         <nav class="flex flex-col gap-2 text-(--color-text-secondary)" aria-label="Pied de page">
             <a href="{{ route('site.clients') }}" class="hover:text-(--color-primary)">Pour les clients</a>

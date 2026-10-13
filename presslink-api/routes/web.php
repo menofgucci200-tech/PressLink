@@ -12,6 +12,7 @@ use App\Livewire\Admin\Orders\Index as AdminOrdersIndex;
 use App\Livewire\Admin\Pressings\Create as AdminPressingsCreate;
 use App\Livewire\Admin\Pressings\Index as AdminPressingsIndex;
 use App\Livewire\Admin\Pressings\Show as AdminPressingsShow;
+use App\Livewire\Auth\AdminLogin;
 use App\Livewire\Auth\Login;
 use App\Livewire\Clients\Index as ClientsIndex;
 use App\Livewire\Clients\Show as ClientsShow;
@@ -40,6 +41,7 @@ Route::controller(SitePageController::class)->name('site.')->group(function () {
     Route::get('/installer', 'install')->name('install');
     Route::get('/questions-frequentes', 'faq')->name('faq');
     Route::get('/contact', 'contact')->name('contact');
+    Route::post('/contact', 'sendContact')->middleware('throttle:5,10')->name('contact.send');
     Route::get('/mentions-legales', 'legalNotice')->name('legal');
     Route::get('/conditions-generales', 'terms')->name('terms');
     Route::get('/confidentialite', 'privacy')->name('privacy');
@@ -48,6 +50,7 @@ Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');
+    Route::get('/admin/connexion', AdminLogin::class)->name('admin.login');
 });
 
 Route::middleware('auth')->group(function () {
@@ -100,10 +103,11 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::post('/logout', function () {
+        $wasSuperAdmin = (bool) Auth::user()?->is_super_admin;
         Auth::logout();
         request()->session()->invalidate();
         request()->session()->regenerateToken();
 
-        return redirect()->route('login');
+        return redirect()->route($wasSuperAdmin ? 'admin.login' : 'login');
     })->name('logout');
 });

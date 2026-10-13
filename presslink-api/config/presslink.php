@@ -9,6 +9,8 @@ return [
     'support' => [
         'phone_display' => '07 18 00 22 93',
         'phone_e164' => '+2250718002293',
+        // Adresse unique pour les messages (formulaire de contact, support, juridique).
+        'email' => env('SUPPORT_EMAIL', 'contact@presslink.org'),
     ],
 
     /*
@@ -23,7 +25,7 @@ return [
         'tax_id' => env('LEGAL_TAX_ID'),
         'address' => env('LEGAL_ADDRESS', 'Abidjan, Côte d\'Ivoire'),
         'publisher' => env('LEGAL_PUBLISHER'),
-        'email' => env('LEGAL_EMAIL'),
+        'email' => env('LEGAL_EMAIL', env('SUPPORT_EMAIL', 'contact@presslink.org')),
         'updated_at' => '13 octobre 2026',
     ],
 

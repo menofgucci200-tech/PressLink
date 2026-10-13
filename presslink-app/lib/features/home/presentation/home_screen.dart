@@ -7,6 +7,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/order_card.dart';
+import '../../../core/widgets/notification_permission_banner.dart';
 import '../../../core/widgets/pwa_install_banner.dart';
 import '../../../core/widgets/staggered_fade_in.dart';
 import '../../../shared/models/order_summary.dart';
@@ -96,6 +97,7 @@ class HomeScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: AppSpacing.lg),
+              const NotificationPermissionBanner(),
               const PwaInstallBanner(showReloginNote: true),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 260),

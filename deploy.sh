@@ -199,9 +199,12 @@ deploy_pwa() {
   fi
 
   log "PWA — build Flutter web (release, servie sous /app/)"
+  # App ID OneSignal : public par nature (visible dans le code de la page).
+  ONESIGNAL_APP_ID="${ONESIGNAL_APP_ID:-b08351a3-2b31-49cd-a6a9-61d45a295e86}"
   (cd "$APP_DIR" && flutter build web --release --base-href /app/ \
     --dart-define=APP_ENV=production \
-    --dart-define=API_BASE_URL="$PWA_API_BASE_URL")
+    --dart-define=API_BASE_URL="$PWA_API_BASE_URL" \
+    --dart-define=ONESIGNAL_APP_ID="$ONESIGNAL_APP_ID")
 
   log "PWA — purge des dossiers générés côté serveur avant renvoi"
   # Même raison que vendor/composer : main.dart.js, flutter_service_worker.js

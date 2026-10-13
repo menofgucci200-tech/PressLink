@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
@@ -9,6 +10,7 @@ import '../../features/orders/presentation/orders_controller.dart';
 import '../../features/notifications/presentation/notifications_controller.dart';
 import '../../main.dart';
 import '../config/app_config.dart';
+import 'web_push.dart';
 
 /// Initialise OneSignal, demande la permission de notification et
 /// synchronise le "player ID" de l'appareil avec le compte client connecté.
@@ -34,6 +36,8 @@ class PushNotificationService {
 
       return;
     }
+
+    if (kIsWeb) return _initWeb();
 
     try {
       OneSignal.initialize(AppConfig.oneSignalAppId);
@@ -73,13 +77,56 @@ class PushNotificationService {
     }
   }
 
+  /// PWA : SDK web OneSignal (le SDK Flutter ne gère que Android/iOS). La
+  /// demande d'autorisation n'est pas faite ici : Safari iOS l'exige depuis
+  /// un geste de l'utilisateur (voir [requestWebPermission]).
+  Future<void> _initWeb() async {
+    if (!WebPush.isSupported) return;
+
+    try {
+      await WebPush.init(AppConfig.oneSignalAppId);
+
+      if (!_listening) {
+        WebPush.onSubscriptionChange(_registerPlayerId);
+        WebPush.onClick(_openOrder);
+        WebPush.onForeground(_refreshAfterNotification);
+        _listening = true;
+      }
+    } catch (e) {
+      debugPrint('PushNotificationService: initialisation web impossible ($e)');
+    }
+  }
+
+  /// `true` si la PWA peut recevoir des notifications mais que le client ne
+  /// les a pas encore autorisées (ni refusées).
+  bool get webPermissionPending =>
+      kIsWeb &&
+      AppConfig.oneSignalAppId.isNotEmpty &&
+      WebPush.isSupported &&
+      WebPush.permission == 'default';
+
+  /// À appeler depuis un tap (bouton « Activer les notifications »).
+  Future<bool> requestWebPermission() async {
+    if (!kIsWeb || AppConfig.oneSignalAppId.isEmpty) return false;
+
+    final granted = await WebPush.requestPermission() == 'granted';
+    if (granted) await syncTokenIfLoggedIn();
+
+    return granted;
+  }
+
   void _openOrderFromNotification(OSNotificationClickEvent event) {
     final rawOrderId = event.notification.additionalData?['order_id'];
-    final orderId = rawOrderId is String
-        ? int.tryParse(rawOrderId)
-        : rawOrderId is num
-        ? rawOrderId.toInt()
-        : null;
+    _openOrder(
+      rawOrderId is String
+          ? int.tryParse(rawOrderId)
+          : rawOrderId is num
+          ? rawOrderId.toInt()
+          : null,
+    );
+  }
+
+  void _openOrder(int? orderId) {
     _refreshAfterNotification();
 
     if (orderId == null) return;
@@ -105,8 +152,11 @@ class PushNotificationService {
 
   Future<void> syncTokenIfLoggedIn() async {
     if (_ref.read(authControllerProvider).status != AuthStatus.loggedIn) return;
+    if (AppConfig.oneSignalAppId.isEmpty) return;
 
-    final id = OneSignal.User.pushSubscription.id;
+    final id = kIsWeb
+        ? await WebPush.subscriptionId()
+        : OneSignal.User.pushSubscription.id;
     if (id != null) await _registerPlayerId(id);
   }
 

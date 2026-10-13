@@ -2,6 +2,7 @@
 
 namespace App\Notifications\Channels;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -54,17 +55,30 @@ class OneSignalChannel
 
         $androidChannelId = config('services.onesignal.android_channel_id');
 
-        $response = Http::withHeaders([
-            'Authorization' => "Basic {$restApiKey}",
-            'Content-Type' => 'application/json',
-        ])->post('https://onesignal.com/api/v1/notifications', [
-            'app_id' => $appId,
-            'include_player_ids' => [$playerId],
-            'headings' => ['en' => $payload['title'] ?? ''],
-            'contents' => ['en' => $payload['body'] ?? ''],
-            'data' => $payload['data'] ?? [],
-            ...($androidChannelId ? ['android_channel_id' => $androidChannelId] : []),
-        ]);
+        // Clés « App API Key » actuelles (os_v2_…) : schéma « Key » ; les
+        // anciennes clés REST restent acceptées avec « Basic ».
+        $scheme = str_starts_with($restApiKey, 'os_v2_') ? 'Key' : 'Basic';
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => "{$scheme} {$restApiKey}",
+                'Content-Type' => 'application/json',
+            ])->timeout(10)->post('https://api.onesignal.com/notifications', [
+                'app_id' => $appId,
+                'target_channel' => 'push',
+                'include_subscription_ids' => [$playerId],
+                'headings' => ['en' => $payload['title'] ?? '', 'fr' => $payload['title'] ?? ''],
+                'contents' => ['en' => $payload['body'] ?? '', 'fr' => $payload['body'] ?? ''],
+                // PWA : sans URL, un tap ouvrirait la page d'accueil du site.
+                'web_url' => url('/app/'),
+                'data' => $payload['data'] ?? [],
+                ...($androidChannelId ? ['android_channel_id' => $androidChannelId] : []),
+            ]);
+        } catch (ConnectionException $e) {
+            Log::warning('OneSignal injoignable', ['error' => $e->getMessage()]);
+
+            return;
+        }
 
         if ($response->failed()) {
             Log::warning('Échec de l\'envoi OneSignal', [

@@ -12,6 +12,7 @@ import '../../orders/presentation/order_detail_screen.dart';
 import '../../orders/presentation/orders_controller.dart';
 import '../domain/notification_repository.dart';
 import 'notifications_controller.dart';
+import '../../../core/widgets/app_feedback.dart';
 
 /// Écran Notifications — Cahier §10.2 / Architecture des écrans §7.
 /// User Flows §6 : taper une notification ouvre le détail de la commande.
@@ -74,8 +75,10 @@ class NotificationsScreen extends ConsumerWidget {
                                 );
                               } catch (e) {
                                 if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(apiErrorMessage(e))),
+                                  showAppToast(
+                                    context,
+                                    apiErrorMessage(e),
+                                    type: AppToastType.error,
                                   );
                                 }
                               }

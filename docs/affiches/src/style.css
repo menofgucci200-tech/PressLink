@@ -1,0 +1,101 @@
+/* Affiches de lancement PressLink — format A3 portrait (297 × 420 mm). */
+@page { size: 297mm 420mm; margin: 0; }
+
+:root {
+    --primary: #2563EB;
+    --primary-dark: #1D4ED8;
+    --primary-tint: #EFF4FE;
+    --secondary: #06B6D4;
+    --success: #10B981;
+    --success-tint: #ECFDF5;
+    --success-text: #059669;
+    --info-tint: #EFF6FF;
+    --bg: #F8FAFC;
+    --border: #E2E8F0;
+    --ink: #0F172A;
+    --ink-2: #475569;
+    --muted: #94A3B8;
+    --whatsapp: #25D366;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { width: 297mm; height: 420mm; }
+
+body {
+    font-family: "Inter", sans-serif;
+    color: var(--ink);
+    background: #fff;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "cv11", "ss01";
+}
+
+.poster {
+    position: relative;
+    width: 297mm;
+    height: 420mm;
+    overflow: hidden;
+}
+
+.display { font-family: "Inter Display", "Inter", sans-serif; letter-spacing: -0.035em; line-height: 0.98; font-weight: 800; }
+.blue { color: var(--primary); }
+
+/* ---------- Photo + écran incrusté ---------- */
+.photo { position: absolute; }
+.photo > img { position: relative; z-index: 2; display: block; width: 100%; height: auto; }
+.photo > .screen {
+    position: absolute;
+    z-index: 1;
+    overflow: hidden;
+    background: #fff;
+    container-type: size;
+}
+.ui {
+    position: absolute; inset: 0;
+    font-size: 5.3cqw;
+    display: flex; flex-direction: column;
+    background: var(--bg);
+}
+.statusbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1em 2em 0.4em;
+    font-size: 0.78em; font-weight: 600;
+}
+.statusbar .icons { display: flex; gap: 0.35em; align-items: center; }
+.statusbar .icons i { display: block; background: var(--ink); border-radius: 0.15em; }
+
+.appbar { display: flex; align-items: center; gap: 0.6em; padding: 0.6em 1.1em 0.8em; }
+.appbar .back { width: 1.6em; height: 1.6em; border-radius: 50%; background: #fff; border: 0.06em solid var(--border); display: grid; place-items: center; font-size: 0.9em; color: var(--ink-2); }
+.appbar .t { font-weight: 700; font-size: 1.05em; }
+.appbar .s { font-size: 0.72em; color: var(--muted); font-weight: 500; }
+
+.card { background: #fff; border: 0.06em solid var(--border); border-radius: 0.9em; margin: 0 0.9em 0.7em; padding: 0.9em; }
+.badge { display: inline-flex; align-items: center; gap: 0.35em; font-size: 0.68em; font-weight: 700; padding: 0.35em 0.75em; border-radius: 99em; }
+.badge.ready { background: var(--success-tint); color: var(--success-text); }
+.badge.work { background: rgba(6, 182, 212, .14); color: #0E7490; }
+.badge.recv { background: var(--info-tint); color: var(--primary); }
+.badge.done { background: var(--border); color: var(--ink-2); }
+.badge::before { content: ""; width: 0.5em; height: 0.5em; border-radius: 50%; background: currentColor; }
+
+.check {
+    width: 3.6em; height: 3.6em; border-radius: 50%;
+    background: var(--success); color: #fff;
+    display: grid; place-items: center;
+    box-shadow: 0 0 0 0.6em var(--success-tint);
+}
+.check svg { width: 52%; height: 52%; }
+
+/* ---------- Bloc QR ---------- */
+.qr-card {
+    background: #fff;
+    border-radius: 9mm;
+    padding: 7mm;
+    box-shadow: 0 6mm 18mm rgba(15, 23, 42, .18);
+}
+.qr-card img { display: block; width: 100%; height: auto; }
+
+.pill {
+    display: inline-flex; align-items: center; gap: 3mm;
+    padding: 3.2mm 7mm; border-radius: 99mm;
+    font-weight: 700;
+}

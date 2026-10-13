@@ -12,6 +12,7 @@ import '../domain/pressing_repository.dart';
 import 'join_pressing_screen.dart';
 import 'pressing_detail_screen.dart';
 import 'pressings_controller.dart';
+import '../../../core/widgets/app_feedback.dart';
 
 /// Mes pressings — Cahier §11 (rejoindre par code, consulter, quitter).
 class MyPressingsScreen extends ConsumerWidget {
@@ -120,47 +121,32 @@ class MyPressingsScreen extends ConsumerWidget {
                             child: _PressingTile(
                               pressing: pressing,
                               onLeave: () async {
-                                final confirmed = await showDialog<bool>(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('Quitter ce pressing ?'),
-                                    content: Text(
-                                      'Vous ne verrez plus les commandes de ${pressing.name} associées à ce pressing.',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(false),
-                                        child: const Text('Annuler'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(true),
-                                        child: const Text(
-                                          'Quitter',
-                                          style: TextStyle(
-                                            color: AppColors.error,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                final confirmed = await showAppConfirm(
+                                  context,
+                                  title: 'Quitter ce pressing ?',
+                                  message:
+                                      'Vous ne verrez plus les commandes de ${pressing.name}. Vous pourrez le rejoindre à nouveau avec son code.',
+                                  confirmLabel: 'Quitter',
+                                  tone: AppConfirmTone.danger,
                                 );
-                                if (confirmed != true) return;
+                                if (!confirmed) return;
 
                                 try {
                                   await ref
                                       .read(pressingRepositoryProvider)
                                       .leave(pressing.id);
                                   ref.invalidate(myPressingsProvider);
+                                  if (!context.mounted) return;
+                                  showAppToast(
+                                    context,
+                                    'Vous avez quitté ${pressing.name}.',
+                                  );
                                 } catch (e) {
                                   if (!context.mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        PressingRepository.errorMessage(e),
-                                      ),
-                                    ),
+                                  showAppToast(
+                                    context,
+                                    PressingRepository.errorMessage(e),
+                                    type: AppToastType.error,
                                   );
                                 }
                               },

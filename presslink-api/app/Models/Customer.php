@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Actions\Auth\ResetPasswordToDefault;
 use App\Enums\Gender;
 use Database\Factories\CustomerFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -28,13 +29,14 @@ class Customer extends Authenticatable
      * transmettre au client pour qu'il se connecte puis le change dans
      * son profil.
      */
-    public const DEFAULT_WALK_IN_PASSWORD = '123456';
+    public const DEFAULT_WALK_IN_PASSWORD = ResetPasswordToDefault::DEFAULT_PASSWORD;
 
     protected $fillable = [
         'first_name',
         'last_name',
         'phone',
         'password',
+        'must_change_password',
         'gender',
         'email',
         'email_notifications',
@@ -61,6 +63,7 @@ class Customer extends Authenticatable
             'last_login_at' => 'datetime',
             'email_notifications' => 'boolean',
             'is_active' => 'boolean',
+            'must_change_password' => 'boolean',
         ];
     }
 

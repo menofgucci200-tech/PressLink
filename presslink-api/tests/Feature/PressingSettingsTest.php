@@ -48,7 +48,7 @@ class PressingSettingsTest extends TestCase
             ->set('city', 'Marcory')
             ->set('openingHours.lundi.closed', true)
             ->call('save')
-            ->assertSet('saved', true);
+            ->assertDispatched('toast');
 
         $pressing->refresh();
         $this->assertSame('Pressing Nouveau Nom', $pressing->name);

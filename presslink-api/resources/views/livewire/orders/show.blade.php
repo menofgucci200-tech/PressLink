@@ -127,6 +127,13 @@
                     <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1">Actions</div>
                     @foreach ($nextActions as $action)
                         <button wire:click="transitionTo('{{ $action->value }}')"
+                                @if ($action->value === 'annulee')
+                                    data-confirm-title="Annuler la commande" data-confirm-label="Annuler la commande" data-confirm-cancel="Garder la commande" data-confirm-tone="danger"
+                                    wire:confirm="Annuler la commande {{ $order->order_number }} ? Cette action est définitive : la commande ne pourra plus changer de statut."
+                                @elseif ($action->value === 'recuperee')
+                                    data-confirm-title="Remise au client" data-confirm-label="Confirmer la remise"
+                                    wire:confirm="Confirmez-vous que {{ $order->customer->fullName() }} a récupéré la commande {{ $order->order_number }} ({{ number_format($order->total_fcfa, 0, ',', ' ') }} F) ?"
+                                @endif
                                 wire:loading.attr="disabled" wire:target="transitionTo('{{ $action->value }}')"
                                 class="h-10 rounded-lg text-sm font-semibold disabled:opacity-60 {{ $action->value === 'recuperee' || $action->value === 'prete' ? 'bg-(--color-primary) text-white hover:bg-(--color-primary-600)' : 'border border-(--color-border) hover:border-(--color-primary)' }}">
                             <span wire:loading.remove wire:target="transitionTo('{{ $action->value }}')">Marquer {{ mb_strtolower($action->label()) }}</span>

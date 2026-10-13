@@ -10,6 +10,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../../core/widgets/app_feedback.dart';
 
 /// Aide & support — appel direct ou WhatsApp (même numéro). Accessible sans
 /// être connecté (depuis l'écran de connexion) : le nom du client n'est
@@ -55,12 +56,10 @@ class SupportScreen extends ConsumerWidget {
       opened = false;
     }
     if (!opened && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Impossible d\'ouvrir l\'application. Appelez le ${AppConfig.supportPhoneDisplay}.',
-          ),
-        ),
+      showAppToast(
+        context,
+        'Impossible d\'ouvrir l\'application. Appelez le ${AppConfig.supportPhoneDisplay}.',
+        type: AppToastType.error,
       );
     }
   }
@@ -70,9 +69,7 @@ class SupportScreen extends ConsumerWidget {
       const ClipboardData(text: AppConfig.supportPhoneE164),
     );
     if (!context.mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Numéro copié.')));
+    showAppToast(context, 'Numéro copié.');
   }
 
   @override

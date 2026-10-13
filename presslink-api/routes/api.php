@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
-    })->middleware('auth:sanctum');
+    })->middleware(['auth:sanctum', 'customer.active']);
 
     // Routes sensibles/non authentifiées (vérif. de numéro, connexion,
     // inscription) : throttle IP strict contre le brute-force.
@@ -28,12 +28,12 @@ Route::prefix('v1')->group(function () {
     // utilisateurs déjà authentifiés dès qu'une IP partagée (NAT, réseau
     // d'entreprise) épuisait le quota via d'autres connexions (voir
     // load-testing/RAPPORT.md, finding C).
-    Route::prefix('auth/customer')->middleware(['auth:sanctum', 'throttle:120,1'])->group(function () {
+    Route::prefix('auth/customer')->middleware(['auth:sanctum', 'customer.active', 'throttle:120,1'])->group(function () {
         Route::get('/me', [CustomerAuthController::class, 'me']);
         Route::post('/logout', [CustomerAuthController::class, 'logout']);
     });
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'customer.active'])->group(function () {
         Route::get('/notifications', [NotificationController::class, 'index']);
         Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
         Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);

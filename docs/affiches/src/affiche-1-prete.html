@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Affiche 1 — Votre commande est prête</title>
+<link rel="stylesheet" href="style.css">
+<style>
+    .poster { background: linear-gradient(#D9D9DB 0, #CDCDCF 40%, #C2C2C4 100%); }
+    .top { position: absolute; z-index: 5; left: 0; right: 0; top: 0; padding: 18mm 20mm 0; text-align: center; }
+    .top .logo { height: 15mm; }
+    .top h1 { margin-top: 9mm; font-size: 23mm; }
+    .top p { margin-top: 6mm; font-size: 7.6mm; color: var(--ink-2); font-weight: 500; }
+    .photo { left: 0; top: 112mm; width: 297mm;
+        -webkit-mask-image: linear-gradient(transparent 0, #000 22mm); mask-image: linear-gradient(transparent 0, #000 22mm); }
+    /* écran : 242,301 → 434,688 sur 736 × 736 */
+    .photo .screen { left: calc(240 / 736 * 100%); top: calc(299 / 736 * 100%); width: calc(197 / 736 * 100%); height: calc(392 / 736 * 100%); border-radius: 6mm; }
+
+    .ready-body { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 1.2em 1.2em 0; }
+    .ready-body h2 { margin-top: 1.1em; font-size: 1.35em; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+    .ready-body p { margin-top: 0.45em; font-size: 0.78em; color: var(--ink-2); line-height: 1.35; }
+    .rows { width: 100%; text-align: left; margin-top: 1.1em; }
+    .rows .card { margin: 0; font-size: 0.72em; }
+    .row { display: flex; justify-content: space-between; padding: 0.3em 0; }
+    .row b { font-weight: 700; }
+    .btn { margin: auto 0.9em 0.6em; background: var(--primary); color: #fff; font-weight: 700; font-size: 0.8em; text-align: center; padding: 0.9em; border-radius: 0.8em; }
+    .brand { text-align: center; font-size: 0.6em; color: var(--muted); padding-bottom: 1.2em; font-weight: 600; }
+    .brand b { color: var(--ink); } .brand b span { color: var(--primary); }
+
+    .qr-zone { position: absolute; z-index: 5; right: 16mm; bottom: 36mm; width: 78mm; text-align: center; }
+    .qr-zone .qr-card { padding: 5mm; border-radius: 7mm; }
+    .qr-zone .label { margin-top: 4mm; display: inline-block; background: var(--primary); color: #fff; font-weight: 800; font-size: 6mm; padding: 2.6mm 5mm; border-radius: 3mm; }
+    .left-note { position: absolute; z-index: 5; left: 16mm; bottom: 40mm; width: 64mm; color: #fff; }
+    .left-note div { background: rgba(15, 23, 42, .78); border-radius: 5mm; padding: 4mm 5mm; font-size: 5mm; font-weight: 600; line-height: 1.3; margin-top: 3mm; display: flex; gap: 3mm; align-items: center; }
+    .left-note div svg { flex: none; width: 6mm; height: 6mm; }
+    .footer { position: absolute; z-index: 6; left: 0; right: 0; bottom: 0; height: 24mm; background: var(--primary); color: #fff;
+        display: flex; align-items: center; justify-content: center; gap: 6mm; font-size: 7mm; font-weight: 700; }
+    .footer .sep { width: 2mm; height: 2mm; border-radius: 50%; background: rgba(255,255,255,.6); }
+</style>
+</head>
+<body>
+<div class="poster">
+    <div class="top">
+        <img class="logo" src="wordmark.png" alt="PressLink">
+        <h1 class="display">Votre linge est prêt ?<br><span class="blue">PressLink vous prévient.</span></h1>
+        <p>Une notification sur votre téléphone, dès que c'est prêt.</p>
+    </div>
+
+    <div class="photo">
+        <div class="screen">
+            <div class="ui">
+                <div class="statusbar"><span>9:41</span><span class="icons"><i style="width:1em;height:.55em"></i><i style="width:1.3em;height:.6em;border-radius:.2em"></i></span></div>
+                <div class="appbar"><div class="back">‹</div><div><div class="t">Ma commande</div><div class="s">N° PL-2041</div></div></div>
+                <div class="ready-body">
+                    <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+                    <h2>Votre commande<br>est prête !</h2>
+                    <p>Pressing du Plateau vous attend.<br>Vous pouvez passer la récupérer.</p>
+                    <div class="rows"><div class="card">
+                        <div class="row"><span>Statut</span><span class="badge ready">Prête</span></div>
+                        <div class="row"><span>Articles</span><b>5</b></div>
+                        <div class="row"><span>Total</span><b>6 500 FCFA</b></div>
+                    </div></div>
+                </div>
+                <div class="btn">Voir ma commande</div>
+                <div class="brand"><b>Press<span>Link</span></b></div>
+            </div>
+        </div>
+        <img src="man.png" alt="">
+    </div>
+
+    <div class="left-note">
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Notification dès que c'est prêt</div>
+        <div><svg viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Fini les déplacements pour rien</div>
+    </div>
+
+    <div class="qr-zone">
+        <div class="qr-card"><img src="qr.png" alt="QR code presslink.org/app"></div>
+        <div class="label">Scannez-moi</div>
+    </div>
+
+    <div class="footer">
+        <span>presslink.org/app</span><span class="sep"></span><span>Gratuit pour les clients</span>
+    </div>
+</div>
+</body>
+</html>

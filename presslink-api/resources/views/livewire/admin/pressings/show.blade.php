@@ -11,7 +11,10 @@
         <span class="text-xs font-medium {{ $pressing->status->value === 'active' ? 'text-(--color-success-text)' : 'text-(--color-warning-text)' }}">
             {{ $pressing->status->label() }}
         </span>
-        <button wire:click="togglePressingStatus" wire:loading.attr="disabled" wire:target="togglePressingStatus"
+        <button wire:click="togglePressingStatus"
+                data-confirm-title="{{ $pressing->status->value === 'active' ? 'Suspendre le pressing' : 'Réactiver le pressing' }}" data-confirm-label="{{ $pressing->status->value === 'active' ? 'Suspendre' : 'Réactiver' }}" data-confirm-tone="{{ $pressing->status->value === 'active' ? 'danger' : 'primary' }}"
+                wire:confirm="{{ $pressing->status->value === 'active' ? 'Suspendre '.$pressing->name.' ? Il ne pourra plus créer de commande ni accueillir de nouveaux clients.' : 'Réactiver '.$pressing->name.' ? Il retrouvera immédiatement l\'accès à toutes les fonctionnalités.' }}"
+                wire:loading.attr="disabled" wire:target="togglePressingStatus"
                 class="h-9 px-3.5 rounded-lg border border-(--color-border) text-sm font-medium hover:border-(--color-primary) disabled:opacity-60">
             {{ $pressing->status->value === 'active' ? 'Suspendre' : 'Réactiver' }}
         </button>
@@ -33,24 +36,69 @@
     </div>
 
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-6">
-        <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-3">Informations</div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            <div class="flex justify-between"><span class="text-(--color-text-secondary)">Téléphone</span><span class="font-medium tabular-nums">{{ $pressing->phone }}</span></div>
-            <div class="flex justify-between"><span class="text-(--color-text-secondary)">Email</span><span class="font-medium">{{ $pressing->email ?? '—' }}</span></div>
-            <div class="flex justify-between"><span class="text-(--color-text-secondary)">Ville</span><span class="font-medium">{{ $pressing->city ?? '—' }}</span></div>
-            <div class="flex justify-between"><span class="text-(--color-text-secondary)">Adresse</span><span class="font-medium">{{ $pressing->address ?? '—' }}</span></div>
+        <div class="flex items-center justify-between mb-3">
+            <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Informations</div>
+            @unless ($editingInfo)
+                <button wire:click="editInfo" class="text-xs font-medium text-(--color-primary) hover:underline">Modifier</button>
+            @endunless
         </div>
+
+
+        @if ($editingInfo)
+            <form novalidate wire:submit="saveInfo" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom</label>
+                    <input type="text" wire:model="info.name" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                    @error('info.name') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone (+2250…)</label>
+                    <input type="text" wire:model="info.phone" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                    @error('info.phone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Email</label>
+                    <input type="email" wire:model="info.email" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                    @error('info.email') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Ville</label>
+                    <input type="text" wire:model="info.city" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                    @error('info.city') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Adresse</label>
+                    <input type="text" wire:model="info.address" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                    @error('info.address') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Description</label>
+                    <textarea wire:model="info.description" rows="3" class="w-full px-3 py-2 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)"></textarea>
+                    @error('info.description') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div class="sm:col-span-2 flex justify-end gap-2">
+                    <button type="button" wire:click="cancelEditInfo" class="h-10 px-4 rounded-lg border border-(--color-border) text-sm font-medium hover:border-(--color-text-muted)">Annuler</button>
+                    <button type="submit" wire:loading.attr="disabled" wire:target="saveInfo" class="h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600) disabled:opacity-60">Enregistrer</button>
+                </div>
+            </form>
+        @else
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div class="flex justify-between gap-3"><span class="text-(--color-text-secondary)">Téléphone</span><span class="font-medium tabular-nums">{{ $pressing->phone }}</span></div>
+                <div class="flex justify-between gap-3"><span class="text-(--color-text-secondary)">Email</span><span class="font-medium">{{ $pressing->email ?? '—' }}</span></div>
+                <div class="flex justify-between gap-3"><span class="text-(--color-text-secondary)">Ville</span><span class="font-medium">{{ $pressing->city ?? '—' }}</span></div>
+                <div class="flex justify-between gap-3"><span class="text-(--color-text-secondary)">Adresse</span><span class="font-medium">{{ $pressing->address ?? '—' }}</span></div>
+                <div class="flex justify-between gap-3"><span class="text-(--color-text-secondary)">Créé le</span><span class="font-medium">{{ $pressing->created_at->format('d/m/Y') }}</span></div>
+                <div class="flex justify-between gap-3"><span class="text-(--color-text-secondary)">Services</span><span class="font-medium tabular-nums">{{ $pressing->services_count }}</span></div>
+                @if ($pressing->description)
+                    <p class="sm:col-span-2 text-(--color-text-secondary)">{{ $pressing->description }}</p>
+                @endif
+            </div>
+        @endif
     </div>
 
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden mb-6">
         <div class="px-5 py-3.5 border-b border-(--color-border) text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Équipe</div>
 
-        @if ($generatedPassword)
-            <div class="mx-5 mt-4 p-3 rounded-lg bg-(--color-success-tint) text-(--color-success-text) text-sm">
-                Nouveau mot de passe temporaire (à transmettre vous-même, il ne sera plus affiché) :
-                <span class="font-mono font-semibold">{{ $generatedPassword }}</span>
-            </div>
-        @endif
 
         @if ($staff->isEmpty())
             <div class="px-5 py-8 text-center text-sm text-(--color-text-muted)">Aucun membre.</div>
@@ -68,7 +116,8 @@
                             <td class="px-5 py-3 text-right">
                                 @if ($member->pivot->is_active)
                                     <button wire:click="resetStaffPassword({{ $member->id }})"
-                                            wire:confirm="Générer un nouveau mot de passe pour {{ $member->name }} ? L'ancien ne fonctionnera plus."
+                                            data-confirm-title="Réinitialiser le mot de passe" data-confirm-label="Réinitialiser" data-confirm-tone="warning"
+                                            wire:confirm="Le mot de passe de {{ $member->name }} sera réinitialisé à {{ \App\Actions\Auth\ResetPasswordToDefault::DEFAULT_PASSWORD }} et ses sessions ouvertes seront fermées. Après la réinitialisation, il doit changer son mot de passe pour sécuriser son compte."
                                             wire:loading.attr="disabled" wire:target="resetStaffPassword({{ $member->id }})"
                                             class="text-xs font-medium text-(--color-primary) hover:underline disabled:opacity-60">
                                         Réinitialiser le mot de passe
@@ -85,11 +134,8 @@
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
         <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-4">Abonnement</div>
 
-        @if ($saved)
-            <div class="mb-4 p-3 rounded-lg bg-(--color-success-tint) text-(--color-success-text) text-sm">Abonnement mis à jour.</div>
-        @endif
 
-        <form wire:submit="saveSubscription" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form novalidate wire:submit="saveSubscription" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Plan</label>
                 <select wire:model="plan" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
@@ -113,7 +159,23 @@
                 <input type="number" min="0" wire:model="ordersLimit" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                 @error('ordersLimit') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
-            <div></div>
+            <div>
+                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Facturation</label>
+                <select wire:model="billingCycle" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                    <option value="monthly">Mensuelle</option>
+                    <option value="annual">Annuelle</option>
+                </select>
+                @error('billingCycle') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+            </div>
+            <div class="sm:col-span-2">
+                <label class="flex items-center gap-2.5 text-sm cursor-pointer">
+                    <input type="checkbox" wire:model="setupFeePaid" class="w-4 h-4 rounded border-(--color-border) accent-(--color-primary)">
+                    <span>Ticket d'entrée réglé</span>
+                    @if ($pressing->subscription?->setup_fee_paid_at)
+                        <span class="text-xs text-(--color-text-muted)">le {{ $pressing->subscription->setup_fee_paid_at->format('d/m/Y') }}</span>
+                    @endif
+                </label>
+            </div>
             <div>
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Fin d'essai</label>
                 <input type="date" wire:model="trialEndsAt" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
@@ -131,6 +193,28 @@
                     <span wire:loading wire:target="saveSubscription">Enregistrement…</span>
                 </button>
             </div>
+        </form>
+    </div>
+    <div class="mt-6 border border-red-200 rounded-xl p-5" x-data="{ open: false }">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="max-w-xl">
+                <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-error) mb-1">Zone de danger</div>
+                <p class="text-sm text-(--color-text-secondary)">
+                    Supprimer définitivement ce pressing efface aussi ses {{ $pressing->orders_count }} commande(s), ses {{ $pressing->services_count }} service(s),
+                    son abonnement et le rattachement de ses {{ $pressing->customers_count }} client(s). Les comptes clients et ceux de l'équipe sont conservés.
+                    Pour simplement bloquer l'accès, préférez « Suspendre ».
+                </p>
+            </div>
+            <button type="button" @click="open = !open" class="h-9 px-3.5 rounded-lg border border-red-200 text-sm font-semibold text-(--color-error) hover:bg-(--color-error-tint)">Supprimer le pressing</button>
+        </div>
+        <form novalidate x-show="open" x-cloak wire:submit="deletePressing" class="mt-4 flex flex-wrap items-start gap-3">
+            <div>
+                <input type="text" wire:model="deleteConfirmation" placeholder="Saisissez {{ $pressing->code }}" autocomplete="off"
+                       class="h-10 px-3 rounded-lg border border-(--color-border) text-sm font-mono focus:outline-none focus:border-(--color-error)">
+                @error('deleteConfirmation') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+            </div>
+            <button type="submit" wire:loading.attr="disabled" wire:target="deletePressing"
+                    class="h-10 px-4 rounded-lg bg-(--color-error) text-white text-sm font-semibold hover:brightness-95 disabled:opacity-60">Supprimer définitivement</button>
         </form>
     </div>
 </div>

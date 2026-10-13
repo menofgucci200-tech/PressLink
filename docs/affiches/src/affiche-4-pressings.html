@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Affiche 4 — Pour les pressings</title>
+<link rel="stylesheet" href="style.css">
+<style>
+    .poster { background: linear-gradient(160deg, #fff 0, var(--bg) 50%, #E8EEFB 100%); }
+    .top { position: absolute; left: 20mm; right: 20mm; top: 20mm; }
+    .top .row1 { display: flex; justify-content: space-between; align-items: center; }
+    .top .logo { height: 13mm; }
+    .kicker { background: var(--ink); color: #fff; font-weight: 800; font-size: 5.2mm; padding: 3mm 6mm; border-radius: 99mm; letter-spacing: .03em; }
+    .top h1 { margin-top: 14mm; font-size: 24mm; }
+    .top p { margin-top: 7mm; font-size: 7.6mm; line-height: 1.3; color: var(--ink-2); font-weight: 500; max-width: 240mm; }
+
+    .features { position: absolute; left: 20mm; top: 150mm; width: 128mm; display: flex; flex-direction: column; gap: 5.5mm; }
+    .ft { display: flex; gap: 4mm; align-items: center; font-weight: 700; font-size: 6mm; line-height: 1.2; }
+    .web { margin-top: 4mm; font-weight: 800; font-size: 6.4mm; color: var(--primary); }
+    .ft i { flex: none; width: 10mm; height: 10mm; border-radius: 50%; background: var(--primary); display: grid; place-items: center; }
+    .ft i svg { width: 5.6mm; height: 5.6mm; }
+
+    .cta { position: absolute; left: 20mm; bottom: 20mm; width: 128mm; background: var(--ink); color: #fff; border-radius: 9mm; padding: 7mm; display: flex; gap: 6mm; align-items: center; }
+    .cta .wa { flex: none; width: 34mm; background: #fff; border-radius: 4mm; padding: 3mm; }
+    .cta .wa img { display: block; width: 100%; }
+    .cta b { display: block; font-size: 6.4mm; line-height: 1.15; letter-spacing: -.01em; }
+    .cta .tel { display: flex; align-items: center; gap: 2.5mm; margin-top: 4mm; font-weight: 800; font-size: 6.8mm; color: #4ADE80; }
+    .cta .tel svg { width: 7mm; height: 7mm; }
+    .cta small { display: block; margin-top: 3mm; color: var(--muted); font-size: 3.9mm; line-height: 1.35; font-weight: 600; }
+
+    .photo { right: -14mm; bottom: 0; width: 172mm; }
+    /* écran : 93,24 → 445,778 sur 641 × 874 */
+    .photo .screen { left: calc(90 / 641 * 100%); top: calc(21 / 874 * 100%); width: calc(358 / 641 * 100%); height: calc(760 / 874 * 100%); border-radius: 9mm; }
+    .photo .ui { font-size: 4.9cqw; }
+
+    .dash-h { padding: 0.3em 1.1em 0.8em; display: flex; justify-content: space-between; align-items: center; }
+    .dash-h .t { font-weight: 800; font-size: 1.05em; }
+    .dash-h .s { font-size: 0.68em; color: var(--muted); font-weight: 600; }
+    .dash-h .av { width: 2em; height: 2em; border-radius: 50%; background: var(--primary); color: #fff; font-weight: 800; font-size: 0.8em; display: grid; place-items: center; }
+    .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55em; margin: 0 0.9em 0.8em; }
+    .tile { background: #fff; border: 0.06em solid var(--border); border-radius: 0.8em; padding: 0.65em 0.7em; }
+    .tile .k { font-size: 0.6em; color: var(--muted); font-weight: 600; }
+    .tile .v { font-size: 1.25em; font-weight: 800; letter-spacing: -.02em; margin-top: 0.1em; }
+    .tile.hl { background: var(--primary); border-color: var(--primary); color: #fff; grid-column: span 2; }
+    .tile.hl .k { color: #BFDBFE; }
+    .list h4 { font-size: 0.72em; font-weight: 800; margin: 0 1.25em 0.5em; }
+    .list .card { padding: 0.2em 0.8em; }
+    .o { display: flex; justify-content: space-between; align-items: center; padding: 0.55em 0; font-size: 0.72em; }
+    .o + .o { border-top: 0.06em solid var(--border); }
+    .o b { display: block; font-weight: 700; }
+    .o span.c { color: var(--muted); font-size: 0.88em; }
+    .o .badge { font-size: 0.85em; }
+    .toast { margin: auto 0.9em 1.4em; background: var(--ink); color: #fff; border-radius: 0.8em; padding: 0.75em 0.8em; display: flex; gap: 0.6em; align-items: center; font-size: 0.66em; font-weight: 600; line-height: 1.3; }
+    .toast i { flex: none; width: 1.9em; height: 1.9em; border-radius: 50%; background: var(--success); display: grid; place-items: center; }
+    .toast i svg { width: 1.1em; height: 1.1em; }
+</style>
+</head>
+<body>
+<div class="poster">
+    <div class="top">
+        <div class="row1"><img class="logo" src="wordmark.png" alt="PressLink"><span class="kicker">POUR LES PRESSINGS</span></div>
+        <h1 class="display">Vos clients prévenus,<br><span class="blue">automatiquement.</span></h1>
+        <p>Le logiciel de gestion de pressing simple et complet : commandes, clients, équipe et notifications, depuis un seul tableau de bord.</p>
+    </div>
+
+    <div class="features">
+        <div class="ft"><i><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Commandes créées en quelques secondes</div>
+        <div class="ft"><i><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Notifications automatiques aux clients</div>
+        <div class="ft"><i><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Fiches clients et historique</div>
+        <div class="ft"><i><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Services et tarifs, avec variantes</div>
+        <div class="ft"><i><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Équipe, indicateurs du jour, exports</div>
+        <div class="web">presslink.org/pour-les-pressings</div>
+    </div>
+
+    <div class="cta">
+        <div class="wa"><img src="qr_whatsapp.png" alt="QR code WhatsApp PressLink"></div>
+        <div>
+            <b>Demandez votre démonstration</b>
+            <div class="tel"><svg viewBox="0 0 24 24" fill="#4ADE80"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.3 0 .5l-.4.6-.4.4c-.1.1-.3.3-.1.6.2.3.7 1.2 1.5 1.9 1 .9 1.9 1.2 2.2 1.3.3.1.4.1.6-.1l.8-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg>07 18 00 22 93</div>
+            <small>Scannez pour nous écrire sur WhatsApp</small>
+        </div>
+    </div>
+
+    <div class="photo">
+        <div class="screen">
+            <div class="ui">
+                <div class="statusbar"><span>9:41</span><span class="icons"><i style="width:1em;height:.55em"></i><i style="width:1.3em;height:.6em;border-radius:.2em"></i></span></div>
+                <div class="dash-h"><div><div class="s">Aujourd'hui</div><div class="t">Pressing du Plateau</div></div><div class="av">PP</div></div>
+                <div class="tiles">
+                    <div class="tile"><div class="k">Commandes</div><div class="v">24</div></div>
+                    <div class="tile"><div class="k">Prêtes</div><div class="v" style="color:var(--success-text)">9</div></div>
+                    <div class="tile hl"><div class="k">Encaissé aujourd'hui</div><div class="v">186 500 FCFA</div></div>
+                </div>
+                <div class="list">
+                    <h4>Commandes récentes</h4>
+                    <div class="card">
+                        <div class="o"><div><b>PL-2041</b><span class="c">Awa K. · 5 articles</span></div><span class="badge ready">Prête</span></div>
+                        <div class="o"><div><b>PL-2040</b><span class="c">Koffi B. · 3 articles</span></div><span class="badge work">En traitement</span></div>
+                        <div class="o"><div><b>PL-2039</b><span class="c">Mariam T. · 8 articles</span></div><span class="badge recv">Reçue</span></div>
+                        <div class="o"><div><b>PL-2038</b><span class="c">Yao S. · 2 articles</span></div><span class="badge done">Récupérée</span></div>
+                        <div class="o"><div><b>PL-2037</b><span class="c">Fatou D. · 4 articles</span></div><span class="badge ready">Prête</span></div>
+                    </div>
+                </div>
+                <div class="toast"><i><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i><span>Awa K. a été notifiée :<br>sa commande est prête.</span></div>
+            </div>
+        </div>
+        <img src="hand.png" alt="">
+    </div>
+</div>
+</body>
+</html>

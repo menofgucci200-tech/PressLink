@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Team;
 
+use App\Actions\Auth\ResetPasswordToDefault;
 use App\Enums\PressingRole;
+use App\Livewire\Concerns\ShowsToasts;
 use App\Models\User;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -18,6 +20,8 @@ use RuntimeException;
  */
 class Index extends Component
 {
+    use ShowsToasts;
+
     public bool $showCreateForm = false;
 
     public string $name = '';
@@ -87,6 +91,23 @@ class Index extends Component
         $this->reset(['name', 'login', 'phone', 'password', 'role', 'showCreateForm']);
     }
 
+    /**
+     * Mot de passe oublié par un membre : il repasse à la valeur par défaut
+     * et le membre doit ensuite le changer pour sécuriser son compte.
+     */
+    public function resetMemberPassword(int $memberId): void
+    {
+        $pressing = auth()->user()->currentPressing();
+        abort_unless($pressing && auth()->user()->isAdminOf($pressing), 403);
+
+        $member = $pressing->staff()->findOrFail($memberId);
+        abort_if($member->id === auth()->id(), 403);
+
+        (new ResetPasswordToDefault)->handle($member);
+
+        $this->toast("Mot de passe de {$member->name} réinitialisé à ".ResetPasswordToDefault::DEFAULT_PASSWORD.'. Il doit maintenant le changer pour sécuriser son compte.');
+    }
+
     public function toggleActive(int $memberId): void
     {
         $this->errorMessage = null;
@@ -114,6 +135,10 @@ class Index extends Component
         }
 
         $pressing->staff()->updateExistingPivot($member->id, ['is_active' => ! $member->pivot->is_active]);
+
+        $this->toast($member->pivot->is_active
+            ? "{$member->name} a été retiré de l'équipe : son accès est coupé."
+            : "{$member->name} a retrouvé l'accès au pressing.", $member->pivot->is_active ? 'warning' : 'success');
     }
 
     #[Layout('layouts.dashboard', ['active' => 'team', 'title' => 'Équipe'])]

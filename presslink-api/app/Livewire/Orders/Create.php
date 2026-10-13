@@ -64,7 +64,14 @@ class Create extends Component
 
     public function pickCustomer(int $customerId): void
     {
-        abort_unless($this->pressing()->customers()->where('customers.id', $customerId)->exists(), 403);
+        $customer = $this->pressing()->customers()->where('customers.id', $customerId)->first();
+        abort_if($customer === null, 403);
+
+        if ($customer->is_active === false) {
+            $this->dispatch('toast', type: 'error', message: CreateOrderAction::INACTIVE_CUSTOMER_MESSAGE);
+
+            return;
+        }
 
         $this->selectedCustomerId = $customerId;
         $this->showNewClientForm = false;
@@ -87,6 +94,7 @@ class Create extends Component
                     'first_name' => $this->newFirstName,
                     'last_name' => $this->newLastName,
                     'password' => Customer::DEFAULT_WALK_IN_PASSWORD,
+                    'must_change_password' => true,
                     'phone_verified_at' => now(),
                 ],
             );
@@ -96,9 +104,16 @@ class Create extends Component
             return $customer;
         });
 
-        $this->selectedCustomerId = $customer->id;
         $this->showNewClientForm = false;
         $this->reset(['newFirstName', 'newLastName', 'newPhone']);
+
+        if ($customer->is_active === false) {
+            $this->dispatch('toast', type: 'error', message: CreateOrderAction::INACTIVE_CUSTOMER_MESSAGE);
+
+            return;
+        }
+
+        $this->selectedCustomerId = $customer->id;
     }
 
     public function updatedPickerService(): void

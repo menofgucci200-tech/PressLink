@@ -12,6 +12,7 @@ import '../../../core/widgets/pwa_install_banner.dart';
 import '../../../core/widgets/staggered_fade_in.dart';
 import '../../../shared/models/order_summary.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../auth/presentation/logout_confirmation.dart';
 import '../../notifications/presentation/notifications_controller.dart';
 import '../../notifications/presentation/notifications_screen.dart';
 import '../../orders/presentation/order_detail_screen.dart';
@@ -88,8 +89,7 @@ class HomeScreen extends ConsumerWidget {
                       const SizedBox(width: AppSpacing.sm),
                       IconButton(
                         tooltip: 'Se déconnecter',
-                        onPressed: () =>
-                            ref.read(authControllerProvider.notifier).logout(),
+                        onPressed: () => confirmAndLogout(context, ref),
                         icon: const Icon(Icons.logout, size: 20),
                       ),
                     ],

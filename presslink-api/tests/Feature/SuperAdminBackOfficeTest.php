@@ -169,7 +169,7 @@ class SuperAdminBackOfficeTest extends TestCase
             ->set('plan', SubscriptionPlan::Business->value)
             ->set('ordersLimit', '')
             ->call('saveSubscription')
-            ->assertSet('saved', true);
+            ->assertDispatched('toast');
 
         $subscription = $pressing->fresh()->subscription;
         $this->assertSame(SubscriptionPlan::Business, $subscription->plan);
@@ -187,11 +187,13 @@ class SuperAdminBackOfficeTest extends TestCase
 
         Livewire::test(AdminPressingsShow::class, ['pressing' => $pressing])
             ->call('resetStaffPassword', $member->id)
-            ->assertSet('passwordResetForUserId', $member->id)
+            ->assertDispatched('toast')
             ->assertViewHas('staff');
 
         $member->refresh();
         $this->assertNotSame($originalHash, $member->password);
+        $this->assertTrue(Hash::check('123456', $member->password));
+        $this->assertTrue($member->must_change_password);
     }
 
     public function test_super_admin_cannot_reset_the_password_of_staff_from_another_pressing(): void

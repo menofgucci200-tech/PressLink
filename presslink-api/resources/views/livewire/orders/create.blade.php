@@ -41,7 +41,7 @@
             <div class="flex flex-col gap-2.5 mb-5">
                 @forelse ($clients as $client)
                     <button type="button" wire:click="pickCustomer({{ $client->id }})"
-                            class="flex items-center gap-3.5 w-full text-left px-4 py-3.5 rounded-lg border transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px {{ $selectedCustomerId === $client->id ? 'border-(--color-primary) bg-(--color-primary-tint)' : 'border-(--color-border)' }}">
+                            class="flex items-center gap-3.5 w-full text-left px-4 py-3.5 rounded-lg border transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px {{ $client->is_active === false ? 'opacity-60' : '' }} {{ $selectedCustomerId === $client->id ? 'border-(--color-primary) bg-(--color-primary-tint)' : 'border-(--color-border)' }}">
                         <span class="w-9 h-9 rounded-full bg-(--color-primary-tint) text-(--color-primary) flex items-center justify-center text-[13px] font-semibold flex-none transition-transform duration-150 {{ $selectedCustomerId === $client->id ? 'scale-110' : '' }}">
                             {{ mb_strtoupper(mb_substr($client->first_name, 0, 1).mb_substr($client->last_name, 0, 1)) }}
                         </span>
@@ -49,6 +49,9 @@
                             <span class="block text-sm font-medium">{{ $client->fullName() }}</span>
                             <span class="block text-[12.5px] text-(--color-text-secondary) tabular-nums">{{ $client->phone }}</span>
                         </span>
+                        @if ($client->is_active === false)
+                            <span class="ml-auto text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-(--color-error-tint) text-(--color-error)">Compte désactivé</span>
+                        @endif
                     </button>
                 @empty
                     <p class="text-sm text-(--color-text-muted)">Aucun client trouvé.</p>

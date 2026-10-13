@@ -2,12 +2,15 @@
 
 namespace App\Livewire\Services;
 
+use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Service;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 class Index extends Component
 {
+    use ShowsToasts;
+
     public bool $showCreateForm = false;
 
     public string $name = '';
@@ -77,6 +80,7 @@ class Index extends Component
         }
 
         $this->reset(['name', 'priceFcfa', 'variantRows', 'showCreateForm']);
+        $this->toast("Service « {$service->name} » ajouté à vos tarifs.");
     }
 
     public function toggleActive(Service $service): void
@@ -85,6 +89,9 @@ class Index extends Component
         abort_unless($service->pressing_id === $pressing->id, 403);
 
         $service->update(['is_active' => ! $service->is_active]);
+        $this->toast($service->is_active
+            ? "« {$service->name} » est de nouveau proposé."
+            : "« {$service->name} » est désactivé : il n'apparaît plus dans les nouvelles commandes.", $service->is_active ? 'success' : 'warning');
     }
 
     #[Layout('layouts.dashboard', ['active' => 'services', 'title' => 'Tarifs'])]

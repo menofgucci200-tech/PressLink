@@ -11,6 +11,7 @@ import '../../../core/theme/theme_mode_controller.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../auth/domain/auth_repository.dart';
+import '../../auth/presentation/logout_confirmation.dart';
 import 'change_password_screen.dart';
 import 'edit_profile_screen.dart';
 import 'notification_preferences_controller.dart';
@@ -191,8 +192,7 @@ class ProfileScreen extends ConsumerWidget {
               width: double.infinity,
               height: 48,
               child: OutlinedButton(
-                onPressed: () =>
-                    ref.read(authControllerProvider.notifier).logout(),
+                onPressed: () => confirmAndLogout(context, ref),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.error,
                   side: const BorderSide(color: Color(0xFFFECACA)),

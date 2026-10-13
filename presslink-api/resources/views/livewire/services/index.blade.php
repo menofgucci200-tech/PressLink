@@ -15,7 +15,7 @@
     @endif
 
     @if ($showCreateForm)
-        <form wire:submit="createService" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5">
+        <form novalidate wire:submit="createService" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
                 <div>
                     <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom</label>
@@ -105,6 +105,10 @@
                             </td>
                             <td class="px-5 py-3.5 text-right">
                                 <button wire:click="toggleActive({{ $service->id }})"
+                                        data-confirm-title="{{ $service->is_active ? 'Désactiver le service' : 'Réactiver le service' }}"
+                                        data-confirm-label="{{ $service->is_active ? 'Désactiver' : 'Réactiver' }}"
+                                        data-confirm-tone="{{ $service->is_active ? 'warning' : 'primary' }}"
+                                        wire:confirm="{{ $service->is_active ? '« '.$service->name.' » ne sera plus proposé dans les nouvelles commandes. Les commandes existantes ne changent pas.' : '« '.$service->name.' » sera de nouveau proposé dans les nouvelles commandes.' }}"
                                         wire:loading.attr="disabled" wire:target="toggleActive({{ $service->id }})"
                                         class="text-xs font-medium text-(--color-primary) disabled:opacity-60">
                                     {{ $service->is_active ? 'Désactiver' : 'Activer' }}

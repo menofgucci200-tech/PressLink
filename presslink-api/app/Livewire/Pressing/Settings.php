@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Pressing;
 
+use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Pressing;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
@@ -14,7 +15,7 @@ use Livewire\WithFileUploads;
  */
 class Settings extends Component
 {
-    use WithFileUploads;
+    use ShowsToasts, WithFileUploads;
 
     private const DAYS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
 
@@ -39,8 +40,6 @@ class Settings extends Component
 
     public $logo = null;
 
-    public bool $saved = false;
-
     public function mount(): void
     {
         $pressing = auth()->user()->currentPressing();
@@ -59,8 +58,6 @@ class Settings extends Component
 
     public function save(): void
     {
-        $this->saved = false;
-
         $this->validate([
             'name' => ['required', 'string', 'max:150'],
             'phone' => ['required', 'string', 'regex:/^\+2250[0-9]{9}$/'],
@@ -95,7 +92,7 @@ class Settings extends Component
 
         $this->pressing->update($data);
         $this->logo = null;
-        $this->saved = true;
+        $this->toast('Paramètres du pressing enregistrés.');
     }
 
     public function removeLogo(): void
@@ -103,6 +100,7 @@ class Settings extends Component
         if ($this->pressing->logo_path) {
             Storage::disk('public')->delete($this->pressing->logo_path);
             $this->pressing->update(['logo_path' => null]);
+            $this->toast('Logo retiré.');
         }
     }
 

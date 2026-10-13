@@ -1,3 +1,5 @@
+import './feedback';
+
 // Raccourci ⌘K / Ctrl+K — focus le champ de recherche de la page courante
 // (chaque page qui en a besoin a la sienne, il n'y a pas de recherche
 // globale unique), sans passer par la souris.

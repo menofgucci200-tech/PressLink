@@ -45,7 +45,7 @@
                         <p class="text-sm">Nous revenons vers vous rapidement.</p>
                     </div>
                 @elseif ($canSendMail)
-                    <form method="POST" action="{{ route('site.contact.send') }}" class="space-y-4">
+                    <form novalidate method="POST" action="{{ route('site.contact.send') }}" class="space-y-4">
                         @csrf
                         {{-- Champ piège anti-robots, invisible pour les humains --}}
                         <input type="text" name="website" tabindex="-1" autocomplete="off" class="hidden" aria-hidden="true">

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Services;
 
+use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Service;
 use App\Models\ServiceVariant;
 use Livewire\Attributes\Layout;
@@ -14,6 +15,8 @@ use Livewire\Component;
  */
 class Variants extends Component
 {
+    use ShowsToasts;
+
     public Service $service;
 
     public bool $showCreateForm = false;
@@ -38,13 +41,14 @@ class Variants extends Component
             'priceFcfa' => ['required', 'integer', 'min:0'],
         ]);
 
-        $this->service->variants()->create([
+        $variant = $this->service->variants()->create([
             'name' => $this->name,
             'price_fcfa' => $this->priceFcfa,
             'is_active' => true,
         ]);
 
         $this->reset(['name', 'priceFcfa', 'showCreateForm']);
+        $this->toast("Variante « {$variant->name} » ajoutée.");
     }
 
     public function toggleActive(ServiceVariant $variant): void
@@ -52,6 +56,7 @@ class Variants extends Component
         abort_unless($variant->service_id === $this->service->id, 403);
 
         $variant->update(['is_active' => ! $variant->is_active]);
+        $this->toast($variant->is_active ? "Variante « {$variant->name} » réactivée." : "Variante « {$variant->name} » désactivée.", $variant->is_active ? 'success' : 'warning');
     }
 
     #[Layout('layouts.dashboard', ['active' => 'services', 'title' => 'Variantes'])]

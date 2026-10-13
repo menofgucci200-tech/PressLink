@@ -22,7 +22,7 @@
     @endif
 
     @if ($showCreateForm)
-        <form wire:submit="inviteEmployee" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5 grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+        <form novalidate wire:submit="inviteEmployee" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5 grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
             <div>
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom complet</label>
                 <input type="text" wire:model="name" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
@@ -99,6 +99,10 @@
                             <td class="px-5 py-3.5 text-right">
                                 @if ($member->id !== auth()->id())
                                     <button wire:click="toggleActive({{ $member->id }})"
+                                            data-confirm-title="{{ $member->pivot->is_active ? 'Retirer de l\'équipe' : 'Réactiver le membre' }}"
+                                            data-confirm-label="{{ $member->pivot->is_active ? 'Retirer' : 'Réactiver' }}"
+                                            data-confirm-tone="{{ $member->pivot->is_active ? 'danger' : 'primary' }}"
+                                            wire:confirm="{{ $member->pivot->is_active ? 'Retirer '.$member->name.' de l\'équipe ? Il ne pourra plus se connecter à l\'espace du pressing. Vous pourrez le réactiver plus tard.' : 'Réactiver '.$member->name.' ? Il retrouvera l\'accès à l\'espace du pressing avec ses identifiants habituels.' }}"
                                             wire:loading.attr="disabled" wire:target="toggleActive({{ $member->id }})"
                                             class="text-xs font-medium text-(--color-primary) disabled:opacity-60">
                                         {{ $member->pivot->is_active ? 'Retirer' : 'Réactiver' }}

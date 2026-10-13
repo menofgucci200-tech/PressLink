@@ -33,7 +33,7 @@
     @endif
 
     @if ($showCreateForm)
-        <form id="admin-create-form" wire:submit="createAdministrator" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5 grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+        <form novalidate id="admin-create-form" wire:submit="createAdministrator" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5 grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
             <div class="sm:col-span-2">
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Pressing</label>
                 <select wire:model="pressingId" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">

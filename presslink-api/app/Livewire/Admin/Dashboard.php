@@ -8,6 +8,7 @@ use App\Enums\OrderStatus;
 use App\Enums\PressingStatus;
 use App\Enums\SubscriptionPlan;
 use App\Enums\SubscriptionStatus;
+use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderIssue;
@@ -29,6 +30,8 @@ use Livewire\Component;
  */
 class Dashboard extends Component
 {
+    use ShowsToasts;
+
     /** Un pressing actif sans commande depuis ce nombre de jours est « inactif ». */
     public const DORMANT_AFTER_DAYS = 14;
 
@@ -62,6 +65,7 @@ class Dashboard extends Component
 
         $result = $reset->handle();
         $this->demoAccess = ['password' => $result['password'], 'code' => $result['pressing']->code];
+        $this->toast('Environnement de démo prêt : notez les accès affichés ci-dessous.');
     }
 
     public function resetFilters(): void

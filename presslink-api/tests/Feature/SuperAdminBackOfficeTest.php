@@ -169,7 +169,7 @@ class SuperAdminBackOfficeTest extends TestCase
             ->set('plan', SubscriptionPlan::Business->value)
             ->set('ordersLimit', '')
             ->call('saveSubscription')
-            ->assertSet('saved', true);
+            ->assertDispatched('toast');
 
         $subscription = $pressing->fresh()->subscription;
         $this->assertSame(SubscriptionPlan::Business, $subscription->plan);

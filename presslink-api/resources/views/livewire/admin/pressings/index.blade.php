@@ -35,10 +35,6 @@
         </div>
     </div>
 
-    @if (session('status'))
-        <div class="mb-5 p-3 rounded-lg bg-(--color-success-tint) text-(--color-success-text) text-sm">{{ session('status') }}</div>
-    @endif
-
     <div class="flex flex-wrap gap-2 mb-5">
         @foreach ($summary as $chip)
             @php $isOn = $this->{$chip['set'][0]} === $chip['set'][1]; @endphp
@@ -163,6 +159,7 @@
                             </td>
                             <td class="px-5 py-3.5 text-right">
                                 <button wire:click="toggleStatus({{ $pressing->id }})"
+                                        data-confirm-title="{{ $pressing->status->value === 'active' ? 'Suspendre le pressing' : 'Réactiver le pressing' }}" data-confirm-label="{{ $pressing->status->value === 'active' ? 'Suspendre' : 'Réactiver' }}" data-confirm-tone="{{ $pressing->status->value === 'active' ? 'danger' : 'primary' }}"
                                         wire:confirm="{{ $pressing->status->value === 'active' ? 'Suspendre '.$pressing->name.' ? Il ne pourra plus créer de commande ni accueillir de nouveaux clients.' : 'Réactiver '.$pressing->name.' ?' }}"
                                         wire:loading.attr="disabled" wire:target="toggleStatus({{ $pressing->id }})"
                                         class="text-xs font-medium {{ $pressing->status->value === 'active' ? 'text-(--color-error)' : 'text-(--color-primary)' }} hover:underline disabled:opacity-60">

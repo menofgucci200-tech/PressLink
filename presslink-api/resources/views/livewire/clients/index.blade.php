@@ -15,7 +15,7 @@
     @endif
 
     @if ($showCreateForm)
-        <form wire:submit="createClient" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5 grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
+        <form novalidate wire:submit="createClient" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5 grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
             <div>
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Prénom</label>
                 <input type="text" wire:model="firstName" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">

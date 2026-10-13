@@ -3,6 +3,7 @@
 namespace App\Livewire\Team;
 
 use App\Enums\PressingRole;
+use App\Livewire\Concerns\ShowsToasts;
 use App\Models\User;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -18,6 +19,8 @@ use RuntimeException;
  */
 class Index extends Component
 {
+    use ShowsToasts;
+
     public bool $showCreateForm = false;
 
     public string $name = '';
@@ -114,6 +117,10 @@ class Index extends Component
         }
 
         $pressing->staff()->updateExistingPivot($member->id, ['is_active' => ! $member->pivot->is_active]);
+
+        $this->toast($member->pivot->is_active
+            ? "{$member->name} a été retiré de l'équipe : son accès est coupé."
+            : "{$member->name} a retrouvé l'accès au pressing.", $member->pivot->is_active ? 'warning' : 'success');
     }
 
     #[Layout('layouts.dashboard', ['active' => 'team', 'title' => 'Équipe'])]

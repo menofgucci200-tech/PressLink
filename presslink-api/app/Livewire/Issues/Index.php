@@ -3,6 +3,7 @@
 namespace App\Livewire\Issues;
 
 use App\Enums\OrderIssueStatus;
+use App\Livewire\Concerns\ShowsToasts;
 use App\Models\OrderIssue;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -14,7 +15,7 @@ use Livewire\WithPagination;
  */
 class Index extends Component
 {
-    use WithPagination;
+    use ShowsToasts, WithPagination;
 
     public string $status = 'open';
 
@@ -54,6 +55,7 @@ class Index extends Component
         ]);
 
         $this->cancelResolving();
+        $this->toast('Signalement marqué comme résolu.');
     }
 
     #[Layout('layouts.dashboard', ['active' => 'issues', 'title' => 'Signalements'])]

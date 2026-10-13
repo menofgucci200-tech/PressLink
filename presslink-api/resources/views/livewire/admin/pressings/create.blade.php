@@ -41,7 +41,7 @@
     </div>
 
     @if ($type === 'standard')
-        <form wire:submit="create" class="flex flex-col gap-6">
+        <form novalidate wire:submit="create" class="flex flex-col gap-6">
             <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="sm:col-span-2 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Pressing</div>
                 <div>
@@ -88,7 +88,7 @@
             </div>
         </form>
     @else
-        <form wire:submit="createGroup" class="flex flex-col gap-6">
+        <form novalidate wire:submit="createGroup" class="flex flex-col gap-6">
             <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="sm:col-span-2 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Propriétaire du groupe</div>
                 <div class="sm:col-span-2">

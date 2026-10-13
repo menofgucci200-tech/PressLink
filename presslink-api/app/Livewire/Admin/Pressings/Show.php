@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Pressings;
 use App\Enums\PressingStatus;
 use App\Enums\SubscriptionPlan;
 use App\Enums\SubscriptionStatus;
+use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Pressing;
 use App\Models\Subscription;
 use Illuminate\Support\Str;
@@ -19,6 +20,8 @@ use Livewire\Component;
  */
 class Show extends Component
 {
+    use ShowsToasts;
+
     public Pressing $pressing;
 
     public string $plan = '';
@@ -35,15 +38,11 @@ class Show extends Component
 
     public bool $setupFeePaid = false;
 
-    public bool $saved = false;
-
     public ?int $passwordResetForUserId = null;
 
     public ?string $generatedPassword = null;
 
     public bool $editingInfo = false;
-
-    public bool $infoSaved = false;
 
     /** @var array{name: string, phone: string, email: string, city: string, address: string, description: string} */
     public array $info = ['name' => '', 'phone' => '', 'email' => '', 'city' => '', 'address' => '', 'description' => ''];
@@ -67,6 +66,9 @@ class Show extends Component
                 : PressingStatus::Active,
         ]);
         $this->pressing->refresh();
+        $this->toast($this->pressing->status === PressingStatus::Active
+            ? "{$this->pressing->name} est réactivé."
+            : "{$this->pressing->name} est suspendu.", $this->pressing->status === PressingStatus::Active ? 'success' : 'warning');
     }
 
     public function editInfo(): void
@@ -80,7 +82,6 @@ class Show extends Component
             'description' => (string) $this->pressing->description,
         ];
         $this->resetErrorBag();
-        $this->infoSaved = false;
         $this->editingInfo = true;
     }
 
@@ -111,7 +112,7 @@ class Show extends Component
         $this->pressing->update(array_map(fn (string $value) => trim($value) === '' ? null : trim($value), $this->info));
 
         $this->editingInfo = false;
-        $this->infoSaved = true;
+        $this->toast('Informations du pressing enregistrées.');
     }
 
     /**
@@ -132,7 +133,7 @@ class Show extends Component
         $name = $this->pressing->name;
         $this->pressing->delete();
 
-        session()->flash('status', "Le pressing « {$name} » a été supprimé.");
+        $this->flashToast("Le pressing « {$name} » a été supprimé.");
         $this->redirectRoute('admin.pressings.index', navigate: true);
     }
 
@@ -150,8 +151,6 @@ class Show extends Component
 
     public function saveSubscription(): void
     {
-        $this->saved = false;
-
         $this->validate([
             'plan' => ['required', Rule::enum(SubscriptionPlan::class)],
             'status' => ['required', Rule::enum(SubscriptionStatus::class)],
@@ -185,7 +184,7 @@ class Show extends Component
 
         $this->pressing->refresh();
         $this->fillSubscriptionFields();
-        $this->saved = true;
+        $this->toast('Abonnement mis à jour.');
     }
 
     private function fillSubscriptionFields(): void

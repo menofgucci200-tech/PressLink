@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Account;
 
+use App\Livewire\Concerns\ShowsToasts;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -12,6 +13,8 @@ use Livewire\Component;
  */
 class Settings extends Component
 {
+    use ShowsToasts;
+
     public string $login = '';
 
     public string $currentPassword = '';
@@ -20,8 +23,6 @@ class Settings extends Component
 
     public string $newPasswordConfirmation = '';
 
-    public ?string $successMessage = null;
-
     public function mount(): void
     {
         $this->login = (string) auth()->user()->login;
@@ -29,21 +30,17 @@ class Settings extends Component
 
     public function updateLogin(): void
     {
-        $this->successMessage = null;
-
         $this->validate([
             'login' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9._-]+$/', Rule::unique('users', 'login')->ignore(auth()->id())],
         ]);
 
         auth()->user()->update(['login' => $this->login]);
 
-        $this->successMessage = 'Identifiant de connexion mis à jour.';
+        $this->toast('Identifiant de connexion mis à jour.');
     }
 
     public function updatePassword(): void
     {
-        $this->successMessage = null;
-
         $this->validate([
             'currentPassword' => ['required', 'string', 'current_password'],
             'newPassword' => ['required', 'string', 'min:8'],
@@ -61,7 +58,7 @@ class Settings extends Component
         auth()->user()->update(['password' => $this->newPassword]);
 
         $this->reset(['currentPassword', 'newPassword', 'newPasswordConfirmation']);
-        $this->successMessage = 'Mot de passe mis à jour.';
+        $this->toast('Mot de passe mis à jour.');
     }
 
     #[Layout('layouts.dashboard', ['active' => 'account', 'title' => 'Mon compte'])]

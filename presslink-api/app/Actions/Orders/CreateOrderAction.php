@@ -17,10 +17,13 @@ use RuntimeException;
  * RB-03 (1 pressing + 1 client, et le client doit appartenir au
  * pressing), RB-04 (≥ 1 article), RB-09 (quota d'abonnement respecté
  * avant toute création), et refuse toute création pour un pressing
- * suspendu par le Super Admin (voir load-testing/RAPPORT.md, finding B).
+ * suspendu par le Super Admin (voir load-testing/RAPPORT.md, finding B)
+ * ou pour un client dont le compte a été désactivé depuis la console.
  */
 class CreateOrderAction
 {
+    public const INACTIVE_CUSTOMER_MESSAGE = 'Le compte de ce client a été désactivé par PressLink : impossible de lui créer une commande.';
+
     /**
      * @param  list<array{service_id: ?int, service_variant_id: ?int, name: string, color: ?string, unit_price_fcfa: int, quantity: int}>  $items
      */
@@ -37,6 +40,10 @@ class CreateOrderAction
 
         if ($pressing->status !== PressingStatus::Active) {
             throw new RuntimeException('Ce pressing est suspendu : impossible de créer une commande.');
+        }
+
+        if ($customer->is_active === false) {
+            throw new RuntimeException(self::INACTIVE_CUSTOMER_MESSAGE);
         }
 
         if (! $pressing->customers()->where('customers.id', $customer->id)->exists()) {

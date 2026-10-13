@@ -30,10 +30,6 @@
         </div>
     </div>
 
-    @if ($flash && ! $selectedCustomer)
-        <div class="mb-5 p-3 rounded-lg bg-(--color-success-tint) text-(--color-success-text) text-sm">{{ $flash }}</div>
-    @endif
-
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         @foreach ($cards as $card)
             @php $clickable = $card['filter'] !== null; $isOn = $clickable && $card['filter'] !== '' && $activity === $card['filter']; @endphp
@@ -150,7 +146,7 @@
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
                     </button>
                 </div>
-                <form wire:submit="saveCustomer" class="flex-1 overflow-y-auto px-5 py-5 grid grid-cols-2 gap-4 content-start text-sm">
+                <form novalidate wire:submit="saveCustomer" class="flex-1 overflow-y-auto px-5 py-5 grid grid-cols-2 gap-4 content-start text-sm">
                 <div>
                     <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Prénom</label>
                     <input type="text" wire:model="form.first_name" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
@@ -220,9 +216,6 @@
                 </div>
 
                 <div class="flex-1 overflow-y-auto px-5 py-5 space-y-6 text-sm">
-                    @if ($flash)
-                        <div class="p-3 rounded-lg bg-(--color-success-tint) text-(--color-success-text)">{{ $flash }}</div>
-                    @endif
                     @if ($generatedPassword)
                         <div class="p-3 rounded-lg bg-(--color-success-tint) text-(--color-success-text)">
                             Nouveau mot de passe (à transmettre au client, il ne sera plus affiché) :
@@ -231,7 +224,7 @@
                     @endif
 
                     @if ($formMode === 'edit')
-                        <form wire:submit="saveCustomer" class="grid grid-cols-2 gap-4 rounded-lg border border-(--color-border) p-4">
+                        <form novalidate wire:submit="saveCustomer" class="grid grid-cols-2 gap-4 rounded-lg border border-(--color-border) p-4">
                 <div>
                     <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Prénom</label>
                     <input type="text" wire:model="form.first_name" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
@@ -260,14 +253,16 @@
                     @else
                         <div class="flex flex-wrap gap-2">
                             <button type="button" wire:click="editCustomer" class="h-9 px-3.5 rounded-lg border border-(--color-border) text-sm font-medium hover:border-(--color-primary) hover:text-(--color-primary)">Modifier</button>
-                            <button type="button" wire:click="resetPassword" wire:confirm="Générer un nouveau mot de passe pour ce client ? L'ancien ne fonctionnera plus et il sera déconnecté de l'application."
+                            <button type="button" wire:click="resetPassword" data-confirm-title="Nouveau mot de passe" data-confirm-label="Générer" data-confirm-tone="warning" wire:confirm="Générer un nouveau mot de passe pour ce client ? L'ancien ne fonctionnera plus et il sera déconnecté de l'application."
                                     class="h-9 px-3.5 rounded-lg border border-(--color-border) text-sm font-medium hover:border-(--color-primary) hover:text-(--color-primary)">Réinitialiser le mot de passe</button>
                             <button type="button" wire:click="toggleActive"
+                                    data-confirm-title="{{ $selectedCustomer->is_active ? 'Désactiver le compte' : 'Réactiver le compte' }}" data-confirm-label="{{ $selectedCustomer->is_active ? 'Désactiver' : 'Réactiver' }}" data-confirm-tone="{{ $selectedCustomer->is_active ? 'warning' : 'primary' }}"
                                     wire:confirm="{{ $selectedCustomer->is_active ? 'Désactiver ce compte ? Le client sera déconnecté et ne pourra plus se connecter à l\'application, ni recevoir de notifications. Ses commandes sont conservées.' : 'Réactiver ce compte ? Le client pourra de nouveau se connecter.' }}"
                                     class="h-9 px-3.5 rounded-lg border text-sm font-medium {{ $selectedCustomer->is_active ? 'border-amber-200 text-(--color-warning-text) hover:bg-(--color-warning-tint)' : 'border-emerald-200 text-(--color-success-text) hover:bg-(--color-success-tint)' }}">
                                 {{ $selectedCustomer->is_active ? 'Désactiver' : 'Réactiver' }}
                             </button>
                             <button type="button" wire:click="deleteCustomer"
+                                    data-confirm-title="Supprimer le client" data-confirm-label="Supprimer définitivement" data-confirm-tone="danger"
                                     wire:confirm="Supprimer définitivement ce client ? Ses {{ $selectedCustomer->orders_count }} commande(s) et signalements seront aussi supprimés. Cette action est irréversible."
                                     class="h-9 px-3.5 rounded-lg border border-red-200 text-sm font-medium text-(--color-error) hover:bg-(--color-error-tint)">Supprimer</button>
                         </div>
@@ -299,7 +294,7 @@
                                     <a href="{{ route('admin.pressings.show', $p) }}" wire:navigate class="font-medium text-(--color-primary) hover:underline truncate">{{ $p->name }}</a>
                                     <div class="flex items-center gap-3 flex-none">
                                         <span class="text-xs text-(--color-text-muted)">depuis le {{ \Illuminate\Support\Carbon::parse($p->pivot->joined_at ?? $p->pivot->created_at)->format('d/m/Y') }}</span>
-                                        <button type="button" wire:click="detachPressing({{ $p->id }})" wire:confirm="Retirer ce client de {{ $p->name }} ? Ses commandes existantes sont conservées."
+                                        <button type="button" wire:click="detachPressing({{ $p->id }})" data-confirm-title="Retirer du pressing" data-confirm-label="Retirer" data-confirm-tone="warning" wire:confirm="Retirer ce client de {{ $p->name }} ? Ses commandes existantes sont conservées."
                                                 class="text-xs font-medium text-(--color-error) hover:underline">Retirer</button>
                                     </div>
                                 </div>
@@ -307,7 +302,7 @@
                                 <div class="px-3 py-4 text-center text-(--color-text-muted)">Aucun pressing rejoint.</div>
                             @endforelse
                         </div>
-                        <form wire:submit="attachPressing" class="mt-2 flex gap-2">
+                        <form novalidate wire:submit="attachPressing" class="mt-2 flex gap-2">
                             <select wire:model="attachPressingId" class="flex-1 min-w-0 h-9 px-2.5 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm focus:outline-none focus:border-(--color-primary)" aria-label="Rattacher à un pressing">
                                 <option value="">Rattacher à un pressing…</option>
                                 @foreach ($pressings->whereNotIn('id', $selectedCustomer->pressings->pluck('id')) as $p)

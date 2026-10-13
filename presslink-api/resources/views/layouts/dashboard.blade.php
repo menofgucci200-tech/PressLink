@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="app-debug" content="{{ config('app.debug') ? '1' : '0' }}">
         <title>{{ $title ?? config('app.name') }}</title>
         <meta name="robots" content="noindex, nofollow">
         <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
@@ -193,7 +194,7 @@
                        style="background:#1e3a8a;" title="Mon compte">
                         {{ $userInitials ?: '?' }}
                     </a>
-                    <form method="POST" action="{{ route('logout') }}">
+                    <form novalidate method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-error) hover:text-(--color-error)" title="Se déconnecter">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -207,6 +208,7 @@
             </div>
         </div>
 
+        <x-feedback />
         @livewireScripts
     </body>
 </html>

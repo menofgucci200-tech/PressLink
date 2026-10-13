@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Pressings;
 
 use App\Enums\PressingStatus;
 use App\Enums\SubscriptionStatus;
+use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Pressing;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Layout;
@@ -17,7 +18,7 @@ use Livewire\WithPagination;
  */
 class Index extends Component
 {
-    use WithPagination;
+    use ShowsToasts, WithPagination;
 
     /** Fenêtre (jours) de la colonne « Commandes récentes ». */
     public const RECENT_DAYS = 30;
@@ -69,6 +70,10 @@ class Index extends Component
                 ? PressingStatus::Suspended
                 : PressingStatus::Active,
         ]);
+
+        $this->toast($pressing->status === PressingStatus::Active
+            ? "{$pressing->name} est réactivé."
+            : "{$pressing->name} est suspendu.", $pressing->status === PressingStatus::Active ? 'success' : 'warning');
     }
 
     /** @return array<string, string> */

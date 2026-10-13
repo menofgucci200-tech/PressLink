@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Clients;
 
 use App\Enums\OrderStatus;
+use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Customer;
 use App\Models\Pressing;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,7 +22,7 @@ use Livewire\WithPagination;
  */
 class Index extends Component
 {
-    use WithPagination;
+    use ShowsToasts, WithPagination;
 
     /** Un client est « actif » s'il a passé commande dans ce nombre de jours. */
     public const ACTIVE_WITHIN_DAYS = 30;
@@ -53,8 +54,6 @@ class Index extends Component
     /** Mot de passe temporaire affiché une seule fois après réinitialisation. */
     public ?string $generatedPassword = null;
 
-    public ?string $flash = null;
-
     public function mount(): void
     {
         abort_unless(auth()->user()->is_super_admin, 403);
@@ -76,7 +75,7 @@ class Index extends Component
     public function showCustomer(int $customerId): void
     {
         $this->selectedCustomerId = $customerId;
-        $this->reset(['formMode', 'generatedPassword', 'attachPressingId', 'flash']);
+        $this->reset(['formMode', 'generatedPassword', 'attachPressingId']);
         $this->resetErrorBag();
     }
 
@@ -144,7 +143,7 @@ class Index extends Component
 
         if ($editing) {
             $editing->update($data);
-            $this->flash = 'Client mis à jour.';
+            $this->toast('Client mis à jour.');
         } else {
             $customer = DB::transaction(function () use ($data) {
                 $customer = Customer::create([
@@ -160,7 +159,7 @@ class Index extends Component
                 return $customer;
             });
             $this->selectedCustomerId = $customer->id;
-            $this->flash = 'Client créé. Mot de passe par défaut : '.Customer::DEFAULT_WALK_IN_PASSWORD.' (à changer depuis l\'application).';
+            $this->toast('Client créé. Mot de passe par défaut : '.Customer::DEFAULT_WALK_IN_PASSWORD.' (à changer depuis l\'application).');
         }
 
         $this->formMode = null;
@@ -176,6 +175,7 @@ class Index extends Component
             ->syncWithoutDetaching([(int) $this->attachPressingId => ['joined_at' => now()]]);
 
         $this->attachPressingId = '';
+        $this->toast('Client rattaché au pressing.');
     }
 
     public function detachPressing(int $pressingId): void
@@ -183,6 +183,7 @@ class Index extends Component
         abort_unless(auth()->user()->is_super_admin, 403);
 
         Customer::findOrFail($this->selectedCustomerId)->pressings()->detach($pressingId);
+        $this->toast('Client retiré du pressing.');
     }
 
     public function resetPassword(): void
@@ -214,10 +215,10 @@ class Index extends Component
                 $customer->update(['is_active' => false, 'onesignal_player_id' => null, 'fcm_token' => null]);
                 $customer->tokens()->delete();
             });
-            $this->flash = 'Compte désactivé : le client ne peut plus se connecter à l\'application.';
+            $this->toast('Compte désactivé : le client ne peut plus se connecter à l\'application.', 'warning');
         } else {
             $customer->update(['is_active' => true]);
-            $this->flash = 'Compte réactivé : le client peut de nouveau se connecter.';
+            $this->toast('Compte réactivé : le client peut de nouveau se connecter.');
         }
     }
 
@@ -240,7 +241,7 @@ class Index extends Component
         });
 
         $this->closeCustomer();
-        $this->flash = "Le client « {$name} » a été supprimé.";
+        $this->toast("Le client « {$name} » a été supprimé.");
     }
 
     /** @return array<string, string> */

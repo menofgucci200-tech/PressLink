@@ -10,7 +10,7 @@
         : 'bg-(--color-primary) hover:bg-(--color-primary-600) shadow-lg shadow-blue-600/20';
     $error = $dark ? 'text-rose-300' : 'text-(--color-error)';
 @endphp
-<form wire:submit="authenticate" class="space-y-5">
+<form novalidate wire:submit="authenticate" class="space-y-5">
     <div>
         <label for="login" class="block text-sm font-medium {{ $label }} mb-1.5">{{ $dark ? 'Identifiant, téléphone ou email' : 'Téléphone, email ou identifiant' }}</label>
         <div class="relative">

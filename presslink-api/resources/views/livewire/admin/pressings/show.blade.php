@@ -11,7 +11,10 @@
         <span class="text-xs font-medium {{ $pressing->status->value === 'active' ? 'text-(--color-success-text)' : 'text-(--color-warning-text)' }}">
             {{ $pressing->status->label() }}
         </span>
-        <button wire:click="togglePressingStatus" wire:loading.attr="disabled" wire:target="togglePressingStatus"
+        <button wire:click="togglePressingStatus"
+                data-confirm-title="{{ $pressing->status->value === 'active' ? 'Suspendre le pressing' : 'Réactiver le pressing' }}" data-confirm-label="{{ $pressing->status->value === 'active' ? 'Suspendre' : 'Réactiver' }}" data-confirm-tone="{{ $pressing->status->value === 'active' ? 'danger' : 'primary' }}"
+                wire:confirm="{{ $pressing->status->value === 'active' ? 'Suspendre '.$pressing->name.' ? Il ne pourra plus créer de commande ni accueillir de nouveaux clients.' : 'Réactiver '.$pressing->name.' ? Il retrouvera immédiatement l\'accès à toutes les fonctionnalités.' }}"
+                wire:loading.attr="disabled" wire:target="togglePressingStatus"
                 class="h-9 px-3.5 rounded-lg border border-(--color-border) text-sm font-medium hover:border-(--color-primary) disabled:opacity-60">
             {{ $pressing->status->value === 'active' ? 'Suspendre' : 'Réactiver' }}
         </button>
@@ -40,12 +43,9 @@
             @endunless
         </div>
 
-        @if ($infoSaved)
-            <div class="mb-4 p-3 rounded-lg bg-(--color-success-tint) text-(--color-success-text) text-sm">Informations mises à jour.</div>
-        @endif
 
         @if ($editingInfo)
-            <form wire:submit="saveInfo" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <form novalidate wire:submit="saveInfo" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom</label>
                     <input type="text" wire:model="info.name" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
@@ -122,6 +122,7 @@
                             <td class="px-5 py-3 text-right">
                                 @if ($member->pivot->is_active)
                                     <button wire:click="resetStaffPassword({{ $member->id }})"
+                                            data-confirm-title="Nouveau mot de passe" data-confirm-label="Générer" data-confirm-tone="warning"
                                             wire:confirm="Générer un nouveau mot de passe pour {{ $member->name }} ? L'ancien ne fonctionnera plus."
                                             wire:loading.attr="disabled" wire:target="resetStaffPassword({{ $member->id }})"
                                             class="text-xs font-medium text-(--color-primary) hover:underline disabled:opacity-60">
@@ -139,11 +140,8 @@
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
         <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-4">Abonnement</div>
 
-        @if ($saved)
-            <div class="mb-4 p-3 rounded-lg bg-(--color-success-tint) text-(--color-success-text) text-sm">Abonnement mis à jour.</div>
-        @endif
 
-        <form wire:submit="saveSubscription" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form novalidate wire:submit="saveSubscription" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Plan</label>
                 <select wire:model="plan" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
@@ -215,7 +213,7 @@
             </div>
             <button type="button" @click="open = !open" class="h-9 px-3.5 rounded-lg border border-red-200 text-sm font-semibold text-(--color-error) hover:bg-(--color-error-tint)">Supprimer le pressing</button>
         </div>
-        <form x-show="open" x-cloak wire:submit="deletePressing" class="mt-4 flex flex-wrap items-start gap-3">
+        <form novalidate x-show="open" x-cloak wire:submit="deletePressing" class="mt-4 flex flex-wrap items-start gap-3">
             <div>
                 <input type="text" wire:model="deleteConfirmation" placeholder="Saisissez {{ $pressing->code }}" autocomplete="off"
                        class="h-10 px-3 rounded-lg border border-(--color-border) text-sm font-mono focus:outline-none focus:border-(--color-error)">

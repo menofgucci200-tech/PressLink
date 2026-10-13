@@ -2,13 +2,18 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Orders\CreateOrderAction;
+use App\Enums\PressingRole;
 use App\Http\Middleware\EnsureCustomerIsActive;
+use App\Livewire\Orders\Create as OrdersCreate;
 use App\Livewire\Admin\Clients\Index as AdminClientsIndex;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\Pressing;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use RuntimeException;
 use Tests\TestCase;
 
 /**
@@ -82,5 +87,43 @@ class CustomerDeactivationTest extends TestCase
         $this->assertTrue($customer->refresh()->is_active);
 
         $this->postJson('/api/v1/auth/customer/login', ['phone' => '+2250701020304', 'password' => 'secret123'])->assertOk();
+    }
+
+    public function test_no_order_can_be_created_for_a_deactivated_customer(): void
+    {
+        $pressing = Pressing::factory()->create();
+        $customer = $this->customer();
+        $pressing->customers()->attach($customer, ['joined_at' => now()]);
+        $customer->update(['is_active' => false]);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage(CreateOrderAction::INACTIVE_CUSTOMER_MESSAGE);
+
+        (new CreateOrderAction)->handle($pressing, $customer->refresh(), [
+            ['service_id' => null, 'name' => 'Chemise', 'unit_price_fcfa' => 1000, 'quantity' => 1],
+        ]);
+    }
+
+    public function test_the_order_wizard_refuses_a_deactivated_customer_with_a_notification(): void
+    {
+        $pressing = Pressing::factory()->create();
+        $staff = User::factory()->create();
+        $pressing->staff()->attach($staff, ['role' => PressingRole::Admin->value, 'is_active' => true]);
+        $customer = $this->customer();
+        $pressing->customers()->attach($customer, ['joined_at' => now()]);
+        $customer->update(['is_active' => false]);
+        $this->actingAs($staff);
+
+        Livewire::test(OrdersCreate::class)
+            ->call('pickCustomer', $customer->id)
+            ->assertSet('selectedCustomerId', null)
+            ->assertDispatched('toast', type: 'error', message: CreateOrderAction::INACTIVE_CUSTOMER_MESSAGE)
+            ->assertSee('Compte désactivé')
+            // Re-saisir son numéro dans « nouveau client » ne contourne pas le blocage.
+            ->set('newFirstName', 'Autre')
+            ->set('newLastName', 'Nom')
+            ->set('newPhone', '+2250701020304')
+            ->call('createAndPickCustomer')
+            ->assertSet('selectedCustomerId', null);
     }
 }

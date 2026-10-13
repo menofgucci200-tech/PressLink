@@ -4,6 +4,7 @@ namespace App\Livewire\Orders;
 
 use App\Enums\OrderIssueStatus;
 use App\Enums\OrderStatus;
+use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Order;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -12,6 +13,8 @@ use RuntimeException;
 
 class Show extends Component
 {
+    use ShowsToasts;
+
     public Order $order;
 
     public ?string $errorMessage = null;
@@ -57,6 +60,12 @@ class Show extends Component
         }
 
         $this->order->refresh();
+        $this->toast(match ($target) {
+            OrderStatus::Prete => 'Commande prête : le client a été prévenu dans l\'application.',
+            OrderStatus::Recuperee => 'Commande récupérée. Merci, l\'historique est à jour.',
+            OrderStatus::Annulee => 'Commande annulée.',
+            default => 'Commande passée au statut « '.$target->label().' ».',
+        }, $target === OrderStatus::Annulee ? 'warning' : 'success');
     }
 
     public function startResolving(int $issueId): void
@@ -82,6 +91,7 @@ class Show extends Component
         ]);
 
         $this->cancelResolving();
+        $this->toast('Signalement marqué comme résolu.');
     }
 
     #[Layout('layouts.dashboard', ['active' => 'orders', 'title' => 'Commande'])]

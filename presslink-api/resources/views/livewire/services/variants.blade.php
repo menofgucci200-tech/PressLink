@@ -20,7 +20,7 @@
     </div>
 
     @if ($showCreateForm)
-        <form wire:submit="createVariant" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5 grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
+        <form novalidate wire:submit="createVariant" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5 grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
             <div>
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom</label>
                 <input type="text" wire:model="name" placeholder="Manche longue" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
@@ -67,6 +67,10 @@
                             </td>
                             <td class="px-5 py-3.5 text-right">
                                 <button wire:click="toggleActive({{ $variant->id }})"
+                                        data-confirm-title="{{ $variant->is_active ? 'Désactiver la variante' : 'Réactiver la variante' }}"
+                                        data-confirm-label="{{ $variant->is_active ? 'Désactiver' : 'Réactiver' }}"
+                                        data-confirm-tone="{{ $variant->is_active ? 'warning' : 'primary' }}"
+                                        wire:confirm="{{ $variant->is_active ? 'La variante « '.$variant->name.' » ne sera plus proposée dans les nouvelles commandes.' : 'La variante « '.$variant->name.' » sera de nouveau proposée.' }}"
                                         wire:loading.attr="disabled" wire:target="toggleActive({{ $variant->id }})"
                                         class="text-xs font-medium text-(--color-primary) disabled:opacity-60">
                                     {{ $variant->is_active ? 'Désactiver' : 'Activer' }}

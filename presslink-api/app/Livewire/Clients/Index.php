@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Clients;
 
+use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Customer;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -11,7 +12,7 @@ use Livewire\WithPagination;
 
 class Index extends Component
 {
-    use WithPagination;
+    use ShowsToasts, WithPagination;
 
     /**
      * Synchronisé avec `?search=` dans l'URL : permet à la recherche
@@ -69,6 +70,7 @@ class Index extends Component
             $pressing->customers()->syncWithoutDetaching([$customer->id => ['joined_at' => now()]]);
         });
 
+        $this->toast("{$this->firstName} {$this->lastName} a été ajouté à vos clients. Mot de passe par défaut : ".Customer::DEFAULT_WALK_IN_PASSWORD.'.');
         $this->reset(['firstName', 'lastName', 'phone', 'showCreateForm']);
     }
 

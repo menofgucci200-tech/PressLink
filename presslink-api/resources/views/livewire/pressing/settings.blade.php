@@ -18,13 +18,7 @@
         </p>
     </div>
 
-    @if ($saved)
-        <div class="mb-5 p-3 rounded-lg bg-(--color-success-tint) text-(--color-success-text) text-sm">
-            Paramètres enregistrés.
-        </div>
-    @endif
-
-    <form wire:submit="save" class="flex flex-col gap-6">
+    <form novalidate wire:submit="save" class="flex flex-col gap-6">
         <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-4">Logo</div>
             <div class="flex items-center gap-4">
@@ -41,7 +35,7 @@
                     <input type="file" wire:model="logo" accept="image/*" class="text-sm">
                     @error('logo') <p class="text-xs text-(--color-error)">{{ $message }}</p> @enderror
                     @if ($pressing->logo_url)
-                        <button type="button" wire:click="removeLogo" class="text-xs font-medium text-(--color-error) text-left">Retirer le logo actuel</button>
+                        <button type="button" wire:click="removeLogo" data-confirm-title="Retirer le logo" data-confirm-label="Retirer" data-confirm-tone="danger" wire:confirm="Le logo ne sera plus affiché à vos clients dans l'application. Vous pourrez en envoyer un nouveau à tout moment." class="text-xs font-medium text-(--color-error) text-left">Retirer le logo actuel</button>
                     @endif
                 </div>
             </div>

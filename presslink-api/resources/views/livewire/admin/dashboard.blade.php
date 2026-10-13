@@ -314,6 +314,7 @@
                 </p>
             </div>
             <button wire:click="resetDemo" wire:loading.attr="disabled"
+                    data-confirm-title="{{ $demoExists ? 'Réinitialiser la démo' : 'Créer la démo' }}" data-confirm-label="{{ $demoExists ? 'Réinitialiser' : 'Créer la démo' }}" data-confirm-tone="{{ $demoExists ? 'warning' : 'primary' }}"
                     wire:confirm="{{ $demoExists ? 'Réinitialiser la démo ? Toutes les données de démo actuelles seront effacées.' : 'Créer le pressing de démo ?' }}"
                     class="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">
                 <span wire:loading.remove wire:target="resetDemo">{{ $demoExists ? 'Réinitialiser la démo' : 'Créer la démo' }}</span>

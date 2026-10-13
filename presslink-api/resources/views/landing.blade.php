@@ -80,12 +80,12 @@
     {{-- ===== Vidéo du parcours ===== --}}
     <section class="max-w-6xl mx-auto px-5 py-16 md:py-20">
         <div class="max-w-2xl mb-8">
-            <h2 class="font-display text-3xl font-bold tracking-tight mb-3">Du dépôt à la récupération, en 40 secondes</h2>
-            <p class="text-(--color-text-secondary) text-lg">Inscription, code du pressing, suivi, notification : tout le parcours client en vidéo.</p>
+            <h2 class="font-display text-3xl font-bold tracking-tight mb-3">Du dépôt à la récupération, en vidéo</h2>
+            <p class="text-(--color-text-secondary) text-lg">Inscription, code du pressing, suivi, notification : le vrai parcours dans l'application, commenté pas à pas (1 min 30).</p>
         </div>
         <video class="w-full rounded-3xl border border-(--color-border) shadow-sm bg-(--color-bg)" controls playsinline preload="none"
-               poster="{{ asset('video/presslink-parcours.jpg') }}" width="1280" height="720">
-            <source src="{{ asset('video/presslink-parcours.mp4') }}" type="video/mp4">
+               poster="{{ asset('video/presslink-parcours.jpg') }}?v=2" width="1280" height="720">
+            <source src="{{ asset('video/presslink-parcours.mp4') }}?v=2" type="video/mp4">
         </video>
         <a href="{{ route('site.how') }}" class="mt-4 inline-block font-semibold text-(--color-primary) hover:underline">Le parcours étape par étape →</a>
     </section>

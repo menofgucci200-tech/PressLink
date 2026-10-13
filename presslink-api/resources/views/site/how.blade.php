@@ -19,6 +19,7 @@
             'thumbnailUrl' => asset('video/presslink-parcours.jpg'),
             'contentUrl' => asset('video/presslink-parcours.mp4'),
             'uploadDate' => '2026-10-13',
+            'duration' => 'PT1M34S',
         ],
         'step' => collect($steps)->map(fn ($step, $i) => [
             '@type' => 'HowToStep',
@@ -38,8 +39,8 @@
             <h1 class="font-display text-4xl md:text-5xl font-extrabold tracking-tight mb-4 max-w-2xl">Comment ça marche</h1>
             <p class="text-(--color-text-secondary) text-lg mb-10 max-w-2xl">De l'inscription à la récupération de vos vêtements, voici tout le parcours PressLink.</p>
             <video class="w-full rounded-3xl border border-(--color-border) shadow-lg bg-white" controls playsinline preload="metadata"
-                   poster="{{ asset('video/presslink-parcours.jpg') }}" width="1280" height="720">
-                <source src="{{ asset('video/presslink-parcours.mp4') }}" type="video/mp4">
+                   poster="{{ asset('video/presslink-parcours.jpg') }}?v=2" width="1280" height="720">
+                <source src="{{ asset('video/presslink-parcours.mp4') }}?v=2" type="video/mp4">
                 Votre navigateur ne lit pas cette vidéo.
             </video>
         </div>

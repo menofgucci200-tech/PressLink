@@ -8,8 +8,8 @@
         <h1 class="font-display text-2xl font-bold mb-1">Liste des utilisateurs</h1>
         <p class="text-sm text-(--color-text-muted)">
             Tous les comptes de PressLink. Une réinitialisation remplace le mot de passe par
-            <span class="font-mono font-semibold text-(--color-text-secondary)">{{ $defaultPassword }}</span> ;
-            l'utilisateur est invité à le changer depuis son profil.
+            <span class="font-mono font-semibold text-(--color-text-secondary)">{{ $defaultPassword }}</span> :
+            après la réinitialisation, l'utilisateur doit changer son mot de passe pour sécuriser son compte.
         </p>
     </div>
 
@@ -116,7 +116,7 @@
                                             wire:click="{{ $isCustomers ? 'resetCustomerPassword' : 'resetUserPassword' }}({{ $account->id }})"
                                             wire:loading.attr="disabled" wire:target="{{ $isCustomers ? 'resetCustomerPassword' : 'resetUserPassword' }}({{ $account->id }})"
                                             data-confirm-title="Réinitialiser le mot de passe" data-confirm-label="Réinitialiser" data-confirm-tone="warning"
-                                            wire:confirm="Le mot de passe de {{ $name }} sera remplacé par {{ $defaultPassword }} et ses sessions ouvertes seront fermées. {{ $isCustomers ? 'Il devra en choisir un nouveau depuis son profil dans l\'application.' : 'Il devra en choisir un nouveau depuis « Mon compte ».' }}"
+                                            wire:confirm="Le mot de passe de {{ $name }} sera réinitialisé à {{ $defaultPassword }} et ses sessions ouvertes seront fermées. Après la réinitialisation, il doit changer son mot de passe pour sécuriser son compte."
                                             class="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-(--color-border) text-xs font-semibold hover:border-(--color-primary) hover:text-(--color-primary) disabled:opacity-60">
                                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path><path d="M3 3v5h5"></path></svg>
                                         Réinitialiser le mot de passe

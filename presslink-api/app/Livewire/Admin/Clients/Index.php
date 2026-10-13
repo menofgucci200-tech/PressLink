@@ -191,7 +191,7 @@ class Index extends Component
         $customer = Customer::findOrFail($this->selectedCustomerId);
         (new ResetPasswordToDefault)->handle($customer);
 
-        $this->toast('Mot de passe réinitialisé à '.ResetPasswordToDefault::DEFAULT_PASSWORD.'. Le client devra le changer depuis son profil dans l\'application.');
+        $this->toast('Mot de passe de '.($customer->fullName() ?: $customer->phone).' réinitialisé à '.ResetPasswordToDefault::DEFAULT_PASSWORD.'. Il doit maintenant le changer pour sécuriser son compte.');
     }
 
     /**

@@ -247,7 +247,7 @@
                     @else
                         <div class="flex flex-wrap gap-2">
                             <button type="button" wire:click="editCustomer" class="h-9 px-3.5 rounded-lg border border-(--color-border) text-sm font-medium hover:border-(--color-primary) hover:text-(--color-primary)">Modifier</button>
-                            <button type="button" wire:click="resetPassword" data-confirm-title="Réinitialiser le mot de passe" data-confirm-label="Réinitialiser" data-confirm-tone="warning" wire:confirm="Le mot de passe de ce client sera remplacé par {{ \App\Actions\Auth\ResetPasswordToDefault::DEFAULT_PASSWORD }} et il sera déconnecté de l'application. Il devra en choisir un nouveau depuis son profil."
+                            <button type="button" wire:click="resetPassword" data-confirm-title="Réinitialiser le mot de passe" data-confirm-label="Réinitialiser" data-confirm-tone="warning" wire:confirm="Le mot de passe de ce client sera réinitialisé à {{ \App\Actions\Auth\ResetPasswordToDefault::DEFAULT_PASSWORD }} et il sera déconnecté de l'application. Après la réinitialisation, il doit changer son mot de passe pour sécuriser son compte."
                                     class="h-9 px-3.5 rounded-lg border border-(--color-border) text-sm font-medium hover:border-(--color-primary) hover:text-(--color-primary)">Réinitialiser le mot de passe</button>
                             <button type="button" wire:click="toggleActive"
                                     data-confirm-title="{{ $selectedCustomer->is_active ? 'Désactiver le compte' : 'Réactiver le compte' }}" data-confirm-label="{{ $selectedCustomer->is_active ? 'Désactiver' : 'Réactiver' }}" data-confirm-tone="{{ $selectedCustomer->is_active ? 'warning' : 'primary' }}"

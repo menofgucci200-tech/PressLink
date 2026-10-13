@@ -19,7 +19,6 @@ import '../../orders/presentation/orders_controller.dart';
 import '../../pressings/presentation/join_pressing_screen.dart';
 import '../../pressings/presentation/pressing_detail_screen.dart';
 import '../../pressings/presentation/pressings_controller.dart';
-import '../../profile/presentation/password_reminder_banner.dart';
 
 /// Écran Accueil Client — cf. Wireframes & Layouts §3, UI haute fidélité §2.
 class HomeScreen extends ConsumerWidget {
@@ -54,7 +53,6 @@ class HomeScreen extends ConsumerWidget {
               AppSpacing.xl,
             ),
             children: [
-              const PasswordReminderBanner(),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -203,7 +203,6 @@
                 </header>
 
                 <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" @scroll="scrolled = $event.target.scrollTop > 4">
-                    <x-password-reminder />
                     {{ $slot }}
                 </main>
             </div>

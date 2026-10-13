@@ -150,12 +150,6 @@ class AuthController extends StateNotifier<AuthState> {
         currentPassword: currentPassword,
         password: password,
       );
-      final customer = state.customer;
-      if (customer != null && customer.mustChangePassword) {
-        state = state.copyWith(
-          customer: customer.copyWith(mustChangePassword: false),
-        );
-      }
       return true;
     } catch (e) {
       state = state.copyWith(error: AuthRepository.errorMessage(e));

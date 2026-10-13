@@ -144,14 +144,14 @@ class PasswordResetToDefaultTest extends TestCase
         $this->assertTrue(Hash::check('123456', $customer->refresh()->password));
     }
 
-    public function test_reminder_is_shown_until_the_staff_member_chooses_a_new_password(): void
+    public function test_no_banner_is_shown_and_changing_the_password_clears_the_flag(): void
     {
         $pressing = Pressing::factory()->create();
         $member = $this->staff($pressing, PressingRole::Admin);
         (new ResetPasswordToDefault)->handle($member);
         $this->actingAs($member->refresh());
 
-        $this->get(route('dashboard'))->assertOk()->assertSee('Votre mot de passe a été réinitialisé');
+        $this->get(route('dashboard'))->assertOk()->assertDontSee('Votre mot de passe a été réinitialisé');
 
         Livewire::test(AccountSettings::class)
             ->set('currentPassword', '123456')
@@ -159,10 +159,19 @@ class PasswordResetToDefaultTest extends TestCase
             ->set('newPasswordConfirmation', 'nouveau-secret')
             ->call('updatePassword')
             ->assertHasNoErrors()
-            ->assertDispatched('password-changed');
+            ->assertDispatched('toast');
 
         $this->assertFalse($member->refresh()->must_change_password);
-        $this->get(route('dashboard'))->assertOk()->assertDontSee('Votre mot de passe a été réinitialisé');
+    }
+
+    public function test_the_reset_confirmation_tells_to_change_the_password_afterwards(): void
+    {
+        $pressing = Pressing::factory()->create();
+        $this->staff($pressing, PressingRole::Employee);
+        $this->actingAs($this->superAdmin());
+
+        Livewire::test(AdminUsersIndex::class)
+            ->assertSee('Après la réinitialisation, il doit changer son mot de passe pour sécuriser son compte.');
     }
 
     public function test_super_admin_has_their_own_account_page_in_the_console(): void

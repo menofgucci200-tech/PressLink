@@ -64,7 +64,7 @@ class Index extends Component
 
         (new ResetPasswordToDefault)->handle($user);
 
-        $this->toast("Le mot de passe de {$user->name} est maintenant ".ResetPasswordToDefault::DEFAULT_PASSWORD.'. Il devra le changer depuis « Mon compte ».');
+        $this->toast("Mot de passe de {$user->name} réinitialisé à ".ResetPasswordToDefault::DEFAULT_PASSWORD.'. Il doit maintenant le changer pour sécuriser son compte.');
     }
 
     public function resetCustomerPassword(int $customerId): void
@@ -75,7 +75,7 @@ class Index extends Component
         (new ResetPasswordToDefault)->handle($customer);
 
         $name = $customer->fullName() ?: $customer->phone;
-        $this->toast("Le mot de passe de {$name} est maintenant ".ResetPasswordToDefault::DEFAULT_PASSWORD.'. Le client devra le changer depuis son profil dans l\'application.');
+        $this->toast("Mot de passe de {$name} réinitialisé à ".ResetPasswordToDefault::DEFAULT_PASSWORD.'. Il doit maintenant le changer pour sécuriser son compte.');
     }
 
     private function currentUser(): User

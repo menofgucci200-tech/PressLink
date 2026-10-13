@@ -93,7 +93,7 @@ class Index extends Component
 
     /**
      * Mot de passe oublié par un membre : il repasse à la valeur par défaut
-     * et le membre est invité à le changer depuis « Mon compte ».
+     * et le membre doit ensuite le changer pour sécuriser son compte.
      */
     public function resetMemberPassword(int $memberId): void
     {
@@ -105,7 +105,7 @@ class Index extends Component
 
         (new ResetPasswordToDefault)->handle($member);
 
-        $this->toast("Le mot de passe de {$member->name} est maintenant ".ResetPasswordToDefault::DEFAULT_PASSWORD.'. Il devra le changer depuis « Mon compte ».');
+        $this->toast("Mot de passe de {$member->name} réinitialisé à ".ResetPasswordToDefault::DEFAULT_PASSWORD.'. Il doit maintenant le changer pour sécuriser son compte.');
     }
 
     public function toggleActive(int $memberId): void

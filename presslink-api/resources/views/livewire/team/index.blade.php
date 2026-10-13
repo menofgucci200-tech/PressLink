@@ -102,7 +102,7 @@
                                         <button wire:click="resetMemberPassword({{ $member->id }})"
                                                 wire:loading.attr="disabled" wire:target="resetMemberPassword({{ $member->id }})"
                                                 data-confirm-title="Réinitialiser le mot de passe" data-confirm-label="Réinitialiser" data-confirm-tone="warning"
-                                                wire:confirm="Le mot de passe de {{ $member->name }} sera remplacé par {{ \App\Actions\Auth\ResetPasswordToDefault::DEFAULT_PASSWORD }} et ses sessions ouvertes seront fermées. Il devra en choisir un nouveau depuis « Mon compte »."
+                                                wire:confirm="Le mot de passe de {{ $member->name }} sera réinitialisé à {{ \App\Actions\Auth\ResetPasswordToDefault::DEFAULT_PASSWORD }} et ses sessions ouvertes seront fermées. Après la réinitialisation, il doit changer son mot de passe pour sécuriser son compte."
                                                 class="mr-4 text-xs font-medium text-(--color-text-secondary) hover:text-(--color-primary) disabled:opacity-60">
                                             Réinitialiser le mot de passe
                                         </button>

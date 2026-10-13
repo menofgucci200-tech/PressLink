@@ -33,7 +33,7 @@ class Show extends Component
 
         (new ResetPasswordToDefault)->handle($this->customer);
 
-        $this->toast('Mot de passe réinitialisé à '.ResetPasswordToDefault::DEFAULT_PASSWORD.'. Le client devra le changer depuis son profil dans l\'application.');
+        $this->toast('Mot de passe de '.$this->customer->fullName().' réinitialisé à '.ResetPasswordToDefault::DEFAULT_PASSWORD.'. Il doit maintenant le changer pour sécuriser son compte.');
     }
 
     #[Layout('layouts.dashboard', ['active' => 'clients', 'title' => 'Client'])]

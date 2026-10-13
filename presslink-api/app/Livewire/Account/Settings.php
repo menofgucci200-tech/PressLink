@@ -58,7 +58,6 @@ class Settings extends Component
 
         $this->reset(['currentPassword', 'newPassword', 'newPasswordConfirmation']);
         $this->toast('Mot de passe mis à jour.');
-        $this->dispatch('password-changed');
     }
 
     public function render()

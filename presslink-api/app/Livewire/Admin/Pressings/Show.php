@@ -141,7 +141,7 @@ class Show extends Component
 
         (new ResetPasswordToDefault)->handle($member);
 
-        $this->toast("Le mot de passe de {$member->name} est maintenant ".ResetPasswordToDefault::DEFAULT_PASSWORD.'. Il devra le changer depuis « Mon compte ».');
+        $this->toast("Mot de passe de {$member->name} réinitialisé à ".ResetPasswordToDefault::DEFAULT_PASSWORD.'. Il doit maintenant le changer pour sécuriser son compte.');
     }
 
     public function saveSubscription(): void

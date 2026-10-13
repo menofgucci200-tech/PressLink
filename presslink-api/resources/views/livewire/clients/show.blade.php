@@ -16,7 +16,7 @@
             <div class="flex-1"></div>
             <button type="button" wire:click="resetPassword" wire:loading.attr="disabled" wire:target="resetPassword"
                     data-confirm-title="Réinitialiser le mot de passe" data-confirm-label="Réinitialiser" data-confirm-tone="warning"
-                    wire:confirm="Le mot de passe de {{ $customer->fullName() }} sera remplacé par {{ \App\Actions\Auth\ResetPasswordToDefault::DEFAULT_PASSWORD }} et le client sera déconnecté de l'application. Il devra en choisir un nouveau depuis son profil."
+                    wire:confirm="Le mot de passe de {{ $customer->fullName() }} sera réinitialisé à {{ \App\Actions\Auth\ResetPasswordToDefault::DEFAULT_PASSWORD }} et le client sera déconnecté de l'application. Après la réinitialisation, il doit changer son mot de passe pour sécuriser son compte."
                     class="h-9 px-3.5 rounded-lg border border-(--color-border) text-sm font-medium hover:border-(--color-primary) hover:text-(--color-primary) disabled:opacity-60">
                 Réinitialiser le mot de passe
             </button>

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Actions\Demo\ResetDemoPressing;
 use App\Enums\PressingRole;
 use App\Enums\PressingStatus;
 use Database\Factories\PressingFactory;
@@ -57,6 +58,16 @@ class Pressing extends Model
         static::creating(function (self $pressing): void {
             $pressing->code ??= self::generateUniqueCode();
         });
+    }
+
+    /**
+     * Exclut le pressing de démonstration (statistiques de la console).
+     *
+     * @param  Builder<Pressing>  $query
+     */
+    public function scopeWithoutDemo(Builder $query): void
+    {
+        $query->where('code', '!=', ResetDemoPressing::PRESSING_CODE);
     }
 
     public static function generateUniqueCode(): string

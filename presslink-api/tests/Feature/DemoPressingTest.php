@@ -76,4 +76,17 @@ class DemoPressingTest extends TestCase
 
         $this->assertModelExists($other);
     }
+
+    public function test_demo_pressing_is_excluded_from_console_statistics(): void
+    {
+        $this->actingAs(User::factory()->create(['is_super_admin' => true]));
+        $real = Pressing::factory()->create(['name' => 'Pressing Réel']);
+        (new ResetDemoPressing)->handle();
+
+        Livewire::test(Dashboard::class)
+            ->assertViewHas('activePressings', 1)
+            ->assertViewHas('totalClients', 0)
+            ->assertViewHas('totalOrders', 0)
+            ->assertViewHas('recentPressings', fn ($pressings) => $pressings->pluck('code')->all() === [$real->code]);
+    }
 }

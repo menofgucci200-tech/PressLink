@@ -59,7 +59,8 @@ class Dashboard extends Component
     #[Layout('layouts.admin', ['active' => 'dashboard', 'title' => 'Vue globale'])]
     public function render()
     {
-        $pressingsQuery = Pressing::query();
+        // Le pressing de démo (DM-0001) n'entre jamais dans les statistiques.
+        $pressingsQuery = Pressing::query()->withoutDemo();
 
         if ($this->city !== '') {
             $pressingsQuery->where('city', $this->city);
@@ -85,8 +86,8 @@ class Dashboard extends Component
             'totalClients' => Customer::whereHas('pressings', fn ($q) => $q->whereIn('pressings.id', $pressingIds))->count(),
             'totalOrders' => (clone $ordersQuery)->count(),
             'recentPressings' => (clone $pressingsQuery)->latest()->take(5)->get(),
-            'cities' => Pressing::whereNotNull('city')->distinct()->orderBy('city')->pluck('city'),
-            'administrators' => User::whereHas('pressings', fn ($q) => $q->where('pressing_users.role', 'admin')
+            'cities' => Pressing::withoutDemo()->whereNotNull('city')->distinct()->orderBy('city')->pluck('city'),
+            'administrators' => User::whereHas('pressings', fn ($q) => $q->withoutDemo()->where('pressing_users.role', 'admin')
                 ->where('pressing_users.is_active', true))->orderBy('name')->get(),
         ]);
     }

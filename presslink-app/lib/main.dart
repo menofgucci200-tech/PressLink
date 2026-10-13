@@ -1,10 +1,10 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'core/config/app_config.dart';
 import 'core/notifications/push_notification_service.dart';
+import 'core/pwa/web_splash.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_mode_controller.dart';
 import 'core/widgets/main_shell.dart';
@@ -67,35 +67,13 @@ class AuthGate extends ConsumerWidget {
       }
     });
 
+    // Transitions courtes et légères (simple fondu) : l'ouverture doit
+    // paraître instantanée, y compris sur les téléphones d'entrée de gamme.
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 560),
-      reverseDuration: const Duration(milliseconds: 420),
-      switchInCurve: Curves.easeOutCubic,
-      switchOutCurve: Curves.easeInCubic,
-      transitionBuilder: (child, animation) {
-        // Sortie de l'écran de démarrage : le logo s'efface en grandissant
-        // légèrement, comme s'il s'ouvrait sur l'application.
-        if (child.key == const ValueKey('splash')) {
-          return FadeTransition(
-            opacity: animation,
-            child: ScaleTransition(
-              scale: Tween<double>(begin: 1.08, end: 1).animate(animation),
-              child: child,
-            ),
-          );
-        }
-        // Entrée de l'écran suivant : fondu + léger glissement vers le haut.
-        return FadeTransition(
-          opacity: animation,
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 0.025),
-              end: Offset.zero,
-            ).animate(animation),
-            child: child,
-          ),
-        );
-      },
+      duration: const Duration(milliseconds: 220),
+      reverseDuration: const Duration(milliseconds: 160),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
       child: switch (auth.status) {
         AuthStatus.checking => const _Splash(key: ValueKey('splash')),
         AuthStatus.loggedOut => const PhoneScreen(key: ValueKey('phone')),
@@ -105,10 +83,10 @@ class AuthGate extends ConsumerWidget {
   }
 }
 
-/// Écran de démarrage Flutter : reproduit à l'identique celui de
-/// web/index.html (même logo, même taille, même position, même halo et barre
-/// de chargement) pour que le relais HTML → Flutter soit invisible. Sur
-/// l'APK (pas de splash HTML), le logo fait lui-même son entrée animée.
+/// Écran de démarrage Flutter : même logo, même taille et même position que
+/// celui de web/index.html, sans animation d'entrée. Dès que le logo est
+/// dessiné, le calque HTML est retiré : le relais est invisible. La barre de
+/// chargement n'apparaît que si la vérification de session traîne.
 class _Splash extends StatefulWidget {
   const _Splash({super.key});
 
@@ -116,88 +94,56 @@ class _Splash extends StatefulWidget {
   State<_Splash> createState() => _SplashState();
 }
 
-class _SplashState extends State<_Splash> with TickerProviderStateMixin {
-  late final _intro = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 800),
-    value: kIsWeb ? 1 : 0,
-  )..forward();
-  late final _breath = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1200),
-  )..repeat(reverse: true);
+class _SplashState extends State<_Splash> with SingleTickerProviderStateMixin {
   late final _bar = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1100),
+    duration: const Duration(milliseconds: 1000),
   )..repeat();
+  bool _showBar = false;
+  bool _logoShown = false;
+
+  @override
+  void initState() {
+    super.initState();
+    Future<void>.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) setState(() => _showBar = true);
+    });
+  }
 
   @override
   void dispose() {
-    _intro.dispose();
-    _breath.dispose();
     _bar.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final intro = CurvedAnimation(
-      parent: _intro,
-      curve: const Cubic(0.2, 0.8, 0.2, 1),
-    );
-    final breath = CurvedAnimation(parent: _breath, curve: Curves.easeInOut);
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            OverflowBox(
-              maxWidth: 420,
-              maxHeight: 420,
-              child: FadeTransition(
-                opacity: Tween<double>(begin: 0.7, end: 1).animate(breath),
-                child: ScaleTransition(
-                  scale: Tween<double>(begin: 0.9, end: 1.05).animate(breath),
-                  child: Container(
-                    width: 420,
-                    height: 420,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [Color(0x1C2563EB), Color(0x002563EB)],
-                        stops: [0, 0.65],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+            Image.asset(
+              'assets/branding/logo_wordmark.png',
+              width: 220,
+              filterQuality: FilterQuality.medium,
+              gaplessPlayback: true,
+              frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                if (frame != null && !_logoShown) {
+                  _logoShown = true;
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => removeWebSplash(),
+                  );
+                }
+                return child;
+              },
             ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                FadeTransition(
-                  opacity: intro,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, 0.18),
-                      end: Offset.zero,
-                    ).animate(intro),
-                    child: ScaleTransition(
-                      scale: Tween<double>(begin: 0.94, end: 1).animate(intro),
-                      child: Image.asset(
-                        'assets/branding/logo_wordmark.png',
-                        width: 220,
-                        gaplessPlayback: true,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 28),
-                _LoadingBar(animation: _bar),
-              ],
+            const SizedBox(height: 28),
+            AnimatedOpacity(
+              opacity: _showBar ? 1 : 0,
+              duration: const Duration(milliseconds: 200),
+              child: _LoadingBar(animation: _bar),
             ),
           ],
         ),

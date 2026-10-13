@@ -10,8 +10,8 @@ class StaggeredFadeIn extends StatefulWidget {
     super.key,
     required this.index,
     required this.child,
-    this.stepMs = 30,
-    this.durationMs = 280,
+    this.stepMs = 20,
+    this.durationMs = 220,
     this.slide = 0.04,
     this.initialDelayMs = 0,
   });

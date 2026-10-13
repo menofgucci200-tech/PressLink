@@ -215,10 +215,9 @@ class _Entrance extends StatelessWidget {
   Widget build(BuildContext context) {
     return StaggeredFadeIn(
       index: index,
-      initialDelayMs: 140,
-      stepMs: 65,
-      durationMs: 460,
-      slide: 0.25,
+      stepMs: 25,
+      durationMs: 220,
+      slide: 0.06,
       child: child,
     );
   }

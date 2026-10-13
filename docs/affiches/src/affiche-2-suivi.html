@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Affiche 2 — Suivi en temps réel</title>
+<link rel="stylesheet" href="style.css">
+<style>
+    .poster { background: radial-gradient(120% 70% at 50% 100%, #DCE7FD 0, var(--primary-tint) 55%, #fff 100%); }
+    .top { position: absolute; left: 20mm; right: 20mm; top: 20mm; }
+    .top .logo { height: 13mm; }
+    .top h1 { margin-top: 12mm; font-size: 25mm; }
+    .top p { margin-top: 7mm; font-size: 8mm; line-height: 1.3; color: var(--ink-2); font-weight: 500; max-width: 235mm; }
+    .top p b { color: var(--ink); }
+
+    .photo { left: 0; bottom: 0; width: 297mm; }
+    /* écran : 291,13 → 482,430 sur 736 × 648 */
+    .photo .screen { left: calc(288 / 736 * 100%); top: calc(9 / 648 * 100%); width: calc(198 / 736 * 100%); height: calc(426 / 648 * 100%); border-radius: 7mm; }
+
+    .order-head { display: flex; justify-content: space-between; align-items: center; }
+    .order-head .n { font-weight: 800; font-size: 1em; }
+    .order-head .p { font-size: 0.68em; color: var(--muted); margin-top: 0.15em; }
+    .timeline { margin: 0 0.9em 0.7em; background: #fff; border: 0.06em solid var(--border); border-radius: 0.9em; padding: 0.9em 0.9em 0.2em; }
+    .timeline h4 { font-size: 0.72em; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 0.7em; }
+    .step { display: flex; gap: 0.7em; position: relative; padding-bottom: 0.95em; }
+    .step::before { content: ""; position: absolute; left: 0.6em; top: 1.3em; bottom: 0.1em; width: 0.12em; background: var(--border); }
+    .step:last-child::before { display: none; }
+    .step.done::before { background: var(--primary); }
+    .dot { flex: none; width: 1.3em; height: 1.3em; border-radius: 50%; border: 0.14em solid var(--border); background: #fff; display: grid; place-items: center; }
+    .step.done .dot { background: var(--primary); border-color: var(--primary); }
+    .step.now .dot { border-color: var(--secondary); box-shadow: 0 0 0 0.3em rgba(6,182,212,.18); }
+    .step.now .dot::after { content: ""; width: 0.5em; height: 0.5em; border-radius: 50%; background: var(--secondary); }
+    .dot svg { width: 0.8em; height: 0.8em; }
+    .step .l { font-size: 0.8em; font-weight: 700; line-height: 1.25; }
+    .step .d { font-size: 0.64em; color: var(--muted); font-weight: 500; }
+    .step.todo .l { color: var(--muted); }
+    .items { font-size: 0.72em; }
+    .items .row { display: flex; justify-content: space-between; padding: 0.28em 0; }
+    .items .row + .row { border-top: 0.06em solid var(--border); }
+    .items .tot { font-weight: 800; }
+
+    .qr-zone { position: absolute; left: 16mm; top: 172mm; width: 62mm; text-align: center; }
+    .qr-zone .qr-card { padding: 4.5mm; border-radius: 6mm; }
+    .qr-zone .url { margin-top: 4mm; font-weight: 800; font-size: 5.6mm; color: var(--ink); }
+    .qr-zone .scan { font-weight: 600; font-size: 4.6mm; color: var(--primary); }
+
+    .chips { position: absolute; right: 14mm; top: 172mm; display: flex; flex-direction: column; gap: 4mm; align-items: flex-end; }
+    .chip { display: flex; align-items: center; gap: 3mm; background: #fff; border-radius: 99mm; padding: 3mm 6mm 3mm 3mm; font-weight: 700; font-size: 5.2mm; box-shadow: 0 3mm 9mm rgba(15,23,42,.12); }
+    .chip i { width: 8mm; height: 8mm; border-radius: 50%; display: grid; place-items: center; }
+    .chip i svg { width: 4.6mm; height: 4.6mm; }
+</style>
+</head>
+<body>
+<div class="poster">
+    <div class="top">
+        <img class="logo" src="wordmark.png" alt="PressLink">
+        <h1 class="display">Fini les allers-retours<br><span class="blue">au pressing.</span></h1>
+        <p>Suivez votre commande en temps réel depuis votre téléphone : <b>reçue, en traitement, prête.</b></p>
+    </div>
+
+    <div class="qr-zone">
+        <div class="qr-card"><img src="qr.png" alt="QR code presslink.org/app"></div>
+        <div class="url">presslink.org/app</div>
+        <div class="scan">Scannez pour commencer</div>
+    </div>
+
+    <div class="chips">
+        <div class="chip"><i style="background:var(--info-tint)"><svg viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Reçue</div>
+        <div class="chip"><i style="background:rgba(6,182,212,.16)"><svg viewBox="0 0 24 24" fill="none" stroke="#0E7490" stroke-width="3" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7"/></svg></i>En traitement</div>
+        <div class="chip"><i style="background:var(--success)"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/></svg></i>Prête !</div>
+    </div>
+
+    <div class="photo">
+        <div class="screen">
+            <div class="ui">
+                <div class="statusbar"><span>9:41</span><span class="icons"><i style="width:1em;height:.55em"></i><i style="width:1.3em;height:.6em;border-radius:.2em"></i></span></div>
+                <div class="appbar"><div class="back">‹</div><div><div class="t">Suivi de commande</div></div></div>
+                <div class="card">
+                    <div class="order-head"><div><div class="n">PL-2041</div><div class="p">Pressing du Plateau</div></div><span class="badge work">En traitement</span></div>
+                </div>
+                <div class="timeline">
+                    <h4>Avancement</h4>
+                    <div class="step done"><div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><div><div class="l">Reçue</div><div class="d">Lun. 09:12</div></div></div>
+                    <div class="step now"><div class="dot"></div><div><div class="l">En traitement</div><div class="d">Depuis 10:30</div></div></div>
+                    <div class="step todo"><div class="dot"></div><div><div class="l">Prête</div><div class="d">Vous serez notifié</div></div></div>
+                    <div class="step todo"><div class="dot"></div><div><div class="l">Récupérée</div></div></div>
+                </div>
+                <div class="card items">
+                    <div class="row"><span>Chemise × 3</span><span>3 000</span></div>
+                    <div class="row"><span>Pantalon × 2</span><span>2 000</span></div>
+                    <div class="row"><span>Boubou × 1</span><span>1 500</span></div>
+                    <div class="row tot"><span>Total</span><span>6 500 FCFA</span></div>
+                </div>
+            </div>
+        </div>
+        <img src="hands.png" alt="">
+    </div>
+</div>
+</body>
+</html>

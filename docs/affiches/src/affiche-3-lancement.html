@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Affiche 3 — Lancement</title>
+<link rel="stylesheet" href="style.css">
+<style>
+    .poster { background: radial-gradient(90% 60% at 85% 10%, #3B82F6 0, var(--primary) 45%, var(--primary-dark) 100%); color: #fff; }
+    .bigp { position: absolute; right: -60mm; top: -30mm; width: 260mm; opacity: .08; filter: brightness(0) invert(1); }
+    .head { position: absolute; left: 22mm; right: 22mm; top: 22mm; display: flex; justify-content: space-between; align-items: center; }
+    .head .logo { height: 14mm; }
+    .kicker { background: #fff; color: var(--primary); font-weight: 800; font-size: 5.4mm; padding: 3mm 6mm; border-radius: 99mm; letter-spacing: .02em; }
+    h1 { position: absolute; left: 22mm; right: 22mm; top: 66mm; font-size: 28.5mm; }
+    h1 span { color: #BFDBFE; }
+    .lead { position: absolute; left: 22mm; right: 40mm; top: 132mm; font-size: 8mm; line-height: 1.3; font-weight: 500; color: #DBEAFE; }
+
+    .main { position: absolute; left: 22mm; right: 22mm; top: 170mm; display: grid; grid-template-columns: 140mm 1fr; gap: 14mm; align-items: center; }
+    .qr-card { padding: 7mm; border-radius: 10mm; box-shadow: 0 8mm 24mm rgba(15,23,42,.35); }
+    .steps { display: flex; flex-direction: column; gap: 9mm; }
+    .st { display: flex; gap: 5mm; align-items: flex-start; }
+    .st .n { flex: none; width: 13mm; height: 13mm; border-radius: 50%; background: #fff; color: var(--primary); font-weight: 800; font-size: 7mm; display: grid; place-items: center; }
+    .st b { display: block; font-size: 7.4mm; font-weight: 800; line-height: 1.15; letter-spacing: -.01em; }
+    .st span { display: block; margin-top: 1.5mm; font-size: 5.2mm; color: #DBEAFE; line-height: 1.3; font-weight: 500; }
+
+    .scan { position: absolute; left: 22mm; width: 140mm; top: 322mm; text-align: center; font-weight: 800; font-size: 8.5mm; }
+    .scan small { display: block; font-size: 6.6mm; color: #BFDBFE; font-weight: 700; margin-top: 1mm; }
+
+    .footer { position: absolute; left: 0; right: 0; bottom: 0; height: 52mm; background: #fff; color: var(--ink);
+        display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; padding: 0 22mm; }
+    .f { display: flex; gap: 4mm; align-items: center; font-weight: 700; font-size: 5.6mm; line-height: 1.2; }
+    .f i { flex: none; width: 14mm; height: 14mm; border-radius: 4mm; background: var(--primary-tint); display: grid; place-items: center; }
+    .f i svg { width: 7.5mm; height: 7.5mm; }
+    .f small { display: block; color: var(--ink-2); font-weight: 500; font-size: 4.4mm; }
+</style>
+</head>
+<body>
+<div class="poster">
+    <img class="bigp" src="icon.png" alt="">
+    <div class="head">
+        <img class="logo" src="wordmark_white.png" alt="PressLink">
+        <span class="kicker">NOUVEAU · CÔTE D'IVOIRE</span>
+    </div>
+
+    <h1 class="display">Votre pressing<br><span>dans votre poche.</span></h1>
+    <p class="lead">Suivez vos vêtements en temps réel et soyez prévenu dès qu'ils sont prêts.</p>
+
+    <div class="main">
+        <div class="qr-card"><img src="qr.png" alt="QR code presslink.org/app"></div>
+        <div class="steps">
+            <div class="st"><div class="n">1</div><div><b>Scannez le QR code</b><span>ou ouvrez presslink.org/app</span></div></div>
+            <div class="st"><div class="n">2</div><div><b>Inscrivez-vous</b><span>avec le code de votre pressing</span></div></div>
+            <div class="st"><div class="n">3</div><div><b>Suivez vos commandes</b><span>et recevez une notification quand c'est prêt</span></div></div>
+        </div>
+    </div>
+    <div class="scan">presslink.org/app<small>Scannez pour ouvrir l'application</small></div>
+
+    <div class="footer">
+        <div class="f"><i><svg viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg></i><div>100 % gratuit<small>pour les clients</small></div></div>
+        <div class="f"><i><svg viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M11 18h2"/></svg></i><div>Sans store<small>s'installe depuis le navigateur</small></div></div>
+        <div class="f"><i><svg viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></i><div>Notifications<small>dès que c'est prêt</small></div></div>
+    </div>
+</div>
+</body>
+</html>

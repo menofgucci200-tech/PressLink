@@ -4,6 +4,7 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OrderExportController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SitePageController;
+use App\Http\Middleware\EnsureUserHasPressing;
 use App\Livewire\Account\Settings as AccountSettings;
 use App\Livewire\Admin\Administrators\Index as AdminAdministratorsIndex;
 use App\Livewire\Admin\Clients\Index as AdminClientsIndex;
@@ -70,27 +71,29 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('dashboard');
     })->name('pressings.switch');
 
-    Route::get('/commandes', OrdersIndex::class)->name('orders.index');
-    Route::get('/commandes/nouvelle', OrdersCreate::class)->name('orders.create');
-    Route::get('/commandes/export/{format}', OrderExportController::class)
-        ->name('orders.export')
-        ->where('format', 'csv|xlsx|pdf');
-    Route::get('/commandes/{order}', OrdersShow::class)->name('orders.show');
+    Route::middleware(EnsureUserHasPressing::class)->group(function () {
+        Route::get('/commandes', OrdersIndex::class)->name('orders.index');
+        Route::get('/commandes/nouvelle', OrdersCreate::class)->name('orders.create');
+        Route::get('/commandes/export/{format}', OrderExportController::class)
+            ->name('orders.export')
+            ->where('format', 'csv|xlsx|pdf');
+        Route::get('/commandes/{order}', OrdersShow::class)->name('orders.show');
 
-    Route::get('/clients', ClientsIndex::class)->name('clients.index');
-    Route::get('/clients/{customer}', ClientsShow::class)->name('clients.show');
+        Route::get('/clients', ClientsIndex::class)->name('clients.index');
+        Route::get('/clients/{customer}', ClientsShow::class)->name('clients.show');
 
-    Route::get('/signalements', IssuesIndex::class)->name('issues.index');
+        Route::get('/signalements', IssuesIndex::class)->name('issues.index');
 
-    Route::get('/tarifs', ServicesIndex::class)->name('services.index');
-    Route::get('/tarifs/{service}/variantes', ServicesVariants::class)->name('services.variants');
+        Route::get('/tarifs', ServicesIndex::class)->name('services.index');
+        Route::get('/tarifs/{service}/variantes', ServicesVariants::class)->name('services.variants');
+
+        Route::get('/equipe', TeamIndex::class)->name('team.index');
+        Route::get('/parametres', PressingSettings::class)->name('pressing.settings');
+        Route::get('/abonnement', SubscriptionShow::class)->name('subscription.show');
+        Route::get('/support', SupportShow::class)->name('support');
+    });
 
     Route::get('/mon-compte', AccountSettings::class)->name('account.settings');
-
-    Route::get('/equipe', TeamIndex::class)->name('team.index');
-    Route::get('/parametres', PressingSettings::class)->name('pressing.settings');
-    Route::get('/abonnement', SubscriptionShow::class)->name('subscription.show');
-    Route::get('/support', SupportShow::class)->name('support');
 
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', AdminDashboard::class)->name('dashboard');

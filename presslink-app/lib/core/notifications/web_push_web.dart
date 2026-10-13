@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:js_interop';
 
 // Pont vers window.presslinkPush, défini dans web/index.html.
@@ -55,7 +56,9 @@ class WebPush {
   /// Doit être appelé depuis un geste de l'utilisateur (exigé par Safari iOS).
   static Future<String> requestPermission() async {
     try {
-      return (await _requestPermission().toDart).toDart;
+      return (await _requestPermission().toDart.timeout(
+        const Duration(seconds: 60),
+      )).toDart;
     } catch (_) {
       return permission;
     }
@@ -63,7 +66,9 @@ class WebPush {
 
   static Future<String?> subscriptionId() async {
     try {
-      final id = (await _subscriptionId().toDart).toDart;
+      final id = (await _subscriptionId().toDart.timeout(
+        const Duration(seconds: 10),
+      )).toDart;
       return id.isEmpty ? null : id;
     } catch (_) {
       return null;

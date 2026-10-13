@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,7 +39,12 @@ class PushNotificationService {
       return;
     }
 
-    if (kIsWeb) return _initWeb();
+    // PWA : jamais attendu. Si le SDK OneSignal ne répond pas (bloqueur de
+    // publicité, réseau filtré), l'app doit démarrer quand même.
+    if (kIsWeb) {
+      unawaited(_initWeb());
+      return;
+    }
 
     try {
       OneSignal.initialize(AppConfig.oneSignalAppId);
@@ -84,7 +91,9 @@ class PushNotificationService {
     if (!WebPush.isSupported) return;
 
     try {
-      await WebPush.init(AppConfig.oneSignalAppId);
+      await WebPush.init(
+        AppConfig.oneSignalAppId,
+      ).timeout(const Duration(seconds: 10));
 
       if (!_listening) {
         WebPush.onSubscriptionChange(_registerPlayerId);

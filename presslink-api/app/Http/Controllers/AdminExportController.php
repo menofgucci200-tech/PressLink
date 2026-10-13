@@ -92,11 +92,12 @@ class AdminExportController extends Controller
     {
         return [
             ClientsIndex::filteredQuery($filters),
-            ['Prénom', 'Nom', 'Téléphone', 'Email', 'Pressings', 'Commandes', 'Montant (FCFA)', 'Dernière commande', 'Inscrit le'],
+            ['Prénom', 'Nom', 'Téléphone', 'Email', 'Pressings', 'Commandes', 'Montant (FCFA)', 'Dernière commande', 'Inscrit le', 'Compte'],
             fn (Customer $c) => [
                 $c->first_name, $c->last_name, $c->phone, $c->email, $c->pressings->pluck('name')->implode(', '),
                 $c->orders_count, (int) $c->total_spent,
                 $c->last_order_at ? Carbon::parse($c->last_order_at)->format('d/m/Y') : '', $c->created_at->format('d/m/Y'),
+                $c->is_active ? 'Actif' : 'Désactivé',
             ],
         ];
     }

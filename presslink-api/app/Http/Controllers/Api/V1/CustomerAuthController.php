@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsureCustomerIsActive;
 use App\Http\Requests\Auth\CheckPhoneRequest;
 use App\Http\Requests\Auth\LoginCustomerRequest;
 use App\Http\Requests\Auth\RegisterCustomerRequest;
@@ -34,6 +35,12 @@ class CustomerAuthController extends Controller
             return response()->json([
                 'message' => 'Numéro de téléphone ou mot de passe incorrect.',
             ], 422);
+        }
+
+        // Vérifié après le mot de passe : on ne révèle pas l'état d'un
+        // compte à quelqu'un qui ne connaît pas ses identifiants.
+        if (! $customer->is_active) {
+            return response()->json(['message' => EnsureCustomerIsActive::MESSAGE], 403);
         }
 
         $customer->update(['last_login_at' => now()]);

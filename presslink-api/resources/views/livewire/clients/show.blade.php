@@ -4,7 +4,10 @@
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
         </a>
         <div>
-            <div class="font-semibold">{{ $customer->fullName() }}</div>
+            <div class="font-semibold">{{ $customer->fullName() }}
+                @unless ($customer->is_active)
+                                <span class="ml-1.5 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-(--color-error-tint) text-(--color-error)" title="Compte désactivé par PressLink : le client ne peut plus se connecter à l'application.">Compte désactivé</span>
+                            @endunless</div>
             <div class="text-xs text-(--color-text-muted) tabular-nums">{{ $customer->phone }}</div>
         </div>
     </div>

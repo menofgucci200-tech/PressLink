@@ -199,6 +199,29 @@ class Index extends Component
     }
 
     /**
+     * Désactive le compte (connexion à l'application refusée, sessions
+     * fermées, notifications coupées) ou le réactive. Ses commandes et
+     * rattachements restent intacts.
+     */
+    public function toggleActive(): void
+    {
+        abort_unless(auth()->user()->is_super_admin, 403);
+
+        $customer = Customer::findOrFail($this->selectedCustomerId);
+
+        if ($customer->is_active) {
+            DB::transaction(function () use ($customer) {
+                $customer->update(['is_active' => false, 'onesignal_player_id' => null, 'fcm_token' => null]);
+                $customer->tokens()->delete();
+            });
+            $this->flash = 'Compte désactivé : le client ne peut plus se connecter à l\'application.';
+        } else {
+            $customer->update(['is_active' => true]);
+            $this->flash = 'Compte réactivé : le client peut de nouveau se connecter.';
+        }
+    }
+
+    /**
      * Suppression définitive du compte client : ses commandes et
      * signalements partent en cascade, ses sessions et notifications sont
      * effacées.
@@ -261,6 +284,7 @@ class Index extends Component
             'active' => $query->whereHas('orders', fn ($q) => $q->where('created_at', '>=', $activeSince)),
             'inactive' => $query->whereHas('orders')->whereDoesntHave('orders', fn ($q) => $q->where('created_at', '>=', $activeSince)),
             'never' => $query->whereDoesntHave('orders'),
+            'disabled' => $query->where('is_active', false),
             default => null,
         };
 
@@ -295,6 +319,7 @@ class Index extends Component
                 'new' => Customer::where('created_at', '>=', $activeSince)->count(),
                 'active' => Customer::whereHas('orders', fn ($q) => $q->where('created_at', '>=', $activeSince))->count(),
                 'never' => Customer::whereDoesntHave('orders')->count(),
+                'disabled' => Customer::where('is_active', false)->count(),
             ],
             'pressings' => Pressing::orderBy('name')->get(['id', 'name']),
             'selectedCustomer' => $this->selectedCustomerId

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureCustomerIsActive;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
+        $middleware->alias(['customer.active' => EnsureCustomerIsActive::class]);
         // Deux portails : la console super admin a sa propre page de connexion.
         $middleware->redirectGuestsTo(
             fn (Request $request) => $request->is('admin', 'admin/*') ? route('admin.login') : route('login'),

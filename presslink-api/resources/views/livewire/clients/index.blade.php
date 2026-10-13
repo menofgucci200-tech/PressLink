@@ -68,7 +68,10 @@
                 <tbody>
                     @foreach ($clients as $client)
                         <tr class="border-t border-(--color-border) hover:bg-(--color-bg) cursor-pointer" onclick="window.location='{{ route('clients.show', $client) }}'">
-                            <td class="px-5 py-3.5 font-medium">{{ $client->fullName() }}</td>
+                            <td class="px-5 py-3.5 font-medium">{{ $client->fullName() }}
+                            @unless ($client->is_active)
+                                <span class="ml-1.5 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-(--color-error-tint) text-(--color-error)" title="Compte désactivé par PressLink : le client ne peut plus se connecter à l'application.">Compte désactivé</span>
+                            @endunless</td>
                             <td class="px-5 py-3.5 text-(--color-text-secondary) tabular-nums">{{ $client->phone }}</td>
                             <td class="px-5 py-3.5 text-right tabular-nums">{{ $client->orders_count }}</td>
                         </tr>

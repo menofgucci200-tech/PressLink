@@ -66,6 +66,7 @@
             <option value="active">Actifs ({{ $days }} j)</option>
             <option value="inactive">Inactifs depuis {{ $days }} j</option>
             <option value="never">Jamais commandé</option>
+            <option value="disabled">Comptes désactivés{{ $summary['disabled'] ? ' ('.$summary['disabled'].')' : '' }}</option>
         </select>
         <select wire:model.live="sort" class="{{ $field }}" aria-label="Trier">
             <option value="recent">Inscription récente</option>
@@ -102,7 +103,12 @@
                         <tr wire:key="customer-{{ $customer->id }}" wire:click="showCustomer({{ $customer->id }})"
                             class="border-t border-(--color-border) cursor-pointer {{ $selectedCustomerId === $customer->id ? 'bg-(--color-primary-tint)' : 'hover:bg-(--color-bg)' }}">
                             <td class="px-5 py-3.5">
-                                <div class="font-medium">{{ $customer->fullName() ?: 'Sans nom' }}</div>
+                                <div class="font-medium">
+                                    {{ $customer->fullName() ?: 'Sans nom' }}
+                                    @unless ($customer->is_active)
+                                        <span class="ml-1.5 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-(--color-error-tint) text-(--color-error)">Désactivé</span>
+                                    @endunless
+                                </div>
                                 @if ($customer->email)
                                     <div class="text-xs text-(--color-text-muted)">{{ $customer->email }}</div>
                                 @endif
@@ -200,7 +206,12 @@
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="font-display text-lg font-bold truncate">{{ $selectedCustomer->fullName() ?: 'Sans nom' }}</div>
-                        <div class="text-xs text-(--color-text-muted)">Inscrit le {{ $selectedCustomer->created_at->format('d/m/Y') }}</div>
+                        <div class="text-xs text-(--color-text-muted)">
+                            Inscrit le {{ $selectedCustomer->created_at->format('d/m/Y') }}
+                            @unless ($selectedCustomer->is_active)
+                                · <span class="font-semibold text-(--color-error)">Compte désactivé</span>
+                            @endunless
+                        </div>
                     </div>
                     <button type="button" wire:click="closeCustomer" aria-label="Fermer"
                             class="w-8 h-8 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-primary)">
@@ -251,6 +262,11 @@
                             <button type="button" wire:click="editCustomer" class="h-9 px-3.5 rounded-lg border border-(--color-border) text-sm font-medium hover:border-(--color-primary) hover:text-(--color-primary)">Modifier</button>
                             <button type="button" wire:click="resetPassword" wire:confirm="Générer un nouveau mot de passe pour ce client ? L'ancien ne fonctionnera plus et il sera déconnecté de l'application."
                                     class="h-9 px-3.5 rounded-lg border border-(--color-border) text-sm font-medium hover:border-(--color-primary) hover:text-(--color-primary)">Réinitialiser le mot de passe</button>
+                            <button type="button" wire:click="toggleActive"
+                                    wire:confirm="{{ $selectedCustomer->is_active ? 'Désactiver ce compte ? Le client sera déconnecté et ne pourra plus se connecter à l\'application, ni recevoir de notifications. Ses commandes sont conservées.' : 'Réactiver ce compte ? Le client pourra de nouveau se connecter.' }}"
+                                    class="h-9 px-3.5 rounded-lg border text-sm font-medium {{ $selectedCustomer->is_active ? 'border-amber-200 text-(--color-warning-text) hover:bg-(--color-warning-tint)' : 'border-emerald-200 text-(--color-success-text) hover:bg-(--color-success-tint)' }}">
+                                {{ $selectedCustomer->is_active ? 'Désactiver' : 'Réactiver' }}
+                            </button>
                             <button type="button" wire:click="deleteCustomer"
                                     wire:confirm="Supprimer définitivement ce client ? Ses {{ $selectedCustomer->orders_count }} commande(s) et signalements seront aussi supprimés. Cette action est irréversible."
                                     class="h-9 px-3.5 rounded-lg border border-red-200 text-sm font-medium text-(--color-error) hover:bg-(--color-error-tint)">Supprimer</button>

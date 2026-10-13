@@ -15,7 +15,11 @@
         <meta name="theme-color" content="#2563EB">
         <link rel="canonical" href="{{ $canonical }}">
 
+        {{-- Google exige un favicon d'au moins 48 px (multiple de 48) pour l'afficher dans ses résultats --}}
         <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+        <link rel="icon" type="image/png" href="{{ asset('favicon-48.png') }}" sizes="48x48">
+        <link rel="icon" type="image/png" href="{{ asset('favicon-96.png') }}" sizes="96x96">
+        <link rel="icon" type="image/png" href="{{ asset('favicon-192.png') }}" sizes="192x192">
         <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
 
         {{-- Open Graph / Twitter : aperçu lors d'un partage (WhatsApp, Facebook…) --}}

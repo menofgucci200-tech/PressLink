@@ -9,7 +9,7 @@
         </div>
     </div>
 
-    <div class="flex items-start justify-between gap-6 mb-6 mt-6">
+    <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 mb-6 mt-6">
         <p class="text-sm text-(--color-text-muted) max-w-md">
             Si ce service a des variantes actives, le staff devra en choisir une (avec son propre prix) lors de la création d'une commande, plutôt que d'utiliser le prix de base.
         </p>
@@ -20,7 +20,7 @@
     </div>
 
     @if ($showCreateForm)
-        <form wire:submit="createVariant" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5 grid grid-cols-3 gap-4 items-start">
+        <form wire:submit="createVariant" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5 grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
             <div>
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom</label>
                 <input type="text" wire:model="name" placeholder="Manche longue" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
@@ -46,7 +46,7 @@
         @if ($variants->isEmpty())
             <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucune variante — le prix de base s'applique.</div>
         @else
-            <table class="w-full text-sm">
+            <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
                 <thead>
                     <tr class="bg-(--color-bg) text-left">
                         <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Variante</th>
@@ -75,7 +75,7 @@
                         </tr>
                     @endforeach
                 </tbody>
-            </table>
+            </table></div>
         @endif
     </div>
 </div>

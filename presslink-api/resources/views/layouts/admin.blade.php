@@ -27,8 +27,16 @@
             $userInitials = collect(explode(' ', $user->name))->filter()->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->take(2)->implode('');
         @endphp
 
-        <div class="min-h-screen flex">
-            <aside class="w-[239px] flex-none flex flex-col py-[22px] pl-5 overflow-hidden text-white"
+        <div class="min-h-screen flex" x-data="{ menu: false }"
+             @keydown.escape.window="menu = false"
+             @resize.window="if (window.innerWidth >= 1024) menu = false"
+             x-effect="document.body.classList.toggle('overflow-hidden', menu)">
+            {{-- Mobile/tablette : le menu devient un panneau qui glisse depuis la gauche. --}}
+            <div x-show="menu" x-cloak x-transition.opacity.duration.200ms @click="menu = false"
+                 class="fixed inset-0 z-30 bg-slate-900/50 lg:hidden" aria-hidden="true"></div>
+            <aside class="fixed inset-y-0 left-0 z-40 max-lg:-translate-x-full lg:static lg:z-auto w-[239px] flex-none flex flex-col py-[22px] pl-5 overflow-y-auto lg:overflow-hidden text-white transition-transform duration-200 ease-out"
+                   :class="menu && 'max-lg:translate-x-0!'"
+                   @click="if ($event.target.closest('a')) menu = false"
                    style="background:linear-gradient(180deg, #1e3a8a 0%, #1e40af 45%, #2563eb 100%);">
                 <div class="font-display text-[21px] font-bold tracking-tight pr-1 pb-[6px]">Press<span class="text-(--color-primary-tint)">Link</span></div>
                 <div class="pr-5 pb-[24px] text-[11px] font-semibold uppercase tracking-wide text-blue-200">Super Admin</div>
@@ -54,8 +62,13 @@
             </aside>
 
             <div class="flex-1 min-w-0 flex flex-col" x-data="{ scrolled: false }">
-                <header class="h-16 flex-none bg-(--color-surface) border-b border-(--color-border) flex items-center gap-3 px-6 sticky top-0 z-10 transition-shadow duration-200"
+                <header class="h-16 flex-none bg-(--color-surface) border-b border-(--color-border) flex items-center gap-3 px-4 sm:px-6 sticky top-0 z-10 transition-shadow duration-200"
                         :class="scrolled ? 'shadow-[0_4px_14px_-8px_rgba(15,23,42,.25)]' : ''">
+                    <button type="button" @click="menu = true" :aria-expanded="menu" aria-label="Ouvrir le menu"
+                            class="lg:hidden -ml-1 w-10 h-10 flex-none rounded-lg flex items-center justify-center text-(--color-text-secondary) hover:bg-(--color-bg)">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+                    </button>
+                    
                     <div class="flex-1"></div>
 
                     <div class="hidden sm:block text-right min-w-0">
@@ -73,7 +86,7 @@
                     </form>
                 </header>
 
-                <main class="flex-1 overflow-y-auto p-8" @scroll="scrolled = $event.target.scrollTop > 4">
+                <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" @scroll="scrolled = $event.target.scrollTop > 4">
                     {{ $slot }}
                 </main>
             </div>

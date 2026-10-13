@@ -83,6 +83,12 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/branding/logo_original.png
+    - assets/branding/logo_wordmark.png
+    - assets/icons/
+    # Polices Inter / Inter Tight embarquées : affichage immédiat, sans aller
+    # les chercher sur Google Fonts au démarrage (google_fonts les utilise
+    # automatiquement si elles sont présentes dans les assets).
+    - assets/google_fonts/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

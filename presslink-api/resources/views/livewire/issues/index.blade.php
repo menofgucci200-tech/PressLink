@@ -1,5 +1,5 @@
 <div>
-    <div class="flex items-start justify-between gap-6 mb-6">
+    <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 mb-6">
         <div>
             <h1 class="font-display text-2xl font-bold mb-1">Signalements</h1>
             <p class="text-sm text-(--color-text-muted)">{{ $openCount }} signalement(s) en attente de traitement</p>

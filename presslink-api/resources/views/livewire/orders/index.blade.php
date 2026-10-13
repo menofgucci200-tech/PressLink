@@ -1,5 +1,5 @@
 <div>
-    <div class="flex items-start justify-between gap-6 mb-6">
+    <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 mb-6">
         <div>
             <h1 class="font-display text-2xl font-bold mb-1">Commandes</h1>
             <p class="text-sm text-(--color-text-muted)">{{ is_countable($orders) ? $orders->total() : 0 }} commande(s)</p>
@@ -43,7 +43,7 @@
     </div>
 
     <div class="flex items-end gap-3 mb-5 flex-wrap">
-        <div class="relative flex-1 max-w-sm">
+        <div class="relative w-full sm:w-auto sm:flex-1 sm:max-w-sm">
             <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Recherche</label>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="absolute left-3 top-1/2 translate-y-[3px] text-(--color-text-muted)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
             <input type="text" wire:model.live.debounce.400ms="search" placeholder="N°, client, téléphone…"

@@ -36,8 +36,16 @@
             $userInitials = collect(explode(' ', $user->name))->filter()->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->take(2)->implode('');
         @endphp
 
-        <div class="min-h-screen flex">
-            <aside class="w-[239px] flex-none flex flex-col py-[22px] pl-5 overflow-hidden text-white"
+        <div class="min-h-screen flex" x-data="{ menu: false }"
+             @keydown.escape.window="menu = false"
+             @resize.window="if (window.innerWidth >= 1024) menu = false"
+             x-effect="document.body.classList.toggle('overflow-hidden', menu)">
+            {{-- Mobile/tablette : le menu devient un panneau qui glisse depuis la gauche. --}}
+            <div x-show="menu" x-cloak x-transition.opacity.duration.200ms @click="menu = false"
+                 class="fixed inset-0 z-30 bg-slate-900/50 lg:hidden" aria-hidden="true"></div>
+            <aside class="fixed inset-y-0 left-0 z-40 max-lg:-translate-x-full lg:static lg:z-auto w-[239px] flex-none flex flex-col py-[22px] pl-5 overflow-y-auto lg:overflow-hidden text-white transition-transform duration-200 ease-out"
+                   :class="menu && 'max-lg:translate-x-0!'"
+                   @click="if ($event.target.closest('a')) menu = false"
                    style="background:linear-gradient(180deg, #1e3a8a 0%, #1e40af 45%, #2563eb 100%);">
                 <div class="font-display text-[21px] font-bold tracking-tight pr-1 pb-[30px]">Press<span class="text-(--color-primary-tint)">Link</span></div>
 
@@ -112,7 +120,7 @@
                     @if ($isAdmin && $subscription)
                         @php
                             $periodEnd = $subscription->current_period_ends_at ?? $subscription->trial_ends_at;
-                            $daysLeft = $periodEnd ? max(0, now()->diffInDays($periodEnd, false)) : null;
+                            $daysLeft = $periodEnd ? max(0, (int) ceil(now()->diffInDays($periodEnd, false))) : null;
                             $periodStart = $subscription->current_period_starts_at ?? $subscription->trial_ends_at?->subDays(14);
                             $totalDays = ($periodStart && $periodEnd) ? max(1, $periodStart->diffInDays($periodEnd)) : 1;
                             $elapsedPct = $periodEnd ? min(100, max(0, round((1 - ($daysLeft / $totalDays)) * 100))) : 0;
@@ -129,21 +137,31 @@
                             </div>
                         </div>
                     @endif
-                    @if ($isAdmin)
-                        <div class="border-t border-white/20 pt-3.5">
+                    <div class="border-t border-white/20 pt-3.5 flex flex-col gap-1.5">
+                        @if ($isAdmin)
                             <a href="{{ route('subscription.show') }}" wire:navigate class="nav-item {{ ($active ?? null) === 'subscription' ? 'nav-item-active' : '' }}">
                                 @if (($active ?? null) === 'subscription') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" class="flex-none"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
                                 <span class="truncate">Abonnement</span>
                             </a>
-                        </div>
-                    @endif
+                        @endif
+                        <a href="{{ route('support') }}" wire:navigate class="nav-item {{ ($active ?? null) === 'support' ? 'nav-item-active' : '' }}">
+                            @if (($active ?? null) === 'support') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"></path></svg>
+                            <span class="truncate">Support</span>
+                        </a>
+                    </div>
                 </div>
             </aside>
 
             <div class="flex-1 min-w-0 flex flex-col" x-data="{ scrolled: false }">
-                <header class="h-16 flex-none bg-(--color-surface) border-b border-(--color-border) flex items-center gap-3 px-6 sticky top-0 z-10 transition-shadow duration-200"
+                <header class="h-16 flex-none bg-(--color-surface) border-b border-(--color-border) flex items-center gap-3 px-4 sm:px-6 sticky top-0 z-10 transition-shadow duration-200"
                         :class="scrolled ? 'shadow-[0_4px_14px_-8px_rgba(15,23,42,.25)]' : ''">
+                    <button type="button" @click="menu = true" :aria-expanded="menu" aria-label="Ouvrir le menu"
+                            class="lg:hidden -ml-1 w-10 h-10 flex-none rounded-lg flex items-center justify-center text-(--color-text-secondary) hover:bg-(--color-bg)">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+                    </button>
+                    
                     {{-- Pas de recherche globale ici : une recherche sur "tout" n'a de sens
                          que par rapport à ce qui est affiché sur la page courante — elle vit
                          donc directement sur chaque page qui en a besoin (Commandes, Clients…),
@@ -183,7 +201,7 @@
                     </form>
                 </header>
 
-                <main class="flex-1 overflow-y-auto p-8" @scroll="scrolled = $event.target.scrollTop > 4">
+                <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" @scroll="scrolled = $event.target.scrollTop > 4">
                     {{ $slot }}
                 </main>
             </div>

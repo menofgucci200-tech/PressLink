@@ -7,6 +7,7 @@ import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/support/presentation/support_screen.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import 'pwa_install_banner.dart';
 import 'staggered_fade_in.dart';
 
 /// Feuille de menu ouverte depuis l'onglet "Menu" (icône burger) —
@@ -100,8 +101,21 @@ class _MainMenuSheet extends StatelessWidget {
                   },
                 ),
               ),
+              if (PwaInstallBanner.isInstallable)
+                StaggeredFadeIn(
+                  index: 3,
+                  child: _MenuTile(
+                    icon: Icons.install_mobile_outlined,
+                    label: 'Installer l\'application',
+                    iconColor: AppColors.primary,
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      showPwaInstallSheet(context);
+                    },
+                  ),
+                ),
               StaggeredFadeIn(
-                index: 3,
+                index: 4,
                 child: _MenuTile(
                   icon: Icons.support_agent_outlined,
                   label: 'Aide & support',

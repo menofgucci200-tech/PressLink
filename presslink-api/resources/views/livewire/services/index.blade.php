@@ -1,5 +1,5 @@
 <div>
-    <div class="flex items-start justify-between gap-6 mb-6">
+    <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 mb-6">
         <div>
             <h1 class="font-display text-2xl font-bold mb-1">Tarifs</h1>
             <p class="text-sm text-(--color-text-muted)">Grille de prix utilisée lors de la création des commandes.</p>
@@ -16,7 +16,7 @@
 
     @if ($showCreateForm)
         <form wire:submit="createService" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5">
-            <div class="grid grid-cols-3 gap-4 items-start">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
                 <div>
                     <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom</label>
                     <input type="text" wire:model="name" placeholder="Chemise" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
@@ -42,8 +42,8 @@
                 @else
                     <div class="flex flex-col gap-2">
                         @foreach ($variantRows as $index => $row)
-                            <div class="grid grid-cols-3 gap-3 items-start">
-                                <div class="col-span-2">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+                                <div class="sm:col-span-2">
                                     <input type="text" wire:model="variantRows.{{ $index }}.name" placeholder="Nom de la variante"
                                         class="w-full h-9 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                                     @error("variantRows.{$index}.name") <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
@@ -56,7 +56,7 @@
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path></svg>
                                     </button>
                                 </div>
-                                @error("variantRows.{$index}.priceFcfa") <p class="text-xs text-(--color-error) col-span-3 -mt-1">{{ $message }}</p> @enderror
+                                @error("variantRows.{$index}.priceFcfa") <p class="text-xs text-(--color-error) sm:col-span-3 -mt-1">{{ $message }}</p> @enderror
                             </div>
                         @endforeach
                     </div>
@@ -78,7 +78,7 @@
         @if ($services->isEmpty())
             <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucun service pour le moment.</div>
         @else
-            <table class="w-full text-sm">
+            <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
                 <thead>
                     <tr class="bg-(--color-bg) text-left">
                         <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Service</th>
@@ -113,7 +113,7 @@
                         </tr>
                     @endforeach
                 </tbody>
-            </table>
+            </table></div>
         @endif
     </div>
 </div>

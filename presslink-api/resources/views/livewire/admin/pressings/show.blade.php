@@ -17,7 +17,7 @@
         </button>
     </div>
 
-    <div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px animate-step">
             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1.5">Équipe</div>
             <div class="font-display text-2xl font-bold tabular-nums">{{ $pressing->staff_count }}</div>
@@ -34,7 +34,7 @@
 
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-6">
         <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-3">Informations</div>
-        <div class="grid grid-cols-2 gap-3 text-sm">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <div class="flex justify-between"><span class="text-(--color-text-secondary)">Téléphone</span><span class="font-medium tabular-nums">{{ $pressing->phone }}</span></div>
             <div class="flex justify-between"><span class="text-(--color-text-secondary)">Email</span><span class="font-medium">{{ $pressing->email ?? '—' }}</span></div>
             <div class="flex justify-between"><span class="text-(--color-text-secondary)">Ville</span><span class="font-medium">{{ $pressing->city ?? '—' }}</span></div>
@@ -55,7 +55,7 @@
         @if ($staff->isEmpty())
             <div class="px-5 py-8 text-center text-sm text-(--color-text-muted)">Aucun membre.</div>
         @else
-            <table class="w-full text-sm">
+            <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
                 <tbody>
                     @foreach ($staff as $member)
                         <tr class="border-t border-(--color-border) first:border-t-0 hover:bg-(--color-bg)">
@@ -78,7 +78,7 @@
                         </tr>
                     @endforeach
                 </tbody>
-            </table>
+            </table></div>
         @endif
     </div>
 
@@ -89,7 +89,7 @@
             <div class="mb-4 p-3 rounded-lg bg-(--color-success-tint) text-(--color-success-text) text-sm">Abonnement mis à jour.</div>
         @endif
 
-        <form wire:submit="saveSubscription" class="grid grid-cols-2 gap-4">
+        <form wire:submit="saveSubscription" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Plan</label>
                 <select wire:model="plan" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
@@ -124,7 +124,7 @@
                 <input type="date" wire:model="currentPeriodEndsAt" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                 @error('currentPeriodEndsAt') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
-            <div class="col-span-2 flex justify-end">
+            <div class="sm:col-span-2 flex justify-end">
                 <button type="submit" wire:loading.attr="disabled" wire:target="saveSubscription"
                         class="h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600) disabled:opacity-60">
                     <span wire:loading.remove wire:target="saveSubscription">Enregistrer</span>

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../../core/config/app_config.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -213,11 +216,47 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: AppSpacing.sm + 4),
+              const _LegalNotice(),
               const SizedBox(height: AppSpacing.lg),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// « En créant un compte, vous acceptez les CGU et la politique de
+/// confidentialité » — liens vers les pages du site.
+class _LegalNotice extends StatelessWidget {
+  const _LegalNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.bodySmall?.copyWith(
+      color: AppColors.textSecondary,
+      height: 1.4,
+    );
+    Widget link(String label, String url) => InkWell(
+      onTap: () => launchUrl(Uri.parse(url)),
+      child: Text(
+        label,
+        style: style?.copyWith(
+          color: AppColors.primary,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+    return Wrap(
+      alignment: WrapAlignment.center,
+      children: [
+        Text('En créant un compte, vous acceptez les ', style: style),
+        link('conditions d\'utilisation', AppConfig.termsUrl),
+        Text(' et la ', style: style),
+        link('politique de confidentialité', AppConfig.privacyUrl),
+        Text('.', style: style),
+      ],
     );
   }
 }

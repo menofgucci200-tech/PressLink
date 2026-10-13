@@ -3,7 +3,7 @@
         Aucune commande pour le moment.
     </div>
 @else
-    <table class="w-full text-sm">
+    <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
         <thead>
             <tr class="bg-(--color-bg) text-left">
                 <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">N°</th>
@@ -43,5 +43,5 @@
                 </tr>
             @endforeach
         </tbody>
-    </table>
+    </table></div>
 @endif

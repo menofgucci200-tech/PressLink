@@ -1,12 +1,12 @@
 <div>
-    <div class="flex items-start justify-between gap-6 mb-7">
+    <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 mb-7">
         <div>
             <h1 class="font-display text-2xl font-bold mb-1">Vue d'ensemble</h1>
             <p class="text-sm text-(--color-text-muted)">{{ $rows->count() }} pressing(s) · {{ now()->translatedFormat('l j F Y') }}</p>
         </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-4 mb-7">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-7">
         <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px animate-step">
             <div class="flex items-center gap-2 mb-3">
                 <span class="w-2 h-2 rounded-full" style="background:var(--color-info)"></span>
@@ -24,7 +24,7 @@
     </div>
 
     <div class="mb-3 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Vos pressings</div>
-    <div class="grid grid-cols-2 gap-4 mb-7">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-7">
         @foreach ($rows as $row)
             <a href="{{ route('pressings.switch', $row['pressing']) }}"
                class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 transition-all duration-150 hover:border-(--color-primary) hover:-translate-y-px hover:shadow-sm animate-step">
@@ -58,7 +58,7 @@
         @if ($recent->isEmpty())
             <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucune commande pour le moment.</div>
         @else
-            <table class="w-full text-sm">
+            <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
                 <thead>
                     <tr class="bg-(--color-bg) text-left">
                         <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">N°</th>
@@ -83,7 +83,7 @@
                         </tr>
                     @endforeach
                 </tbody>
-            </table>
+            </table></div>
         @endif
     </div>
 </div>

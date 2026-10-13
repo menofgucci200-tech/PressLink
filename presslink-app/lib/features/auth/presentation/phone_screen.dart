@@ -8,6 +8,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/country_code_picker.dart';
 import '../../../core/widgets/pwa_install_banner.dart';
+import '../../../core/widgets/staggered_fade_in.dart';
 import '../../support/presentation/support_screen.dart';
 import 'auth_controller.dart';
 import 'login_password_screen.dart';
@@ -69,56 +70,74 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: AppSpacing.xxxl),
-              RichText(
-                text: TextSpan(
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                  children: [
-                    const TextSpan(text: 'Press'),
-                    TextSpan(
-                      text: 'Link',
-                      style: TextStyle(color: AppColors.primary),
+              _Entrance(
+                index: 0,
+                child: RichText(
+                  text: TextSpan(
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
                     ),
-                  ],
+                    children: [
+                      const TextSpan(text: 'Press'),
+                      TextSpan(
+                        text: 'Link',
+                        style: TextStyle(color: AppColors.primary),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-              Text(
-                'Votre numéro de téléphone',
-                style: theme.textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Nous nous en servirons pour retrouver ou créer votre compte.',
-                style: theme.textTheme.bodyMedium,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                'Téléphone',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+              _Entrance(
+                index: 1,
+                child: Text(
+                  'Votre numéro de téléphone',
+                  style: theme.textTheme.headlineSmall,
                 ),
               ),
               const SizedBox(height: 6),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CountryCodePicker(
-                    selected: _country,
-                    onChanged: (country) => setState(() => _country = country),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: AppTextField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      autofocus: true,
-                      hintText: '01 XX XX XX XX',
+              _Entrance(
+                index: 2,
+                child: Text(
+                  'Nous nous en servirons pour retrouver ou créer votre compte.',
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              _Entrance(
+                index: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Téléphone',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 6),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CountryCodePicker(
+                          selected: _country,
+                          onChanged: (country) =>
+                              setState(() => _country = country),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: AppTextField(
+                            controller: _phoneController,
+                            keyboardType: TextInputType.phone,
+                            autofocus: true,
+                            hintText: '01 XX XX XX XX',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               if (_error != null) ...[
                 const SizedBox(height: AppSpacing.sm),
@@ -131,38 +150,48 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
                 ),
               ],
               const SizedBox(height: AppSpacing.lg),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _loading ? null : _submit,
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 180),
-                    child: _loading
-                        ? const SizedBox(
-                            key: ValueKey('loading'),
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text('Continuer', key: ValueKey('label')),
+              _Entrance(
+                index: 4,
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: _loading ? null : _submit,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      child: _loading
+                          ? const SizedBox(
+                              key: ValueKey('loading'),
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text('Continuer', key: ValueKey('label')),
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              const PwaInstallBanner(),
-              Center(
-                child: TextButton.icon(
-                  onPressed: () => Navigator.of(
-                    context,
-                  ).push(AppPageRoute(builder: (_) => const SupportScreen())),
-                  icon: const Icon(Icons.support_agent, size: 24),
-                  label: const Text(
-                    'Contacter le support',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+              const _Entrance(index: 5, child: PwaInstallBanner()),
+              _Entrance(
+                index: 6,
+                child: Center(
+                  child: TextButton.icon(
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).push(AppPageRoute(builder: (_) => const SupportScreen())),
+                    icon: Image.asset(
+                      'assets/icons/whatsapp.png',
+                      width: 24,
+                      height: 24,
+                    ),
+                    label: const Text(
+                      'Contacter le support',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
                   ),
                 ),
               ),
@@ -170,6 +199,27 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Entrée en cascade des éléments de l'écran de connexion, juste après la
+/// sortie de l'écran de démarrage (transition gérée par AuthGate).
+class _Entrance extends StatelessWidget {
+  const _Entrance({required this.index, required this.child});
+
+  final int index;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return StaggeredFadeIn(
+      index: index,
+      initialDelayMs: 140,
+      stepMs: 65,
+      durationMs: 460,
+      slide: 0.25,
+      child: child,
     );
   }
 }

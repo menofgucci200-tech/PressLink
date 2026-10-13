@@ -9,7 +9,7 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-3 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px animate-step">
             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1.5">Commandes</div>
             <div class="font-display text-2xl font-bold tabular-nums">{{ $orders->count() }}</div>
@@ -31,7 +31,7 @@
         @if ($orders->isEmpty())
             <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucune commande pour le moment.</div>
         @else
-            <table class="w-full text-sm">
+            <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
                 <thead>
                     <tr class="bg-(--color-bg) text-left">
                         <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Commande</th>
@@ -50,7 +50,7 @@
                         </tr>
                     @endforeach
                 </tbody>
-            </table>
+            </table></div>
         @endif
     </div>
 </div>

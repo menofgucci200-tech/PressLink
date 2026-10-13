@@ -4,7 +4,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_back_button.dart';
 
 /// Écran générique pour les pages de contenu statique
-/// (Aide, Conditions d'utilisation, Politique de confidentialité).
+/// (Aide). Les CGU et la politique de confidentialité sont sur le site.
 class StaticPageScreen extends StatelessWidget {
   const StaticPageScreen({
     required this.title,
@@ -58,8 +58,7 @@ class StaticPageScreen extends StatelessWidget {
   }
 }
 
-/// Contenu — Cahier §Profil (aide, CGU, confidentialité). Textes provisoires
-/// pour le pilote, à faire relire juridiquement avant lancement public.
+/// Contenu de l'aide — Cahier §Profil.
 class StaticPages {
   static const help = [
     (
@@ -77,36 +76,6 @@ class StaticPages {
     (
       'Besoin d\'aide supplémentaire ?',
       'Contactez le support PressLink au 07 18 00 22 93 (appel ou WhatsApp) depuis Menu > Aide & support. Pour une question sur une commande, vous pouvez aussi joindre directement votre pressing : ses coordonnées sont visibles depuis l\'onglet Accueil, section "Mes pressings".',
-    ),
-  ];
-
-  static const terms = [
-    (
-      'Objet',
-      'PressLink met en relation les pressings et leurs clients pour le suivi digital des commandes de pressing. L\'application est fournie gratuitement aux clients.',
-    ),
-    (
-      'Compte utilisateur',
-      'Vous êtes responsable de la confidentialité de votre mot de passe. Un numéro de téléphone ne peut être associé qu\'à un seul compte.',
-    ),
-    (
-      'Utilisation du service',
-      'PressLink ne réalise pas lui-même les prestations de pressing : celles-ci sont assurées par l\'établissement partenaire que vous avez rejoint.',
-    ),
-  ];
-
-  static const privacy = [
-    (
-      'Données collectées',
-      'Nom, prénom, numéro de téléphone, genre et email (facultatif) sont collectés pour créer et sécuriser votre compte.',
-    ),
-    (
-      'Utilisation des données',
-      'Vos données sont utilisées uniquement pour le fonctionnement du service : suivi de vos commandes et notifications liées.',
-    ),
-    (
-      'Partage avec les pressings',
-      'Les pressings que vous rejoignez ont accès à votre nom et numéro de téléphone afin de gérer vos commandes.',
     ),
   ];
 }

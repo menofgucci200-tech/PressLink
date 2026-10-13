@@ -35,6 +35,10 @@ class AppConfig {
   static const String supportPhoneE164 = '+2250718002293';
   static const String supportPhoneDisplay = '07 18 00 22 93';
 
+  /// Pages juridiques complètes, publiées sur le site (source unique).
+  static const String termsUrl = 'https://presslink.org/conditions-generales';
+  static const String privacyUrl = 'https://presslink.org/confidentialite';
+
   static bool get isDevelopment => environment == 'development';
   static bool get isStaging => environment == 'staging';
   static bool get isProduction => environment == 'production';

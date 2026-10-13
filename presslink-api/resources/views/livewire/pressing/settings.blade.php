@@ -47,8 +47,8 @@
             </div>
         </div>
 
-        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 grid grid-cols-2 gap-4">
-            <div class="col-span-2 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Informations générales</div>
+        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="sm:col-span-2 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Informations générales</div>
             <div>
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom du pressing</label>
                 <input type="text" wire:model="name" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
@@ -69,12 +69,12 @@
                 <input type="text" wire:model="city" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                 @error('city') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
-            <div class="col-span-2">
+            <div class="sm:col-span-2">
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Adresse</label>
                 <input type="text" wire:model="address" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                 @error('address') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
-            <div class="col-span-2">
+            <div class="sm:col-span-2">
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Description</label>
                 <textarea wire:model="description" rows="3" class="w-full px-3 py-2 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)"></textarea>
                 @error('description') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
@@ -85,7 +85,7 @@
             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-4">Horaires d'ouverture</div>
             <div class="flex flex-col gap-2.5">
                 @foreach ($days as $day)
-                    <div class="flex items-center gap-4">
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
                         <label class="w-24 text-sm font-medium flex-none">{{ $dayLabels[$day] }}</label>
                         <label class="flex items-center gap-1.5 text-xs text-(--color-text-secondary) flex-none w-24">
                             <input type="checkbox" wire:model="openingHours.{{ $day }}.closed" class="rounded border-(--color-border)">

@@ -13,12 +13,8 @@ use Illuminate\View\View;
  */
 class LandingController extends Controller
 {
-    public const SUPPORT_PHONE_DISPLAY = '07 18 00 22 93';
-
-    public const SUPPORT_PHONE_E164 = '+2250718002293';
-
     /**
-     * Questions affichées sur la page ET reprises à l'identique dans les
+     * Questions affichées sur /questions-frequentes ET reprises à l'identique dans les
      * données structurées FAQPage (Google exige que les deux concordent).
      *
      * @return list<array{question: string, answer: string}>
@@ -48,7 +44,7 @@ class LandingController extends Controller
             ],
             [
                 'question' => 'Comment contacter le support PressLink ?',
-                'answer' => 'Appelez ou écrivez sur WhatsApp au '.self::SUPPORT_PHONE_DISPLAY.', ou utilisez « Aide & support » dans le menu de l\'application.',
+                'answer' => 'Appelez ou écrivez sur WhatsApp au '.config('presslink.support.phone_display').', ou utilisez « Aide & support » dans le menu de l\'application.',
             ],
         ];
     }
@@ -64,9 +60,8 @@ class LandingController extends Controller
         return view('landing', [
             'baseUrl' => $baseUrl,
             'appUrl' => $baseUrl.'/app/',
-            'faqs' => self::faqs(),
-            'supportPhoneDisplay' => self::SUPPORT_PHONE_DISPLAY,
-            'supportPhoneE164' => self::SUPPORT_PHONE_E164,
+            'supportPhoneDisplay' => config('presslink.support.phone_display'),
+            'supportPhoneE164' => config('presslink.support.phone_e164'),
         ]);
     }
 }

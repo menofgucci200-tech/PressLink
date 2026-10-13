@@ -1,5 +1,5 @@
 <div>
-    <div class="flex items-start justify-between gap-6 mb-6">
+    <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 mb-6">
         <div>
             <h1 class="font-display text-2xl font-bold mb-1">Vue globale</h1>
             <p class="text-sm text-(--color-text-muted)">{{ now()->translatedFormat('l j F Y') }}</p>
@@ -38,7 +38,7 @@
         @endif
     </div>
 
-    <div class="grid grid-cols-4 gap-4 mb-7">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
         @php
             $kpis = [
                 ['label' => 'Pressings actifs', 'value' => $activePressings, 'bg' => 'var(--color-success-tint)', 'fg' => 'var(--color-success-text)', 'icon' => 'M20 6 9 17l-5-5'],
@@ -71,7 +71,7 @@
         @if ($recentPressings->isEmpty())
             <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucun pressing pour ces filtres.</div>
         @else
-            <table class="w-full text-sm">
+            <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
                 <tbody>
                     @foreach ($recentPressings as $pressing)
                         <tr class="border-t border-(--color-border) first:border-t-0 hover:bg-(--color-bg) cursor-pointer" onclick="window.location='{{ route('admin.pressings.show', $pressing) }}'">
@@ -85,7 +85,7 @@
                         </tr>
                     @endforeach
                 </tbody>
-            </table>
+            </table></div>
         @endif
     </div>
 </div>

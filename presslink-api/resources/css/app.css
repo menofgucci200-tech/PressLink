@@ -184,6 +184,20 @@ main.is-navigating {
     box-shadow: 8px -8px 0 8px var(--color-bg);
 }
 
+/* Dans le menu mobile (panneau coulissant), l'effet « onglet découpé » n'a
+   pas de contenu auquel se raccorder : l'élément actif redevient une simple
+   pastille arrondie. */
+@media (max-width: 1023px) {
+    .nav-item-active,
+    .nav-item-active:hover {
+        margin-right: 20px;
+        border-radius: 14px;
+    }
+    .nav-notch {
+        display: none;
+    }
+}
+
 @keyframes pulse-dot {
     0%,
     100% {
@@ -214,6 +228,10 @@ main.is-navigating {
     animation: fade-in-up 200ms ease-out;
 }
 
+[x-cloak] {
+    display: none !important;
+}
+
 /* Barre de progression Livewire (wire:navigate) aux couleurs PressLink au
    lieu du bleu par défaut du plugin. */
 :root {
@@ -227,4 +245,41 @@ main.is-navigating {
         animation-duration: 0.001ms !important;
         transition-duration: 0.001ms !important;
     }
+}
+
+/*
+ * Site public — maquettes de téléphone (photos détourées dont l'écran est
+ * transparent) : le contenu HTML de l'écran est placé SOUS la photo, aux
+ * coordonnées de l'écran, et dimensionné en unités de conteneur pour rester
+ * net à toutes les tailles.
+ */
+.phone-mock { position: relative; isolation: isolate; }
+.phone-mock > img { position: relative; z-index: 1; width: 100%; height: auto; pointer-events: none; user-select: none; }
+.phone-mock__screen {
+    position: absolute; z-index: 0; overflow: hidden; background: #fff;
+    container-type: inline-size; border-radius: 9% / 4.5%;
+}
+.phone-mock--hands .phone-mock__screen { left: 39.6%; top: 2.3%; width: 25.8%; height: 62.8%; }
+.phone-mock--hand .phone-mock__screen { left: 15%; top: 3.2%; width: 54%; height: 85.4%; border-radius: 12% / 6%; }
+.mock { font-size: 6.4cqw; font-family: var(--font-sans); color: var(--color-text-primary); height: 100%; padding: 2.6em .9em 1em; background: var(--color-bg); }
+.mock-card { background: #fff; border: 1px solid var(--color-border); border-radius: .8em; padding: .8em; }
+.mock-pill { display: inline-flex; align-items: center; gap: .35em; border-radius: 99em; padding: .2em .65em; font-size: .72em; font-weight: 600; }
+
+/* Démos d'installation : 3 écrans enchaînés en boucle de 12 s, et la liste
+   d'étapes à côté s'illumine au même rythme. */
+.install-demo .scene { position: absolute; inset: 0; opacity: 0; animation: install-scene 12s infinite; }
+.install-demo .scene:nth-child(2) { animation-delay: 4s; }
+.install-demo .scene:nth-child(3) { animation-delay: 8s; }
+@keyframes install-scene { 0% { opacity: 0; transform: scale(1.04); } 4%, 30% { opacity: 1; transform: none; } 34%, 100% { opacity: 0; } }
+.install-steps li { animation: install-step 12s infinite; }
+.install-steps li:nth-child(2) { animation-delay: 4s; }
+.install-steps li:nth-child(3) { animation-delay: 8s; }
+@keyframes install-step { 0%, 33% { border-color: var(--color-primary); background: var(--color-primary-tint); } 34%, 100% { border-color: var(--color-border); background: #fff; } }
+.tap-dot { position: absolute; width: 2.2em; height: 2.2em; margin: -1.1em 0 0 -1.1em; border-radius: 50%; background: rgb(37 99 235 / .35); border: .15em solid rgb(37 99 235 / .8); animation: tap 4s infinite; }
+@keyframes tap { 0%, 40% { transform: scale(.4); opacity: 0; } 55% { transform: scale(1); opacity: 1; } 75%, 100% { transform: scale(1.5); opacity: 0; } }
+.float-y { animation: float-y 6s ease-in-out infinite; }
+@keyframes float-y { 50% { transform: translateY(-10px); } }
+@media (prefers-reduced-motion: reduce) {
+    .install-demo .scene, .install-steps li, .tap-dot, .float-y { animation: none; }
+    .install-demo .scene:first-child { opacity: 1; }
 }

@@ -7,6 +7,9 @@ external bool _isStandalone();
 @JS('presslinkPwa.isIosSafari')
 external bool _isIosSafari();
 
+@JS('presslinkPwa.isAndroid')
+external bool _isAndroid();
+
 @JS('presslinkPwa.canInstall')
 external bool _canInstall();
 
@@ -28,6 +31,11 @@ enum PwaInstallMode {
   /// iOS/Safari : aucune invite n'existe, il faut expliquer le geste
   /// « Partager > Sur l'écran d'accueil ».
   iosInstructions,
+
+  /// Android, mais Chrome n'a pas (encore) proposé son invite — il ne le
+  /// fait qu'après un temps d'utilisation, et plus du tout après un refus.
+  /// On explique alors le passage par le menu du navigateur.
+  androidInstructions,
 }
 
 class PwaInstall {
@@ -38,6 +46,7 @@ class PwaInstall {
       if (_isStandalone()) return PwaInstallMode.none;
       if (_canInstall()) return PwaInstallMode.nativePrompt;
       if (_isIosSafari()) return PwaInstallMode.iosInstructions;
+      if (_isAndroid()) return PwaInstallMode.androidInstructions;
     } catch (_) {
       // window.presslinkPwa absent (page hôte différente) : rien à proposer.
     }

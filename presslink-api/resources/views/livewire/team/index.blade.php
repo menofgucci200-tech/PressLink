@@ -1,5 +1,5 @@
 <div>
-    <div class="flex items-start justify-between gap-6 mb-6">
+    <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 mb-6">
         <div>
             <h1 class="font-display text-2xl font-bold mb-1">Équipe</h1>
             <p class="text-sm text-(--color-text-muted)">{{ $members->count() }} membre(s) de l'équipe.</p>
@@ -22,7 +22,7 @@
     @endif
 
     @if ($showCreateForm)
-        <form wire:submit="inviteEmployee" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5 grid grid-cols-2 gap-4 items-start">
+        <form wire:submit="inviteEmployee" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5 grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
             <div>
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom complet</label>
                 <input type="text" wire:model="name" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
@@ -47,12 +47,12 @@
                 <input type="text" wire:model="password" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                 @error('password') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
-            <div class="col-span-2">
+            <div class="sm:col-span-2">
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone (facultatif)</label>
                 <input type="text" wire:model="phone" placeholder="+2250708124400" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                 @error('phone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
-            <div class="col-span-2 flex gap-2 justify-end">
+            <div class="sm:col-span-2 flex gap-2 justify-end">
                 <button type="button" wire:click="$set('showCreateForm', false)" class="h-10 px-4 rounded-lg border border-(--color-border) text-sm font-medium">Annuler</button>
                 <button type="submit" wire:loading.attr="disabled" wire:target="inviteEmployee"
                         class="h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold disabled:opacity-60">
@@ -67,7 +67,7 @@
         @if ($members->isEmpty())
             <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucun membre pour le moment.</div>
         @else
-            <table class="w-full text-sm">
+            <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
                 <thead>
                     <tr class="bg-(--color-bg) text-left">
                         <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Membre</th>
@@ -108,7 +108,7 @@
                         </tr>
                     @endforeach
                 </tbody>
-            </table>
+            </table></div>
         @endif
     </div>
 </div>

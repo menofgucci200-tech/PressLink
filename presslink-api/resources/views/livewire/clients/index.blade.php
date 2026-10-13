@@ -1,5 +1,5 @@
 <div>
-    <div class="flex items-start justify-between gap-6 mb-6">
+    <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 mb-6">
         <div>
             <h1 class="font-display text-2xl font-bold mb-1">Clients</h1>
             <p class="text-sm text-(--color-text-muted)">{{ is_countable($clients) ? $clients->total() : 0 }} client(s)</p>
@@ -15,7 +15,7 @@
     @endif
 
     @if ($showCreateForm)
-        <form wire:submit="createClient" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5 grid grid-cols-3 gap-4 items-start">
+        <form wire:submit="createClient" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5 grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
             <div>
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Prénom</label>
                 <input type="text" wire:model="firstName" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
@@ -31,12 +31,12 @@
                 <input type="text" wire:model="phone" placeholder="+2250708124400" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                 @error('phone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
-            <p class="col-span-3 text-xs text-(--color-text-muted)">
+            <p class="sm:col-span-3 text-xs text-(--color-text-muted)">
                 Le client pourra se connecter à l'app avec ce numéro et le mot de passe par défaut
                 <span class="font-mono font-semibold">{{ \App\Models\Customer::DEFAULT_WALK_IN_PASSWORD }}</span>,
                 qu'il pourra changer ensuite dans son profil.
             </p>
-            <div class="col-span-3 flex gap-2 justify-end">
+            <div class="sm:col-span-3 flex gap-2 justify-end">
                 <button type="button" wire:click="$set('showCreateForm', false)" class="h-10 px-4 rounded-lg border border-(--color-border) text-sm font-medium">Annuler</button>
                 <button type="submit" wire:loading.attr="disabled" wire:target="createClient"
                         class="h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold disabled:opacity-60">
@@ -57,7 +57,7 @@
         @if ($clients->isEmpty())
             <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucun client pour le moment.</div>
         @else
-            <table class="w-full text-sm">
+            <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
                 <thead>
                     <tr class="bg-(--color-bg) text-left">
                         <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Client</th>
@@ -74,7 +74,7 @@
                         </tr>
                     @endforeach
                 </tbody>
-            </table>
+            </table></div>
         @endif
     </div>
 

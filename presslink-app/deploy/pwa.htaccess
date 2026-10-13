@@ -4,14 +4,20 @@
 # au lieu de provoquer une erreur 500.
 
 <IfModule mod_headers.c>
-    # Le point d'entrée, le service worker et le manifeste ne doivent jamais
-    # être servis depuis un cache périmé, sinon une nouvelle version de l'app
-    # n'est détectée qu'avec retard.
-    <FilesMatch "^(index\.html|flutter_bootstrap\.js|flutter_service_worker\.js|version\.json|manifest\.json)$">
+    # Point d'entrée, code de l'app et manifeste : toujours revalidés (réponse
+    # 304 quasi instantanée si rien n'a changé), pour qu'un déploiement soit
+    # pris en compte tout de suite.
+    <FilesMatch "^(index\.html|flutter_bootstrap\.js|flutter\.js|main\.dart\.js|flutter_service_worker\.js|version\.json|manifest\.json)$">
         Header set Cache-Control "no-cache"
+    </FilesMatch>
+
+    # Polices, icônes, logo, images : gardés une semaine dans le téléphone,
+    # pour que les ouvertures suivantes s'affichent instantanément.
+    <FilesMatch "\.(ttf|otf|woff2?|png|jpg|svg|ico|frag|bin)$">
+        Header set Cache-Control "public, max-age=604800"
     </FilesMatch>
 </IfModule>
 
 <IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml
+    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml font/ttf font/otf application/x-font-ttf application/font-sfnt application/vnd.ms-opentype
 </IfModule>

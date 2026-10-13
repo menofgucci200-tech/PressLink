@@ -4,12 +4,12 @@
             Votre compte n'est rattaché à aucun pressing pour le moment.
         </div>
     @else
-        <div class="flex items-start justify-between gap-6 mb-7">
-            <div>
-                <h1 class="font-display text-2xl font-bold mb-1">Bonjour, {{ $pressing->name }}</h1>
+        <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 mb-7">
+            <div class="min-w-0">
+                <h1 class="font-display text-2xl font-bold mb-1 break-words">Bonjour, {{ $pressing->name }}</h1>
                 <p class="text-sm text-(--color-text-muted)">{{ now()->translatedFormat('l j F Y') }} @if($pressing->city) · {{ $pressing->city }} @endif</p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
                 <div class="relative">
                     <button type="button" wire:click="$toggle('showExportMenu')"
                             class="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary)">

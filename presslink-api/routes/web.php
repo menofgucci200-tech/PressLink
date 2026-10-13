@@ -3,6 +3,7 @@
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OrderExportController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\SitePageController;
 use App\Livewire\Account\Settings as AccountSettings;
 use App\Livewire\Admin\Administrators\Index as AdminAdministratorsIndex;
 use App\Livewire\Admin\Clients\Index as AdminClientsIndex;
@@ -23,14 +24,26 @@ use App\Livewire\Pressing\Settings as PressingSettings;
 use App\Livewire\Services\Index as ServicesIndex;
 use App\Livewire\Services\Variants as ServicesVariants;
 use App\Livewire\Subscription\Show as SubscriptionShow;
+use App\Livewire\Support\Show as SupportShow;
 use App\Livewire\Team\Index as TeamIndex;
 use App\Models\Pressing;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-// Pages publiques (référencement) : accueil + sitemap. L'accueil renvoie un
-// utilisateur déjà connecté vers son espace (tableau de bord ou /admin).
+// Pages publiques (référencement) : accueil, pages du site + sitemap. L'accueil
+// renvoie un utilisateur déjà connecté vers son espace (tableau de bord ou /admin).
 Route::get('/', LandingController::class)->name('home');
+Route::controller(SitePageController::class)->name('site.')->group(function () {
+    Route::get('/pour-les-clients', 'clients')->name('clients');
+    Route::get('/pour-les-pressings', 'pressings')->name('pressings');
+    Route::get('/comment-ca-marche', 'how')->name('how');
+    Route::get('/installer', 'install')->name('install');
+    Route::get('/questions-frequentes', 'faq')->name('faq');
+    Route::get('/contact', 'contact')->name('contact');
+    Route::get('/mentions-legales', 'legalNotice')->name('legal');
+    Route::get('/conditions-generales', 'terms')->name('terms');
+    Route::get('/confidentialite', 'privacy')->name('privacy');
+});
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
 Route::middleware('guest')->group(function () {
@@ -74,6 +87,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/equipe', TeamIndex::class)->name('team.index');
     Route::get('/parametres', PressingSettings::class)->name('pressing.settings');
     Route::get('/abonnement', SubscriptionShow::class)->name('subscription.show');
+    Route::get('/support', SupportShow::class)->name('support');
 
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', AdminDashboard::class)->name('dashboard');

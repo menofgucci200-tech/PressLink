@@ -46,7 +46,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px animate-step">
                 <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-3">Commandes ce mois-ci</div>
                 @if ($subscription->orders_limit === null)

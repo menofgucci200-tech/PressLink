@@ -7,16 +7,29 @@ import '../theme/app_spacing.dart';
 
 /// Propose d'installer PressLink sur l'écran d'accueil quand l'app tourne
 /// dans un navigateur (PWA). N'affiche rien dans l'APK, une fois la PWA
-/// installée, ou si l'utilisateur l'a fermée il y a moins de 7 jours.
+/// installée, ou si l'utilisateur l'a fermée il y a moins de 7 jours (sauf
+/// [alwaysVisible], utilisé par l'entrée « Installer l'application » du menu).
 ///
-/// iOS : Safari n'a aucune invite d'installation — la bannière explique le
-/// geste. Android/Chrome : un bouton déclenche l'invite native.
+/// - Android avec invite Chrome disponible : bouton « Installer ».
+/// - Android sans invite (Chrome ne la propose qu'après un temps
+///   d'utilisation, et plus après un refus) : passage par le menu ⋮.
+/// - iOS/Safari : aucune invite n'existe, on explique « Partager ».
 class PwaInstallBanner extends StatefulWidget {
-  const PwaInstallBanner({super.key, this.showReloginNote = false});
+  const PwaInstallBanner({
+    super.key,
+    this.showReloginNote = false,
+    this.alwaysVisible = false,
+  });
 
   /// Sur iOS, la PWA installée a son propre stockage : un utilisateur déjà
   /// connecté dans Safari devra se reconnecter après l'installation.
   final bool showReloginNote;
+
+  /// Ignore la fermeture précédente et masque la croix (affichage à la demande).
+  final bool alwaysVisible;
+
+  /// L'app peut-elle encore être installée (navigateur, pas déjà installée) ?
+  static bool get isInstallable => PwaInstall.mode != PwaInstallMode.none;
 
   @override
   State<PwaInstallBanner> createState() => _PwaInstallBannerState();
@@ -34,7 +47,11 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
     PwaInstall.onChange(() {
       if (mounted) setState(() {});
     });
-    _loadDismissed();
+    if (widget.alwaysVisible) {
+      _dismissed = false;
+    } else {
+      _loadDismissed();
+    }
   }
 
   Future<void> _loadDismissed() async {
@@ -55,7 +72,10 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
 
   Future<void> _install() async {
     final accepted = await PwaInstall.promptInstall();
-    if (accepted && mounted) setState(() {});
+    if (mounted) setState(() {});
+    if (accepted && widget.alwaysVisible && mounted) {
+      Navigator.of(context).maybePop();
+    }
   }
 
   @override
@@ -66,15 +86,68 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
     }
 
     final theme = Theme.of(context);
-    final isIos = mode == PwaInstallMode.iosInstructions;
+    final textStyle = theme.textTheme.bodyMedium?.copyWith(
+      fontSize: 12.5,
+      color: AppColors.textSecondary,
+    );
+
+    Widget instructions;
+    switch (mode) {
+      case PwaInstallMode.iosInstructions:
+        instructions = Text.rich(
+          TextSpan(
+            style: textStyle,
+            children: const [
+              TextSpan(text: 'Touchez '),
+              WidgetSpan(
+                alignment: PlaceholderAlignment.middle,
+                child: Icon(
+                  Icons.ios_share,
+                  size: 15,
+                  color: AppColors.primary,
+                ),
+              ),
+              TextSpan(text: ' puis « Sur l\'écran d\'accueil »'),
+            ],
+          ),
+        );
+      case PwaInstallMode.androidInstructions:
+        instructions = Text.rich(
+          TextSpan(
+            style: textStyle,
+            children: const [
+              TextSpan(text: 'Ouvrez le menu '),
+              WidgetSpan(
+                alignment: PlaceholderAlignment.middle,
+                child: Icon(
+                  Icons.more_vert,
+                  size: 15,
+                  color: AppColors.primary,
+                ),
+              ),
+              TextSpan(
+                text: ' du navigateur puis « Installer l\'application ».',
+              ),
+            ],
+          ),
+        );
+      case PwaInstallMode.nativePrompt:
+      case PwaInstallMode.none:
+        instructions = Text(
+          'Ajoutez-la à votre écran d\'accueil.',
+          style: textStyle,
+        );
+    }
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: EdgeInsets.only(
+        bottom: widget.alwaysVisible ? 0 : AppSpacing.md,
+      ),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(
+        padding: EdgeInsets.fromLTRB(
           AppSpacing.md,
           AppSpacing.sm + 4,
-          AppSpacing.sm,
+          widget.alwaysVisible ? AppSpacing.md : AppSpacing.sm,
           AppSpacing.md,
         ),
         decoration: BoxDecoration(
@@ -117,38 +190,9 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
                           ),
                         ),
                         const SizedBox(height: 2),
-                        if (isIos)
-                          Text.rich(
-                            TextSpan(
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontSize: 12.5,
-                                color: AppColors.textSecondary,
-                              ),
-                              children: const [
-                                TextSpan(text: 'Touchez '),
-                                WidgetSpan(
-                                  alignment: PlaceholderAlignment.middle,
-                                  child: Icon(
-                                    Icons.ios_share,
-                                    size: 15,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: ' puis « Sur l\'écran d\'accueil »',
-                                ),
-                              ],
-                            ),
-                          )
-                        else
-                          Text(
-                            'Ajoutez-la à votre écran d\'accueil.',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontSize: 12.5,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        if (isIos && widget.showReloginNote) ...[
+                        instructions,
+                        if (mode == PwaInstallMode.iosInstructions &&
+                            widget.showReloginNote) ...[
                           const SizedBox(height: 4),
                           Text(
                             'Vous devrez vous reconnecter dans l\'application installée.',
@@ -161,22 +205,25 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
                     ),
                   ),
                 ),
-                IconButton(
-                  tooltip: 'Plus tard',
-                  onPressed: _dismiss,
-                  visualDensity: VisualDensity.compact,
-                  icon: const Icon(
-                    Icons.close,
-                    size: 18,
-                    color: AppColors.textSecondary,
+                if (!widget.alwaysVisible)
+                  IconButton(
+                    tooltip: 'Plus tard',
+                    onPressed: _dismiss,
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(
+                      Icons.close,
+                      size: 18,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
-                ),
               ],
             ),
-            if (!isIos) ...[
+            if (mode == PwaInstallMode.nativePrompt) ...[
               const SizedBox(height: AppSpacing.sm + 4),
               Padding(
-                padding: const EdgeInsets.only(right: AppSpacing.sm),
+                padding: EdgeInsets.only(
+                  right: widget.alwaysVisible ? 0 : AppSpacing.sm,
+                ),
                 child: SizedBox(
                   width: double.infinity,
                   height: 52,
@@ -192,4 +239,27 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
       ),
     );
   }
+}
+
+/// Ouvre la carte d'installation à la demande (entrée de menu), même si la
+/// bannière a été fermée auparavant.
+Future<void> showPwaInstallSheet(BuildContext context) {
+  return showModalBottomSheet(
+    context: context,
+    backgroundColor: Theme.of(context).cardTheme.color,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) => const SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.lg,
+          AppSpacing.md,
+          AppSpacing.md,
+        ),
+        child: PwaInstallBanner(alwaysVisible: true, showReloginNote: true),
+      ),
+    ),
+  );
 }

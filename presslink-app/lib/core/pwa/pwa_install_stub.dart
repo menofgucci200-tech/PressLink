@@ -10,6 +10,11 @@ enum PwaInstallMode {
   /// iOS/Safari : aucune invite n'existe, il faut expliquer le geste
   /// « Partager > Sur l'écran d'accueil ».
   iosInstructions,
+
+  /// Android, mais Chrome n'a pas (encore) proposé son invite — il ne le
+  /// fait qu'après un temps d'utilisation, et plus du tout après un refus.
+  /// On explique alors le passage par le menu du navigateur.
+  androidInstructions,
 }
 
 /// Version hors navigateur (Android/iOS natifs, tests) : jamais d'invite.

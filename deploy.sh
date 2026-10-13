@@ -134,8 +134,19 @@ deploy_backend() {
   # ces fichiers n'y arrivent que si on les envoie. favicon.ico y était vide
   # (0 octet) et robots.txt était celui par défaut.
   local static_file
-  for static_file in robots.txt favicon.ico apple-touch-icon.png og-image.png qr-presslink-app.png; do
+  for static_file in robots.txt favicon.ico apple-touch-icon.png favicon-48.png favicon-96.png favicon-192.png og-image.png qr-presslink-app.png; do
     lftp_run "put '$API_DIR/public/$static_file' -o $REMOTE_WEBROOT/$static_file;"
+  done
+
+  # Images (photos de téléphones, icônes WhatsApp/appel) et vidéo du parcours
+  # du site public.
+  local static_dir
+  for static_dir in images video; do
+    lftp_run "
+      mirror --reverse --verbose --parallel=3 \
+        --exclude .DS_Store \
+        '$API_DIR/public/$static_dir' '$REMOTE_WEBROOT/$static_dir';
+    "
   done
 
   print_followup_backend

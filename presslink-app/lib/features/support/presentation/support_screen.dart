@@ -168,7 +168,7 @@ class SupportScreen extends ConsumerWidget {
               height: 52,
               child: ElevatedButton.icon(
                 onPressed: () => _open(context, _callUri),
-                icon: const Icon(Icons.call, size: 20, color: Colors.white),
+                icon: const _ContactIcon('assets/icons/phone.png'),
                 label: const Text('Appeler le support'),
               ),
             ),
@@ -182,7 +182,7 @@ class SupportScreen extends ConsumerWidget {
                   backgroundColor: _whatsAppGreen,
                   foregroundColor: Colors.white,
                 ),
-                icon: const Icon(Icons.chat, size: 20, color: Colors.white),
+                icon: const _ContactIcon('assets/icons/whatsapp.png'),
                 label: const Text('Écrire sur WhatsApp'),
               ),
             ),
@@ -215,6 +215,25 @@ class SupportScreen extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Pastille ronde (logo WhatsApp ou combiné téléphonique) des boutons de contact.
+class _ContactIcon extends StatelessWidget {
+  const _ContactIcon(this.asset);
+
+  final String asset;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(1.5),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+      ),
+      child: Image.asset(asset, width: 26, height: 26),
     );
   }
 }

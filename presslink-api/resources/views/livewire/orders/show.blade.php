@@ -15,8 +15,8 @@
         <div class="mb-5 p-3 rounded-lg bg-(--color-error-tint) text-(--color-error) text-sm">{{ $errorMessage }}</div>
     @endif
 
-    <div class="grid grid-cols-3 gap-6">
-        <div class="col-span-2 flex flex-col gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 flex flex-col gap-6">
             @if ($order->issues->isNotEmpty())
                 <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
                     <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-3">Problèmes signalés</div>

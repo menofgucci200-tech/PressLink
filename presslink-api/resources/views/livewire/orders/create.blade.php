@@ -13,10 +13,10 @@
                         {{ $n < $step ? 'bg-(--color-success) text-white' : ($n === $step ? 'bg-(--color-primary) text-white' : 'bg-(--color-border) text-(--color-text-muted)') }}">
                         @if ($n < $step) ✓ @else {{ $n }} @endif
                     </div>
-                    <span class="text-[13.5px] font-medium transition-colors duration-300 {{ $n <= $step ? 'text-(--color-text-primary)' : 'text-(--color-text-muted)' }}">{{ $label }}</span>
+                    <span class="text-[13.5px] font-medium transition-colors duration-300 {{ $n === $step ? '' : 'hidden sm:inline' }} {{ $n <= $step ? 'text-(--color-text-primary)' : 'text-(--color-text-muted)' }}">{{ $label }}</span>
                 </div>
                 @if ($n < 4)
-                    <div class="flex-1 h-px mx-3.5 bg-(--color-border) overflow-hidden">
+                    <div class="flex-1 h-px mx-2 sm:mx-3.5 bg-(--color-border) overflow-hidden">
                         <div class="h-full bg-(--color-success) transition-all duration-500 ease-out" style="width:{{ $n < $step ? '100' : '0' }}%"></div>
                     </div>
                 @endif
@@ -24,7 +24,7 @@
         @endforeach
     </div>
 
-    <div wire:key="wizard-step-{{ $step }}" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-7 animate-step">
+    <div wire:key="wizard-step-{{ $step }}" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-4 sm:p-7 animate-step">
 
         {{-- Étape 1 : Client --}}
         @if ($step === 1)
@@ -58,7 +58,7 @@
             @if (! $showNewClientForm)
                 <button type="button" wire:click="$set('showNewClientForm', true)" class="text-sm font-medium text-(--color-primary)">+ Créer un nouveau client</button>
             @else
-                <div class="border border-(--color-border) rounded-lg p-4 grid grid-cols-3 gap-3">
+                <div class="border border-(--color-border) rounded-lg p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <input type="text" wire:model="newFirstName" placeholder="Prénom" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
                         @error('newFirstName') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
@@ -71,12 +71,12 @@
                         <input type="text" wire:model="newPhone" placeholder="+2250708124400" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
                         @error('newPhone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                     </div>
-                    <p class="col-span-3 text-xs text-(--color-text-muted)">
+                    <p class="sm:col-span-3 text-xs text-(--color-text-muted)">
                         Mot de passe par défaut pour l'app :
                         <span class="font-mono font-semibold">{{ \App\Models\Customer::DEFAULT_WALK_IN_PASSWORD }}</span>
                         (modifiable ensuite par le client dans son profil).
                     </p>
-                    <div class="col-span-3 flex justify-end gap-2">
+                    <div class="sm:col-span-3 flex justify-end gap-2">
                         <button type="button" wire:click="$set('showNewClientForm', false)" class="h-9 px-3 rounded-lg border border-(--color-border) text-sm">Annuler</button>
                         <button type="button" wire:click="createAndPickCustomer" class="h-9 px-3 rounded-lg bg-(--color-primary) text-white text-sm font-semibold">Créer</button>
                     </div>
@@ -90,7 +90,7 @@
             <p class="text-[13px] text-(--color-text-muted) mb-5">Choisissez un service, sa variante et sa couleur si besoin.</p>
 
             <div class="border border-(--color-border) rounded-lg p-4 mb-6">
-                <div class="grid grid-cols-2 gap-3 mb-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                     <div>
                         <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Service</label>
                         <select wire:model.live="pickerService" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
@@ -126,7 +126,7 @@
                 </div>
 
                 @if ($pickerService === 'other' || $pickerVariant === 'other')
-                    <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                         <div>
                             <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom de l'article</label>
                             <input type="text" wire:model="pickerCustomName" placeholder="Ex. Nappe" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
@@ -140,7 +140,7 @@
                     </div>
                 @endif
 
-                <div class="grid grid-cols-2 gap-3 items-end">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
                     <div>
                         <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Couleur (optionnel)</label>
                         <input type="text" wire:model="pickerColor" placeholder="Ex. Bleu" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
@@ -190,7 +190,7 @@
         @if ($step === 3)
             <h2 class="font-semibold text-[17px] mb-5">Détails</h2>
 
-            <div class="grid grid-cols-2 gap-4 mb-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
                 <div>
                     <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Date prévue de retrait</label>
                     <input type="date" wire:model="expectedAt" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">

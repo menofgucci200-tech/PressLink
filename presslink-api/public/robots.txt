@@ -17,6 +17,7 @@ Disallow: /equipe
 Disallow: /parametres
 Disallow: /abonnement
 Disallow: /mon-compte
+Disallow: /support
 Disallow: /logout
 
 Sitemap: https://presslink.org/sitemap.xml

@@ -4,8 +4,8 @@
         <p class="text-sm text-(--color-text-muted)">{{ $orders->total() }} commande(s) sur la plateforme.</p>
     </div>
 
-    <div class="flex items-center gap-3 mb-5">
-        <div class="relative max-w-sm flex-1">
+    <div class="flex flex-wrap items-center gap-3 mb-5">
+        <div class="relative w-full sm:w-auto sm:flex-1 sm:max-w-sm">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-(--color-text-muted)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
             <input type="text" wire:model.live.debounce.400ms="search" placeholder="N° commande, client ou pressing…"
                    class="w-full h-10 pl-9 pr-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-white">
@@ -22,7 +22,7 @@
         @if ($orders->isEmpty())
             <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucune commande trouvée.</div>
         @else
-            <table class="w-full text-sm">
+            <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
                 <thead>
                     <tr class="bg-(--color-bg) text-left">
                         <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">N°</th>
@@ -46,7 +46,7 @@
                         </tr>
                     @endforeach
                 </tbody>
-            </table>
+            </table></div>
         @endif
     </div>
 

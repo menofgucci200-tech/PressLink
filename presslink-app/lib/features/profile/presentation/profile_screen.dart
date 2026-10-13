@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../../core/config/app_config.dart';
 
 import '../../../core/widgets/app_page_route.dart';
 import '../../../core/theme/app_colors.dart';
@@ -161,27 +164,13 @@ class ProfileScreen extends ConsumerWidget {
                   _ProfileRow(
                     label: 'Conditions d\'utilisation',
                     value: '',
-                    onTap: () => Navigator.of(context).push(
-                      AppPageRoute(
-                        builder: (_) => const StaticPageScreen(
-                          title: 'Conditions d\'utilisation',
-                          sections: StaticPages.terms,
-                        ),
-                      ),
-                    ),
+                    onTap: () => launchUrl(Uri.parse(AppConfig.termsUrl)),
                   ),
                   _ProfileRow(
                     label: 'Politique de confidentialité',
                     value: '',
                     isLast: true,
-                    onTap: () => Navigator.of(context).push(
-                      AppPageRoute(
-                        builder: (_) => const StaticPageScreen(
-                          title: 'Politique de confidentialité',
-                          sections: StaticPages.privacy,
-                        ),
-                      ),
-                    ),
+                    onTap: () => launchUrl(Uri.parse(AppConfig.privacyUrl)),
                   ),
                 ],
               ),

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Actions\Demo\ResetDemoPressing;
 use App\Enums\PressingStatus;
 use App\Models\Customer;
 use App\Models\Order;
@@ -24,9 +25,24 @@ class Dashboard extends Component
 
     public string $administratorId = '';
 
+    /**
+     * Accès de démo affichés une seule fois après (ré)initialisation.
+     *
+     * @var array{password: string, code: string}|null
+     */
+    public ?array $demoAccess = null;
+
     public function mount(): void
     {
         abort_unless(auth()->user()->is_super_admin, 403);
+    }
+
+    public function resetDemo(ResetDemoPressing $reset): void
+    {
+        abort_unless(auth()->user()->is_super_admin, 403);
+
+        $result = $reset->handle();
+        $this->demoAccess = ['password' => $result['password'], 'code' => $result['pressing']->code];
     }
 
     private function periodStart(): ?Carbon

@@ -88,4 +88,42 @@
             </table></div>
         @endif
     </div>
+
+    {{-- Environnement de démo (comptes fictifs en production pour les démonstrations) --}}
+    <div class="mt-8 bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="max-w-2xl">
+                <h2 class="font-display text-lg font-bold mb-1">Environnement de démo</h2>
+                <p class="text-sm text-(--color-text-secondary)">
+                    Pressing fictif « Pressing Démo PressLink » ({{ \App\Actions\Demo\ResetDemoPressing::PRESSING_CODE }}) avec un gérant, un employé, 4 clients et des commandes à chaque statut.
+                    La réinitialisation efface la démo précédente et génère un nouveau mot de passe.
+                </p>
+            </div>
+            <button wire:click="resetDemo" wire:loading.attr="disabled"
+                    wire:confirm="{{ \App\Actions\Demo\ResetDemoPressing::exists() ? 'Réinitialiser la démo ? Toutes les données de démo actuelles seront effacées.' : 'Créer le pressing de démo ?' }}"
+                    class="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">
+                <span wire:loading.remove wire:target="resetDemo">{{ \App\Actions\Demo\ResetDemoPressing::exists() ? 'Réinitialiser la démo' : 'Créer la démo' }}</span>
+                <span wire:loading wire:target="resetDemo">Préparation…</span>
+            </button>
+        </div>
+
+        @if ($demoAccess)
+            <div class="mt-5 rounded-lg bg-(--color-success-tint) border border-emerald-200 p-4 text-sm">
+                <p class="font-semibold text-(--color-success-text) mb-3">Démo prête. Notez le mot de passe : il ne sera plus affiché.</p>
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1">Espace pressing ({{ url('/login') }})</p>
+                        <p>Gérant : <code class="font-mono font-semibold">{{ \App\Actions\Demo\ResetDemoPressing::MANAGER_LOGIN }}</code></p>
+                        <p>Employé : <code class="font-mono font-semibold">{{ \App\Actions\Demo\ResetDemoPressing::EMPLOYEE_LOGIN }}</code></p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1">Application client ({{ url('/app/') }})</p>
+                        <p>Téléphone : <code class="font-mono font-semibold">+225 00 00 00 00 01</code> (à 04)</p>
+                        <p>Code du pressing : <code class="font-mono font-semibold">{{ $demoAccess['code'] }}</code></p>
+                    </div>
+                </div>
+                <p class="mt-3">Mot de passe (tous les comptes) : <code class="font-mono text-base font-bold bg-white px-2 py-0.5 rounded">{{ $demoAccess['password'] }}</code></p>
+            </div>
+        @endif
+    </div>
 </div>

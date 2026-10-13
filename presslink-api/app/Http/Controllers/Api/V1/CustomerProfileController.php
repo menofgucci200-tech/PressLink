@@ -40,7 +40,7 @@ class CustomerProfileController extends Controller
             ], 422);
         }
 
-        $customer->update(['password' => $request->string('password')->toString()]);
+        $customer->update(['password' => $request->string('password')->toString(), 'must_change_password' => false]);
 
         return response()->json(['message' => 'Mot de passe mis à jour.']);
     }

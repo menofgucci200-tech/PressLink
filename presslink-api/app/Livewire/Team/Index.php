@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Team;
 
+use App\Actions\Auth\ResetPasswordToDefault;
 use App\Enums\PressingRole;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\User;
@@ -88,6 +89,23 @@ class Index extends Component
 
         $this->createdMember = $member;
         $this->reset(['name', 'login', 'phone', 'password', 'role', 'showCreateForm']);
+    }
+
+    /**
+     * Mot de passe oublié par un membre : il repasse à la valeur par défaut
+     * et le membre est invité à le changer depuis « Mon compte ».
+     */
+    public function resetMemberPassword(int $memberId): void
+    {
+        $pressing = auth()->user()->currentPressing();
+        abort_unless($pressing && auth()->user()->isAdminOf($pressing), 403);
+
+        $member = $pressing->staff()->findOrFail($memberId);
+        abort_if($member->id === auth()->id(), 403);
+
+        (new ResetPasswordToDefault)->handle($member);
+
+        $this->toast("Le mot de passe de {$member->name} est maintenant ".ResetPasswordToDefault::DEFAULT_PASSWORD.'. Il devra le changer depuis « Mon compte ».');
     }
 
     public function toggleActive(int $memberId): void

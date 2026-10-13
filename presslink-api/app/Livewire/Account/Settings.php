@@ -4,7 +4,6 @@ namespace App\Livewire\Account;
 
 use App\Livewire\Concerns\ShowsToasts;
 use Illuminate\Validation\Rule;
-use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
@@ -55,15 +54,19 @@ class Settings extends Component
             return;
         }
 
-        auth()->user()->update(['password' => $this->newPassword]);
+        auth()->user()->update(['password' => $this->newPassword, 'must_change_password' => false]);
 
         $this->reset(['currentPassword', 'newPassword', 'newPasswordConfirmation']);
         $this->toast('Mot de passe mis à jour.');
+        $this->dispatch('password-changed');
     }
 
-    #[Layout('layouts.dashboard', ['active' => 'account', 'title' => 'Mon compte'])]
     public function render()
     {
-        return view('livewire.account.settings');
+        // Même page pour l'équipe d'un pressing et pour la console Super Admin.
+        return view('livewire.account.settings')->layout(
+            auth()->user()->is_super_admin ? 'layouts.admin' : 'layouts.dashboard',
+            ['active' => 'account', 'title' => 'Mon compte'],
+        );
     }
 }

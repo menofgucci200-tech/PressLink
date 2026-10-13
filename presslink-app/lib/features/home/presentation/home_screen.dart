@@ -11,6 +11,7 @@ import '../../../core/widgets/pwa_install_banner.dart';
 import '../../../core/widgets/staggered_fade_in.dart';
 import '../../../shared/models/order_summary.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../auth/presentation/logout_confirmation.dart';
 import '../../notifications/presentation/notifications_controller.dart';
 import '../../notifications/presentation/notifications_screen.dart';
 import '../../orders/presentation/order_detail_screen.dart';
@@ -18,6 +19,7 @@ import '../../orders/presentation/orders_controller.dart';
 import '../../pressings/presentation/join_pressing_screen.dart';
 import '../../pressings/presentation/pressing_detail_screen.dart';
 import '../../pressings/presentation/pressings_controller.dart';
+import '../../profile/presentation/password_reminder_banner.dart';
 
 /// Écran Accueil Client — cf. Wireframes & Layouts §3, UI haute fidélité §2.
 class HomeScreen extends ConsumerWidget {
@@ -52,6 +54,7 @@ class HomeScreen extends ConsumerWidget {
               AppSpacing.xl,
             ),
             children: [
+              const PasswordReminderBanner(),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -87,8 +90,7 @@ class HomeScreen extends ConsumerWidget {
                       const SizedBox(width: AppSpacing.sm),
                       IconButton(
                         tooltip: 'Se déconnecter',
-                        onPressed: () =>
-                            ref.read(authControllerProvider.notifier).logout(),
+                        onPressed: () => confirmAndLogout(context, ref),
                         icon: const Icon(Icons.logout, size: 20),
                       ),
                     ],

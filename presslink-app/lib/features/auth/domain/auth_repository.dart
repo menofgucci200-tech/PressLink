@@ -22,6 +22,7 @@ class Customer {
     this.email,
     this.gender,
     this.photoUrl,
+    this.mustChangePassword = false,
   });
 
   final int id;
@@ -32,7 +33,21 @@ class Customer {
   final String? gender;
   final String? photoUrl;
 
+  /// Mot de passe réinitialisé (ou attribué par défaut) à changer.
+  final bool mustChangePassword;
+
   String get fullName => '$firstName $lastName'.trim();
+
+  Customer copyWith({bool? mustChangePassword}) => Customer(
+    id: id,
+    firstName: firstName,
+    lastName: lastName,
+    phone: phone,
+    email: email,
+    gender: gender,
+    photoUrl: photoUrl,
+    mustChangePassword: mustChangePassword ?? this.mustChangePassword,
+  );
 
   factory Customer.fromJson(Map<String, dynamic> json) => Customer(
     id: json['id'] as int,
@@ -42,6 +57,7 @@ class Customer {
     email: json['email'] as String?,
     gender: json['gender'] as String?,
     photoUrl: json['photo_url'] as String?,
+    mustChangePassword: json['must_change_password'] == true,
   );
 }
 

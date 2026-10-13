@@ -96,6 +96,8 @@ class CustomerAuthController extends Controller
             'email' => $customer->email,
             'gender' => $customer->gender?->value,
             'photo_url' => $customer->photo_url,
+            // L'application invite à changer un mot de passe réinitialisé ou par défaut.
+            'must_change_password' => (bool) $customer->must_change_password,
         ];
     }
 }

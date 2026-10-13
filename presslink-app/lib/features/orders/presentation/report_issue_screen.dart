@@ -7,6 +7,7 @@ import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../domain/order_repository.dart';
 import 'orders_controller.dart';
+import '../../../core/widgets/app_feedback.dart';
 
 /// Signaler un problème sur une commande — ex. article manquant,
 /// article qui n'appartient pas au client.
@@ -54,6 +55,7 @@ class _ReportIssueScreenState extends ConsumerState<ReportIssueScreen> {
 
       if (!mounted) return;
       ref.invalidate(orderDetailProvider(widget.orderId));
+      showAppToast(context, 'Signalement envoyé au pressing.');
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;

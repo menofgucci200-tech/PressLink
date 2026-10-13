@@ -2,13 +2,13 @@
 
 namespace App\Livewire\Admin\Clients;
 
+use App\Actions\Auth\ResetPasswordToDefault;
 use App\Enums\OrderStatus;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Customer;
 use App\Models\Pressing;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -51,9 +51,6 @@ class Index extends Component
 
     public string $attachPressingId = '';
 
-    /** Mot de passe temporaire affiché une seule fois après réinitialisation. */
-    public ?string $generatedPassword = null;
-
     public function mount(): void
     {
         abort_unless(auth()->user()->is_super_admin, 403);
@@ -75,14 +72,14 @@ class Index extends Component
     public function showCustomer(int $customerId): void
     {
         $this->selectedCustomerId = $customerId;
-        $this->reset(['formMode', 'generatedPassword', 'attachPressingId']);
+        $this->reset(['formMode', 'attachPressingId']);
         $this->resetErrorBag();
     }
 
     public function closeCustomer(): void
     {
         $this->selectedCustomerId = null;
-        $this->reset(['formMode', 'generatedPassword', 'attachPressingId']);
+        $this->reset(['formMode', 'attachPressingId']);
     }
 
     public function openCreateForm(): void
@@ -149,6 +146,7 @@ class Index extends Component
                 $customer = Customer::create([
                     ...$data,
                     'password' => Customer::DEFAULT_WALK_IN_PASSWORD,
+                    'must_change_password' => true,
                     'phone_verified_at' => now(),
                 ]);
 
@@ -191,12 +189,9 @@ class Index extends Component
         abort_unless(auth()->user()->is_super_admin, 403);
 
         $customer = Customer::findOrFail($this->selectedCustomerId);
-        $password = Str::password(8, symbols: false);
-        $customer->update(['password' => $password]);
-        // Les sessions ouvertes dans l'application sont fermées.
-        $customer->tokens()->delete();
+        (new ResetPasswordToDefault)->handle($customer);
 
-        $this->generatedPassword = $password;
+        $this->toast('Mot de passe réinitialisé à '.ResetPasswordToDefault::DEFAULT_PASSWORD.'. Le client devra le changer depuis son profil dans l\'application.');
     }
 
     /**

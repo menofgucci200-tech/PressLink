@@ -98,6 +98,15 @@
                             </td>
                             <td class="px-5 py-3.5 text-right">
                                 @if ($member->id !== auth()->id())
+                                    @if ($member->pivot->is_active)
+                                        <button wire:click="resetMemberPassword({{ $member->id }})"
+                                                wire:loading.attr="disabled" wire:target="resetMemberPassword({{ $member->id }})"
+                                                data-confirm-title="Réinitialiser le mot de passe" data-confirm-label="Réinitialiser" data-confirm-tone="warning"
+                                                wire:confirm="Le mot de passe de {{ $member->name }} sera remplacé par {{ \App\Actions\Auth\ResetPasswordToDefault::DEFAULT_PASSWORD }} et ses sessions ouvertes seront fermées. Il devra en choisir un nouveau depuis « Mon compte »."
+                                                class="mr-4 text-xs font-medium text-(--color-text-secondary) hover:text-(--color-primary) disabled:opacity-60">
+                                            Réinitialiser le mot de passe
+                                        </button>
+                                    @endif
                                     <button wire:click="toggleActive({{ $member->id }})"
                                             data-confirm-title="{{ $member->pivot->is_active ? 'Retirer de l\'équipe' : 'Réactiver le membre' }}"
                                             data-confirm-label="{{ $member->pivot->is_active ? 'Retirer' : 'Réactiver' }}"

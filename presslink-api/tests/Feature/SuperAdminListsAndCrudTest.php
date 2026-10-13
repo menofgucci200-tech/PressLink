@@ -227,10 +227,9 @@ class SuperAdminListsAndCrudTest extends TestCase
         $component->call('detachPressing', $pressing->id);
         $this->assertFalse($customer->pressings()->whereKey($pressing->id)->exists());
 
-        $component->call('resetPassword');
-        $password = $component->get('generatedPassword');
-        $this->assertNotNull($password);
-        $this->assertTrue(Hash::check($password, $customer->refresh()->password));
+        $component->call('resetPassword')->assertDispatched('toast');
+        $this->assertTrue(Hash::check('123456', $customer->refresh()->password));
+        $this->assertTrue($customer->must_change_password);
         $this->assertSame(0, $customer->tokens()->count());
     }
 

@@ -2,13 +2,13 @@
 
 namespace App\Livewire\Admin\Pressings;
 
+use App\Actions\Auth\ResetPasswordToDefault;
 use App\Enums\PressingStatus;
 use App\Enums\SubscriptionPlan;
 use App\Enums\SubscriptionStatus;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Pressing;
 use App\Models\Subscription;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -37,10 +37,6 @@ class Show extends Component
     public string $billingCycle = 'monthly';
 
     public bool $setupFeePaid = false;
-
-    public ?int $passwordResetForUserId = null;
-
-    public ?string $generatedPassword = null;
 
     public bool $editingInfo = false;
 
@@ -141,12 +137,11 @@ class Show extends Component
     {
         $member = $this->pressing->staff()->where('users.id', $userId)->firstOrFail();
 
-        $password = Str::password(10);
+        abort_unless(auth()->user()->is_super_admin, 403);
 
-        $member->update(['password' => $password]);
+        (new ResetPasswordToDefault)->handle($member);
 
-        $this->passwordResetForUserId = $member->id;
-        $this->generatedPassword = $password;
+        $this->toast("Le mot de passe de {$member->name} est maintenant ".ResetPasswordToDefault::DEFAULT_PASSWORD.'. Il devra le changer depuis « Mon compte ».');
     }
 
     public function saveSubscription(): void

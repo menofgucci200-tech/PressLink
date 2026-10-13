@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../../core/widgets/app_feedback.dart';
 
 /// Changer de mot de passe — Profil §Personnalisation (26/08).
 class ChangePasswordScreen extends ConsumerStatefulWidget {
@@ -23,7 +23,6 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   bool _loading = false;
   bool _obscure = true;
   String? _error;
-  String? _success;
 
   Future<void> _submit() async {
     if (_passwordController.text.length < 4) {
@@ -42,7 +41,6 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     setState(() {
       _loading = true;
       _error = null;
-      _success = null;
     });
 
     final ok = await ref
@@ -56,7 +54,6 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     setState(() {
       _loading = false;
       if (ok) {
-        _success = 'Mot de passe mis à jour.';
         _currentController.clear();
         _passwordController.clear();
         _confirmController.clear();
@@ -64,6 +61,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         _error = ref.read(authControllerProvider).error;
       }
     });
+    if (ok) showAppToast(context, 'Mot de passe mis à jour.');
   }
 
   @override
@@ -123,16 +121,6 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                   _error!,
                   style: TextStyle(
                     color: theme.colorScheme.error,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-              if (_success != null) ...[
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  _success!,
-                  style: const TextStyle(
-                    color: AppColors.successText,
                     fontSize: 13,
                   ),
                 ),

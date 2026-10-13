@@ -94,6 +94,7 @@ class Create extends Component
                     'first_name' => $this->newFirstName,
                     'last_name' => $this->newLastName,
                     'password' => Customer::DEFAULT_WALK_IN_PASSWORD,
+                    'must_change_password' => true,
                     'phone_verified_at' => now(),
                 ],
             );

@@ -99,12 +99,6 @@
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden mb-6">
         <div class="px-5 py-3.5 border-b border-(--color-border) text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Équipe</div>
 
-        @if ($generatedPassword)
-            <div class="mx-5 mt-4 p-3 rounded-lg bg-(--color-success-tint) text-(--color-success-text) text-sm">
-                Nouveau mot de passe temporaire (à transmettre vous-même, il ne sera plus affiché) :
-                <span class="font-mono font-semibold">{{ $generatedPassword }}</span>
-            </div>
-        @endif
 
         @if ($staff->isEmpty())
             <div class="px-5 py-8 text-center text-sm text-(--color-text-muted)">Aucun membre.</div>
@@ -122,8 +116,8 @@
                             <td class="px-5 py-3 text-right">
                                 @if ($member->pivot->is_active)
                                     <button wire:click="resetStaffPassword({{ $member->id }})"
-                                            data-confirm-title="Nouveau mot de passe" data-confirm-label="Générer" data-confirm-tone="warning"
-                                            wire:confirm="Générer un nouveau mot de passe pour {{ $member->name }} ? L'ancien ne fonctionnera plus."
+                                            data-confirm-title="Réinitialiser le mot de passe" data-confirm-label="Réinitialiser" data-confirm-tone="warning"
+                                            wire:confirm="Le mot de passe de {{ $member->name }} sera remplacé par {{ \App\Actions\Auth\ResetPasswordToDefault::DEFAULT_PASSWORD }} et ses sessions ouvertes seront fermées. Il devra en choisir un nouveau depuis « Mon compte »."
                                             wire:loading.attr="disabled" wire:target="resetStaffPassword({{ $member->id }})"
                                             class="text-xs font-medium text-(--color-primary) hover:underline disabled:opacity-60">
                                         Réinitialiser le mot de passe

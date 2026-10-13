@@ -8,6 +8,7 @@ import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../auth/domain/auth_repository.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../../core/widgets/app_feedback.dart';
 
 /// Modifier mon profil — Profil §Personnalisation (26/08).
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -25,7 +26,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   bool _loading = false;
   bool _photoLoading = false;
   String? _error;
-  String? _success;
 
   // Au lancement de l'app, la session est restaurée depuis le token stocké
   // et `customer` peut donc ne pas encore être chargé quand cet écran
@@ -165,7 +165,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     setState(() {
       _loading = true;
       _error = null;
-      _success = null;
     });
 
     final ok = await ref
@@ -182,12 +181,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     if (!mounted) return;
     setState(() {
       _loading = false;
-      if (ok) {
-        _success = 'Profil mis à jour.';
-      } else {
-        _error = ref.read(authControllerProvider).error;
-      }
+      if (!ok) _error = ref.read(authControllerProvider).error;
     });
+    if (ok) showAppToast(context, 'Profil mis à jour.');
   }
 
   @override
@@ -344,16 +340,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   _error!,
                   style: TextStyle(
                     color: theme.colorScheme.error,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-              if (_success != null) ...[
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  _success!,
-                  style: const TextStyle(
-                    color: AppColors.successText,
                     fontSize: 13,
                   ),
                 ),

@@ -13,6 +13,7 @@ use App\Livewire\Admin\Orders\Index as AdminOrdersIndex;
 use App\Livewire\Admin\Pressings\Create as AdminPressingsCreate;
 use App\Livewire\Admin\Pressings\Index as AdminPressingsIndex;
 use App\Livewire\Admin\Pressings\Show as AdminPressingsShow;
+use App\Livewire\Admin\Users\Index as AdminUsersIndex;
 use App\Livewire\Auth\AdminLogin;
 use App\Livewire\Auth\Login;
 use App\Livewire\Clients\Index as ClientsIndex;
@@ -101,6 +102,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/commandes', AdminOrdersIndex::class)->name('orders.index');
         Route::get('/clients', AdminClientsIndex::class)->name('clients.index');
         Route::get('/administrateurs', AdminAdministratorsIndex::class)->name('administrators.index');
+        Route::get('/utilisateurs', AdminUsersIndex::class)->name('users.index');
         Route::get('/export/{type}', AdminExportController::class)->whereIn('type', ['pressings', 'orders', 'clients'])->name('export');
     });
 

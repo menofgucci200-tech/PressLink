@@ -18,7 +18,7 @@ use Laravel\Sanctum\HasApiTokens;
  * Membre du staff d'un ou plusieurs pressings (employé ou admin).
  * Distinct de Customer (client final, authentifié par téléphone).
  */
-#[Fillable(['name', 'email', 'phone', 'login', 'password', 'is_super_admin'])]
+#[Fillable(['name', 'email', 'phone', 'login', 'password', 'must_change_password', 'is_super_admin'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -36,6 +36,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_super_admin' => 'boolean',
+            'must_change_password' => 'boolean',
         ];
     }
 

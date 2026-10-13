@@ -216,12 +216,6 @@
                 </div>
 
                 <div class="flex-1 overflow-y-auto px-5 py-5 space-y-6 text-sm">
-                    @if ($generatedPassword)
-                        <div class="p-3 rounded-lg bg-(--color-success-tint) text-(--color-success-text)">
-                            Nouveau mot de passe (à transmettre au client, il ne sera plus affiché) :
-                            <span class="font-mono font-bold">{{ $generatedPassword }}</span>
-                        </div>
-                    @endif
 
                     @if ($formMode === 'edit')
                         <form novalidate wire:submit="saveCustomer" class="grid grid-cols-2 gap-4 rounded-lg border border-(--color-border) p-4">
@@ -253,7 +247,7 @@
                     @else
                         <div class="flex flex-wrap gap-2">
                             <button type="button" wire:click="editCustomer" class="h-9 px-3.5 rounded-lg border border-(--color-border) text-sm font-medium hover:border-(--color-primary) hover:text-(--color-primary)">Modifier</button>
-                            <button type="button" wire:click="resetPassword" data-confirm-title="Nouveau mot de passe" data-confirm-label="Générer" data-confirm-tone="warning" wire:confirm="Générer un nouveau mot de passe pour ce client ? L'ancien ne fonctionnera plus et il sera déconnecté de l'application."
+                            <button type="button" wire:click="resetPassword" data-confirm-title="Réinitialiser le mot de passe" data-confirm-label="Réinitialiser" data-confirm-tone="warning" wire:confirm="Le mot de passe de ce client sera remplacé par {{ \App\Actions\Auth\ResetPasswordToDefault::DEFAULT_PASSWORD }} et il sera déconnecté de l'application. Il devra en choisir un nouveau depuis son profil."
                                     class="h-9 px-3.5 rounded-lg border border-(--color-border) text-sm font-medium hover:border-(--color-primary) hover:text-(--color-primary)">Réinitialiser le mot de passe</button>
                             <button type="button" wire:click="toggleActive"
                                     data-confirm-title="{{ $selectedCustomer->is_active ? 'Désactiver le compte' : 'Réactiver le compte' }}" data-confirm-label="{{ $selectedCustomer->is_active ? 'Désactiver' : 'Réactiver' }}" data-confirm-tone="{{ $selectedCustomer->is_active ? 'warning' : 'primary' }}"

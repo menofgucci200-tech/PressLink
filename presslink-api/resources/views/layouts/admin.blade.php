@@ -24,6 +24,7 @@
                 $navItem('orders', 'admin.orders.index', 'Commandes', 'M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z|m3.3 7 8.7 5 8.7-5|M12 22V12'),
                 $navItem('clients', 'admin.clients.index', 'Clients', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M9 11A4 4 0 1 0 9 3a4 4 0 0 0 0 8Z'),
                 $navItem('administrators', 'admin.administrators.index', 'Administrateurs', 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2|M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z|M22 21v-2a4 4 0 0 0-3-3.87|M16 3.13a4 4 0 0 1 0 7.75'),
+                $navItem('users', 'admin.users.index', 'Liste des utilisateurs', 'M8 6h13|M8 12h13|M8 18h13|M3 6h.01|M3 12h.01|M3 18h.01'),
             ];
             $userInitials = collect(explode(' ', $user->name))->filter()->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->take(2)->implode('');
         @endphp
@@ -72,13 +73,13 @@
                     
                     <div class="flex-1"></div>
 
-                    <div class="hidden sm:block text-right min-w-0">
+                    <a href="{{ route('account.settings') }}" wire:navigate class="hidden sm:block text-right min-w-0 hover:opacity-70 transition-opacity duration-150">
                         <div class="text-sm font-semibold leading-tight truncate">{{ $user->name }}</div>
                         <div class="text-xs text-(--color-text-muted) truncate">Super Administrateur</div>
-                    </div>
-                    <div class="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white" style="background:#1e3a8a;">
+                    </a>
+                    <a href="{{ route('account.settings') }}" wire:navigate title="Mon compte" class="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white hover:opacity-85" style="background:#1e3a8a;">
                         {{ $userInitials ?: '?' }}
-                    </div>
+                    </a>
                     <form novalidate method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-error) hover:text-(--color-error)" title="Se déconnecter">
@@ -88,6 +89,7 @@
                 </header>
 
                 <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" @scroll="scrolled = $event.target.scrollTop > 4">
+                    <x-password-reminder />
                     {{ $slot }}
                 </main>
             </div>

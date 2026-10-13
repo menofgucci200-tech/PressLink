@@ -10,9 +10,11 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/theme_mode_controller.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../auth/presentation/logout_confirmation.dart';
 import 'change_password_screen.dart';
 import 'edit_profile_screen.dart';
 import 'notification_preferences_controller.dart';
+import 'password_reminder_banner.dart';
 import 'static_page_screen.dart';
 
 /// Profil client — Cahier §10.2 / Architecture des écrans §8.
@@ -46,6 +48,7 @@ class ProfileScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
+            const PasswordReminderBanner(),
             InkWell(
               onTap: () => Navigator.of(
                 context,
@@ -180,8 +183,7 @@ class ProfileScreen extends ConsumerWidget {
               width: double.infinity,
               height: 48,
               child: OutlinedButton(
-                onPressed: () =>
-                    ref.read(authControllerProvider.notifier).logout(),
+                onPressed: () => confirmAndLogout(context, ref),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.error,
                   side: const BorderSide(color: Color(0xFFFECACA)),

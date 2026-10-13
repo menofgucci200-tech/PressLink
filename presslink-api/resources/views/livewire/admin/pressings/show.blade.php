@@ -113,7 +113,23 @@
                 <input type="number" min="0" wire:model="ordersLimit" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                 @error('ordersLimit') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
-            <div></div>
+            <div>
+                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Facturation</label>
+                <select wire:model="billingCycle" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                    <option value="monthly">Mensuelle</option>
+                    <option value="annual">Annuelle</option>
+                </select>
+                @error('billingCycle') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+            </div>
+            <div class="sm:col-span-2">
+                <label class="flex items-center gap-2.5 text-sm cursor-pointer">
+                    <input type="checkbox" wire:model="setupFeePaid" class="w-4 h-4 rounded border-(--color-border) accent-(--color-primary)">
+                    <span>Ticket d'entrée réglé</span>
+                    @if ($pressing->subscription?->setup_fee_paid_at)
+                        <span class="text-xs text-(--color-text-muted)">le {{ $pressing->subscription->setup_fee_paid_at->format('d/m/Y') }}</span>
+                    @endif
+                </label>
+            </div>
             <div>
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Fin d'essai</label>
                 <input type="date" wire:model="trialEndsAt" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">

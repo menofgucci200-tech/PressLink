@@ -31,6 +31,10 @@ class Show extends Component
 
     public string $currentPeriodEndsAt = '';
 
+    public string $billingCycle = 'monthly';
+
+    public bool $setupFeePaid = false;
+
     public bool $saved = false;
 
     public ?int $passwordResetForUserId = null;
@@ -77,7 +81,12 @@ class Show extends Component
             'ordersLimit' => ['nullable', 'integer', 'min:0'],
             'trialEndsAt' => ['nullable', 'date'],
             'currentPeriodEndsAt' => ['nullable', 'date'],
+            'billingCycle' => ['required', Rule::in(['monthly', 'annual'])],
+            'setupFeePaid' => ['boolean'],
         ]);
+
+        $subscription = $this->pressing->subscription;
+        $plan = SubscriptionPlan::from($this->plan);
 
         $data = [
             'plan' => $this->plan,
@@ -85,9 +94,11 @@ class Show extends Component
             'orders_limit' => $this->ordersLimit !== '' ? (int) $this->ordersLimit : null,
             'trial_ends_at' => $this->trialEndsAt ?: null,
             'current_period_ends_at' => $this->currentPeriodEndsAt ?: null,
+            'billing_cycle' => $this->billingCycle,
+            // On garde la date de règlement d'origine tant que la case reste cochée.
+            'setup_fee_paid_at' => $this->setupFeePaid ? ($subscription?->setup_fee_paid_at ?? now()) : null,
+            'setup_fee_fcfa' => $subscription?->setup_fee_fcfa ?? $plan->setupFeeFcfa(),
         ];
-
-        $subscription = $this->pressing->subscription;
 
         if ($subscription === null) {
             $subscription = Subscription::create([...$data, 'pressing_id' => $this->pressing->id, 'current_period_starts_at' => now()]);
@@ -109,6 +120,8 @@ class Show extends Component
         $this->ordersLimit = $subscription?->orders_limit !== null ? (string) $subscription->orders_limit : '';
         $this->trialEndsAt = $subscription?->trial_ends_at?->format('Y-m-d') ?? '';
         $this->currentPeriodEndsAt = $subscription?->current_period_ends_at?->format('Y-m-d') ?? '';
+        $this->billingCycle = $subscription?->billing_cycle === 'annual' ? 'annual' : 'monthly';
+        $this->setupFeePaid = $subscription?->isSetupFeePaid() ?? false;
     }
 
     #[Layout('layouts.admin', ['active' => 'pressings', 'title' => 'Pressing'])]

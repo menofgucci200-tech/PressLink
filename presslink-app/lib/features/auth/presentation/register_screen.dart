@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/link.dart';
 
 import '../../../core/config/app_config.dart';
 
@@ -238,13 +238,18 @@ class _LegalNotice extends StatelessWidget {
       color: AppColors.textSecondary,
       height: 1.4,
     );
-    Widget link(String label, String url) => InkWell(
-      onTap: () => launchUrl(Uri.parse(url)),
-      child: Text(
-        label,
-        style: style?.copyWith(
-          color: AppColors.primary,
-          fontWeight: FontWeight.w600,
+    // Vrai lien <a href> dans la PWA : le navigateur ne bloque pas son ouverture.
+    Widget link(String label, String url) => Link(
+      uri: Uri.parse(url),
+      target: LinkTarget.blank,
+      builder: (context, followLink) => InkWell(
+        onTap: followLink,
+        child: Text(
+          label,
+          style: style?.copyWith(
+            color: AppColors.primary,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );

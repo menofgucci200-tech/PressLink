@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/link.dart';
 
 import '../../../core/config/app_config.dart';
 
@@ -163,16 +163,25 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  _ProfileRow(
-                    label: 'Conditions d\'utilisation',
-                    value: '',
-                    onTap: () => launchUrl(Uri.parse(AppConfig.termsUrl)),
+                  // Vrais liens <a href> dans la PWA (ouverture jamais bloquée).
+                  Link(
+                    uri: Uri.parse(AppConfig.termsUrl),
+                    target: LinkTarget.blank,
+                    builder: (context, followLink) => _ProfileRow(
+                      label: 'Conditions d\'utilisation',
+                      value: '',
+                      onTap: followLink,
+                    ),
                   ),
-                  _ProfileRow(
-                    label: 'Politique de confidentialité',
-                    value: '',
-                    isLast: true,
-                    onTap: () => launchUrl(Uri.parse(AppConfig.privacyUrl)),
+                  Link(
+                    uri: Uri.parse(AppConfig.privacyUrl),
+                    target: LinkTarget.blank,
+                    builder: (context, followLink) => _ProfileRow(
+                      label: 'Politique de confidentialité',
+                      value: '',
+                      isLast: true,
+                      onTap: followLink,
+                    ),
                   ),
                 ],
               ),

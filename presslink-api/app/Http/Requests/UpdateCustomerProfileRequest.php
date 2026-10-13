@@ -22,6 +22,7 @@ class UpdateCustomerProfileRequest extends FormRequest
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'gender' => ['required', Rule::enum(Gender::class)],
+            'email_notifications' => ['sometimes', 'boolean'],
             'email' => ['nullable', 'email', 'max:255', Rule::unique('customers', 'email')->ignore($this->user()->id)],
         ];
     }

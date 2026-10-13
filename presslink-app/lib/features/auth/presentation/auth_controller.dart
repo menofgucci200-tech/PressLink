@@ -103,6 +103,7 @@ class AuthController extends StateNotifier<AuthState> {
     required String lastName,
     required Gender gender,
     String? email,
+    bool? emailNotifications,
   }) async {
     try {
       final customer = await _repository.updateProfile(
@@ -110,6 +111,7 @@ class AuthController extends StateNotifier<AuthState> {
         lastName: lastName,
         gender: gender,
         email: email,
+        emailNotifications: emailNotifications,
       );
       state = state.copyWith(customer: customer);
       return true;

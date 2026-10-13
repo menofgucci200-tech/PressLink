@@ -37,6 +37,7 @@ class Customer extends Authenticatable
         'password',
         'gender',
         'email',
+        'email_notifications',
         'photo_path',
         'fcm_token',
         'onesignal_player_id',
@@ -58,6 +59,7 @@ class Customer extends Authenticatable
             'gender' => Gender::class,
             'phone_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'email_notifications' => 'boolean',
             'is_active' => 'boolean',
         ];
     }
@@ -87,6 +89,15 @@ class Customer extends Authenticatable
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Emails de suivi : seulement si le client a un email et ne s'est pas
+     * désinscrit (colonne absente = activé par défaut).
+     */
+    public function wantsOrderEmails(): bool
+    {
+        return filled($this->email) && $this->email_notifications !== false;
     }
 
     public function routeNotificationForOneSignal(): ?string

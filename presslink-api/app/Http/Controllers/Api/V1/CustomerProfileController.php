@@ -25,6 +25,7 @@ class CustomerProfileController extends Controller
             'last_name' => $request->string('last_name')->toString(),
             'gender' => $request->string('gender')->toString(),
             'email' => $request->string('email')->toString() ?: null,
+            ...($request->has('email_notifications') ? ['email_notifications' => $request->boolean('email_notifications')] : []),
         ]);
 
         return response()->json($customer->fresh());

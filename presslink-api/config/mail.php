@@ -115,4 +115,12 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    // Thème PressLink des emails Markdown (resources/views/vendor/mail).
+    'markdown' => [
+        'theme' => env('MAIL_MARKDOWN_THEME', 'presslink'),
+        'paths' => [
+            resource_path('views/vendor/mail'),
+        ],
+    ],
+
 ];

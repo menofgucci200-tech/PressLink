@@ -33,6 +33,6 @@ class ContactMessage extends Mailable
 
     public function content(): Content
     {
-        return new Content(text: 'mail.contact-message');
+        return new Content(markdown: 'mail.contact-message');
     }
 }

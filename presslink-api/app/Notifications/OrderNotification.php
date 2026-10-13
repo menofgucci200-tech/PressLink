@@ -6,8 +6,10 @@ use App\Models\Order;
 use App\Notifications\Channels\OneSignalChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\URL;
 
 /**
  * Base commune aux notifications de commande — Cahier §9.
@@ -36,7 +38,43 @@ abstract class OrderNotification extends Notification implements ShouldQueueAfte
      */
     public function via(mixed $notifiable): array
     {
-        return ['database', OneSignalChannel::class];
+        $channels = ['database', OneSignalChannel::class];
+
+        if ($this->sendsEmail() && method_exists($notifiable, 'wantsOrderEmails') && $notifiable->wantsOrderEmails()) {
+            $channels[] = 'mail';
+        }
+
+        return $channels;
+    }
+
+    /**
+     * Doublon email des étapes clés (créée, prête), en complément du push.
+     */
+    protected function sendsEmail(): bool
+    {
+        return false;
+    }
+
+    /** Phrase d'introduction de l'email. */
+    protected function emailIntro(): string
+    {
+        return $this->body();
+    }
+
+    public function toMail(mixed $notifiable): MailMessage
+    {
+        $this->order->loadMissing(['items', 'pressing']);
+
+        return (new MailMessage)
+            ->subject($this->title().' — '.$this->order->order_number)
+            ->markdown('mail.order-update', [
+                'title' => $this->title(),
+                'intro' => $this->emailIntro(),
+                'order' => $this->order,
+                'pressing' => $this->order->pressing,
+                'customer' => $notifiable,
+                'unsubscribe' => URL::signedRoute('emails.unsubscribe', ['customer' => $notifiable->getKey()]),
+            ]);
     }
 
     abstract public function title(): string;

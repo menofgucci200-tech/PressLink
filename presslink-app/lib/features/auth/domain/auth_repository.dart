@@ -22,6 +22,7 @@ class Customer {
     this.email,
     this.gender,
     this.photoUrl,
+    this.emailNotifications = true,
   });
 
   final int id;
@@ -31,6 +32,9 @@ class Customer {
   final String? email;
   final String? gender;
   final String? photoUrl;
+
+  /// Doublon par email des étapes clés (créée, prête) si un email est renseigné.
+  final bool emailNotifications;
 
   String get fullName => '$firstName $lastName'.trim();
 
@@ -42,6 +46,7 @@ class Customer {
     email: json['email'] as String?,
     gender: json['gender'] as String?,
     photoUrl: json['photo_url'] as String?,
+    emailNotifications: json['email_notifications'] as bool? ?? true,
   );
 }
 
@@ -144,6 +149,7 @@ class AuthRepository {
     required String lastName,
     required Gender gender,
     String? email,
+    bool? emailNotifications,
   }) async {
     final response = await _apiClient.dio.put(
       '/customer/profile',
@@ -152,6 +158,7 @@ class AuthRepository {
         'last_name': lastName,
         'gender': gender.value,
         'email': email,
+        'email_notifications': ?emailNotifications,
       },
     );
 

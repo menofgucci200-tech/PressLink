@@ -28,6 +28,7 @@ use App\Livewire\Services\Variants as ServicesVariants;
 use App\Livewire\Subscription\Show as SubscriptionShow;
 use App\Livewire\Support\Show as SupportShow;
 use App\Livewire\Team\Index as TeamIndex;
+use App\Models\Customer;
 use App\Models\Pressing;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -48,6 +49,13 @@ Route::controller(SitePageController::class)->name('site.')->group(function () {
     Route::get('/confidentialite', 'privacy')->name('privacy');
 });
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
+
+// Lien « Ne plus recevoir ces emails » (signé : impossible à forger).
+Route::get('/emails/desabonnement/{customer}', function (Customer $customer) {
+    $customer->update(['email_notifications' => false]);
+
+    return view('emails-unsubscribed');
+})->middleware('signed')->name('emails.unsubscribe');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');

@@ -10,6 +10,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/theme_mode_controller.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../auth/domain/auth_repository.dart';
 import 'change_password_screen.dart';
 import 'edit_profile_screen.dart';
 import 'notification_preferences_controller.dart';
@@ -149,6 +150,7 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ),
                   const _NotificationToggleRow(),
+                  if (customer?.email != null) const _EmailToggleRow(),
                   _ProfileRow(
                     label: 'Aide',
                     value: '',
@@ -305,6 +307,46 @@ class _NotificationToggleRow extends ConsumerWidget {
             onChanged: (value) => ref
                 .read(notificationPreferencesControllerProvider.notifier)
                 .setEnabled(value),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Emails de suivi (commande enregistrée / prête), réglés côté serveur.
+class _EmailToggleRow extends ConsumerWidget {
+  const _EmailToggleRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final customer = ref.watch(authControllerProvider).customer;
+    if (customer == null) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: theme.dividerTheme.color!)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text('Aussi par email', style: TextStyle(fontSize: 14)),
+          Switch(
+            value: customer.emailNotifications,
+            activeThumbColor: AppColors.primary,
+            onChanged: (value) => ref
+                .read(authControllerProvider.notifier)
+                .updateProfile(
+                  firstName: customer.firstName,
+                  lastName: customer.lastName,
+                  gender: customer.gender == 'homme'
+                      ? Gender.homme
+                      : Gender.femme,
+                  email: customer.email,
+                  emailNotifications: value,
+                ),
           ),
         ],
       ),

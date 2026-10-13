@@ -194,7 +194,7 @@ class _PressingTile extends StatelessWidget {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: AppColors.primaryTint,
+                color: context.primaryTint,
                 borderRadius: BorderRadius.circular(11),
               ),
               child: Center(
@@ -244,7 +244,7 @@ class _PressingTile extends StatelessWidget {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.border,
+                      color: context.border,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -261,11 +261,7 @@ class _PressingTile extends StatelessWidget {
             IconButton(
               tooltip: 'Quitter ce pressing',
               onPressed: onLeave,
-              icon: const Icon(
-                Icons.logout,
-                size: 18,
-                color: AppColors.textMuted,
-              ),
+              icon: Icon(Icons.logout, size: 18, color: context.textMuted),
             ),
           ],
         ),

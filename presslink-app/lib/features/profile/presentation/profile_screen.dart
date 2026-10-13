@@ -64,7 +64,7 @@ class ProfileScreen extends ConsumerWidget {
                   children: [
                     CircleAvatar(
                       radius: 28,
-                      backgroundColor: AppColors.primaryTint,
+                      backgroundColor: context.primaryTint,
                       backgroundImage: customer?.photoUrl != null
                           ? NetworkImage(customer!.photoUrl!)
                           : null,
@@ -99,11 +99,7 @@ class ProfileScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    const Icon(
-                      Icons.chevron_right,
-                      size: 20,
-                      color: AppColors.border,
-                    ),
+                    Icon(Icons.chevron_right, size: 20, color: context.border),
                   ],
                 ),
               ),
@@ -264,9 +260,9 @@ class _ThemeOptionButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 4),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primaryTint : Colors.white,
+          color: selected ? context.primaryTint : context.surface,
           border: Border.all(
-            color: selected ? AppColors.primary : AppColors.border,
+            color: selected ? AppColors.primary : context.border,
           ),
           borderRadius: BorderRadius.circular(AppRadius.md),
         ),
@@ -275,7 +271,7 @@ class _ThemeOptionButton extends StatelessWidget {
             Icon(
               icon,
               size: 20,
-              color: selected ? AppColors.primary : AppColors.textSecondary,
+              color: selected ? AppColors.primary : context.textSecondary,
             ),
             const SizedBox(height: 6),
             Text(
@@ -283,7 +279,7 @@ class _ThemeOptionButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
-                color: selected ? AppColors.primary : AppColors.textSecondary,
+                color: selected ? AppColors.primary : context.textSecondary,
               ),
             ),
           ],
@@ -401,11 +397,7 @@ class _ProfileRow extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                 ],
-                const Icon(
-                  Icons.chevron_right,
-                  size: 18,
-                  color: AppColors.border,
-                ),
+                Icon(Icons.chevron_right, size: 18, color: context.border),
               ],
             ),
           ],

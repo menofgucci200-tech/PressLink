@@ -96,7 +96,7 @@ class SupportScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
-                color: AppColors.primaryTint,
+                color: context.primaryTint,
                 border: Border.all(
                   color: AppColors.primary.withValues(alpha: 0.2),
                 ),
@@ -122,7 +122,7 @@ class SupportScreen extends ConsumerWidget {
                     'Une question ? Un problème ?',
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      color: context.textPrimary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -130,7 +130,7 @@ class SupportScreen extends ConsumerWidget {
                   Text(
                     'Contactez l\'équipe PressLink : par appel, sur WhatsApp ou par email.',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: context.textSecondary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -155,10 +155,10 @@ class SupportScreen extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(width: AppSpacing.sm),
-                          const Icon(
+                          Icon(
                             Icons.copy,
                             size: 16,
-                            color: AppColors.textSecondary,
+                            color: context.textSecondary,
                           ),
                         ],
                       ),

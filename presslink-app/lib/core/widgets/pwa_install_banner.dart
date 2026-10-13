@@ -88,7 +88,7 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
     final theme = Theme.of(context);
     final textStyle = theme.textTheme.bodyMedium?.copyWith(
       fontSize: 12.5,
-      color: AppColors.textSecondary,
+      color: context.textSecondary,
     );
 
     Widget instructions;
@@ -151,7 +151,7 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
           AppSpacing.md,
         ),
         decoration: BoxDecoration(
-          color: AppColors.primaryTint,
+          color: context.primaryTint,
           border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
           borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
@@ -186,7 +186,7 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
                           style: theme.textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
-                            color: AppColors.textPrimary,
+                            color: context.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -197,7 +197,7 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
                           Text(
                             'Vous devrez vous reconnecter dans l\'application installée.',
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: AppColors.textSecondary,
+                              color: context.textSecondary,
                             ),
                           ),
                         ],
@@ -210,10 +210,10 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
                     tooltip: 'Plus tard',
                     onPressed: _dismiss,
                     visualDensity: VisualDensity.compact,
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.close,
                       size: 18,
-                      color: AppColors.textSecondary,
+                      color: context.textSecondary,
                     ),
                   ),
               ],

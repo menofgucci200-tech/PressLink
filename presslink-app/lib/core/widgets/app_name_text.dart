@@ -23,7 +23,7 @@ class AppNameText extends StatelessWidget {
         children: [
           TextSpan(
             text: 'Press',
-            style: TextStyle(color: AppColors.textPrimary),
+            style: TextStyle(color: context.textPrimary),
           ),
           TextSpan(
             text: 'Link',

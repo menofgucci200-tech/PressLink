@@ -66,7 +66,7 @@ class PressingDetailScreen extends StatelessWidget {
                     width: 72,
                     height: 72,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryTint,
+                      color: context.primaryTint,
                       borderRadius: BorderRadius.circular(18),
                     ),
                     clipBehavior: Clip.antiAlias,
@@ -153,7 +153,7 @@ class PressingDetailScreen extends StatelessWidget {
                                   : '${pressing.openingHours![day]!.open} – ${pressing.openingHours![day]!.close}',
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: pressing.openingHours![day]!.closed
-                                    ? AppColors.textMuted
+                                    ? context.textMuted
                                     : null,
                               ),
                             ),
@@ -265,7 +265,7 @@ class _InfoRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: AppColors.textSecondary),
+          Icon(icon, size: 18, color: context.textSecondary),
           const SizedBox(width: AppSpacing.sm),
           Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
         ],

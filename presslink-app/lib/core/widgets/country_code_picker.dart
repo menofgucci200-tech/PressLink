@@ -40,9 +40,7 @@ class CountryCodePicker extends StatelessWidget {
         height: 52,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm + 2),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: theme.dividerTheme.color ?? AppColors.border,
-          ),
+          border: Border.all(color: theme.dividerTheme.color ?? context.border),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
@@ -98,7 +96,7 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
               height: 4,
               margin: const EdgeInsets.only(bottom: AppSpacing.md),
               decoration: BoxDecoration(
-                color: AppColors.border,
+                color: context.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),

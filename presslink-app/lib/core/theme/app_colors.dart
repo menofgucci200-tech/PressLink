@@ -66,6 +66,23 @@ extension OrderStatusStyle on OrderStatus {
     OrderStatus.annulee => AppColors.error,
   };
 
+  /// Version adaptée au thème : en sombre, des teintes plus claires et un fond
+  /// translucide remplacent les pastels clairs, illisibles sur fond sombre.
+  Color colorFor(BuildContext context) {
+    if (!context.isDark) return color;
+    return switch (this) {
+      OrderStatus.recue => const Color(0xFF60A5FA),
+      OrderStatus.traitement => const Color(0xFF22D3EE),
+      OrderStatus.prete => const Color(0xFF34D399),
+      OrderStatus.recuperee => AppColors.textSecondaryDark,
+      OrderStatus.attente => const Color(0xFFFBBF24),
+      OrderStatus.annulee => const Color(0xFFF87171),
+    };
+  }
+
+  Color tintFor(BuildContext context) =>
+      context.isDark ? colorFor(context).withValues(alpha: 0.16) : tint;
+
   Color get tint => switch (this) {
     OrderStatus.recue => AppColors.infoTint,
     OrderStatus.traitement => AppColors.secondary.withValues(alpha: 0.14),
@@ -74,4 +91,33 @@ extension OrderStatusStyle on OrderStatus {
     OrderStatus.attente => AppColors.warningTint,
     OrderStatus.annulee => AppColors.errorTint,
   };
+}
+
+/// Couleurs neutres et teintes qui suivent le thème clair / sombre.
+/// À utiliser dans les widgets plutôt que les constantes [AppColors]
+/// équivalentes, qui sont figées sur le thème clair.
+extension AppPalette on BuildContext {
+  bool get isDark => Theme.of(this).brightness == Brightness.dark;
+
+  Color get textPrimary =>
+      isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+  Color get textSecondary =>
+      isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+  Color get textMuted => isDark ? AppColors.textMutedDark : AppColors.textMuted;
+  Color get border => isDark ? AppColors.borderDark : AppColors.border;
+  Color get surface => isDark ? AppColors.surfaceDark : AppColors.surface;
+
+  Color get primaryTint => isDark
+      ? AppColors.primary.withValues(alpha: 0.18)
+      : AppColors.primaryTint;
+  Color get successTint => isDark
+      ? AppColors.success.withValues(alpha: 0.16)
+      : AppColors.successTint;
+  Color get errorTint =>
+      isDark ? AppColors.error.withValues(alpha: 0.16) : AppColors.errorTint;
+  Color get warningTint => isDark
+      ? AppColors.warning.withValues(alpha: 0.16)
+      : AppColors.warningTint;
+  Color get infoTint =>
+      isDark ? AppColors.info.withValues(alpha: 0.16) : AppColors.infoTint;
 }

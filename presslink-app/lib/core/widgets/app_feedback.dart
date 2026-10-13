@@ -66,22 +66,22 @@ void showAppToast(
   final (Color fg, Color bg, IconData icon) = switch (type) {
     AppToastType.success => (
       AppColors.successText,
-      AppColors.successTint,
+      context.successTint,
       Icons.check_rounded,
     ),
     AppToastType.error => (
       AppColors.error,
-      AppColors.errorTint,
+      context.errorTint,
       Icons.close_rounded,
     ),
     AppToastType.warning => (
       AppColors.warningText,
-      AppColors.warningTint,
+      context.warningTint,
       Icons.priority_high_rounded,
     ),
     AppToastType.info => (
       AppColors.info,
-      AppColors.infoTint,
+      context.infoTint,
       Icons.info_outline_rounded,
     ),
   };
@@ -106,10 +106,10 @@ void showAppToast(
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.surfaceDark : AppColors.surface,
+              color: isDark ? AppColors.surfaceDark : context.surface,
               borderRadius: BorderRadius.circular(AppRadius.lg),
               border: Border.all(
-                color: isDark ? AppColors.borderDark : AppColors.border,
+                color: isDark ? AppColors.borderDark : context.border,
               ),
               boxShadow: const [
                 BoxShadow(
@@ -140,7 +140,7 @@ void showAppToast(
                       height: 1.35,
                       color: isDark
                           ? AppColors.textPrimaryDark
-                          : AppColors.textPrimary,
+                          : context.textPrimary,
                     ),
                   ),
                 ),
@@ -156,7 +156,7 @@ void showAppToast(
                       semanticLabel: 'Fermer',
                       color: isDark
                           ? AppColors.textMutedDark
-                          : AppColors.textMuted,
+                          : context.textMuted,
                     ),
                   ),
                 ),
@@ -192,17 +192,17 @@ class _ConfirmDialog extends StatelessWidget {
     final (Color accent, Color tint, IconData defaultIcon) = switch (tone) {
       AppConfirmTone.danger => (
         AppColors.error,
-        AppColors.errorTint,
+        context.errorTint,
         Icons.delete_outline_rounded,
       ),
       AppConfirmTone.warning => (
         AppColors.warning,
-        AppColors.warningTint,
+        context.warningTint,
         Icons.warning_amber_rounded,
       ),
       AppConfirmTone.primary => (
         AppColors.primary,
-        AppColors.primaryTint,
+        context.primaryTint,
         Icons.info_outline_rounded,
       ),
     };
@@ -217,7 +217,7 @@ class _ConfirmDialog extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
             child: Material(
-              color: isDark ? AppColors.surfaceDark : AppColors.surface,
+              color: isDark ? AppColors.surfaceDark : context.surface,
               borderRadius: BorderRadius.circular(20),
               clipBehavior: Clip.antiAlias,
               child: Padding(
@@ -253,7 +253,7 @@ class _ConfirmDialog extends StatelessWidget {
                         height: 1.45,
                         color: isDark
                             ? AppColors.textSecondaryDark
-                            : AppColors.textSecondary,
+                            : context.textSecondary,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.lg),

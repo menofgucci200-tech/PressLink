@@ -195,19 +195,19 @@ class _NotificationTile extends StatelessWidget {
   final AppNotification notification;
   final VoidCallback onTap;
 
-  ({IconData icon, Color color}) get _iconStyle {
+  ({IconData icon, Color color}) _iconStyle(BuildContext context) {
     final title = notification.title.toLowerCase();
     if (title.contains('prête'))
       return (icon: Icons.local_laundry_service, color: AppColors.success);
     if (title.contains('récupérée'))
-      return (icon: Icons.check_circle, color: AppColors.textSecondary);
+      return (icon: Icons.check_circle, color: context.textSecondary);
     return (icon: Icons.receipt_long, color: AppColors.primary);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final style = _iconStyle;
+    final style = _iconStyle(context);
 
     return InkWell(
       onTap: onTap,
@@ -219,7 +219,7 @@ class _NotificationTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: notification.isRead
               ? theme.cardTheme.color
-              : AppColors.primaryTint,
+              : context.primaryTint,
           border: Border.all(color: theme.dividerTheme.color!),
           borderRadius: BorderRadius.circular(AppRadius.lg),
         ),

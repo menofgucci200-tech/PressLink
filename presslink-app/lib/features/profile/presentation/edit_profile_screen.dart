@@ -226,7 +226,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     children: [
                       CircleAvatar(
                         radius: 44,
-                        backgroundColor: AppColors.primaryTint,
+                        backgroundColor: context.primaryTint,
                         backgroundImage: customer?.photoUrl != null
                             ? NetworkImage(customer!.photoUrl!)
                             : null,
@@ -389,13 +389,13 @@ class _GenderButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: () => onTap(gender),
         style: OutlinedButton.styleFrom(
-          backgroundColor: isSelected ? AppColors.primaryTint : Colors.white,
+          backgroundColor: isSelected ? context.primaryTint : context.surface,
           side: BorderSide(
-            color: isSelected ? AppColors.primary : AppColors.border,
+            color: isSelected ? AppColors.primary : context.border,
           ),
           foregroundColor: isSelected
               ? AppColors.primary
-              : AppColors.textSecondary,
+              : context.textSecondary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),

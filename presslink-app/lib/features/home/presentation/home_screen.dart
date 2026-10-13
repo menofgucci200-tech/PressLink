@@ -246,7 +246,7 @@ class HomeScreen extends ConsumerWidget {
                                       width: 38,
                                       height: 38,
                                       decoration: BoxDecoration(
-                                        color: AppColors.primaryTint,
+                                        color: context.primaryTint,
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: Center(
@@ -304,21 +304,21 @@ class HomeScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(AppRadius.lg),
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(AppSpacing.sm + 6),
+                        padding: EdgeInsets.all(AppSpacing.sm + 6),
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: AppColors.border,
+                            color: context.border,
                             style: BorderStyle.solid,
                           ),
                           borderRadius: BorderRadius.circular(AppRadius.lg),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
+                          children: [
                             Icon(
                               Icons.add,
                               size: 16,
-                              color: AppColors.textSecondary,
+                              color: context.textSecondary,
                             ),
                             SizedBox(width: 8),
                             Text(
@@ -326,7 +326,7 @@ class HomeScreen extends ConsumerWidget {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
-                                color: AppColors.textSecondary,
+                                color: context.textSecondary,
                               ),
                             ),
                           ],
@@ -423,7 +423,7 @@ class _SummaryCardSkeleton extends StatelessWidget {
     return Container(
       height: 118,
       decoration: BoxDecoration(
-        color: AppColors.border,
+        color: context.border,
         borderRadius: BorderRadius.circular(AppRadius.xl),
       ),
     );
@@ -450,9 +450,7 @@ class _NotificationBell extends ConsumerWidget {
         decoration: BoxDecoration(
           color: theme.scaffoldBackgroundColor,
           shape: BoxShape.circle,
-          border: Border.all(
-            color: theme.dividerTheme.color ?? AppColors.border,
-          ),
+          border: Border.all(color: theme.dividerTheme.color ?? context.border),
         ),
         child: Stack(
           clipBehavior: Clip.none,

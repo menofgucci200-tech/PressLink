@@ -49,7 +49,7 @@ class _MainMenuSheet extends StatelessWidget {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: AppSpacing.md),
                   decoration: BoxDecoration(
-                    color: AppColors.border,
+                    color: context.border,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -159,14 +159,14 @@ class _MenuTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 4),
         child: Row(
           children: [
-            Icon(icon, size: 21, color: iconColor ?? AppColors.textSecondary),
+            Icon(icon, size: 21, color: iconColor ?? context.textSecondary),
             const SizedBox(width: AppSpacing.sm + 6),
             Text(
               label,
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
             ),
             const Spacer(),
-            const Icon(Icons.chevron_right, size: 18, color: AppColors.border),
+            Icon(Icons.chevron_right, size: 18, color: context.border),
           ],
         ),
       ),

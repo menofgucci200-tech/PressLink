@@ -65,7 +65,7 @@ class AppTextField extends StatelessWidget {
               hintStyle: theme.textTheme.bodyLarge?.copyWith(
                 fontSize: 15,
                 fontWeight: FontWeight.w400,
-                color: AppColors.textMuted,
+                color: context.textMuted,
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.md,

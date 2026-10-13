@@ -138,9 +138,9 @@ class _OrderDetailBody extends ConsumerWidget {
             horizontal: AppSpacing.md,
           ),
           decoration: BoxDecoration(
-            color: order.status.tint,
+            color: order.status.tintFor(context),
             border: Border.all(
-              color: order.status.color.withValues(alpha: 0.3),
+              color: order.status.colorFor(context).withValues(alpha: 0.3),
             ),
             borderRadius: BorderRadius.circular(AppRadius.xl),
           ),
@@ -150,7 +150,7 @@ class _OrderDetailBody extends ConsumerWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: order.status.color,
+                  color: order.status.colorFor(context),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.check, color: Colors.white, size: 24),
@@ -162,7 +162,7 @@ class _OrderDetailBody extends ConsumerWidget {
                   fontSize: 19,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.5,
-                  color: order.status.color,
+                  color: order.status.colorFor(context),
                 ),
               ),
               const SizedBox(height: 8),
@@ -189,8 +189,8 @@ class _OrderDetailBody extends ConsumerWidget {
               margin: const EdgeInsets.only(bottom: AppSpacing.sm),
               decoration: BoxDecoration(
                 color: issue.isResolved
-                    ? AppColors.border.withValues(alpha: 0.2)
-                    : AppColors.errorTint,
+                    ? context.border.withValues(alpha: 0.2)
+                    : context.errorTint,
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: Row(
@@ -202,7 +202,7 @@ class _OrderDetailBody extends ConsumerWidget {
                         : Icons.error_outline,
                     size: 18,
                     color: issue.isResolved
-                        ? AppColors.textSecondary
+                        ? context.textSecondary
                         : AppColors.error,
                   ),
                   const SizedBox(width: AppSpacing.sm),
@@ -216,7 +216,7 @@ class _OrderDetailBody extends ConsumerWidget {
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: issue.isResolved
-                                ? AppColors.textSecondary
+                                ? context.textSecondary
                                 : AppColors.error,
                           ),
                         ),
@@ -427,7 +427,7 @@ class _TimelineRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = isDone ? AppColors.success : AppColors.border;
+    final color = isDone ? AppColors.success : context.border;
 
     return IntrinsicHeight(
       child: Row(
@@ -441,7 +441,7 @@ class _TimelineRow extends StatelessWidget {
                 width: 22,
                 height: 22,
                 decoration: BoxDecoration(
-                  color: isDone ? color : Colors.white,
+                  color: isDone ? color : context.surface,
                   shape: BoxShape.circle,
                   border: Border.all(color: color, width: 2),
                 ),
@@ -466,7 +466,7 @@ class _TimelineRow extends StatelessWidget {
                     builder: (context, value, _) => Container(
                       width: 2,
                       color: Color.lerp(
-                        AppColors.border,
+                        context.border,
                         AppColors.success,
                         value,
                       ),
@@ -492,7 +492,7 @@ class _TimelineRow extends StatelessWidget {
                               : FontWeight.w400,
                           color: isDone
                               ? theme.textTheme.bodyLarge?.color
-                              : AppColors.textMuted,
+                              : context.textMuted,
                         ) ??
                         const TextStyle(),
                     child: Text(status.label),

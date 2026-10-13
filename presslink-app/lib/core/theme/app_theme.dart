@@ -8,8 +8,17 @@ import 'app_spacing.dart';
 /// Source : Design System PressLink §5-12.
 abstract final class AppTheme {
   static TextTheme _textTheme(Color primaryText, Color secondaryText) {
-    final display = GoogleFonts.interTightTextTheme();
-    final body = GoogleFonts.interTextTheme();
+    // Couleur de base sur tous les styles : sinon ceux qui ne sont pas
+    // redéfinis ci-dessous (titleLarge, labelMedium…) restent noirs, même en
+    // mode sombre.
+    final display = GoogleFonts.interTightTextTheme().apply(
+      bodyColor: primaryText,
+      displayColor: primaryText,
+    );
+    final body = GoogleFonts.interTextTheme().apply(
+      bodyColor: primaryText,
+      displayColor: primaryText,
+    );
 
     return body.copyWith(
       displayLarge: display.displayLarge?.copyWith(

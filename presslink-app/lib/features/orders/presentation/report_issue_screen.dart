@@ -173,9 +173,9 @@ class _CategoryOption extends StatelessWidget {
           vertical: AppSpacing.sm + 6,
         ),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primaryTint : Colors.white,
+          color: selected ? context.primaryTint : context.surface,
           border: Border.all(
-            color: selected ? AppColors.primary : AppColors.border,
+            color: selected ? AppColors.primary : context.border,
           ),
           borderRadius: BorderRadius.circular(AppRadius.md),
         ),
@@ -186,7 +186,7 @@ class _CategoryOption extends StatelessWidget {
                   ? Icons.radio_button_checked
                   : Icons.radio_button_unchecked,
               size: 20,
-              color: selected ? AppColors.primary : AppColors.textMuted,
+              color: selected ? AppColors.primary : context.textMuted,
             ),
             const SizedBox(width: AppSpacing.sm + 2),
             Expanded(
@@ -195,7 +195,7 @@ class _CategoryOption extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: selected ? AppColors.primary : AppColors.textPrimary,
+                  color: selected ? AppColors.primary : context.textPrimary,
                 ),
               ),
             ),

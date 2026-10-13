@@ -234,10 +234,9 @@ class _LegalNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = Theme.of(context).textTheme.bodySmall?.copyWith(
-      color: AppColors.textSecondary,
-      height: 1.4,
-    );
+    final style = Theme.of(
+      context,
+    ).textTheme.bodySmall?.copyWith(color: context.textSecondary, height: 1.4);
     // Vrai lien <a href> dans la PWA : le navigateur ne bloque pas son ouverture.
     Widget link(String label, String url) => Link(
       uri: Uri.parse(url),
@@ -285,13 +284,13 @@ class _GenderButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: () => onTap(gender),
         style: OutlinedButton.styleFrom(
-          backgroundColor: isSelected ? AppColors.primaryTint : Colors.white,
+          backgroundColor: isSelected ? context.primaryTint : context.surface,
           side: BorderSide(
-            color: isSelected ? AppColors.primary : AppColors.border,
+            color: isSelected ? AppColors.primary : context.border,
           ),
           foregroundColor: isSelected
               ? AppColors.primary
-              : AppColors.textSecondary,
+              : context.textSecondary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),

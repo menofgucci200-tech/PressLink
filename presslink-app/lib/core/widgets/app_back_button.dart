@@ -21,9 +21,7 @@ class AppBackButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: theme.cardTheme.color,
           borderRadius: BorderRadius.circular(11),
-          border: Border.all(
-            color: theme.dividerTheme.color ?? AppColors.border,
-          ),
+          border: Border.all(color: theme.dividerTheme.color ?? context.border),
         ),
         child: const Icon(Icons.arrow_back, size: 18),
       ),

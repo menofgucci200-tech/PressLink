@@ -114,7 +114,7 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
-                    color: AppColors.successTint,
+                    color: context.successTint,
                     border: Border.all(
                       color: AppColors.success.withValues(alpha: 0.4),
                     ),

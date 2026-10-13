@@ -189,9 +189,9 @@ class _FilterChip extends StatelessWidget {
         curve: Curves.easeOut,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary : Colors.white,
+          color: selected ? AppColors.primary : context.surface,
           border: Border.all(
-            color: selected ? AppColors.primary : AppColors.border,
+            color: selected ? AppColors.primary : context.border,
           ),
           borderRadius: BorderRadius.circular(999),
         ),
@@ -200,7 +200,7 @@ class _FilterChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: selected ? Colors.white : AppColors.textSecondary,
+            color: selected ? Colors.white : context.textSecondary,
           ),
           child: Text(label),
         ),

@@ -19,7 +19,7 @@ class StatusBadge extends StatelessWidget {
         vertical: 5,
       ),
       decoration: BoxDecoration(
-        color: status.tint,
+        color: status.tintFor(context),
         borderRadius: BorderRadius.circular(AppRadius.pill),
       ),
       child: Row(
@@ -29,7 +29,7 @@ class StatusBadge extends StatelessWidget {
             width: 6,
             height: 6,
             decoration: BoxDecoration(
-              color: status.color,
+              color: status.colorFor(context),
               shape: BoxShape.circle,
             ),
           ),
@@ -37,7 +37,7 @@ class StatusBadge extends StatelessWidget {
           Text(
             status.label,
             style: TextStyle(
-              color: status.color,
+              color: status.colorFor(context),
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),

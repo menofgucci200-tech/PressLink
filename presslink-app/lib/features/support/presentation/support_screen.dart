@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/link.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/config/app_config.dart';
@@ -17,6 +18,12 @@ class SupportScreen extends ConsumerWidget {
   const SupportScreen({super.key});
 
   static const _whatsAppGreen = Color(0xFF25D366);
+
+  Uri get _mailUri => Uri(
+    scheme: 'mailto',
+    path: AppConfig.supportEmail,
+    query: 'subject=${Uri.encodeComponent('Support PressLink')}',
+  );
 
   Uri get _callUri => Uri(scheme: 'tel', path: AppConfig.supportPhoneE164);
 
@@ -164,20 +171,21 @@ class SupportScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            SizedBox(
-              height: 52,
-              child: ElevatedButton.icon(
-                onPressed: () => _open(context, _callUri),
+            _ContactLink(
+              uri: _callUri,
+              builder: (followLink) => ElevatedButton.icon(
+                onPressed: followLink ?? () => _open(context, _callUri),
                 icon: const _ContactIcon('assets/icons/phone.png'),
                 label: const Text('Appeler le support'),
               ),
             ),
             const SizedBox(height: AppSpacing.sm + 2),
-            SizedBox(
-              height: 52,
-              child: ElevatedButton.icon(
-                onPressed: () =>
-                    _open(context, _whatsAppUri(customer?.fullName)),
+            _ContactLink(
+              uri: _whatsAppUri(customer?.fullName),
+              builder: (followLink) => ElevatedButton.icon(
+                onPressed:
+                    followLink ??
+                    () => _open(context, _whatsAppUri(customer?.fullName)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _whatsAppGreen,
                   foregroundColor: Colors.white,
@@ -187,18 +195,10 @@ class SupportScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.sm + 2),
-            SizedBox(
-              height: 52,
-              child: OutlinedButton.icon(
-                onPressed: () => _open(
-                  context,
-                  Uri(
-                    scheme: 'mailto',
-                    path: AppConfig.supportEmail,
-                    query:
-                        'subject=${Uri.encodeComponent('Support PressLink')}',
-                  ),
-                ),
+            _ContactLink(
+              uri: _mailUri,
+              builder: (followLink) => OutlinedButton.icon(
+                onPressed: followLink ?? () => _open(context, _mailUri),
                 icon: const Icon(Icons.mail_outline, size: 22),
                 label: const Text(AppConfig.supportEmail),
               ),
@@ -251,6 +251,33 @@ class _ContactIcon extends StatelessWidget {
         shape: BoxShape.circle,
       ),
       child: Image.asset(asset, width: 26, height: 26),
+    );
+  }
+}
+
+/// Bouton de contact rendu comme un vrai lien `<a href>` dans la PWA : le
+/// navigateur l'ouvre directement au clic. Un `window.open` lancé après une
+/// attente (launchUrl) est pris pour une fenêtre surgissante et bloqué
+/// (Safari iOS, PWA installée). Hors web, le bouton passe par [_open].
+class _ContactLink extends StatelessWidget {
+  const _ContactLink({required this.uri, required this.builder});
+
+  final Uri uri;
+  final Widget Function(VoidCallback? followLink) builder;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 52,
+      child: kIsWeb
+          ? Link(
+              uri: uri,
+              target: uri.scheme == 'https'
+                  ? LinkTarget.blank
+                  : LinkTarget.self,
+              builder: (context, followLink) => builder(followLink),
+            )
+          : builder(null),
     );
   }
 }

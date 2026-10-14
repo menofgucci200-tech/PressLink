@@ -14,6 +14,15 @@
         'info' => ['bg' => 'var(--color-info-tint)', 'fg' => 'var(--color-info)'],
     ];
     $alerts = collect($watchlist)->where('count', '>', 0);
+    // Début de la période en date, pour ouvrir les listes déjà filtrées.
+    $periodFrom = match ($period) {
+        'today' => now()->toDateString(),
+        '7' => now()->subDays(7)->toDateString(),
+        'month' => now()->startOfMonth()->toDateString(),
+        'all' => null,
+        default => now()->subDays(30)->toDateString(),
+    };
+    $ordersListUrl = route('admin.orders.index', array_filter(['du' => $periodFrom]));
 @endphp
 
 <div>
@@ -75,23 +84,28 @@
                 [
                     'key' => 'volume', 'label' => 'Volume traité', 'value' => $fcfa($orderVolume), 'unit' => 'F',
                     'change' => $volumeChangePct, 'sub' => 'commandes non annulées, '.$periodLabel,
+                    'href' => $ordersListUrl, 'cta' => 'Voir les commandes',
                 ],
                 [
                     'key' => 'orders', 'label' => 'Commandes', 'value' => $fcfa($totalOrders), 'unit' => null,
                     'change' => $ordersChangePct, 'sub' => $periodLabel,
+                    'href' => $ordersListUrl, 'cta' => 'Voir les commandes',
                 ],
                 [
                     'key' => 'pressings', 'label' => 'Pressings actifs', 'value' => $activePressings, 'unit' => null, 'change' => null,
                     'sub' => ($newPressings ? '+'.$newPressings.' '.$periodLabel.' · ' : '').$suspendedPressings.' suspendu'.($suspendedPressings > 1 ? 's' : ''),
+                    'href' => route('admin.pressings.index', array_filter(['status' => 'active', 'ville' => $city])), 'cta' => 'Voir les pressings',
                 ],
                 [
                     'key' => 'clients', 'label' => 'Clients', 'value' => $fcfa($totalClients), 'unit' => null, 'change' => null,
                     'sub' => $newClients !== null ? '+'.$newClients.' '.$periodLabel : 'inscrits sur la plateforme',
+                    'href' => route('admin.clients.index'), 'cta' => 'Voir les clients',
                 ],
             ];
         @endphp
         @foreach ($kpis as $kpi)
-            <div wire:key="kpi-{{ $kpi['key'] }}-{{ $filterKey }}" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 animate-step" style="animation-delay:{{ ($loop->index + 1) * 50 }}ms">
+            <a href="{{ $kpi['href'] }}" wire:navigate wire:key="kpi-{{ $kpi['key'] }}-{{ $filterKey }}"
+               class="kpi-link block bg-(--color-surface) border border-(--color-border) rounded-xl p-5 animate-step" style="animation-delay:{{ ($loop->index + 1) * 50 }}ms">
                 <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">{{ $kpi['label'] }}</div>
                 <div class="flex items-baseline gap-1.5 mt-2.5">
                     <div class="text-3xl font-bold tracking-tight tabular-nums">{{ $kpi['value'] }}</div>
@@ -108,7 +122,8 @@
                     @endif
                     <span class="text-(--color-text-muted)">{{ $kpi['sub'] }}</span>
                 </div>
-            </div>
+                <div class="kpi-cta mt-2 text-xs font-semibold text-(--color-primary)">{{ $kpi['cta'] }} →</div>
+            </a>
         @endforeach
     </div>
 
@@ -125,13 +140,15 @@
             @else
                 <div wire:key="chart-{{ $filterKey }}" class="flex-1 flex items-end gap-[3px] sm:gap-1 min-h-[180px]">
                     @foreach ($bars as $bar)
-                        <div class="group relative flex-1 h-full flex items-end">
+                        <a href="{{ route('admin.orders.index', ['du' => $bar['from'], 'au' => $bar['to']]) }}" wire:navigate
+                           aria-label="{{ $bar['label'] }} : {{ $bar['count'] }} commande{{ $bar['count'] > 1 ? 's' : '' }}"
+                           class="group relative flex-1 h-full flex items-end {{ $bar['count'] === 0 ? 'pointer-events-none' : '' }}">
                             <div class="w-full rounded-t-[3px] bg-(--color-primary) group-hover:bg-(--color-primary-600) animate-step"
                                  style="height:{{ $bar['count'] > 0 ? max(3, round($bar['count'] / $chart['max'] * 100)) : 1 }}%;{{ $bar['count'] === 0 ? 'background:var(--color-border);' : '' }}animation-delay:{{ min($loop->index * 15, 450) }}ms"></div>
                             <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[11px] font-medium text-white z-10">
-                                {{ $bar['label'] }} · {{ $bar['count'] }} commande{{ $bar['count'] > 1 ? 's' : '' }}
+                                {{ $bar['label'] }} · {{ $bar['count'] }} commande{{ $bar['count'] > 1 ? 's' : '' }} · voir
                             </div>
-                        </div>
+                        </a>
                     @endforeach
                 </div>
                 <div class="flex gap-[3px] sm:gap-1 mt-2 text-[10.5px] text-(--color-text-muted) tabular-nums">
@@ -207,7 +224,7 @@
                     </thead>
                     <tbody>
                         @foreach ($topPressings as $pressing)
-                            <tr wire:key="top-{{ $pressing->id }}" class="border-t border-(--color-border) hover:bg-(--color-bg) cursor-pointer" onclick="window.location='{{ route('admin.pressings.show', $pressing) }}'">
+                            <tr wire:key="top-{{ $pressing->id }}" class="border-t border-(--color-border) hover:bg-(--color-bg)" data-href="{{ route('admin.pressings.show', $pressing) }}" tabindex="0" role="link">
                                 <td class="px-5 py-3">
                                     <div class="font-medium">{{ $pressing->name }}</div>
                                     <div class="text-xs text-(--color-text-muted)">{{ $pressing->city ?? '—' }}</div>
@@ -246,23 +263,25 @@
             </div>
             <div class="space-y-1.5 mb-6">
                 @foreach ($planBreakdown as $i => $row)
-                    <div class="flex items-center gap-2 text-sm">
+                    <a href="{{ route('admin.pressings.index', ['plan' => $row['key']]) }}" wire:navigate
+                       class="flex items-center gap-2 text-sm -mx-2 px-2 py-1 rounded-md hover:bg-(--color-bg) transition-colors duration-100">
                         <span class="w-2.5 h-2.5 rounded-sm flex-none" style="background:{{ $planColors[$i] }}"></span>
                         <span class="flex-1">{{ $row['label'] }}</span>
                         <span class="font-semibold tabular-nums">{{ $row['count'] }}</span>
-                    </div>
+                    </a>
                 @endforeach
             </div>
 
             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-2">Par statut</div>
             <div class="grid grid-cols-2 gap-2">
                 @foreach ($statusBreakdown as $row)
-                    <div class="rounded-lg border border-(--color-border) px-3 py-2.5">
+                    <a href="{{ route('admin.pressings.index', ['abonnement' => $row['key']]) }}" wire:navigate
+                       class="kpi-link block rounded-lg border border-(--color-border) px-3 py-2.5">
                         <div class="flex items-center gap-1.5 text-xs text-(--color-text-secondary)">
                             <span class="w-2 h-2 rounded-full" style="background:{{ $statusColors[$row['key']] }}"></span>{{ $row['label'] }}
                         </div>
                         <div class="text-xl font-bold tabular-nums mt-0.5">{{ $row['count'] }}</div>
-                    </div>
+                    </a>
                 @endforeach
             </div>
         </div>
@@ -280,7 +299,7 @@
             <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
                 <tbody>
                     @foreach ($recentPressings as $pressing)
-                        <tr class="border-t border-(--color-border) first:border-t-0 hover:bg-(--color-bg) cursor-pointer" onclick="window.location='{{ route('admin.pressings.show', $pressing) }}'">
+                        <tr class="border-t border-(--color-border) first:border-t-0 hover:bg-(--color-bg)" data-href="{{ route('admin.pressings.show', $pressing) }}" tabindex="0" role="link">
                             <td class="px-5 py-3.5 font-medium">{{ $pressing->name }}</td>
                             <td class="px-5 py-3.5 text-(--color-text-secondary)">{{ $pressing->city }}</td>
                             <td class="px-5 py-3.5 text-(--color-text-secondary)">

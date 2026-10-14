@@ -34,7 +34,7 @@
                         </div>
                     @endif
                 </div>
-                <a href="{{ route('orders.create') }}" class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
+                <a href="{{ route('orders.create') }}" wire:navigate class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     Nouvelle commande
                 </a>
@@ -74,7 +74,10 @@
                     $delta = $kpi['value'] - $previousValue;
                     $pct = $totalPeriod > 0 ? round(($kpi['value'] / $totalPeriod) * 100) : 0;
                 @endphp
-                <div wire:key="kpi-{{ $kpi['key'] }}-{{ $period }}-{{ $kpi['value'] }}" class="bg-(--color-surface) border border-(--color-border) rounded-xl px-5 pt-[19px] pb-5 transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px animate-step">
+                <a href="{{ route('orders.index', ['status' => $kpi['key'], 'dateFrom' => $exportParams['date_from'], 'dateTo' => $exportParams['date_to']]) }}" wire:navigate
+                   wire:key="kpi-{{ $kpi['key'] }}-{{ $period }}-{{ $kpi['value'] }}"
+                   title="Voir les commandes « {{ $kpi['label'] }} » {{ $periodLabel }}"
+                   class="kpi-link group block bg-(--color-surface) border border-(--color-border) rounded-xl px-5 pt-[19px] pb-5 animate-step">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <span class="w-[7px] h-[7px] rounded-full" style="background:{{ $kpi['color'] }}"></span>
@@ -91,8 +94,11 @@
                     <div class="h-1 bg-(--color-border) rounded-full overflow-hidden">
                         <div class="h-full rounded-full animate-step" style="width:{{ $pct }}%;background:{{ $kpi['color'] }}"></div>
                     </div>
-                    <div class="mt-2.5 text-[11.5px] text-(--color-text-muted) truncate">{{ $kpi['hint'] }}</div>
-                </div>
+                    <div class="mt-2.5 flex items-center justify-between gap-2 text-[11.5px] text-(--color-text-muted)">
+                        <span class="truncate">{{ $kpi['hint'] }}</span>
+                        <span class="kpi-cta flex-none font-semibold text-(--color-primary)">Voir →</span>
+                    </div>
+                </a>
             @endforeach
         </div>
 
@@ -115,13 +121,13 @@
                     </div>
                 @else
                     <div class="overflow-x-auto">
-                        <div class="min-w-[560px]">
-                            <div class="grid grid-cols-[100px_minmax(140px,1fr)_130px_90px_70px_24px] items-center px-5 py-2.5 border-y border-(--color-border) text-[10.5px] font-semibold tracking-wide text-(--color-text-muted) uppercase">
+                        <div class="min-w-[600px]">
+                            <div class="grid grid-cols-[100px_minmax(140px,1fr)_140px_90px_96px_24px] items-center px-5 py-2.5 border-y border-(--color-border) text-[10.5px] font-semibold tracking-wide text-(--color-text-muted) uppercase">
                                 <div>N°</div><div>Client</div><div>Statut</div><div class="text-right">Total</div><div class="text-right">Dépôt</div><div></div>
                             </div>
                             @foreach ($recent as $order)
                                 <a href="{{ route('orders.show', $order) }}" wire:navigate
-                                   class="grid grid-cols-[100px_minmax(140px,1fr)_130px_90px_70px_24px] items-center px-5 py-[15px] border-b border-(--color-border) last:border-b-0 hover:bg-(--color-bg) transition-colors duration-100">
+                                   class="grid grid-cols-[100px_minmax(140px,1fr)_140px_90px_96px_24px] items-center px-5 py-[15px] border-b border-(--color-border) last:border-b-0 hover:bg-(--color-bg) transition-colors duration-100">
                                     <div class="text-sm font-semibold truncate">{{ $order->order_number }}</div>
                                     <div class="flex items-center gap-2.5 min-w-0">
                                         <span class="w-[26px] h-[26px] flex-none rounded-lg bg-(--color-bg) text-(--color-text-secondary) text-[10px] font-bold flex items-center justify-center">
@@ -129,9 +135,15 @@
                                         </span>
                                         <span class="text-sm truncate">{{ $order->customer->fullName() }}</span>
                                     </div>
-                                    <div><x-status-badge :status="$order->status" /></div>
+                                    @php $alert = $order->delayAlert(); @endphp
+                                    <div class="flex flex-col items-start gap-1">
+                                        <x-status-badge :status="$order->status" />
+                                        @if ($alert)
+                                            <span class="text-[10.5px] font-semibold {{ $alert['tone'] === 'danger' ? 'text-(--color-error)' : 'text-(--color-warning-text)' }}">{{ $alert['label'] }}</span>
+                                        @endif
+                                    </div>
                                     <div class="text-right text-sm font-bold tabular-nums">{{ number_format($order->total_fcfa, 0, ',', ' ') }} F</div>
-                                    <div class="text-right text-[13.5px] text-(--color-text-muted)">{{ $order->dropped_off_at->format('d/m') }}</div>
+                                    <div class="text-right text-[13px] text-(--color-text-muted) whitespace-nowrap" title="{{ $order->dropped_off_at->translatedFormat('l j F Y à H:i') }}">{{ $order->dropped_off_at->diffForHumans(['short' => true]) }}</div>
                                     <div class="text-right text-(--color-border) text-[15px]">›</div>
                                 </a>
                             @endforeach

@@ -2,7 +2,6 @@
     $th = 'px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)';
     $field = 'h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm focus:outline-none focus:border-(--color-primary)';
     $fcfa = fn (int $amount) => number_format($amount, 0, ',', ' ');
-    $allCount = $statusCounts->sum();
     $openStatuses = \App\Livewire\Admin\Orders\Index::OPEN_STATUSES;
 @endphp
 
@@ -23,18 +22,7 @@
     </div>
 
     {{-- Compteurs par statut (cliquables) --}}
-    <div class="flex flex-wrap gap-2 mb-5">
-        <button type="button" wire:click="$set('status', '')"
-                class="inline-flex items-center gap-2 h-9 px-3.5 rounded-full border text-sm font-medium {{ $status === '' ? 'border-(--color-primary) bg-(--color-primary-tint) text-(--color-primary)' : 'border-(--color-border) bg-(--color-surface) hover:border-(--color-text-muted)' }}">
-            Toutes <span class="tabular-nums font-bold">{{ $fcfa($allCount) }}</span>
-        </button>
-        @foreach ($statuses as $case)
-            <button type="button" wire:click="$set('status', '{{ $status === $case->value ? '' : $case->value }}')"
-                    class="inline-flex items-center gap-2 h-9 px-3.5 rounded-full border text-sm font-medium {{ $status === $case->value ? 'border-(--color-primary) bg-(--color-primary-tint) text-(--color-primary)' : 'border-(--color-border) bg-(--color-surface) hover:border-(--color-text-muted)' }}">
-                {{ $case->label() }} <span class="tabular-nums font-bold">{{ $fcfa((int) ($statusCounts[$case->value] ?? 0)) }}</span>
-            </button>
-        @endforeach
-    </div>
+    <x-status-filter-chips :current="$status" :counts="$statusCounts" :statuses="$statuses" class="mb-5" />
 
     <div class="flex flex-wrap items-center gap-3 mb-5">
         <div class="relative w-full sm:w-auto sm:flex-1 sm:max-w-xs">
@@ -93,15 +81,27 @@
                                     <span class="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-(--color-error-tint) text-(--color-error) text-[11px] font-bold align-middle" title="Signalement ouvert">!</span>
                                 @endif
                             </td>
-                            <td class="px-5 py-3.5">{{ $order->pressing->name }}</td>
+                            <td class="px-5 py-3.5">
+                                <button type="button" wire:click.stop="$set('pressingId', '{{ $order->pressing_id }}')" title="Voir uniquement les commandes de {{ $order->pressing->name }}"
+                                        class="hover:text-(--color-primary) hover:underline">{{ $order->pressing->name }}</button>
+                            </td>
                             <td class="px-5 py-3.5">
                                 <div>{{ $order->customer->fullName() }}</div>
                                 <div class="text-xs text-(--color-text-muted) tabular-nums">{{ $order->customer->phone }}</div>
                             </td>
-                            <td class="px-5 py-3.5"><x-status-badge :status="$order->status" /></td>
+                            <td class="px-5 py-3.5">
+                                <button type="button" wire:click.stop="$set('status', '{{ $order->status->value }}')" title="Filtrer : {{ $order->status->label() }}" class="rounded-full hover:ring-2 hover:ring-(--color-border)">
+                                    <x-status-badge :status="$order->status" />
+                                </button>
+                            </td>
                             <td class="px-5 py-3.5 text-right tabular-nums">{{ $order->items_count }}</td>
                             <td class="px-5 py-3.5 text-right font-semibold tabular-nums">{{ $fcfa($order->total_fcfa) }} F</td>
-                            <td class="px-5 py-3.5 text-(--color-text-secondary)">{{ $order->dropped_off_at?->format('d/m/Y') ?? '—' }}</td>
+                            <td class="px-5 py-3.5 text-(--color-text-secondary)" title="{{ $order->dropped_off_at?->translatedFormat('l j F Y à H:i') }}">
+                                {{ $order->dropped_off_at?->format('d/m/Y') ?? '—' }}
+                                @if ($order->dropped_off_at)
+                                    <div class="text-xs text-(--color-text-muted)">{{ $order->dropped_off_at->diffForHumans(['short' => true]) }}</div>
+                                @endif
+                            </td>
                             <td class="px-5 py-3.5 {{ $isLate ? 'text-(--color-error) font-semibold' : 'text-(--color-text-secondary)' }}">
                                 {{ $order->expected_at?->format('d/m/Y') ?? '—' }}{{ $isLate ? ' · en retard' : '' }}
                             </td>

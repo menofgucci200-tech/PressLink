@@ -126,6 +126,70 @@ button:disabled {
     cursor: not-allowed;
 }
 
+/* Tout ce qui réagit au clic prend le curseur « main » : lignes et cartes
+   cliquables ([data-href]), éléments à action Livewire ou Alpine, cases,
+   listes déroulantes, sélecteurs de date, étiquettes de champs cochables. */
+[data-href],
+[wire\:click],
+[x-on\:click],
+[\@click],
+select,
+label:has(> input[type='checkbox']),
+label:has(> input[type='radio']),
+input[type='checkbox'],
+input[type='radio'],
+input[type='file'],
+input[type='date'],
+input[type='time'],
+input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+}
+[aria-disabled='true'],
+[disabled] {
+    cursor: not-allowed;
+}
+
+/* Lignes cliquables : léger fond au survol, flèche qui glisse vers la droite,
+   contour visible quand on y arrive au clavier. */
+tr[data-href]:hover,
+[data-href].row-link:hover {
+    background-color: var(--color-bg);
+}
+[data-href] .row-chevron {
+    transition: transform 150ms ease, color 150ms ease;
+}
+[data-href]:hover .row-chevron {
+    transform: translateX(3px);
+    color: var(--color-primary);
+}
+[data-href]:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+}
+
+/* Cartes d'indicateurs cliquables (elles filtrent la liste correspondante). */
+.kpi-link {
+    transition:
+        transform 150ms ease,
+        box-shadow 150ms ease,
+        border-color 150ms ease;
+}
+.kpi-link:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+    box-shadow: 0 12px 24px -16px rgba(15, 23, 42, 0.35);
+}
+.kpi-link .kpi-cta {
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 150ms ease, transform 150ms ease;
+}
+.kpi-link:hover .kpi-cta,
+.kpi-link:focus-visible .kpi-cta {
+    opacity: 1;
+    transform: none;
+}
+
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {

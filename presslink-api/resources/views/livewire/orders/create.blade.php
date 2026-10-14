@@ -1,4 +1,4 @@
-<div class="max-w-3xl mx-auto">
+<div class="max-w-3xl mx-auto" data-skip-back>
     <div class="mb-6">
         <h1 class="font-display text-2xl font-bold mb-1">Nouvelle commande</h1>
         <p class="text-sm text-(--color-text-muted)">Enregistrez un dépôt en quatre étapes.</p>

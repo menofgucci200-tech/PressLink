@@ -90,11 +90,11 @@
                 </thead>
                 <tbody>
                     @foreach ($services as $service)
-                        <tr class="border-t border-(--color-border) hover:bg-(--color-bg)">
+                        <tr wire:key="service-{{ $service->id }}" data-href="{{ route('services.variants', $service) }}" tabindex="0" role="link" class="border-t border-(--color-border)">
                             <td class="px-5 py-3.5 font-medium">{{ $service->name }}</td>
                             <td class="px-5 py-3.5 text-right tabular-nums">{{ number_format($service->price_fcfa, 0, ',', ' ') }} F</td>
                             <td class="px-5 py-3.5">
-                                <a href="{{ route('services.variants', $service) }}" class="text-(--color-primary) font-medium">
+                                <a href="{{ route('services.variants', $service) }}" wire:navigate class="text-(--color-primary) font-medium">
                                     {{ $service->variants_count }} variante(s)
                                 </a>
                             </td>

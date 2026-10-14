@@ -35,7 +35,7 @@
                     </div>
                 @endif
             </div>
-            <a href="{{ route('orders.create') }}" class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
+            <a href="{{ route('orders.create') }}" wire:navigate class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Nouvelle commande
             </a>
@@ -64,21 +64,11 @@
         @endif
     </div>
 
-    <div class="flex gap-2 mb-5 flex-wrap">
-        <button wire:click="$set('status', '')"
-                class="h-9 px-3.5 rounded-lg text-[13px] font-medium border {{ $status === '' ? 'bg-(--color-primary) text-white border-(--color-primary)' : 'border-(--color-border) text-(--color-text-secondary)' }}">
-            Toutes <span class="tabular-nums opacity-80">{{ array_sum($counts) }}</span>
-        </button>
-        @foreach ($statuses as $s)
-            <button wire:click="$set('status', '{{ $s->value }}')"
-                    class="h-9 px-3.5 rounded-lg text-[13px] font-medium border {{ $status === $s->value ? 'bg-(--color-primary) text-white border-(--color-primary)' : 'border-(--color-border) text-(--color-text-secondary)' }}">
-                {{ $s->label() }} <span class="tabular-nums opacity-80">{{ $counts[$s->value] ?? 0 }}</span>
-            </button>
-        @endforeach
-    </div>
+    {{-- Le nombre de chaque filtre suit la recherche et les dates. --}}
+    <x-status-filter-chips :current="$status" :counts="$counts" :statuses="$statuses" class="mb-5" />
 
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden">
-        @include('livewire.orders._table', ['orders' => $orders, 'showPhone' => true])
+        @include('livewire.orders._table', ['orders' => $orders, 'showPhone' => true, 'statusFilterable' => true])
     </div>
 
     @if (is_countable($orders) && method_exists($orders, 'links'))

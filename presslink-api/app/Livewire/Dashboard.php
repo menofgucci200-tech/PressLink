@@ -151,21 +151,23 @@ class Dashboard extends Component
         [$rangeStart, $rangeEnd, $previousStart, $previousEnd, $periodLabel] = $this->resolvePeriod();
 
         if ($pressing !== null) {
+            // Date de dépôt, comme le filtre de la liste des commandes : un
+            // clic sur une carte retrouve exactement le même nombre.
             $counts = array_merge(
                 $counts,
                 $pressing->orders()
                     ->selectRaw('status, count(*) as aggregate')
-                    ->whereBetween('created_at', [$rangeStart, $rangeEnd])
+                    ->whereBetween('dropped_off_at', [$rangeStart, $rangeEnd])
                     ->groupBy('status')
                     ->pluck('aggregate', 'status')
                     ->all(),
             );
 
-            $recent = $pressing->filteredOrders(['search' => $this->search ?: null])->latest()->take(8)->get();
+            $recent = $pressing->filteredOrders(['search' => $this->search ?: null])->withReadySince()->latest()->take(8)->get();
 
             $countsPrevious = $pressing->orders()
                 ->selectRaw('status, count(*) as aggregate')
-                ->whereBetween('created_at', [$previousStart, $previousEnd])
+                ->whereBetween('dropped_off_at', [$previousStart, $previousEnd])
                 ->groupBy('status')
                 ->pluck('aggregate', 'status');
 
@@ -174,9 +176,15 @@ class Dashboard extends Component
             // pas un historique. On récupère l'id de la première commande
             // concernée pour pouvoir y renvoyer directement quand il n'y en
             // a qu'une (sinon, la liste filtrée par statut).
+            // Même règle que l'alerte « Prête depuis N j » des listes : date
+            // du passage au statut « prête » (historique), pas la dernière
+            // modification de la commande.
             $readyOverdueOrders = $pressing->orders()
                 ->where('status', OrderStatus::Prete->value)
-                ->where('updated_at', '<=', now()->subDays(5))
+                ->withReadySince()
+                ->oldest('id')
+                ->get(['id', 'status', 'updated_at'])
+                ->filter(fn (Order $order) => $order->delayAlert() !== null)
                 ->pluck('id');
 
             $receivedOrders = $pressing->orders()->where('status', OrderStatus::Recue->value)->pluck('id');

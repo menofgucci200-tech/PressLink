@@ -52,7 +52,9 @@
                 </thead>
                 <tbody>
                     @foreach ($accounts as $account)
-                        <tr wire:key="{{ $type }}-{{ $account->id }}" class="border-t border-(--color-border) hover:bg-(--color-bg)">
+                        <tr wire:key="{{ $type }}-{{ $account->id }}"
+                            @if ($isCustomers) data-href="{{ route('admin.clients.index', ['client' => $account->id]) }}" tabindex="0" role="link" @endif
+                            class="border-t border-(--color-border) {{ $isCustomers ? '' : 'hover:bg-(--color-bg)' }}">
                             <td class="px-5 py-3.5">
                                 @if ($isCustomers)
                                     <a href="{{ route('admin.clients.index', ['client' => $account->id]) }}" wire:navigate class="font-medium hover:text-(--color-primary)">{{ $account->fullName() ?: 'Sans nom' }}</a>
@@ -117,7 +119,7 @@
                             </td>
                             <td class="px-5 py-3.5 text-right">
                                 @if (! $isCustomers && $account->is(auth()->user()))
-                                    <a href="{{ route('account.settings') }}" class="text-xs font-medium text-(--color-primary) hover:underline">Mon profil</a>
+                                    <a href="{{ route('account.settings') }}" wire:navigate class="text-xs font-medium text-(--color-primary) hover:underline">Mon profil</a>
                                 @else
                                     @php $name = $isCustomers ? ($account->fullName() ?: $account->phone) : $account->name; @endphp
                                     <button type="button"

@@ -35,9 +35,9 @@
                     </thead>
                     <tbody>
                         @foreach ($issues as $issue)
-                            <tr class="border-b border-(--color-border) last:border-0 hover:bg-(--color-bg)">
+                            <tr wire:key="issue-{{ $issue->id }}" data-href="{{ route('orders.show', $issue->order) }}" tabindex="0" role="link" class="border-b border-(--color-border) last:border-0">
                                 <td class="px-4 py-3 whitespace-nowrap align-top">
-                                    <a href="{{ route('orders.show', $issue->order) }}" class="font-medium text-(--color-primary) hover:underline">
+                                    <a href="{{ route('orders.show', $issue->order) }}" wire:navigate class="font-medium text-(--color-primary) hover:underline">
                                         {{ $issue->order->order_number }}
                                     </a>
                                 </td>

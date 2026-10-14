@@ -66,14 +66,21 @@ class Index extends Component
         $counts = [];
 
         if ($pressing !== null) {
-            $orders = $pressing->filteredOrders([
-                'status' => $this->status ?: null,
+            $filters = [
                 'search' => $this->search ?: null,
                 'date_from' => $this->dateFrom ?: null,
                 'date_to' => $this->dateTo ?: null,
-            ])->latest()->paginate(15);
+            ];
 
-            $counts = $pressing->orders()
+            $orders = $pressing->filteredOrders([...$filters, 'status' => $this->status ?: null])
+                ->withReadySince()
+                ->latest()
+                ->paginate(15);
+
+            // Compteurs des filtres de statut : mêmes recherche et dates que la
+            // liste, pour annoncer ce qu'on obtient en cliquant sur un statut.
+            $counts = $pressing->filteredOrders($filters)
+                ->reorder()
                 ->selectRaw('status, count(*) as aggregate')
                 ->groupBy('status')
                 ->pluck('aggregate', 'status')

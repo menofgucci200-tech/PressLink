@@ -75,4 +75,55 @@ class CustomerProfileTest extends TestCase
                 'password_confirmation' => 'newpass',
             ])->assertUnprocessable();
     }
+
+    public function test_customer_can_change_their_phone_number_and_sign_in_with_it(): void
+    {
+        $customer = Customer::factory()->create(['phone' => '+2250700000001', 'password' => Hash::make('secret1')]);
+        $token = $customer->createToken('test')->plainTextToken;
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->putJson('/api/v1/customer/phone', [
+                'phone' => '+2250708124400',
+                'current_password' => 'secret1',
+            ])
+            ->assertOk()
+            ->assertJsonPath('phone', '+2250708124400');
+
+        $this->assertSame('+2250708124400', $customer->fresh()->phone);
+
+        $this->postJson('/api/v1/auth/customer/login', ['phone' => '+2250708124400', 'password' => 'secret1'])->assertOk();
+        $this->postJson('/api/v1/auth/customer/login', ['phone' => '+2250700000001', 'password' => 'secret1'])->assertUnprocessable();
+    }
+
+    public function test_changing_the_phone_number_requires_the_current_password(): void
+    {
+        $customer = Customer::factory()->create(['phone' => '+2250700000001', 'password' => Hash::make('secret1')]);
+        $token = $customer->createToken('test')->plainTextToken;
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->putJson('/api/v1/customer/phone', [
+                'phone' => '+2250708124400',
+                'current_password' => 'mauvais',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'Le mot de passe actuel est incorrect.');
+
+        $this->assertSame('+2250700000001', $customer->fresh()->phone);
+    }
+
+    public function test_the_new_phone_number_must_be_free_valid_and_different(): void
+    {
+        Customer::factory()->create(['phone' => '+2250799999999']);
+        $customer = Customer::factory()->create(['phone' => '+2250700000001', 'password' => Hash::make('secret1')]);
+        $token = $customer->createToken('test')->plainTextToken;
+
+        foreach (['+2250799999999' => 'Un compte existe déjà avec ce numéro.', '0708124400' => 'Le numéro doit être au format international, ex. +2250708124400.', '+2250700000001' => 'C\'est déjà votre numéro actuel.'] as $phone => $message) {
+            $this->withHeader('Authorization', "Bearer {$token}")
+                ->putJson('/api/v1/customer/phone', ['phone' => $phone, 'current_password' => 'secret1'])
+                ->assertUnprocessable()
+                ->assertJsonPath('errors.phone.0', $message);
+        }
+
+        $this->assertSame('+2250700000001', $customer->fresh()->phone);
+    }
 }

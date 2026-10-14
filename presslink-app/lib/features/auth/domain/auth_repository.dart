@@ -212,6 +212,18 @@ class AuthRepository {
     );
   }
 
+  /// Nouveau numéro (identifiant de connexion), confirmé par le mot de passe.
+  Future<Customer> updatePhone({
+    required String phone,
+    required String currentPassword,
+  }) async {
+    final response = await _apiClient.dio.put(
+      '/customer/phone',
+      data: {'phone': phone, 'current_password': currentPassword},
+    );
+    return Customer.fromJson(response.data as Map<String, dynamic>);
+  }
+
   Future<void> updateOnesignalPlayerId(String playerId) async {
     await _apiClient.dio.put(
       '/customer/onesignal-player-id',

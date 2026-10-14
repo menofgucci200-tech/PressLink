@@ -13,6 +13,7 @@ import 'package:presslink_app/features/home/presentation/home_screen.dart';
 import 'package:presslink_app/features/notifications/presentation/notifications_controller.dart';
 import 'package:presslink_app/features/orders/presentation/orders_controller.dart';
 import 'package:presslink_app/features/pressings/presentation/pressings_controller.dart';
+import 'package:presslink_app/features/profile/presentation/change_phone_screen.dart';
 import 'package:presslink_app/features/profile/presentation/profile_screen.dart';
 
 void main() {
@@ -90,5 +91,33 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(ProfileScreen), findsOneWidget);
+  });
+
+  testWidgets('the phone number can be changed from the profile', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app(const ProfileScreen()));
+    await tester.pump();
+
+    await tester.tap(find.text('Téléphone'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ChangePhoneScreen), findsOneWidget);
+    expect(find.text('Numéro actuel'), findsOneWidget);
+    expect(find.text('🇨🇮'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Changer de numéro'));
+    await tester.pump();
+    expect(find.text('Indiquez votre nouveau numéro.'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).first, '07 08 12 44 00');
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Changer de numéro'));
+    await tester.pump();
+    expect(find.text('C\'est déjà votre numéro actuel.'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).first, '05 44 33 22 11');
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Changer de numéro'));
+    await tester.pump();
+    expect(find.text('Indiquez votre mot de passe actuel.'), findsOneWidget);
   });
 }

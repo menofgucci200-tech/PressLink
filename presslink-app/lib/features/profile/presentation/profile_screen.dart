@@ -15,6 +15,7 @@ import '../../auth/presentation/logout_confirmation.dart';
 import '../../pressings/presentation/my_pressings_screen.dart';
 import '../../pressings/presentation/pressings_controller.dart';
 import 'change_password_screen.dart';
+import 'change_phone_screen.dart';
 import 'edit_profile_screen.dart';
 import 'notification_preferences_controller.dart';
 import 'profile_photo_picker.dart';
@@ -143,9 +144,11 @@ class ProfileScreen extends ConsumerWidget {
                     icon: Icons.phone_outlined,
                     label: 'Téléphone',
                     value: formatPhoneForDisplay(customer?.phone ?? ''),
-                    hint:
-                        'Il sert à vous connecter. Pour le changer, contactez le support.',
+                    hint: 'Il sert à vous connecter.',
                     isLast: true,
+                    onTap: () => Navigator.of(context).push(
+                      AppPageRoute(builder: (_) => const ChangePhoneScreen()),
+                    ),
                   ),
                 ],
               ),

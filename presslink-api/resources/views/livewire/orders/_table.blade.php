@@ -3,18 +3,36 @@
         Aucune commande pour le moment.
     </div>
 @else
-    <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
+    {{-- Débordement horizontal seulement sur petit écran : au-delà, l'en-tête
+         reste collé sous la barre du haut pendant le défilement. --}}
+    <div class="overflow-x-auto lg:overflow-visible"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
+        @php
+            $sortable = $sortable ?? false;
+            $th = 'px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)';
+            $stickyTh = 'lg:sticky lg:top-16 lg:z-[5] bg-(--color-bg)';
+        @endphp
         <thead>
-            <tr class="bg-(--color-bg) text-left">
-                <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">N°</th>
-                <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Client</th>
-                @if ($showPhone ?? false)
-                    <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Téléphone</th>
+            <tr class="text-left">
+                @if ($sortable)
+                    <x-sort-th column="numero" label="N°" :sort="$sort" :direction="$direction" class="{{ $stickyTh }}" />
+                    <x-sort-th column="client" label="Client" :sort="$sort" :direction="$direction" class="{{ $stickyTh }}" />
+                @else
+                    <th class="{{ $th }} {{ $stickyTh }}">N°</th>
+                    <th class="{{ $th }} {{ $stickyTh }}">Client</th>
                 @endif
-                <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Statut</th>
-                <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) text-right">Total</th>
-                <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Dépôt</th>
-                <th class="px-5 py-2.5"></th>
+                @if ($showPhone ?? false)
+                    <th class="{{ $th }} {{ $stickyTh }}">Téléphone</th>
+                @endif
+                @if ($sortable)
+                    <x-sort-th column="statut" label="Statut" :sort="$sort" :direction="$direction" class="{{ $stickyTh }}" />
+                    <x-sort-th column="total" label="Total" :sort="$sort" :direction="$direction" align="right" class="{{ $stickyTh }}" />
+                    <x-sort-th column="depot" label="Dépôt" :sort="$sort" :direction="$direction" class="{{ $stickyTh }}" />
+                @else
+                    <th class="{{ $th }} {{ $stickyTh }}">Statut</th>
+                    <th class="{{ $th }} {{ $stickyTh }} text-right">Total</th>
+                    <th class="{{ $th }} {{ $stickyTh }}">Dépôt</th>
+                @endif
+                <th class="px-5 py-2.5 {{ $stickyTh }}"></th>
             </tr>
         </thead>
         <tbody>
@@ -22,9 +40,11 @@
                 @php $alert = $order->delayAlert(); @endphp
                 {{-- Toute la ligne ouvre la commande (cf. [data-href] dans app.js) ; le
                      badge de statut, lui, filtre la liste sur ce statut. --}}
+                @php $isPreviewed = ($previewId ?? null) === $order->id; @endphp
                 <tr wire:key="order-row-{{ $order->id }}" data-href="{{ route('orders.show', $order) }}" tabindex="0" role="link"
-                    aria-label="Ouvrir la commande {{ $order->order_number }}"
-                    class="group border-t border-(--color-border) {{ $alert ? ($alert['tone'] === 'danger' ? 'shadow-[inset_3px_0_0_var(--color-error)]' : 'shadow-[inset_3px_0_0_var(--color-warning)]') : '' }}">
+                    @if ($previewable ?? false) data-preview-id="{{ $order->id }}" aria-label="Aperçu de la commande {{ $order->order_number }}" @else aria-label="Ouvrir la commande {{ $order->order_number }}" @endif
+                    @if ($isPreviewed) aria-current="true" @endif
+                    class="group border-t border-(--color-border) {{ $isPreviewed ? 'bg-(--color-primary-tint)!' : '' }} {{ $alert ? ($alert['tone'] === 'danger' ? 'shadow-[inset_3px_0_0_var(--color-error)]' : 'shadow-[inset_3px_0_0_var(--color-warning)]') : '' }}">
                     <td class="px-5 py-3.5 font-semibold tabular-nums">{{ $order->order_number }}</td>
                     <td class="px-5 py-3.5">
                         <div class="flex items-center gap-2.5">

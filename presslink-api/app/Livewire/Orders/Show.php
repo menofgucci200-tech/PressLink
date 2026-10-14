@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Orders;
 
+use App\Actions\Orders\ChangeOrderStatusAction;
 use App\Enums\OrderIssueStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
@@ -37,15 +38,7 @@ class Show extends Component
         $this->order = $order;
     }
 
-    /**
-     * Verrou pessimiste (SELECT ... FOR UPDATE) : deux changements de
-     * statut concurrents sur la même commande sérialisent sur ce verrou au
-     * lieu de valider chacun contre son propre statut de départ en
-     * mémoire, ce qui évitait un "lost update" (les deux transitions
-     * acceptées, l'historique incohérent avec le statut final — voir
-     * load-testing/RAPPORT.md, finding D).
-     */
-    public function transitionTo(string $status): void
+    public function transitionTo(string $status, ChangeOrderStatusAction $changeStatus): void
     {
         $this->errorMessage = null;
         $target = OrderStatus::tryFrom($status);
@@ -57,10 +50,7 @@ class Show extends Component
         }
 
         try {
-            DB::transaction(function () use ($target) {
-                $locked = Order::whereKey($this->order->id)->lockForUpdate()->firstOrFail();
-                $locked->update(['status' => $target]);
-            });
+            $changeStatus->handle($this->order, $target);
         } catch (RuntimeException $e) {
             $this->errorMessage = $e->getMessage();
 
@@ -68,12 +58,7 @@ class Show extends Component
         }
 
         $this->order->refresh();
-        $this->toast(match ($target) {
-            OrderStatus::Prete => 'Commande prête : le client a été prévenu dans l\'application.',
-            OrderStatus::Recuperee => 'Commande récupérée. Merci, l\'historique est à jour.',
-            OrderStatus::Annulee => 'Commande annulée.',
-            default => 'Commande passée au statut « '.$target->label().' ».',
-        }, $target === OrderStatus::Annulee ? 'warning' : 'success');
+        $this->toast(ChangeOrderStatusAction::successMessage($target), $target === OrderStatus::Annulee ? 'warning' : 'success');
     }
 
     public function openPaymentForm(): void
@@ -136,27 +121,14 @@ class Show extends Component
             : 'Paiement enregistré. Reste à payer : '.number_format($this->order->balance_due_fcfa, 0, ',', ' ').' F.');
     }
 
-    /**
-     * Remise au client avec encaissement du solde en une fois : le
-     * paiement et le passage à « récupérée » réussissent ou échouent
-     * ensemble.
-     */
-    public function settleAndRecover(): void
+    /** Remise au client avec encaissement du solde en une fois. */
+    public function settleAndRecover(ChangeOrderStatusAction $changeStatus): void
     {
         abort_unless(auth()->user()->can('update', $this->order), 403);
         $this->errorMessage = null;
-        $method = PaymentMethod::tryFrom($this->paymentMethod) ?? PaymentMethod::Cash;
 
         try {
-            DB::transaction(function () use ($method) {
-                $locked = Order::whereKey($this->order->id)->lockForUpdate()->firstOrFail();
-
-                if ($locked->balance_due_fcfa > 0) {
-                    $locked->recordPayment($locked->balance_due_fcfa, $method, auth()->id(), 'Solde au retrait');
-                }
-
-                $locked->refresh()->update(['status' => OrderStatus::Recuperee]);
-            });
+            $changeStatus->handle($this->order, OrderStatus::Recuperee, PaymentMethod::tryFrom($this->paymentMethod) ?? PaymentMethod::Cash);
         } catch (RuntimeException $e) {
             $this->errorMessage = $e->getMessage();
 

@@ -46,6 +46,16 @@ function rowLinkFrom(event) {
     return row;
 }
 
+// Ligne avec aperçu ([data-preview-id]) : un clic simple ouvre le panneau
+// d'aperçu du composant Livewire de la liste au lieu de quitter la page.
+function previewRow(row) {
+    const root = row.closest('[wire\\:id]');
+    const wire = root && window.Livewire?.find(root.getAttribute('wire:id'));
+    if (!wire) return false;
+    wire.$call('preview', Number(row.dataset.previewId));
+    return true;
+}
+
 function openRowLink(url, newTab) {
     if (newTab) {
         window.open(url, '_blank', 'noopener');
@@ -58,7 +68,10 @@ function openRowLink(url, newTab) {
 
 document.addEventListener('click', (e) => {
     const row = rowLinkFrom(e);
-    if (row) openRowLink(row.dataset.href, e.ctrlKey || e.metaKey || e.shiftKey);
+    if (!row) return;
+    const newTab = e.ctrlKey || e.metaKey || e.shiftKey;
+    if (!newTab && row.dataset.previewId && previewRow(row)) return;
+    openRowLink(row.dataset.href, newTab);
 });
 
 document.addEventListener('auxclick', (e) => {
@@ -73,7 +86,9 @@ document.addEventListener('auxclick', (e) => {
 document.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' || !e.target.matches?.('[data-href]')) return;
     e.preventDefault();
-    openRowLink(e.target.dataset.href, e.ctrlKey || e.metaKey);
+    const newTab = e.ctrlKey || e.metaKey;
+    if (!newTab && e.target.dataset.previewId && previewRow(e.target)) return;
+    openRowLink(e.target.dataset.href, newTab);
 });
 
 // Bouton retour des pages détail ([data-back], sans wire:navigate : Livewire
@@ -104,4 +119,45 @@ document.addEventListener('click', (e) => {
     } else {
         openRowLink(back.getAttribute('href'), false);
     }
+});
+
+// Chiffres animés ([data-count]) : la valeur défile jusqu'au nouveau chiffre
+// — depuis 0 au premier affichage, puis depuis la valeur précédente de la
+// même carte ([data-count-key]) quand le tableau de bord se met à jour.
+const shownCounts = new Map();
+const formatCount = (n) => n.toLocaleString('fr-FR').replace(/[\u202f\u00a0]/g, ' ');
+
+function animateCounts(root = document) {
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const elements = root.matches?.('[data-count]') ? [root] : root.querySelectorAll?.('[data-count]') ?? [];
+
+    elements.forEach((el) => {
+        if (el.dataset.countShown === el.dataset.count) return;
+        const to = Number(el.dataset.count);
+        const key = el.dataset.countKey;
+        const from = key && shownCounts.has(key) ? shownCounts.get(key) : 0;
+        if (key) shownCounts.set(key, to);
+        el.dataset.countShown = el.dataset.count;
+
+        if (from === to || reduceMotion || !Number.isFinite(to)) {
+            el.textContent = formatCount(to);
+            return;
+        }
+
+        el.textContent = formatCount(from);
+        const start = performance.now();
+        const duration = 650;
+        const step = (now) => {
+            const t = Math.min(1, (now - start) / duration);
+            const eased = 1 - Math.pow(1 - t, 3);
+            el.textContent = formatCount(Math.round(from + (to - from) * eased));
+            if (t < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+    });
+}
+
+document.addEventListener('livewire:navigated', () => animateCounts());
+document.addEventListener('livewire:init', () => {
+    window.Livewire.hook('morphed', ({ el }) => animateCounts(el));
 });

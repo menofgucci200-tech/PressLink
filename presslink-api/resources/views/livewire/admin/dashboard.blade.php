@@ -66,11 +66,12 @@
     </div>
 
     {{-- ===== Indicateurs clés ===== --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6 loading-dim rounded-xl"
+         wire:loading.delay.class="is-loading" wire:target="period, city, administratorId, resetFilters">
         <div wire:key="kpi-mrr-{{ $filterKey }}" class="rounded-xl p-5 text-white animate-step sm:col-span-2 xl:col-span-1 dark:ring-1 dark:ring-(--color-border)" style="background:#0f172a;">
             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Revenu mensuel récurrent</div>
             <div class="flex items-baseline gap-1.5 mt-2.5">
-                <div class="text-3xl font-bold tracking-tight tabular-nums">{{ $fcfa($monthlyRecurringRevenue) }}</div>
+                <div class="text-3xl font-bold tracking-tight tabular-nums" data-count="{{ $monthlyRecurringRevenue }}" data-count-key="admin-mrr">{{ $fcfa($monthlyRecurringRevenue) }}</div>
                 <div class="text-sm font-semibold text-(--color-text-muted)">F</div>
             </div>
             <div class="text-xs text-(--color-text-muted) mt-1.5">
@@ -82,22 +83,22 @@
         @php
             $kpis = [
                 [
-                    'key' => 'volume', 'label' => 'Volume traité', 'value' => $fcfa($orderVolume), 'unit' => 'F',
+                    'key' => 'volume', 'label' => 'Volume traité', 'value' => $fcfa($orderVolume), 'raw' => $orderVolume, 'unit' => 'F',
                     'change' => $volumeChangePct, 'sub' => 'commandes non annulées, '.$periodLabel,
                     'href' => $ordersListUrl, 'cta' => 'Voir les commandes',
                 ],
                 [
-                    'key' => 'orders', 'label' => 'Commandes', 'value' => $fcfa($totalOrders), 'unit' => null,
+                    'key' => 'orders', 'label' => 'Commandes', 'value' => $fcfa($totalOrders), 'raw' => $totalOrders, 'unit' => null,
                     'change' => $ordersChangePct, 'sub' => $periodLabel,
                     'href' => $ordersListUrl, 'cta' => 'Voir les commandes',
                 ],
                 [
-                    'key' => 'pressings', 'label' => 'Pressings actifs', 'value' => $activePressings, 'unit' => null, 'change' => null,
+                    'key' => 'pressings', 'label' => 'Pressings actifs', 'value' => $activePressings, 'raw' => $activePressings, 'unit' => null, 'change' => null,
                     'sub' => ($newPressings ? '+'.$newPressings.' '.$periodLabel.' · ' : '').$suspendedPressings.' suspendu'.($suspendedPressings > 1 ? 's' : ''),
                     'href' => route('admin.pressings.index', array_filter(['status' => 'active', 'ville' => $city])), 'cta' => 'Voir les pressings',
                 ],
                 [
-                    'key' => 'clients', 'label' => 'Clients', 'value' => $fcfa($totalClients), 'unit' => null, 'change' => null,
+                    'key' => 'clients', 'label' => 'Clients', 'value' => $fcfa($totalClients), 'raw' => $totalClients, 'unit' => null, 'change' => null,
                     'sub' => $newClients !== null ? '+'.$newClients.' '.$periodLabel : 'inscrits sur la plateforme',
                     'href' => route('admin.clients.index'), 'cta' => 'Voir les clients',
                 ],
@@ -108,7 +109,7 @@
                class="kpi-link block bg-(--color-surface) border border-(--color-border) rounded-xl p-5 animate-step" style="animation-delay:{{ ($loop->index + 1) * 50 }}ms">
                 <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">{{ $kpi['label'] }}</div>
                 <div class="flex items-baseline gap-1.5 mt-2.5">
-                    <div class="text-3xl font-bold tracking-tight tabular-nums">{{ $kpi['value'] }}</div>
+                    <div class="text-3xl font-bold tracking-tight tabular-nums" data-count="{{ $kpi['raw'] }}" data-count-key="admin-{{ $kpi['key'] }}">{{ $kpi['value'] }}</div>
                     @if ($kpi['unit'])
                         <div class="text-sm font-semibold text-(--color-text-muted)">{{ $kpi['unit'] }}</div>
                     @endif

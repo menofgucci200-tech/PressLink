@@ -160,7 +160,8 @@
                 </div>
             </aside>
 
-            <div class="flex-1 min-w-0 flex flex-col" x-data="{ scrolled: false }">
+            {{-- La page défile (pas le main) : les en-têtes de tableaux collants restent sous la barre du haut. --}}
+            <div class="flex-1 min-w-0 flex flex-col" x-data="{ scrolled: window.scrollY > 4 }" @scroll.window="scrolled = window.scrollY > 4">
                 <header class="h-16 flex-none bg-(--color-surface) border-b border-(--color-border) flex items-center gap-3 px-4 sm:px-6 sticky top-0 z-10 transition-shadow duration-200"
                         :class="scrolled ? 'shadow-[0_4px_14px_-8px_rgba(15,23,42,.25)]' : ''">
                     <button type="button" @click="menu = true" :aria-expanded="menu" aria-label="Ouvrir le menu"
@@ -204,7 +205,7 @@
                     </x-profile-menu>
                 </header>
 
-                <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" @scroll="scrolled = $event.target.scrollTop > 4">
+                <main class="flex-1 min-w-0 overflow-x-clip p-4 sm:p-6 lg:p-8">
                     {{ $slot }}
                 </main>
             </div>

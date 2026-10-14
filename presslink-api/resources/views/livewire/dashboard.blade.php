@@ -1,4 +1,5 @@
-<div>
+{{-- Mise à jour toutes les 60 s quand l'onglet est visible : cartes, commandes récentes et encaissé. --}}
+<div @if ($pressing) wire:poll.60s.visible @endif>
     @if (! $pressing)
         <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-8 text-center text-(--color-text-secondary)">
             Votre compte n'est rattaché à aucun pressing pour le moment.
@@ -58,7 +59,8 @@
             @endif
         </div>
 
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-[19px] mb-5">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-[19px] mb-5 loading-dim rounded-xl"
+             wire:loading.delay.class="is-loading" wire:target="setPeriod, customFrom, customTo">
             @php
                 $totalPeriod = array_sum($counts);
                 $kpis = [
@@ -75,7 +77,7 @@
                     $pct = $totalPeriod > 0 ? round(($kpi['value'] / $totalPeriod) * 100) : 0;
                 @endphp
                 <a href="{{ route('orders.index', ['status' => $kpi['key'], 'dateFrom' => $exportParams['date_from'], 'dateTo' => $exportParams['date_to']]) }}" wire:navigate
-                   wire:key="kpi-{{ $kpi['key'] }}-{{ $period }}-{{ $kpi['value'] }}"
+                   wire:key="kpi-{{ $kpi['key'] }}-{{ $period }}"
                    title="Voir les commandes « {{ $kpi['label'] }} » {{ $periodLabel }}"
                    class="kpi-link group block bg-(--color-surface) border border-(--color-border) rounded-xl px-5 pt-[19px] pb-5 animate-step">
                     <div class="flex items-center justify-between">
@@ -89,7 +91,7 @@
                             <span class="text-[11.5px] font-semibold text-(--color-text-muted)">—</span>
                         @endif
                     </div>
-                    <div class="text-[34px] font-bold tracking-tight my-3.5 tabular-nums">{{ $kpi['value'] }}</div>
+                    <div class="text-[34px] font-bold tracking-tight my-3.5 tabular-nums" data-count="{{ $kpi['value'] }}" data-count-key="kpi-{{ $kpi['key'] }}">{{ $kpi['value'] }}</div>
                     <div class="text-[12.5px] text-(--color-text-muted) mb-3">{{ $periodLabel }}</div>
                     <div class="h-1 bg-(--color-border) rounded-full overflow-hidden">
                         <div class="h-full rounded-full animate-step" style="width:{{ $pct }}%;background:{{ $kpi['color'] }}"></div>
@@ -103,7 +105,8 @@
         </div>
 
         <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px] gap-5 items-start pb-8">
-            <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden">
+            <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden list-loading-target"
+                 wire:loading.delay.class="is-loading" wire:target="search">
                 <div class="flex items-center gap-3 px-5 py-[17px] flex-wrap">
                     <h2 class="font-semibold text-sm">Commandes récentes</h2>
                     <div class="flex-1"></div>
@@ -120,7 +123,7 @@
                         {{ $search ? 'Aucune commande ne correspond à cette recherche.' : 'Aucune commande pour le moment.' }}
                     </div>
                 @else
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto loading-rows">
                         <div class="min-w-[620px]">
                             <div class="grid grid-cols-[100px_minmax(140px,1fr)_140px_110px_96px_24px] items-center px-5 py-2.5 border-y border-(--color-border) text-[10.5px] font-semibold tracking-wide text-(--color-text-muted) uppercase">
                                 <div>N°</div><div>Client</div><div>Statut</div><div class="text-right">Total</div><div class="text-right">Dépôt</div><div></div>
@@ -188,10 +191,10 @@
                     </div>
                 </div>
 
-                <div wire:key="revenue-{{ $period }}-{{ $revenuePeriod }}" class="rounded-xl p-[18px] text-white animate-step dark:ring-1 dark:ring-(--color-border)" style="background:#0f172a;">
+                <div wire:key="revenue-{{ $period }}" class="rounded-xl p-[18px] text-white animate-step dark:ring-1 dark:ring-(--color-border)" style="background:#0f172a;">
                     <div class="text-[10.5px] font-semibold tracking-widest text-(--color-text-muted) uppercase">Encaissé · {{ ucfirst($periodLabel) }}</div>
                     <div class="flex items-baseline gap-2 mt-[11px]">
-                        <div class="text-[29px] font-bold tracking-tight tabular-nums">{{ number_format($revenuePeriod, 0, ',', ' ') }}</div>
+                        <div class="text-[29px] font-bold tracking-tight tabular-nums" data-count="{{ $revenuePeriod }}" data-count-key="revenue">{{ number_format($revenuePeriod, 0, ',', ' ') }}</div>
                         <div class="text-sm font-semibold text-(--color-text-muted)">F</div>
                     </div>
                     @if ($revenueChangePct !== null)

@@ -53,17 +53,19 @@
                class="w-full h-10 pl-9 pr-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-(--color-surface)">
     </div>
 
-    <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden">
+    <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-clip list-loading-target"
+         wire:loading.delay.class="is-loading" wire:target="search, sortBy, gotoPage, nextPage, previousPage">
         @if ($clients->isEmpty())
             <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucun client pour le moment.</div>
         @else
-            <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
+            @php $stickyTh = 'lg:sticky lg:top-16 lg:z-[5] bg-(--color-bg)'; @endphp
+            <div class="overflow-x-auto lg:overflow-visible"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
                 <thead>
-                    <tr class="bg-(--color-bg) text-left">
-                        <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Client</th>
-                        <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Téléphone</th>
-                        <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) text-right">Commandes</th>
-                        <th class="w-10"></th>
+                    <tr class="text-left">
+                        <x-sort-th column="nom" label="Client" :sort="$sort" :direction="$direction" class="{{ $stickyTh }}" />
+                        <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) {{ $stickyTh }}">Téléphone</th>
+                        <x-sort-th column="commandes" label="Commandes" :sort="$sort" :direction="$direction" align="right" class="{{ $stickyTh }}" />
+                        <th class="w-10 {{ $stickyTh }}"></th>
                     </tr>
                 </thead>
                 <tbody>

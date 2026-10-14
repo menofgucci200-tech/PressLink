@@ -21,6 +21,13 @@ class Index extends Component
     #[Url]
     public string $search = '';
 
+    /** Tri : 'recent' (derniers inscrits), 'nom' ou 'commandes'. */
+    #[Url(as: 'tri', except: 'recent')]
+    public string $sort = 'recent';
+
+    #[Url(as: 'sens', except: 'desc')]
+    public string $direction = 'desc';
+
     public bool $showCreateForm = false;
 
     public string $firstName = '';
@@ -33,6 +40,20 @@ class Index extends Component
 
     public function updatingSearch(): void
     {
+        $this->resetPage();
+    }
+
+    public function sortBy(string $column): void
+    {
+        $defaults = ['nom' => 'asc', 'commandes' => 'desc'];
+        if (! isset($defaults[$column])) {
+            return;
+        }
+
+        $this->direction = $this->sort === $column
+            ? ($this->direction === 'asc' ? 'desc' : 'asc')
+            : $defaults[$column];
+        $this->sort = $column;
         $this->resetPage();
     }
 
@@ -96,7 +117,14 @@ class Index extends Component
                 });
             }
 
-            $clients = $query->orderByDesc('pressing_customers.joined_at')->paginate(15);
+            $direction = $this->direction === 'asc' ? 'asc' : 'desc';
+            match ($this->sort) {
+                'nom' => $query->orderBy('last_name', $direction)->orderBy('first_name', $direction),
+                'commandes' => $query->orderBy('orders_count', $direction),
+                default => $query->orderByDesc('pressing_customers.joined_at'),
+            };
+
+            $clients = $query->orderByDesc('customers.id')->paginate(15);
         }
 
         return view('livewire.clients.index', ['clients' => $clients]);

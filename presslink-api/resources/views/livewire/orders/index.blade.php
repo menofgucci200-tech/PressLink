@@ -1,4 +1,5 @@
-<div>
+{{-- Toutes les 30 s (onglet visible) : statuts à jour et nouvelles commandes annoncées. --}}
+<div wire:poll.30s.visible="checkForNewOrders">
     <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 mb-6">
         <div>
             <h1 class="font-display text-2xl font-bold mb-1">Commandes</h1>
@@ -67,7 +68,7 @@
                 @endforeach
             </select>
         </div>
-        @if ($search !== '' || $status !== '' || $dateFrom !== '' || $dateTo !== '' || $payment !== '')
+        @if ($search !== '' || $status !== '' || $dateFrom !== '' || $dateTo !== '' || $payment !== '' || $sort !== 'recent')
             <button type="button" wire:click="resetFilters" class="h-10 px-3.5 rounded-lg text-[13px] font-medium text-(--color-text-secondary) hover:text-(--color-error)">
                 Réinitialiser
             </button>
@@ -77,11 +78,37 @@
     {{-- Le nombre de chaque filtre suit la recherche et les dates. --}}
     <x-status-filter-chips :current="$status" :counts="$counts" :statuses="$statuses" class="mb-5" />
 
-    <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden">
-        @include('livewire.orders._table', ['orders' => $orders, 'showPhone' => true, 'statusFilterable' => true, 'paymentFilterable' => true])
+    @if ($newOrdersCount > 0)
+        <div class="sticky top-[76px] z-[6] flex justify-center -mb-2 pointer-events-none">
+            <button type="button" wire:click="showNewOrders"
+                    class="pointer-events-auto mb-3 inline-flex items-center gap-2 h-9 px-4 rounded-full bg-(--color-primary) text-white text-[13px] font-semibold shadow-[0_10px_24px_-10px_var(--color-primary)] hover:bg-(--color-primary-600) animate-step">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="m5 12 7-7 7 7"></path></svg>
+                {{ $newOrdersCount }} nouvelle{{ $newOrdersCount > 1 ? 's' : '' }} commande{{ $newOrdersCount > 1 ? 's' : '' }} · Afficher
+            </button>
+        </div>
+    @endif
+
+    {{-- Pendant un filtre, un tri ou un changement de page : lignes estompées
+         et reflet animé plutôt qu'un écran figé. --}}
+    <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-clip list-loading-target"
+         wire:loading.delay.class="is-loading"
+         wire:target="search, status, dateFrom, dateTo, payment, sortBy, resetFilters, showNewOrders, gotoPage, nextPage, previousPage">
+        @include('livewire.orders._table', [
+            'orders' => $orders,
+            'showPhone' => true,
+            'statusFilterable' => true,
+            'paymentFilterable' => true,
+            'sortable' => true,
+            'previewable' => true,
+            'previewId' => $previewId,
+        ])
     </div>
 
     @if (is_countable($orders) && method_exists($orders, 'links'))
         <div class="mt-5">{{ $orders->links() }}</div>
+    @endif
+
+    @if ($previewOrder)
+        @include('livewire.orders._preview-panel')
     @endif
 </div>

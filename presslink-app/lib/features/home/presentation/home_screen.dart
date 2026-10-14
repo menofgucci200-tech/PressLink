@@ -11,7 +11,6 @@ import '../../../core/widgets/pwa_install_banner.dart';
 import '../../../core/widgets/staggered_fade_in.dart';
 import '../../../shared/models/order_summary.dart';
 import '../../auth/presentation/auth_controller.dart';
-import '../../auth/presentation/logout_confirmation.dart';
 import '../../notifications/presentation/notifications_controller.dart';
 import '../../notifications/presentation/notifications_screen.dart';
 import '../../orders/presentation/order_detail_screen.dart';
@@ -19,6 +18,8 @@ import '../../orders/presentation/orders_controller.dart';
 import '../../pressings/presentation/join_pressing_screen.dart';
 import '../../pressings/presentation/pressing_detail_screen.dart';
 import '../../pressings/presentation/pressings_controller.dart';
+import '../../profile/presentation/customer_avatar.dart';
+import '../../profile/presentation/profile_screen.dart';
 
 /// Écran Accueil Client — cf. Wireframes & Layouts §3, UI haute fidélité §2.
 class HomeScreen extends ConsumerWidget {
@@ -86,10 +87,21 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: AppSpacing.sm),
-                      IconButton(
-                        tooltip: 'Se déconnecter',
-                        onPressed: () => confirmAndLogout(context, ref),
-                        icon: const Icon(Icons.logout, size: 20),
+                      Tooltip(
+                        message: 'Mon profil',
+                        child: InkWell(
+                          customBorder: const CircleBorder(),
+                          onTap: () => Navigator.of(context).push(
+                            AppPageRoute(builder: (_) => const ProfileScreen()),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(2),
+                            child: CustomerAvatar(
+                              customer: customer,
+                              radius: 20,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),

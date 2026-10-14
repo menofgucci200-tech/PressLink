@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app_page_route.dart';
 import '../../features/orders/presentation/select_order_for_issue_screen.dart';
 import '../../features/pressings/presentation/my_pressings_screen.dart';
+import '../../features/auth/presentation/auth_controller.dart';
+import '../../features/profile/presentation/customer_avatar.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/support/presentation/support_screen.dart';
 import '../theme/app_colors.dart';
@@ -61,9 +64,7 @@ class _MainMenuSheet extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               StaggeredFadeIn(
                 index: 0,
-                child: _MenuTile(
-                  icon: Icons.person_outline,
-                  label: 'Profil',
+                child: _ProfileCard(
                   onTap: () {
                     Navigator.of(context).pop();
                     Navigator.of(
@@ -72,6 +73,7 @@ class _MainMenuSheet extends StatelessWidget {
                   },
                 ),
               ),
+              const SizedBox(height: AppSpacing.sm),
               StaggeredFadeIn(
                 index: 1,
                 child: _MenuTile(
@@ -152,6 +154,7 @@ class _MenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppRadius.md),
@@ -159,14 +162,86 @@ class _MenuTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 4),
         child: Row(
           children: [
-            Icon(icon, size: 21, color: iconColor ?? AppColors.textSecondary),
+            Icon(
+              icon,
+              size: 21,
+              color: iconColor ?? theme.textTheme.bodyMedium?.color,
+            ),
             const SizedBox(width: AppSpacing.sm + 6),
             Text(
               label,
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
             ),
             const Spacer(),
-            const Icon(Icons.chevron_right, size: 18, color: AppColors.border),
+            Icon(
+              Icons.chevron_right,
+              size: 18,
+              color: theme.brightness == Brightness.dark
+                  ? AppColors.textMutedDark
+                  : AppColors.textMuted,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// En tête du menu : photo, nom et accès direct à « Mon profil ».
+class _ProfileCard extends ConsumerWidget {
+  const _ProfileCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final customer = ref.watch(authControllerProvider).customer;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.sm + 4),
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackgroundColor,
+          border: Border.all(color: theme.dividerTheme.color!),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        child: Row(
+          children: [
+            CustomerAvatar(customer: customer, radius: 24),
+            const SizedBox(width: AppSpacing.sm + 4),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    customer?.fullName.isNotEmpty == true
+                        ? customer!.fullName
+                        : 'Mon profil',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Voir et personnaliser mon profil',
+                    style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12.5),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              size: 18,
+              color: theme.brightness == Brightness.dark
+                  ? AppColors.textMutedDark
+                  : AppColors.textMuted,
+            ),
           ],
         ),
       ),

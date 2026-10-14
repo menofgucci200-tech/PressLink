@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -9,6 +8,7 @@ import '../../../core/widgets/app_text_field.dart';
 import '../../auth/domain/auth_repository.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../../core/widgets/app_feedback.dart';
+import 'profile_photo_picker.dart';
 
 /// Modifier mon profil — Profil §Personnalisation (26/08).
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -24,7 +24,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   late final TextEditingController _emailController;
   Gender? _gender;
   bool _loading = false;
-  bool _photoLoading = false;
   String? _error;
 
   // Au lancement de l'app, la session est restaurée depuis le token stocké
@@ -55,105 +54,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         ? Gender.homme
         : null;
     _fieldsInitialized = true;
-  }
-
-  Future<void> _pickPhoto(ImageSource source) async {
-    final XFile? picked;
-    try {
-      picked = await ImagePicker().pickImage(
-        source: source,
-        maxWidth: 1024,
-        imageQuality: 85,
-      );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = source == ImageSource.camera
-            ? 'Impossible d\'accéder à l\'appareil photo. Vérifiez les autorisations de l\'application.'
-            : 'Impossible d\'accéder à la galerie. Vérifiez les autorisations de l\'application.';
-      });
-      return;
-    }
-    if (picked == null) return;
-
-    setState(() {
-      _photoLoading = true;
-      _error = null;
-    });
-
-    final ok = await ref
-        .read(authControllerProvider.notifier)
-        .uploadPhoto(picked);
-
-    if (!mounted) return;
-    setState(() {
-      _photoLoading = false;
-      if (!ok) _error = ref.read(authControllerProvider).error;
-    });
-  }
-
-  Future<void> _removePhoto() async {
-    setState(() {
-      _photoLoading = true;
-      _error = null;
-    });
-
-    final ok = await ref.read(authControllerProvider.notifier).deletePhoto();
-
-    if (!mounted) return;
-    setState(() {
-      _photoLoading = false;
-      if (!ok) _error = ref.read(authControllerProvider).error;
-    });
-  }
-
-  void _showPhotoOptions() {
-    final hasPhoto =
-        ref.read(authControllerProvider).customer?.photoUrl != null;
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_camera_outlined),
-              title: const Text('Prendre une photo'),
-              onTap: () {
-                Navigator.of(context).pop();
-                _pickPhoto(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Choisir dans la galerie'),
-              onTap: () {
-                Navigator.of(context).pop();
-                _pickPhoto(ImageSource.gallery);
-              },
-            ),
-            if (hasPhoto)
-              ListTile(
-                leading: const Icon(
-                  Icons.delete_outline,
-                  color: AppColors.error,
-                ),
-                title: const Text(
-                  'Supprimer la photo',
-                  style: TextStyle(color: AppColors.error),
-                ),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _removePhoto();
-                },
-              ),
-          ],
-        ),
-      ),
-    );
   }
 
   Future<void> _submit() async {
@@ -219,64 +119,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 ],
               ),
               const SizedBox(height: AppSpacing.lg),
+              const Center(child: EditableCustomerAvatar()),
+              const SizedBox(height: AppSpacing.sm),
               Center(
-                child: GestureDetector(
-                  onTap: _photoLoading ? null : _showPhotoOptions,
-                  child: Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 44,
-                        backgroundColor: AppColors.primaryTint,
-                        backgroundImage: customer?.photoUrl != null
-                            ? NetworkImage(customer!.photoUrl!)
-                            : null,
-                        child: customer?.photoUrl == null
-                            ? Text(
-                                customer != null && customer.fullName.isNotEmpty
-                                    ? customer.fullName
-                                          .trim()
-                                          .split(' ')
-                                          .map((w) => w.isNotEmpty ? w[0] : '')
-                                          .take(2)
-                                          .join()
-                                          .toUpperCase()
-                                    : '?',
-                                style: const TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 26,
-                                ),
-                              )
-                            : null,
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          width: 30,
-                          height: 30,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: _photoLoading
-                              ? const Padding(
-                                  padding: EdgeInsets.all(6),
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Icon(
-                                  Icons.camera_alt,
-                                  size: 14,
-                                  color: Colors.white,
-                                ),
-                        ),
-                      ),
-                    ],
-                  ),
+                child: Text(
+                  'Touchez la photo pour la changer',
+                  style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -383,19 +231,27 @@ class _GenderButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final isSelected = selected == gender;
     return SizedBox(
       height: 44,
       child: OutlinedButton(
         onPressed: () => onTap(gender),
         style: OutlinedButton.styleFrom(
-          backgroundColor: isSelected ? AppColors.primaryTint : Colors.white,
+          backgroundColor: isSelected
+              ? (isDark
+                    ? AppColors.primary.withValues(alpha: 0.18)
+                    : AppColors.primaryTint)
+              : theme.cardTheme.color,
           side: BorderSide(
-            color: isSelected ? AppColors.primary : AppColors.border,
+            color: isSelected ? AppColors.primary : theme.dividerTheme.color!,
           ),
           foregroundColor: isSelected
-              ? AppColors.primary
-              : AppColors.textSecondary,
+              ? (isDark ? const Color(0xFF93C5FD) : AppColors.primary)
+              : (isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondary),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),

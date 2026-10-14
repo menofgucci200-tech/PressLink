@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/network/api_client.dart';
@@ -22,6 +23,7 @@ class Customer {
     this.email,
     this.gender,
     this.photoUrl,
+    this.createdAt,
   });
 
   final int id;
@@ -32,7 +34,22 @@ class Customer {
   final String? gender;
   final String? photoUrl;
 
+  /// Date d'inscription (« Client depuis… » sur le profil).
+  final DateTime? createdAt;
+
   String get fullName => '$firstName $lastName'.trim();
+
+  /// Initiales affichées à la place de la photo (« Aïcha Koné » → « AK »).
+  String get initials {
+    final letters = fullName
+        .split(' ')
+        .where((word) => word.isNotEmpty)
+        .map((word) => word.characters.first)
+        .take(2)
+        .join()
+        .toUpperCase();
+    return letters.isEmpty ? '?' : letters;
+  }
 
   factory Customer.fromJson(Map<String, dynamic> json) => Customer(
     id: json['id'] as int,
@@ -42,6 +59,9 @@ class Customer {
     email: json['email'] as String?,
     gender: json['gender'] as String?,
     photoUrl: json['photo_url'] as String?,
+    createdAt: DateTime.tryParse(
+      json['created_at'] as String? ?? '',
+    )?.toLocal(),
   );
 }
 

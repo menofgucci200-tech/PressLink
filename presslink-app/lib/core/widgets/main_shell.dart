@@ -11,11 +11,12 @@ import '../../features/orders/presentation/orders_list_screen.dart';
 import '../../features/pressings/presentation/join_pressing_screen.dart';
 import '../../features/support/presentation/support_screen.dart';
 import 'app_page_route.dart';
-import 'main_menu_sheet.dart';
+import 'main_menu_fan.dart';
 
 /// Coquille de navigation principale — barre « onglet découpé » à 5
 /// emplacements : Accueil · Commandes · + (rejoindre un pressing) · Support
-/// · Menu. Les notifications restent sur la cloche de l'accueil.
+/// · Menu (bulles en éventail). Les notifications restent sur la cloche de
+/// l'accueil.
 class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
 
@@ -24,8 +25,18 @@ class MainShell extends ConsumerStatefulWidget {
 }
 
 class _MainShellState extends ConsumerState<MainShell>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   int _index = 0;
+
+  late final AnimationController _menu = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 420),
+    reverseDuration: const Duration(milliseconds: 260),
+  );
+
+  bool get _menuOpen =>
+      _menu.status == AnimationStatus.forward ||
+      _menu.status == AnimationStatus.completed;
 
   static const _screens = [HomeScreen(), OrdersListScreen(), SupportScreen()];
 
@@ -38,7 +49,17 @@ class _MainShellState extends ConsumerState<MainShell>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _menu.dispose();
     super.dispose();
+  }
+
+  void _openMenu() {
+    setState(() => _menu.forward());
+  }
+
+  void _closeMenu() {
+    if (!_menuOpen) return;
+    setState(() => _menu.reverse());
   }
 
   /// Les onglets sont construits une seule fois et gardés vivants en
@@ -60,25 +81,45 @@ class _MainShellState extends ConsumerState<MainShell>
   }
 
   void _onTabSelected(int index) {
+    _closeMenu();
     setState(() => _index = index);
     _invalidateAll();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // `IndexedStack` (pas de rebuild des onglets cachés, cf. commentaire
-      // plus haut) : on ne peut donc pas faire un crossfade classique entre
-      // écrans sans les reconstruire. La touche de fluidité vient plutôt de
-      // la barre elle-même (bulle qui glisse, encoche qui la suit).
-      body: IndexedStack(index: _index, children: _screens),
-      bottomNavigationBar: NotchedBottomNav(
-        index: _index,
-        onTabSelected: _onTabSelected,
-        onAdd: () => Navigator.of(
-          context,
-        ).push(AppPageRoute(builder: (_) => const JoinPressingScreen())),
-        onMenu: () => showMainMenuSheet(context),
+    // Retour (bouton Android, retour du navigateur) : referme d'abord le menu.
+    return PopScope(
+      canPop: !_menuOpen,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _closeMenu();
+      },
+      child: Scaffold(
+        // `IndexedStack` (pas de rebuild des onglets cachés, cf. commentaire
+        // plus haut) : on ne peut donc pas faire un crossfade classique entre
+        // écrans sans les reconstruire. La touche de fluidité vient plutôt de
+        // la barre elle-même (bulle qui glisse, encoche qui la suit).
+        body: Stack(
+          children: [
+            IndexedStack(index: _index, children: _screens),
+            Positioned.fill(
+              child: MainMenuFan(animation: _menu, onClose: _closeMenu),
+            ),
+          ],
+        ),
+        bottomNavigationBar: NotchedBottomNav(
+          index: _index,
+          menuOpen: _menuOpen,
+          menuAnimation: _menu,
+          onTabSelected: _onTabSelected,
+          onAdd: () {
+            _closeMenu();
+            Navigator.of(
+              context,
+            ).push(AppPageRoute(builder: (_) => const JoinPressingScreen()));
+          },
+          onMenu: () => _menuOpen ? _closeMenu() : _openMenu(),
+        ),
       ),
     );
   }
@@ -94,10 +135,19 @@ class NotchedBottomNav extends StatelessWidget {
     required this.onTabSelected,
     required this.onAdd,
     required this.onMenu,
+    this.menuOpen = false,
+    this.menuAnimation,
   });
 
   /// Onglet actif : 0 Accueil, 1 Commandes, 2 Support.
   final int index;
+
+  /// Menu ouvert : la bulle glisse sur « Menu » et devient une croix.
+  final bool menuOpen;
+
+  /// Ouverture du menu (0 → 1) : voile assorti à celui de l'écran, visible
+  /// dans les encoches.
+  final Animation<double>? menuAnimation;
   final ValueChanged<int> onTabSelected;
   final VoidCallback onAdd;
   final VoidCallback onMenu;
@@ -139,7 +189,7 @@ class NotchedBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottomInset = MediaQuery.of(context).viewPadding.bottom;
-    final activeSlot = _tabSlots[index];
+    final activeSlot = menuOpen ? 4 : _tabSlots[index];
 
     return SizedBox(
       height: bubbleRadius + barHeight + bottomInset,
@@ -159,6 +209,21 @@ class NotchedBottomNav extends StatelessWidget {
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
+                    if (menuAnimation != null)
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: AnimatedBuilder(
+                            animation: menuAnimation!,
+                            builder: (context, _) => ColoredBox(
+                              color: menuDimColor(isDark).withValues(
+                                alpha:
+                                    menuDimColor(isDark).a *
+                                    menuAnimation!.value,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     Positioned.fill(
                       child: CustomPaint(
                         painter: _NotchedBarPainter(
@@ -179,7 +244,9 @@ class NotchedBottomNav extends StatelessWidget {
                             Expanded(
                               child: _SlotButton(
                                 icon: _slots[slot].icon,
-                                label: _slots[slot].label,
+                                label: slot == 4 && menuOpen
+                                    ? 'Fermer'
+                                    : _slots[slot].label,
                                 selected: slot == activeSlot,
                                 emphasized:
                                     slot == activeSlot || slot == _addSlot,
@@ -216,10 +283,17 @@ class NotchedBottomNav extends StatelessWidget {
                     Positioned(
                       left: activeX - bubbleRadius,
                       top: 0,
-                      child: IgnorePointer(
-                        child: _Bubble(
-                          isDark: isDark,
-                          icon: _slots[activeSlot].activeIcon,
+                      // Touchable en entier (ex. la croix du menu ouvert).
+                      child: ExcludeSemantics(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => _onSlotTap(activeSlot),
+                          child: _Bubble(
+                            isDark: isDark,
+                            icon: menuOpen
+                                ? Icons.close
+                                : _slots[activeSlot].activeIcon,
+                          ),
                         ),
                       ),
                     ),

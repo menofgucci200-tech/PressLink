@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>PressLink — vidéo promo</title>
+<style>
+:root {
+    --primary: #2563EB; --primary-dark: #1D4ED8; --primary-tint: #EFF4FE; --sky: #93C5FD;
+    --success: #10B981; --success-tint: #ECFDF5; --success-text: #059669;
+    --navy: #0B1530; --navy-2: #12245A; --ink: #0F172A; --ink-2: #475569; --muted: #94A3B8;
+    --bg: #F4F7FE; --border: #E2E8F0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+body { font-family: "Inter", sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+#stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--bg); }
+.scene { position: absolute; inset: 0; overflow: hidden; will-change: transform, opacity; }
+#s1 { z-index: 30; } #s2 { z-index: 10; } #s3 { z-index: 11; } #s4 { z-index: 12; } #s5 { z-index: 9; } #s6 { z-index: 8; } #s7 { z-index: 7; }
+.abs { position: absolute; }
+.display { font-family: "Inter Display", "Inter", sans-serif; font-weight: 800; letter-spacing: -0.035em; line-height: 1.02; }
+.center { left: 0; right: 0; text-align: center; }
+.wax { position: absolute; inset: -200px; }
+img { display: block; }
+
+/* Scène 1 */
+#s1 { background: radial-gradient(120% 80% at 50% 30%, #17306E 0, var(--navy) 70%); color: #fff; }
+.ticket { width: 430px; padding: 34px 36px 30px; background: #FFFDF6; color: #3B3A36; border-radius: 10px;
+    box-shadow: 0 30px 60px rgba(0,0,0,.35); font-family: "Courier New", monospace; }
+.ticket::before { content: ""; position: absolute; left: 50%; top: 18px; width: 26px; height: 26px; margin-left: -13px; border-radius: 50%; background: var(--navy); box-shadow: inset 0 0 0 4px #E7E2D3; }
+.ticket .l { display: flex; justify-content: space-between; font-size: 26px; padding: 6px 0; border-bottom: 2px dashed #D9D3C1; }
+.ticket .big { font-size: 64px; font-weight: 700; text-align: center; margin: 26px 0 12px; letter-spacing: .04em; font-family: "Inter Display", sans-serif; color: #1F2A44; }
+.ticket .q { color: #E11D48; font-weight: 800; }
+
+/* Scène 2 */
+#s2, #s3, #s6 { background: var(--bg); }
+.node { width: 270px; height: 270px; border-radius: 50%; overflow: hidden; box-shadow: 0 24px 50px rgba(37,99,235,.25), 0 0 0 10px #fff; }
+.node-label { width: 360px; text-align: center; font-weight: 700; font-size: 38px; color: var(--ink); }
+.pin { width: 150px; height: 150px; border-radius: 50%; background: #fff; box-shadow: 0 18px 40px rgba(37,99,235,.35); display: grid; place-items: center; }
+
+/* Écrans */
+.screen { position: absolute; overflow: hidden; background: #fff; }
+.screen img { position: absolute; left: 0; top: 0; width: 100%; height: auto; }
+.chip { display: inline-flex; align-items: center; gap: 16px; background: #fff; border-radius: 999px; padding: 14px 28px 14px 14px;
+    font-weight: 700; font-size: 34px; box-shadow: 0 16px 34px rgba(15,23,42,.16); white-space: nowrap; }
+.chip i { width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; font-style: normal; }
+
+/* Scène 4 */
+#s4 { background: linear-gradient(#DADADC, #C6C6C8); }
+.notif { width: 960px; left: 60px; background: rgba(255,255,255,.96); border-radius: 40px; padding: 30px 34px; display: flex; gap: 26px; align-items: flex-start;
+    box-shadow: 0 30px 70px rgba(15,23,42,.28); }
+.notif .ic { width: 92px; height: 92px; border-radius: 24px; background: var(--primary); display: grid; place-items: center; flex: none; }
+.notif .app { font-size: 25px; font-weight: 700; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; display: flex; justify-content: space-between; }
+.notif .t { font-size: 40px; font-weight: 800; margin-top: 6px; letter-spacing: -.01em; }
+.notif .b { font-size: 31px; color: var(--ink-2); margin-top: 4px; line-height: 1.3; }
+
+/* Scène 5 */
+#s5 { background: radial-gradient(120% 70% at 50% 0%, #1B3A86 0, var(--navy) 65%); color: #fff; }
+.pill { display: inline-block; padding: 14px 30px; border-radius: 999px; background: rgba(255,255,255,.1); border: 2px solid rgba(147,197,253,.45); font-size: 34px; font-weight: 700; color: #DBEAFE; }
+.laptop .lid { width: 940px; padding: 20px 20px 26px; background: #0E1424; border-radius: 30px 30px 10px 10px; box-shadow: 0 40px 90px rgba(0,0,0,.5); }
+.laptop .lid img { width: 900px; height: 562px; border-radius: 8px; object-fit: cover; }
+.laptop .base { width: 1060px; margin-left: -60px; height: 34px; background: linear-gradient(#C9D2E3, #8C97AD); border-radius: 0 0 40px 40px; }
+.phone { padding: 16px; background: #0B0F19; border-radius: 58px; box-shadow: 0 40px 80px rgba(0,0,0,.55), inset 0 0 0 3px #2A3245; }
+.phone .scr { border-radius: 44px; overflow: hidden; background: #fff; position: relative; }
+.phone .scr img { width: 100%; }
+.phone .notch { position: absolute; left: 50%; top: 28px; width: 120px; height: 30px; margin-left: -60px; border-radius: 20px; background: #0B0F19; z-index: 2; }
+.toast { display: flex; gap: 22px; align-items: center; background: #fff; color: var(--ink); border-radius: 26px; padding: 24px 30px; font-size: 32px; font-weight: 600; line-height: 1.3; box-shadow: 0 24px 60px rgba(0,0,0,.4); }
+.toast i { width: 58px; height: 58px; border-radius: 50%; background: var(--success-tint); display: grid; place-items: center; flex: none; }
+
+/* Scène 7 */
+#s7 { background: radial-gradient(90% 60% at 85% 10%, #3B82F6 0, var(--primary) 45%, var(--primary-dark) 100%); color: #fff; }
+.kicker { display: inline-block; background: #fff; color: var(--primary); font-weight: 800; font-size: 28px; padding: 12px 28px; border-radius: 999px; letter-spacing: .04em; }
+.qr { width: 470px; padding: 34px; background: #fff; border-radius: 44px; box-shadow: 0 30px 70px rgba(15,23,42,.35); }
+.qr img { width: 402px; height: 402px; }
+
+/* Sous-titres */
+#caption { position: absolute; left: 70px; right: 70px; top: 1440px; display: flex; justify-content: center; z-index: 50; pointer-events: none; }
+#caption span { background: rgba(11,21,48,.78); color: #fff; font-size: 40px; font-weight: 600; line-height: 1.32; text-align: center; padding: 16px 30px; border-radius: 22px; max-width: 940px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+</style>
+</head>
+<body>
+<div id="stage">
+
+<svg width="0" height="0" style="position:absolute">
+    <defs>
+        <pattern id="wax-light" width="180" height="180" patternUnits="userSpaceOnUse">
+            <g fill="none" stroke="#2563EB" stroke-width="5">
+                <circle cx="45" cy="45" r="32"/><circle cx="45" cy="45" r="16" fill="#2563EB" stroke="none"/>
+                <path d="M135 12 L168 45 L135 78 L102 45Z"/><path d="M135 30 L150 45 L135 60 L120 45Z" fill="#2563EB" stroke="none"/>
+                <path d="M12 135 Q45 102 78 135 Q45 168 12 135Z"/>
+                <circle cx="135" cy="135" r="30"/><circle cx="135" cy="135" r="6" fill="#2563EB" stroke="none"/>
+                <circle cx="90" cy="90" r="5" fill="#2563EB" stroke="none"/><circle cx="0" cy="90" r="5" fill="#2563EB" stroke="none"/><circle cx="90" cy="0" r="5" fill="#2563EB" stroke="none"/>
+            </g>
+        </pattern>
+        <pattern id="wax-dark" width="180" height="180" patternUnits="userSpaceOnUse">
+            <g fill="none" stroke="#93C5FD" stroke-width="5">
+                <circle cx="45" cy="45" r="32"/><circle cx="45" cy="45" r="16" fill="#93C5FD" stroke="none"/>
+                <path d="M135 12 L168 45 L135 78 L102 45Z"/><path d="M135 30 L150 45 L135 60 L120 45Z" fill="#93C5FD" stroke="none"/>
+                <path d="M12 135 Q45 102 78 135 Q45 168 12 135Z"/>
+                <circle cx="135" cy="135" r="30"/><circle cx="135" cy="135" r="6" fill="#93C5FD" stroke="none"/>
+                <circle cx="90" cy="90" r="5" fill="#93C5FD" stroke="none"/><circle cx="0" cy="90" r="5" fill="#93C5FD" stroke="none"/><circle cx="90" cy="0" r="5" fill="#93C5FD" stroke="none"/>
+            </g>
+        </pattern>
+    </defs>
+</svg>
+
+<!-- ============ Scène 2 : le lien ============ -->
+<section class="scene" id="s2">
+    <svg class="wax" id="wax2" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-light)" opacity=".07"/></svg>
+    <img id="s2-logo" class="abs" src="assets/wordmark_logo.png" style="left:280px; top:300px; width:520px;">
+    <div id="s2-h1" class="abs center display" style="top:520px; font-size:84px;">Le pressing et ses clients,</div>
+    <div id="s2-h2" class="abs center display" style="top:612px; font-size:84px; color:var(--primary);">restent liés.</div>
+    <svg class="abs" style="left:0; top:0;" width="1080" height="1920">
+        <path id="s2-thread" d="M250 1035 C 380 1290, 700 1290, 830 1035" fill="none" stroke="#2563EB" stroke-width="10" stroke-linecap="round" pathLength="1"/>
+        <path id="s2-stitch" d="M250 1035 C 380 1290, 700 1290, 830 1035" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="0.012 0.018" pathLength="1" opacity=".9"/>
+        <circle id="s2-dot1" r="12" fill="#10B981"/><circle id="s2-dot2" r="12" fill="#fff" stroke="#2563EB" stroke-width="5"/>
+    </svg>
+    <div id="s2-left" class="abs" style="left:115px; top:900px; width:270px; height:270px;">
+        <div class="node" style="background:linear-gradient(140deg,#1D4ED8,#0B1530); display:grid; place-items:center;">
+            <svg width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 4.5 4h15L21 9.5"/><path d="M3 9.5a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M5 12v8h14v-8"/><path d="M10 20v-5h4v5"/></svg>
+        </div>
+        <div class="node-label abs" style="left:-45px; top:-70px;">Votre pressing</div>
+    </div>
+    <div id="s2-right" class="abs" style="left:695px; top:900px; width:270px; height:270px;">
+        <div class="node" style="background:#D6D6D8 url(assets/man.png) no-repeat; background-size:620px; background-position:-170px -18px;"></div>
+        <div class="node-label abs" style="left:-45px; top:-70px;">Vos clients</div>
+    </div>
+    <div id="s2-pin" class="abs pin" style="left:465px; top:1148px;"><img src="assets/icon.png" style="width:96px;"></div>
+</section>
+
+<!-- ============ Scène 3 : le suivi ============ -->
+<section class="scene" id="s3">
+    <svg class="wax" id="wax3" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-light)" opacity=".06"/></svg>
+    <div id="s3-h1" class="abs center display" style="top:230px; font-size:88px;">Suivez vos vêtements</div>
+    <div id="s3-h2" class="abs center display" style="top:325px; font-size:88px; color:var(--primary);">en temps réel.</div>
+    <div id="s3-hands" class="abs" style="left:-247px; top:520px; width:1500px;">
+        <div class="screen" style="left:586px; top:14px; width:404px; height:866px; border-radius:40px;">
+            <img id="s3-scr1" src="assets/hd-home.jpg">
+            <img id="s3-scr2" src="assets/hd-order.jpg">
+            <div id="s3-glow" class="abs" style="left:4px; top:404px; width:56px; height:56px; border-radius:50%; box-shadow:0 0 0 0 rgba(16,185,129,.6);"></div>
+        </div>
+        <img src="assets/hands.png" style="position:relative; width:1500px;">
+    </div>
+    <div id="s3-c1" class="abs chip" style="left:690px; top:560px;"><i style="background:#EFF6FF"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Reçue</div>
+    <div id="s3-c2" class="abs chip" style="left:640px; top:670px;"><i style="background:rgba(6,182,212,.16)"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0E7490" stroke-width="3.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7"/></svg></i>En traitement</div>
+    <div id="s3-c3" class="abs chip" style="left:700px; top:780px;"><i style="background:var(--success)"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Prête !</div>
+</section>
+
+<!-- ============ Scène 4 : c'est prêt ============ -->
+<section class="scene" id="s4">
+    <div id="s4-photo" class="abs" style="left:-110px; top:420px; width:1300px; height:1300px; transform-origin:50% 45%; -webkit-mask-image:linear-gradient(transparent 0, #000 140px, #000 calc(100% - 260px), transparent 100%);">
+        <div class="screen" style="left:422px; top:526px; width:351px; height:696px; border-radius:26px;">
+            <img src="assets/hd-order.jpg">
+            <div id="s4-flash" class="abs" style="inset:0; background:#fff; opacity:0;"></div>
+        </div>
+        <img src="assets/man.png" style="position:relative; width:1300px;">
+    </div>
+    <div id="s4-notif" class="abs notif" style="top:120px;">
+        <div class="ic"><img src="assets/icon.png" style="width:64px; filter:brightness(0) invert(1);"></div>
+        <div style="flex:1; min-width:0;">
+            <div class="app"><span>PressLink</span><span style="letter-spacing:0; text-transform:none; font-weight:600;">maintenant</span></div>
+            <div class="t">Votre commande est prête !</div>
+            <div class="b">La commande #PL-580537 est prête à être récupérée au Pressing Élégance.</div>
+        </div>
+    </div>
+    <div id="s4-h" class="abs center" style="top:150px;">
+        <div class="display" style="font-size:92px; color:var(--ink);">Fini les déplacements</div>
+        <div class="display" style="font-size:92px; color:var(--primary);">pour rien.</div>
+    </div>
+</section>
+
+<!-- ============ Scène 5 : les pressings ============ -->
+<section class="scene" id="s5">
+    <svg class="wax" id="wax5" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-dark)" opacity=".07"/></svg>
+    <div id="s5-k" class="abs center" style="top:210px; font-size:34px; font-weight:800; letter-spacing:.14em; color:var(--sky);">POUR LES PRESSINGS</div>
+    <div id="s5-h1" class="abs center display" style="top:270px; font-size:88px;">Tout devient simple.</div>
+    <div class="abs center" style="top:410px;">
+        <span id="s5-p1" class="pill">Commandes</span>
+        <span id="s5-p2" class="pill">Clients</span>
+        <span id="s5-p3" class="pill">Équipe</span>
+        <span id="s5-p4" class="pill">Tarifs</span>
+    </div>
+    <div id="s5-laptop" class="abs laptop" style="left:70px; top:600px; transform-origin:50% 100%;">
+        <div class="lid"><img src="assets/dash-desk.jpg"></div>
+        <div class="base"></div>
+    </div>
+    <div id="s5-phone" class="abs phone" style="left:730px; top:800px; width:300px;">
+        <div class="notch"></div>
+        <div class="scr" style="height:560px;"><img src="assets/dash-mob.jpg"></div>
+    </div>
+    <div id="s5-toast" class="abs toast" style="left:50px; top:1215px; width:640px;">
+        <i><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>
+        <span>Aïcha Koné a été prévenue : sa commande est prête.</span>
+    </div>
+</section>
+
+<!-- ============ Scène 6 : signature ============ -->
+<section class="scene" id="s6">
+    <svg class="wax" id="wax6" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-light)" opacity=".07"/></svg>
+    <svg class="abs" style="left:0; top:0;" width="1080" height="1920">
+        <path id="s6-hanger" d="M505 470 C 505 405, 600 405, 600 470 C 600 525, 540 530, 540 590 L 250 830 Q 222 858 262 858 L 818 858 Q 858 858 830 830 L 540 590"
+              fill="none" stroke="#2563EB" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/>
+        <path id="s6-under" d="M220 1150 C 420 1190, 660 1110, 860 1150" fill="none" stroke="#2563EB" stroke-width="10" stroke-linecap="round" pathLength="1"/>
+    </svg>
+    <img id="s6-logo" class="abs" src="assets/wordmark_logo.png" style="left:150px; top:950px; width:780px;">
+    <div id="s6-tag" class="abs center display" style="top:1215px; font-size:62px; line-height:1.15; color:var(--ink);">Le lien entre votre pressing<br><span style="color:var(--primary);">et vos clients.</span></div>
+</section>
+
+<!-- ============ Scène 7 : appel à l'action ============ -->
+<section class="scene" id="s7">
+    <svg class="wax" id="wax7" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-dark)" opacity=".09"/></svg>
+    <img id="s7-logo" class="abs" src="assets/wordmark_white.png" style="left:280px; top:290px; width:520px;">
+    <div id="s7-k" class="abs center" style="top:470px;"><span class="kicker">NOUVEAU · CÔTE D'IVOIRE</span></div>
+    <div id="s7-qr" class="abs qr" style="left:305px; top:590px;"><img src="assets/qr.png"></div>
+    <div id="s7-url" class="abs center display" style="top:1100px; font-size:76px;">presslink.org/app</div>
+    <div id="s7-free" class="abs center" style="top:1210px; font-size:40px; font-weight:700; color:#DBEAFE;">Gratuit pour les clients · Sans store</div>
+    <div id="s7-pro" class="abs center" style="top:1290px;">
+        <span style="display:inline-flex; align-items:center; gap:16px; background:#fff; color:var(--ink); border-radius:999px; padding:16px 34px; font-size:36px; font-weight:800;">
+            <svg width="38" height="38" viewBox="0 0 24 24" fill="#25D366"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.3 0 .5l-.4.6-.4.4c-.1.1-.3.3-.1.6.2.3.7 1.2 1.5 1.9 1 .9 1.9 1.2 2.2 1.3.3.1.4.1.6-.1l.8-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg>
+            Pressings : 07 18 00 22 93
+        </span>
+    </div>
+    <svg class="abs" style="left:0; top:0;" width="1080" height="1920">
+        <path id="s7-under" d="M300 1188 C 450 1210, 630 1170, 780 1188" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" pathLength="1" opacity=".85"/>
+    </svg>
+</section>
+
+<!-- ============ Scène 1 : l'attente (au-dessus : elle glisse vers le haut) ============ -->
+<section class="scene" id="s1">
+    <svg class="wax" id="wax1" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-dark)" opacity=".06"/></svg>
+    <div id="s1-hang" class="abs" style="left:290px; top:170px; width:500px; height:760px; transform-origin:250px 40px;">
+        <svg class="abs" width="500" height="320" viewBox="0 0 500 320" style="left:0; top:0;">
+            <path d="M232 70 C 232 22, 300 22, 300 70 C 300 112, 250 116, 250 160 L 30 300 L 470 300 L 250 160" fill="none" stroke="#DBEAFE" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M250 300 L 250 330" stroke="#C7B8A0" stroke-width="5"/>
+        </svg>
+        <div class="ticket abs" style="left:35px; top:318px;">
+            <div style="text-align:center; font-size:24px; letter-spacing:.3em; margin-top:22px;">TICKET PRESSING</div>
+            <div class="big">N° 2041</div>
+            <div class="l"><span>Chemises</span><span>×3</span></div>
+            <div class="l"><span>Pantalons</span><span>×2</span></div>
+            <div class="l" style="border-bottom:0; font-size:30px; font-weight:700;"><span>Prêt le :</span><span id="s1-q" class="q">?</span></div>
+        </div>
+    </div>
+    <div id="s1-t1" class="abs center display" style="top:1010px; font-size:80px;">On dépose ses vêtements…</div>
+    <div id="s1-t2" class="abs center display" style="top:1110px; font-size:80px; color:var(--sky);">…et on attend.</div>
+    <div class="abs center" style="top:1250px; display:flex; justify-content:center; gap:26px;">
+        <span id="s1-d1" style="width:26px; height:26px; border-radius:50%; background:#93C5FD; display:inline-block;"></span>
+        <span id="s1-d2" style="width:26px; height:26px; border-radius:50%; background:#93C5FD; display:inline-block;"></span>
+        <span id="s1-d3" style="width:26px; height:26px; border-radius:50%; background:#93C5FD; display:inline-block;"></span>
+    </div>
+    <svg class="abs" style="left:0; top:0;" width="1080" height="1920">
+        <path id="s1-thread" d="M-40 1560 C 260 1500, 360 860, 540 590 C 650 430, 900 330, 1140 300" fill="none" stroke="#3B82F6" stroke-width="12" stroke-linecap="round" pathLength="1"/>
+        <circle id="s1-needle" r="14" fill="#fff"/>
+    </svg>
+</section>
+
+<!-- Rideau de transition 4 → 5 (cercle navy) -->
+<div id="iris" class="abs" style="inset:0; background:radial-gradient(120% 70% at 50% 0%, #1B3A86 0, #0B1530 65%); clip-path:circle(0% at 50% 60%); z-index:40;"></div>
+
+<div id="caption"><span id="caption-text"></span></div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const lerp = (a, b, p) => a + (b - a) * p;
+const E = {
+    out: (p) => 1 - Math.pow(1 - p, 3),
+    inOut: (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2),
+    back: (p) => { const c = 1.7; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); },
+    in: (p) => p * p * p,
+};
+function set(el, { o = 1, x = 0, y = 0, s = 1, r = 0, extra = '' } = {}) {
+    if (typeof el === 'string') el = $(el);
+    el.style.opacity = o;
+    el.style.transform = `translate(${x}px, ${y}px) scale(${s}) rotate(${r}deg) ${extra}`;
+}
+/** Apparition (montée + fondu), puis éventuelle disparition. */
+function rise(el, t, a, dur = 0.55, dy = 40, out = null) {
+    const p = E.out(prog(t, a, a + dur));
+    let o = p, y = (1 - p) * dy;
+    if (out !== null) { const q = E.in(prog(t, out, out + 0.35)); o *= 1 - q; y -= q * 30; }
+    set(el, { o, y });
+}
+function pop(el, t, a, dur = 0.5, out = null) {
+    const p = prog(t, a, a + dur);
+    let s = p === 0 ? 0.6 : lerp(0.6, 1, E.back(p)), o = clamp(p * 3);
+    if (out !== null) { const q = E.in(prog(t, out, out + 0.3)); o *= 1 - q; s *= 1 - 0.15 * q; }
+    set(el, { o, s });
+}
+function draw(path, p) { path.style.strokeDashoffset = 1 - p; path.style.strokeDasharray = '1 1'; }
+function along(path, p) { const L = path.getTotalLength(); return path.getPointAtLength(clamp(p) * L); }
+
+let TL = null, CAPTIONS = [];
+
+function scene(id, t, a, b) {
+    const el = $(id);
+    const visible = t >= a && t <= b;
+    el.style.display = visible ? 'block' : 'none';
+    return visible;
+}
+
+function render(t) {
+    // ---------------- Scène 1 (0 → 4.6) : navy, glisse vers le haut à 4.35
+    if (scene('s1', t, 0, 4.9)) {
+        const lift = E.inOut(prog(t, 4.3, 4.85));
+        set('s1', { y: -1920 * lift });
+        set('wax1', { x: -t * 12, y: -t * 8 });
+        const swing = Math.sin(t * 2.1) * 3.2 * (1 - prog(t, 3.8, 4.4));
+        set('s1-hang', { o: E.out(prog(t, 0.05, 0.6)), y: (1 - E.out(prog(t, 0.05, 0.8))) * -60, r: swing });
+        rise('s1-t1', t, 0.55);
+        rise('s1-t2', t, 2.35);
+        ['s1-d1', 's1-d2', 's1-d3'].forEach((d, i) => {
+            const on = prog(t, 2.9, 3.1);
+            const pulse = 0.35 + 0.65 * Math.max(0, Math.sin((t - 2.9) * 5 - i * 0.9));
+            set(d, { o: on * pulse, s: 0.8 + 0.25 * pulse });
+        });
+        $('s1-q').style.opacity = t < 1.4 ? 1 : 0.35 + 0.65 * Math.abs(Math.sin(t * 3));
+        const tp = E.inOut(prog(t, 3.75, 4.45));
+        draw($('s1-thread'), tp);
+        const n = along($('s1-thread'), tp);
+        $('s1-needle').setAttribute('cx', n.x); $('s1-needle').setAttribute('cy', n.y);
+        $('s1-needle').style.opacity = tp > 0 && tp < 1 ? 1 : 0;
+    }
+
+    // ---------------- Scène 2 (4.6 → 8.9) : le lien
+    if (scene('s2', t, 4.3, 9.1)) {
+        const out = E.inOut(prog(t, 8.6, 9.05));
+        set('s2', { x: -1080 * out });
+        set('wax2', { x: -t * 10, y: -t * 6 });
+        pop('s2-left', t, 4.85);
+        pop('s2-right', t, 5.15);
+        const th = E.inOut(prog(t, 5.25, 6.05));
+        draw($('s2-thread'), th);
+        $('s2-stitch').style.opacity = th > 0.98 ? 0.9 : 0;
+        pop('s2-pin', t, 5.95, 0.55);
+        pop('s2-logo', t, 5.15, 0.6);
+        rise('s2-h1', t, 6.35);
+        rise('s2-h2', t, 6.75);
+        [['s2-dot1', 0], ['s2-dot2', 0.5]].forEach(([id, ph]) => {
+            const on = prog(t, 6.3, 6.5);
+            const k = ((t - 6.3) * 0.45 + ph) % 1;
+            const pp = ph === 0 ? k : 1 - k;
+            const pt = along($('s2-thread'), pp);
+            const el = $(id); el.setAttribute('cx', pt.x); el.setAttribute('cy', pt.y);
+            el.style.opacity = t > 6.3 ? on : 0;
+        });
+    }
+
+    // ---------------- Scène 3 (8.9 → 13.4) : le suivi
+    if (scene('s3', t, 8.55, 13.65)) {
+        const inn = E.inOut(prog(t, 8.6, 9.05));
+        const out = E.inOut(prog(t, 13.15, 13.6));
+        set('s3', { x: 1080 * (1 - inn), o: 1 - out });
+        set('wax3', { x: -t * 10, y: -t * 6 });
+        rise('s3-h1', t, 9.0);
+        rise('s3-h2', t, 9.3);
+        const hp = E.out(prog(t, 8.9, 9.8));
+        set('s3-hands', { y: (1 - hp) * 260, s: 1 - 0.02 * prog(t, 9.8, 13.4) });
+        const sw = E.inOut(prog(t, 10.2, 10.65));
+        set('s3-scr1', { x: -404 * sw });
+        set('s3-scr2', { x: 404 * (1 - sw) });
+        const g = prog(t, 11.85, 12.9);
+        $('s3-glow').style.boxShadow = `0 0 0 ${g * 40}px rgba(16,185,129,${0.55 * (1 - g)})`;
+        pop('s3-c1', t, 10.6);
+        pop('s3-c2', t, 11.2);
+        pop('s3-c3', t, 11.8);
+    }
+
+    // ---------------- Scène 4 (13.4 → 18.0) : c'est prêt
+    if (scene('s4', t, 13.15, 18.32)) {
+        const inn = E.out(prog(t, 13.2, 13.7));
+        set('s4', { o: inn });
+        set('s4-photo', { s: 1.0 + 0.07 * prog(t, 13.2, 18.4) });
+        const down = E.back(prog(t, 13.95, 14.5));
+        const up = E.inOut(prog(t, 15.65, 16.05));
+        set('s4-notif', { y: lerp(-420, 0, down) - 520 * up, o: prog(t, 13.95, 14.05) });
+        $('s4-flash').style.opacity = 0.55 * (1 - prog(t, 14.05, 14.6)) * (t >= 14.05 ? 1 : 0);
+        rise('s4-h', t, 15.95, 0.6, 50);
+    }
+
+    // ---------------- Rideau circulaire 4 → 5
+    const iris = E.inOut(prog(t, 17.75, 18.3));
+    $('iris').style.clipPath = `circle(${iris * 130}% at 50% 62%)`;
+    $('iris').style.display = t > 17.7 && t < 18.4 ? 'block' : 'none';
+
+    // ---------------- Scène 5 (18.0 → 25.5) : les pressings
+    if (scene('s5', t, 18.25, 25.85)) {
+        const out = E.inOut(prog(t, 25.3, 25.8));
+        set('s5', { y: -1920 * out });
+        set('wax5', { x: -t * 10, y: -t * 6 });
+        rise('s5-k', t, 18.35);
+        rise('s5-h1', t, 18.6);
+        ['s5-p1', 's5-p2', 's5-p3', 's5-p4'].forEach((p, i) => pop(p, t, 19.4 + i * 0.6, 0.45));
+        const lp = E.out(prog(t, 18.5, 19.4));
+        const tilt = 1 - E.inOut(prog(t, 18.5, 20.5));
+        set('s5-laptop', { o: lp, y: (1 - lp) * 180, s: 0.96 + 0.04 * lp, extra: `perspective(1600px) rotateX(${tilt * 14}deg)` });
+        const ph = E.out(prog(t, 20.4, 21.2));
+        set('s5-phone', { o: ph, x: (1 - ph) * 380, r: (1 - ph) * 8 });
+        const toast = E.back(prog(t, 22.55, 23.1));
+        set('s5-toast', { o: prog(t, 22.55, 22.75), y: (1 - toast) * 80, s: 0.9 + 0.1 * toast });
+    }
+
+    // ---------------- Scène 6 (25.5 → 29.5) : signature
+    if (scene('s6', t, 25.2, 29.85)) {
+        const out = E.inOut(prog(t, 29.3, 29.8));
+        set('s6', { y: -1920 * out });
+        set('wax6', { x: -t * 10, y: -t * 6 });
+        draw($('s6-hanger'), E.inOut(prog(t, 25.55, 26.75)));
+        set('s6-hanger', { o: 1 });
+        pop('s6-logo', t, 26.35, 0.6);
+        draw($('s6-under'), E.inOut(prog(t, 26.7, 27.4)));
+        rise('s6-tag', t, 27.0, 0.6);
+    }
+
+    // ---------------- Scène 7 (29.5 → fin) : appel à l'action
+    if (scene('s7', t, 29.2, 99)) {
+        set('wax7', { x: -t * 10, y: -t * 6 });
+        pop('s7-logo', t, 29.7, 0.55);
+        pop('s7-k', t, 30.0, 0.5);
+        pop('s7-qr', t, 30.2, 0.6);
+        rise('s7-url', t, 30.9);
+        draw($('s7-under'), E.inOut(prog(t, 31.3, 31.9)));
+        rise('s7-free', t, 31.3);
+        pop('s7-pro', t, 32.4, 0.55);
+        const breathe = 1 + 0.015 * Math.sin((t - 33) * 2.2) * prog(t, 33, 34);
+        $('s7-qr').style.transform += ` scale(${breathe})`;
+    }
+
+    // ---------------- Sous-titres
+    const c = CAPTIONS.find((k) => t >= k.a && t < k.b);
+    const cap = $('caption-text');
+    if (c) {
+        cap.textContent = c.text;
+        const p = Math.min(prog(t, c.a, c.a + 0.18), 1 - prog(t, c.b - 0.12, c.b));
+        cap.style.opacity = p;
+        cap.style.transform = `translateY(${(1 - p) * 10}px)`;
+        cap.parentElement.style.display = 'flex';
+    } else {
+        cap.parentElement.style.display = 'none';
+    }
+}
+
+/** Découpe chaque réplique en sous-titres courts, minutés au prorata du texte. */
+function buildCaptions(timeline, repliques) {
+    const out = [];
+    const byKey = Object.fromEntries(repliques.map((r) => [r.cle, r]));
+    for (const v of timeline.voix) {
+        const r = byKey[v.cle];
+        const parts = r.texte.split(/(?<=[.:…])\s+|(?<=,)\s+(?=[^,]{12,})/).map((s) => s.trim()).filter(Boolean);
+        const chunks = [];
+        for (const p of parts) {
+            if (chunks.length && (chunks[chunks.length - 1] + ' ' + p).length <= 46 && !/[.…:]$/.test(chunks[chunks.length - 1])) {
+                chunks[chunks.length - 1] += ' ' + p;
+            } else chunks.push(p);
+        }
+        const total = chunks.reduce((s, c) => s + c.length, 0);
+        let a = v.debut;
+        for (const ch of chunks) {
+            const d = r.duree * ch.length / total;
+            out.push({ a, b: a + d + 0.12, text: ch.replace(/PressLink point org/i, 'presslink.org') });
+            a += d;
+        }
+    }
+    for (let i = 0; i < out.length - 1; i++) out[i].b = Math.min(out[i].b, out[i + 1].a);
+    return out;
+}
+
+window.setup = (timeline, repliques) => {
+    TL = timeline;
+    CAPTIONS = buildCaptions(timeline, repliques);
+    return CAPTIONS;
+};
+window.renderAt = (t) => { render(t); return true; };
+window.ready = Promise.all([document.fonts.ready, ...Array.from(document.images).map((im) => im.complete ? 1 : new Promise((r) => { im.onload = im.onerror = r; }))]);
+</script>
+</body>
+</html>

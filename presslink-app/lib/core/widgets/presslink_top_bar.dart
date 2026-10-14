@@ -92,7 +92,7 @@ class PressLinkTopBar extends ConsumerWidget implements PreferredSizeWidget {
                       child: const Icon(
                         Icons.arrow_back,
                         color: Colors.white,
-                        size: 21,
+                        size: 24,
                       ),
                     )
                   else
@@ -152,16 +152,10 @@ class _BarButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final box = Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(13),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
-      ),
-      alignment: Alignment.center,
-      child: child,
+    // Icône seule, sans cadre (plus léger) ; la zone touchable garde 42 px.
+    final box = SizedBox.square(
+      dimension: size,
+      child: Center(child: child),
     );
     if (onTap == null) return ExcludeSemantics(child: box);
 
@@ -171,7 +165,9 @@ class _BarButton extends StatelessWidget {
         type: MaterialType.transparency,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(13),
+          customBorder: const CircleBorder(),
+          splashColor: Colors.white.withValues(alpha: 0.18),
+          highlightColor: Colors.white.withValues(alpha: 0.08),
           child: box,
         ),
       ),
@@ -203,7 +199,7 @@ class _NotificationsButton extends ConsumerWidget {
             const Icon(
               Icons.notifications_outlined,
               color: Colors.white,
-              size: 22,
+              size: 25,
             ),
             Positioned(
               top: -9,

@@ -67,12 +67,13 @@ class PressLinkTopBar extends ConsumerWidget implements PreferredSizeWidget {
         decoration: const BoxDecoration(
           gradient: gradient,
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+          // Ombre légère : la barre se détache du contenu sans le salir.
           boxShadow: [
             BoxShadow(
-              color: Color(0xA61E3A8A),
-              blurRadius: 24,
-              offset: Offset(0, 12),
-              spreadRadius: -14,
+              color: Color(0x2E1E3A8A),
+              blurRadius: 10,
+              offset: Offset(0, 4),
+              spreadRadius: -4,
             ),
           ],
         ),

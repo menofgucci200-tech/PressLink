@@ -62,6 +62,7 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
                     for (final f in _Filter.values) ...[
                       _FilterChip(
                         label: _labelFor(f),
+                        palette: _paletteFor(f),
                         count: loadedOrders
                             ?.where((order) => _isIn(f, order))
                             .length,
@@ -168,6 +169,29 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
     );
   }
 
+  static _FilterPalette _paletteFor(_Filter f) => switch (f) {
+    _Filter.toutes => const _FilterPalette(
+      solid: AppColors.primary,
+      text: AppColors.primaryDark,
+      textDark: Color(0xFF93C5FD),
+    ),
+    _Filter.enCours => const _FilterPalette(
+      solid: Color(0xFF0891B2),
+      text: Color(0xFF0E7490),
+      textDark: Color(0xFF67E8F9),
+    ),
+    _Filter.pretes => const _FilterPalette(
+      solid: AppColors.successText,
+      text: Color(0xFF047857),
+      textDark: Color(0xFF6EE7B7),
+    ),
+    _Filter.historique => const _FilterPalette(
+      solid: Color(0xFF64748B),
+      text: AppColors.textSecondary,
+      textDark: Color(0xFFCBD5E1),
+    ),
+  };
+
   String _labelFor(_Filter f) => switch (f) {
     _Filter.toutes => 'Toutes',
     _Filter.enCours => 'En cours',
@@ -176,15 +200,35 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
   };
 }
 
+/// Couleurs d'un filtre, reprises des statuts de commande (badges des
+/// cartes) : bleu PressLink pour Toutes, cyan « en traitement » pour En
+/// cours, vert « prête » pour Prêtes, gris « récupérée » pour Historique.
+class _FilterPalette {
+  const _FilterPalette({
+    required this.solid,
+    required this.text,
+    required this.textDark,
+  });
+
+  /// Fond du filtre sélectionné (texte blanc dessus).
+  final Color solid;
+
+  /// Texte du filtre non sélectionné, en mode jour / en mode nuit.
+  final Color text;
+  final Color textDark;
+}
+
 class _FilterChip extends StatelessWidget {
   const _FilterChip({
     required this.label,
+    required this.palette,
     required this.count,
     required this.selected,
     required this.onTap,
   });
 
   final String label;
+  final _FilterPalette palette;
 
   /// Nombre de commandes du filtre (inconnu tant que la liste charge).
   final int? count;
@@ -193,11 +237,9 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final idleText = isDark
-        ? AppColors.textSecondaryDark
-        : AppColors.textSecondary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final solid = palette.solid;
+    final text = isDark ? palette.textDark : palette.text;
 
     return Semantics(
       button: true,
@@ -217,13 +259,25 @@ class _FilterChip extends StatelessWidget {
             bottom: 6,
           ),
           decoration: BoxDecoration(
-            color: selected ? AppColors.primary : theme.cardTheme.color,
+            color: selected
+                ? solid
+                : solid.withValues(alpha: isDark ? 0.14 : 0.08),
             border: Border.all(
               color: selected
-                  ? AppColors.primary
-                  : (theme.dividerTheme.color ?? AppColors.border),
+                  ? solid
+                  : solid.withValues(alpha: isDark ? 0.4 : 0.3),
             ),
             borderRadius: BorderRadius.circular(999),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: solid.withValues(alpha: 0.35),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                      spreadRadius: -4,
+                    ),
+                  ]
+                : null,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -232,8 +286,8 @@ class _FilterChip extends StatelessWidget {
                 duration: const Duration(milliseconds: 200),
                 style: TextStyle(
                   fontSize: 12.5,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                  color: selected ? Colors.white : idleText,
+                  fontWeight: FontWeight.w600,
+                  color: selected ? Colors.white : text,
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 2),
@@ -251,10 +305,8 @@ class _FilterChip extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: selected
-                        ? Colors.white.withValues(alpha: 0.22)
-                        : (isDark
-                              ? AppColors.primary.withValues(alpha: 0.2)
-                              : AppColors.primaryTint),
+                        ? Colors.white.withValues(alpha: 0.24)
+                        : solid.withValues(alpha: isDark ? 0.24 : 0.14),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
@@ -265,11 +317,7 @@ class _FilterChip extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       color: selected
                           ? Colors.white
-                          : (count == 0
-                                ? idleText
-                                : (isDark
-                                      ? const Color(0xFF93C5FD)
-                                      : AppColors.primary)),
+                          : text.withValues(alpha: count == 0 ? 0.6 : 1),
                     ),
                   ),
                 ),

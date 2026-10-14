@@ -65,6 +65,13 @@ class AuthGate extends ConsumerWidget {
           previous?.status != AuthStatus.loggedIn) {
         ref.read(pushNotificationServiceProvider).syncTokenIfLoggedIn();
       }
+      // Déconnexion (volontaire ou session expirée) depuis un écran ouvert
+      // par-dessus l'accueil (profil, détail…) : on referme ces écrans pour
+      // revenir à l'écran de connexion au lieu de rester sur une page vide.
+      if (next.status == AuthStatus.loggedOut &&
+          previous?.status == AuthStatus.loggedIn) {
+        rootNavigatorKey.currentState?.popUntil((route) => route.isFirst);
+      }
     });
 
     // Transitions courtes et légères (simple fondu) : l'ouverture doit

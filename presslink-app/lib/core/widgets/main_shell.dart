@@ -12,6 +12,7 @@ import '../../features/pressings/presentation/join_pressing_screen.dart';
 import '../../features/support/presentation/support_screen.dart';
 import 'app_page_route.dart';
 import 'main_menu_fan.dart';
+import 'presslink_top_bar.dart';
 
 /// Coquille de navigation principale — barre « onglet découpé » à 5
 /// emplacements : Accueil · Commandes · + (rejoindre un pressing) · Support
@@ -26,8 +27,6 @@ class MainShell extends ConsumerStatefulWidget {
 
 class _MainShellState extends ConsumerState<MainShell>
     with WidgetsBindingObserver, SingleTickerProviderStateMixin {
-  int _index = 0;
-
   late final AnimationController _menu = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 420),
@@ -82,17 +81,26 @@ class _MainShellState extends ConsumerState<MainShell>
 
   void _onTabSelected(int index) {
     _closeMenu();
-    setState(() => _index = index);
-    _invalidateAll();
+    ref.read(mainTabIndexProvider.notifier).state = index;
   }
 
   @override
   Widget build(BuildContext context) {
-    // Retour (bouton Android, retour du navigateur) : referme d'abord le menu.
+    // Onglet partagé avec la barre du haut (sa flèche ramène à l'Accueil).
+    final index = ref.watch(mainTabIndexProvider);
+    ref.listen(mainTabIndexProvider, (previous, next) => _invalidateAll());
+
+    // Retour (bouton Android, retour du navigateur) : referme d'abord le
+    // menu, puis ramène à l'Accueil depuis les autres onglets.
     return PopScope(
-      canPop: !_menuOpen,
+      canPop: !_menuOpen && index == 0,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _closeMenu();
+        if (didPop) return;
+        if (_menuOpen) {
+          _closeMenu();
+        } else {
+          ref.read(mainTabIndexProvider.notifier).state = 0;
+        }
       },
       child: Scaffold(
         // `IndexedStack` (pas de rebuild des onglets cachés, cf. commentaire
@@ -101,14 +109,14 @@ class _MainShellState extends ConsumerState<MainShell>
         // la barre elle-même (bulle qui glisse, encoche qui la suit).
         body: Stack(
           children: [
-            IndexedStack(index: _index, children: _screens),
+            IndexedStack(index: index, children: _screens),
             Positioned.fill(
               child: MainMenuFan(animation: _menu, onClose: _closeMenu),
             ),
           ],
         ),
         bottomNavigationBar: NotchedBottomNav(
-          index: _index,
+          index: index,
           menuOpen: _menuOpen,
           menuAnimation: _menu,
           onTabSelected: _onTabSelected,

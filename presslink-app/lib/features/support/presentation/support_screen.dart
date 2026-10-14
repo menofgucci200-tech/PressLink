@@ -7,9 +7,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/app_back_button.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../../core/widgets/app_feedback.dart';
+import '../../../core/widgets/presslink_top_bar.dart';
 
 /// Aide & support — appel direct ou WhatsApp (même numéro). Accessible sans
 /// être connecté (depuis l'écran de connexion) : le nom du client n'est
@@ -70,23 +70,15 @@ class SupportScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final customer = ref.watch(authControllerProvider).customer;
-    // Onglet de la barre de navigation (pas de retour), ou page ouverte par-
-    // dessus un autre écran, ex. depuis la connexion. On interroge la route
-    // de l'écran lui-même : `Navigator.canPop()` dirait aussi « oui » quand un
-    // autre écran est simplement ouvert au-dessus de l'onglet.
-    final canPop = ModalRoute.of(context)?.canPop ?? false;
 
     return Scaffold(
+      appBar: const PressLinkTopBar(),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
             Row(
               children: [
-                if (canPop) ...[
-                  AppBackButton(onPressed: () => Navigator.of(context).pop()),
-                  const SizedBox(width: AppSpacing.sm + 2),
-                ],
                 Text(
                   'Aide & support',
                   style: theme.textTheme.headlineSmall?.copyWith(fontSize: 18),

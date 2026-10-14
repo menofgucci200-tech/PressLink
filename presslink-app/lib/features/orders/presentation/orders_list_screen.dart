@@ -8,6 +8,7 @@ import '../../../core/network/api_error.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/order_card.dart';
 import '../../../core/widgets/staggered_fade_in.dart';
+import '../../../core/widgets/presslink_top_bar.dart';
 import '../domain/order_repository.dart';
 import '../../../shared/models/order_summary.dart';
 import '../../pressings/presentation/join_pressing_screen.dart';
@@ -42,6 +43,7 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
     final ordersAsync = ref.watch(ordersProvider);
 
     return Scaffold(
+      appBar: const PressLinkTopBar(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),

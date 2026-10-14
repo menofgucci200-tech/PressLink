@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:presslink_app/core/theme/app_theme.dart';
-import 'package:presslink_app/core/widgets/app_back_button.dart';
 import 'package:presslink_app/core/widgets/main_shell.dart';
 import 'package:presslink_app/features/support/presentation/support_screen.dart';
 
@@ -66,30 +65,36 @@ void main() {
     expect(calls, ['add']);
   });
 
-  testWidgets('support has no back button as a tab, even under another page', (
-    tester,
-  ) async {
-    final theme = ValueNotifier(AppTheme.light);
-    await tester.pumpWidget(
-      ProviderScope(
-        child: ValueListenableBuilder<ThemeData>(
-          valueListenable: theme,
-          builder: (context, value, _) =>
-              MaterialApp(theme: value, home: const SupportScreen()),
+  testWidgets(
+    'the top bar: no back on the Support tab, back once opened above',
+    (tester) async {
+      final theme = ValueNotifier(AppTheme.light);
+      await tester.pumpWidget(
+        ProviderScope(
+          child: ValueListenableBuilder<ThemeData>(
+            valueListenable: theme,
+            builder: (context, value, _) =>
+                MaterialApp(theme: value, home: const SupportScreen()),
+          ),
         ),
-      ),
-    );
-    await tester.pump();
-    expect(find.byType(AppBackButton), findsNothing);
+      );
+      await tester.pump();
+      expect(find.text('PressLink', findRichText: true), findsOneWidget);
+      expect(find.byTooltip('Retour'), findsNothing);
+      expect(find.text('P'), findsOneWidget);
 
-    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
-    navigator.push(MaterialPageRoute(builder: (_) => const SupportScreen()));
-    await tester.pumpAndSettle();
-    // Passage en mode nuit pendant que la page est ouverte : l'onglet du
-    // dessous est reconstruit, sans gagner de bouton retour pour autant.
-    theme.value = AppTheme.dark;
-    await tester.pumpAndSettle();
-    // La page ouverte par-dessus a son bouton retour ; l'onglet en dessous non.
-    expect(find.byType(AppBackButton, skipOffstage: false), findsOneWidget);
-  });
+      final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+      navigator.push(MaterialPageRoute(builder: (_) => const SupportScreen()));
+      await tester.pumpAndSettle();
+      // Passage en mode nuit pendant que la page est ouverte : l'onglet du
+      // dessous est reconstruit, sans gagner de flèche retour pour autant.
+      theme.value = AppTheme.dark;
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('Retour', skipOffstage: false), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Retour'));
+      await tester.pumpAndSettle();
+      expect(find.byType(SupportScreen), findsOneWidget);
+    },
+  );
 }

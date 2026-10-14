@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/data/countries.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_feedback.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/country_code_picker.dart';
+import '../../../core/widgets/presslink_top_bar.dart';
 import '../../auth/presentation/auth_controller.dart';
 import 'profile_screen.dart';
 
@@ -113,6 +113,7 @@ class _ChangePhoneScreenState extends ConsumerState<ChangePhoneScreen> {
     );
 
     return Scaffold(
+      appBar: const PressLinkTopBar(),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -121,8 +122,6 @@ class _ChangePhoneScreenState extends ConsumerState<ChangePhoneScreen> {
             children: [
               Row(
                 children: [
-                  AppBackButton(onPressed: () => Navigator.of(context).pop()),
-                  const SizedBox(width: AppSpacing.sm + 2),
                   Text(
                     'Changer de numéro',
                     style: theme.textTheme.bodyLarge?.copyWith(

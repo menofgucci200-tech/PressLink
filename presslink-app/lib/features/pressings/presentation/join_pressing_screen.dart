@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/presslink_top_bar.dart';
 import '../domain/pressing_repository.dart';
 import 'pressings_controller.dart';
 
@@ -55,6 +55,9 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
+      appBar: PressLinkTopBar(
+        onBack: () => Navigator.of(context).pop(_found != null),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -63,10 +66,6 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
             children: [
               Row(
                 children: [
-                  AppBackButton(
-                    onPressed: () => Navigator.of(context).pop(_found != null),
-                  ),
-                  const SizedBox(width: AppSpacing.sm + 2),
                   Text(
                     'Ajouter un pressing',
                     style: theme.textTheme.bodyLarge?.copyWith(

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../../core/widgets/app_feedback.dart';
+import '../../../core/widgets/presslink_top_bar.dart';
 
 /// Changer de mot de passe — Profil §Personnalisation (26/08).
 class ChangePasswordScreen extends ConsumerStatefulWidget {
@@ -68,6 +68,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
+      appBar: const PressLinkTopBar(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -76,8 +77,6 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
             children: [
               Row(
                 children: [
-                  AppBackButton(onPressed: () => Navigator.of(context).pop()),
-                  const SizedBox(width: AppSpacing.sm + 2),
                   Text(
                     'Changer de mot de passe',
                     style: theme.textTheme.bodyLarge?.copyWith(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/presslink_top_bar.dart';
 
 /// Écran générique pour les pages de contenu statique
 /// (Aide). Les CGU et la politique de confidentialité sont sur le site.
@@ -19,14 +19,13 @@ class StaticPageScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
+      appBar: const PressLinkTopBar(),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
             Row(
               children: [
-                AppBackButton(onPressed: () => Navigator.of(context).pop()),
-                const SizedBox(width: AppSpacing.sm + 2),
                 Expanded(
                   child: Text(
                     title,

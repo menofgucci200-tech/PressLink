@@ -80,17 +80,14 @@ void main() {
     expect(find.text('Mot de passe'), findsOneWidget);
   });
 
-  testWidgets('the home screen opens the profile from the avatar', (
-    tester,
-  ) async {
+  testWidgets('the home screen shows the PressLink top bar', (tester) async {
     await tester.pumpWidget(app(const HomeScreen()));
     await tester.pump();
 
-    expect(find.byTooltip('Mon profil'), findsOneWidget);
-    await tester.tap(find.text('AK'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(ProfileScreen), findsOneWidget);
+    expect(find.text('PressLink', findRichText: true), findsOneWidget);
+    expect(find.byTooltip('Notifications'), findsOneWidget);
+    // Accueil : pas de page où revenir, le « P » PressLink à la place.
+    expect(find.byTooltip('Retour'), findsNothing);
   });
 
   testWidgets('the phone number can be changed from the profile', (
@@ -99,6 +96,8 @@ void main() {
     await tester.pumpWidget(app(const ProfileScreen()));
     await tester.pump();
 
+    await tester.ensureVisible(find.text('Téléphone'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Téléphone'));
     await tester.pumpAndSettle();
 

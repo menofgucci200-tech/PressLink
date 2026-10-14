@@ -97,12 +97,16 @@ class MainMenuFan extends ConsumerWidget {
                   child: GestureDetector(
                     onTap: onClose,
                     behavior: HitTestBehavior.opaque,
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 6 * t, sigmaY: 6 * t),
-                      child: ColoredBox(
-                        color: menuDimColor(
-                          isDark,
-                        ).withValues(alpha: menuDimColor(isDark).a * t),
+                    // ClipRect : le flou reste sur la page, sans déborder sur
+                    // la barre du haut.
+                    child: ClipRect(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 6 * t, sigmaY: 6 * t),
+                        child: ColoredBox(
+                          color: menuDimColor(
+                            isDark,
+                          ).withValues(alpha: menuDimColor(isDark).a * t),
+                        ),
                       ),
                     ),
                   ),

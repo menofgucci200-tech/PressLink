@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/widgets/app_page_route.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/app_back_button.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/staggered_fade_in.dart';
@@ -13,6 +12,7 @@ import '../../orders/presentation/orders_controller.dart';
 import '../domain/notification_repository.dart';
 import 'notifications_controller.dart';
 import '../../../core/widgets/app_feedback.dart';
+import '../../../core/widgets/presslink_top_bar.dart';
 
 /// Écran Notifications — Cahier §10.2 / Architecture des écrans §7.
 /// User Flows §6 : taper une notification ouvre le détail de la commande.
@@ -23,9 +23,9 @@ class NotificationsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final notificationsAsync = ref.watch(notificationsProvider);
-    final canPop = Navigator.of(context).canPop();
 
     return Scaffold(
+      appBar: const PressLinkTopBar(showNotifications: false),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,10 +39,6 @@ class NotificationsScreen extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  if (canPop) ...[
-                    AppBackButton(onPressed: () => Navigator.of(context).pop()),
-                    const SizedBox(width: AppSpacing.sm + 2),
-                  ],
                   Text('Notifications', style: theme.textTheme.headlineSmall),
                   const Spacer(),
                   AnimatedSwitcher(

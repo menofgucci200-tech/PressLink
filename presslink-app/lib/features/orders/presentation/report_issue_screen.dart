@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../domain/order_repository.dart';
 import 'orders_controller.dart';
 import '../../../core/widgets/app_feedback.dart';
+import '../../../core/widgets/presslink_top_bar.dart';
 
 /// Signaler un problème sur une commande — ex. article manquant,
 /// article qui n'appartient pas au client.
@@ -70,6 +70,7 @@ class _ReportIssueScreenState extends ConsumerState<ReportIssueScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
+      appBar: const PressLinkTopBar(),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -78,8 +79,6 @@ class _ReportIssueScreenState extends ConsumerState<ReportIssueScreen> {
             children: [
               Row(
                 children: [
-                  AppBackButton(onPressed: () => Navigator.of(context).pop()),
-                  const SizedBox(width: AppSpacing.sm + 2),
                   Text(
                     'Signaler un problème',
                     style: theme.textTheme.bodyLarge?.copyWith(

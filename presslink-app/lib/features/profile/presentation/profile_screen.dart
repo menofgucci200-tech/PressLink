@@ -9,7 +9,7 @@ import '../../../core/widgets/app_page_route.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/theme_mode_controller.dart';
-import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/presslink_top_bar.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../auth/presentation/logout_confirmation.dart';
 import '../../pressings/presentation/my_pressings_screen.dart';
@@ -39,14 +39,13 @@ class ProfileScreen extends ConsumerWidget {
     ).push(AppPageRoute(builder: (_) => const EditProfileScreen()));
 
     return Scaffold(
+      appBar: const PressLinkTopBar(),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
             Row(
               children: [
-                AppBackButton(onPressed: () => Navigator.of(context).pop()),
-                const SizedBox(width: AppSpacing.sm + 2),
                 Text('Mon profil', style: theme.textTheme.headlineSmall),
               ],
             ),

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateCustomerPasswordRequest;
 use App\Http\Requests\UpdateCustomerPhotoRequest;
 use App\Http\Requests\UpdateCustomerProfileRequest;
+use App\Support\ImageOptimizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -53,7 +54,7 @@ class CustomerProfileController extends Controller
             Storage::disk('public')->delete($customer->photo_path);
         }
 
-        $path = $request->file('photo')->store('customers', 'public');
+        $path = ImageOptimizer::store($request->file('photo'), 'customers');
         $customer->update(['photo_path' => $path]);
 
         return response()->json($customer->fresh());

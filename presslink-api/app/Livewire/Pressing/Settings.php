@@ -4,6 +4,7 @@ namespace App\Livewire\Pressing;
 
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Pressing;
+use App\Support\ImageOptimizer;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -65,10 +66,12 @@ class Settings extends Component
             'address' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096', 'dimensions:max_width='.ImageOptimizer::MAX_DIMENSION.',max_height='.ImageOptimizer::MAX_DIMENSION],
             'openingHours.*.closed' => ['boolean'],
             'openingHours.*.open' => ['nullable', 'date_format:H:i'],
             'openingHours.*.close' => ['nullable', 'date_format:H:i'],
+        ], [
+            'logo.dimensions' => 'Ce logo est trop grand ('.ImageOptimizer::MAX_DIMENSION.' × '.ImageOptimizer::MAX_DIMENSION.' pixels maximum).',
         ]);
 
         $data = [
@@ -87,7 +90,7 @@ class Settings extends Component
                 Storage::disk('public')->delete($this->pressing->logo_path);
             }
 
-            $data['logo_path'] = $this->logo->store('pressings', 'public');
+            $data['logo_path'] = ImageOptimizer::store($this->logo, 'pressings');
         }
 
         $this->pressing->update($data);

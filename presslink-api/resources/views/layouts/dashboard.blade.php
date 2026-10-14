@@ -46,7 +46,9 @@
             {{-- Mobile/tablette : le menu devient un panneau qui glisse depuis la gauche. --}}
             <div x-show="menu" x-cloak x-transition.opacity.duration.200ms @click="menu = false"
                  class="fixed inset-0 z-30 bg-slate-900/50 lg:hidden" aria-hidden="true"></div>
-            <aside class="fixed inset-y-0 left-0 z-40 max-lg:-translate-x-full lg:static lg:z-auto w-[239px] flex-none flex flex-col py-[22px] pl-5 overflow-y-auto text-white transition-transform duration-200 ease-out app-sidebar"
+            {{-- Bureau : barre fixe à la hauteur de l'écran (collée en haut pendant le
+                 défilement), les menus du bas restent visibles en bas de l'écran. --}}
+            <aside class="fixed inset-y-0 left-0 z-40 max-lg:-translate-x-full lg:sticky lg:top-0 lg:h-screen lg:self-start lg:z-auto w-[239px] flex-none flex flex-col py-[22px] pl-5 overflow-y-auto overflow-x-hidden text-white transition-transform duration-200 ease-out app-sidebar"
                    :class="menu && 'max-lg:translate-x-0!'"
                    @click="if ($event.target.closest('a')) menu = false">
                 <div class="font-display text-[21px] font-bold tracking-tight pr-1 pb-[30px]">Press<span class="text-blue-100">Link</span></div>
@@ -119,7 +121,10 @@
                 <div class="flex-1"></div>
 
                 <div class="pr-5">
-                    @if ($isAdmin && $subscription)
+                    {{-- Carte « Formule » masquée pour le moment, en attendant de décider
+                         de l'offre à mettre en avant (passer à true pour la réafficher). --}}
+                    @php $showPlanCard = false; @endphp
+                    @if ($showPlanCard && $isAdmin && $subscription)
                         @php
                             $periodEnd = $subscription->current_period_ends_at ?? $subscription->trial_ends_at;
                             $daysLeft = $periodEnd ? max(0, (int) ceil(now()->diffInDays($periodEnd, false))) : null;

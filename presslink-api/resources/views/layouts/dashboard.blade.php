@@ -13,6 +13,7 @@
         @livewireStyles
     </head>
     <body class="bg-(--color-bg) text-(--color-text-primary)">
+        <a href="#contenu" class="skip-link">Aller au contenu</a>
         @php
             $user = auth()->user();
             $isOverviewMode = $user->hasMultiplePressings() && ! session()->has('active_pressing_id');
@@ -169,10 +170,12 @@
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
                     </button>
                     
-                    {{-- Pas de recherche globale ici : une recherche sur "tout" n'a de sens
-                         que par rapport à ce qui est affiché sur la page courante — elle vit
-                         donc directement sur chaque page qui en a besoin (Commandes, Clients…),
-                         pas dans ce layout partagé par toutes les pages. --}}
+                    {{-- Les recherches qui filtrent une liste restent sur leur page
+                         (Commandes, Clients…) ; ce bouton ouvre la palette (Ctrl/⌘ + K)
+                         pour aller directement à une commande, un client ou une action. --}}
+                    @if ($pressing)
+                        <x-palette-trigger />
+                    @endif
                     <div class="flex-1"></div>
 
                     @if ($pressing)
@@ -205,13 +208,29 @@
                     </x-profile-menu>
                 </header>
 
-                <main class="flex-1 min-w-0 overflow-x-clip p-4 sm:p-6 lg:p-8">
+                <main id="contenu" tabindex="-1" class="flex-1 min-w-0 overflow-x-clip p-4 sm:p-6 lg:p-8 outline-none">
                     {{ $slot }}
                 </main>
             </div>
         </div>
 
         <x-feedback />
+        @if ($pressing)
+            @php
+                $shortcuts = [
+                    'n' => route('orders.create'),
+                    'g d' => route('dashboard'),
+                    'g c' => route('orders.index'),
+                    'g p' => route('orders.index', ['status' => 'prete']),
+                    'g l' => route('clients.index'),
+                    'g s' => route('issues.index'),
+                ];
+            @endphp
+            <livewire:command-palette />
+        @endif
+        <x-shortcuts-help />
+        {{-- Raccourcis du layout, lus par resources/js/app.js à chaque page. --}}
+        <script type="application/json" id="shortcut-map">@json($shortcuts ?? [])</script>
         @livewireScripts
     </body>
 </html>

@@ -509,3 +509,161 @@ main.is-navigating {
         animation: none;
     }
 }
+
+/* Touches de clavier affichées (palette, aide des raccourcis). */
+.kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.35rem;
+    padding: 0 0.4rem;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    border-bottom-width: 2px;
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    font: 600 10.5px/1 ui-sans-serif, system-ui, sans-serif;
+    white-space: nowrap;
+}
+
+/* Palette de commandes. */
+.palette-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0.5rem;
+    padding: 0.55rem 0.6rem;
+    border-radius: 10px;
+    color: var(--color-text-primary);
+}
+.palette-item.is-active {
+    background: var(--color-primary-tint);
+}
+.palette-icon {
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg);
+    color: var(--color-text-secondary);
+}
+.palette-item.is-active .palette-icon {
+    background: var(--color-primary);
+    color: #fff;
+}
+
+/* Bulles d'aide ([data-tooltip]) : au survol ou au focus clavier, après un
+   court délai, au-dessus de l'élément (data-tooltip-pos="bottom" : dessous). */
+/* Dans la couche base : un utilitaire (absolute, fixed…) reste prioritaire. */
+@layer base {
+    [data-tooltip] {
+        position: relative;
+    }
+}
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 7px);
+    z-index: 60;
+    padding: 5px 8px;
+    border-radius: 6px;
+    background: #0f172a;
+    color: #fff;
+    font: 500 11.5px/1.25 ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: 0;
+    text-transform: none;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, 3px);
+    transition:
+        opacity 120ms ease,
+        transform 120ms ease;
+}
+[data-tooltip][data-tooltip-pos='bottom']::after {
+    bottom: auto;
+    top: calc(100% + 7px);
+    transform: translate(-50%, -3px);
+}
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    transition-delay: 350ms;
+}
+[data-tooltip]:disabled::after {
+    display: none;
+}
+:root[data-theme='dark'] [data-tooltip]::after {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+/* Bouton copier : icône ✓ un instant après la copie. */
+.copy-btn .copy-btn__done,
+.copy-btn.is-copied .copy-btn__copy {
+    display: none;
+}
+.copy-btn.is-copied .copy-btn__done {
+    display: block;
+    color: var(--color-success-text);
+}
+/* Dans une ligne de tableau, le bouton n'apparaît qu'au survol (ou au focus). */
+tr .copy-btn--reveal {
+    opacity: 0;
+    transition: opacity 120ms ease;
+}
+tr:hover .copy-btn--reveal,
+tr:focus-within .copy-btn--reveal,
+.copy-btn--reveal:focus-visible,
+.copy-btn--reveal.is-copied {
+    opacity: 1;
+}
+
+/* Focus clavier toujours visible (Tab), discret à la souris. */
+:where(a, button, summary, [role='button'], [role='link'], [tabindex]:not([tabindex='-1']), input[type='checkbox'], input[type='radio']):focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+tr[data-href]:focus-visible {
+    outline-offset: -2px;
+}
+label:has(> input.sr-only:focus-visible) {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* Lien d'évitement : visible seulement quand on y arrive au clavier. */
+.skip-link {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 100;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--color-primary);
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    transform: translateY(-150%);
+    transition: transform 150ms ease;
+}
+.skip-link:focus {
+    transform: none;
+}
+
+/* La palette a son propre cadre : pas d'anneau de focus autour du champ. */
+[data-palette-input]:focus,
+[data-palette-input]:focus-visible {
+    box-shadow: none;
+    outline: none;
+}
+/* Sur la barre latérale bleue, un contour blanc reste lisible. */
+.app-sidebar :focus-visible {
+    outline-color: #fff;
+}

@@ -76,7 +76,12 @@
 
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden">
         @if ($services->isEmpty())
-            <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucun service pour le moment.</div>
+            <x-empty-state icon="tag" title="Aucun service pour le moment">
+                Ajoutez vos prestations (chemise, costume, robe…) et leurs prix : vous les choisirez en un clic dans chaque commande.
+                <x-slot:actions>
+                    <button type="button" wire:click="$set('showCreateForm', true)" class="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">Ajouter un service</button>
+                </x-slot:actions>
+            </x-empty-state>
         @else
             <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
                 <thead>

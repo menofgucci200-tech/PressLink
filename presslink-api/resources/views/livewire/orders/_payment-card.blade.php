@@ -37,7 +37,7 @@
                         <button type="button" wire:click="removePayment({{ $payment->id }})"
                                 data-confirm-title="Supprimer ce paiement" data-confirm-label="Supprimer" data-confirm-tone="danger"
                                 wire:confirm="Supprimer le paiement de {{ $fcfa($payment->amount_fcfa) }} F du {{ $payment->paid_at->format('d/m/Y') }} ? À utiliser uniquement pour corriger une erreur de saisie."
-                                title="Supprimer (erreur de saisie)" aria-label="Supprimer ce paiement"
+                                data-tooltip="Supprimer (erreur de saisie)" aria-label="Supprimer ce paiement"
                                 class="flex-none w-7 h-7 rounded-md flex items-center justify-center text-(--color-text-muted) hover:text-(--color-error) hover:bg-(--color-error-tint)">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
                         </button>

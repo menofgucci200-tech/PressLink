@@ -55,7 +55,16 @@
 
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden">
         @if ($orders->isEmpty())
-            <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucune commande trouvée.</div>
+            @if ($hasFilters)
+                <x-empty-state icon="search" title="Aucune commande trouvée pour ces filtres">
+                    Modifiez la recherche ou retirez un filtre pour élargir la liste.
+                    <x-slot:actions>
+                        <button type="button" wire:click="resetFilters" class="inline-flex items-center gap-2 h-9 px-4 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">Réinitialiser les filtres</button>
+                    </x-slot:actions>
+                </x-empty-state>
+            @else
+                <x-empty-state icon="box" title="Aucune commandee pour le moment" />
+            @endif
         @else
             <div class="overflow-x-auto"><table class="w-full min-w-[920px] whitespace-nowrap text-sm">
                 <thead>
@@ -122,7 +131,7 @@
                 <div class="flex items-start gap-3 px-5 py-4 border-b border-(--color-border)">
                     <div class="flex-1 min-w-0">
                         <div class="text-xs text-(--color-text-muted)">Commande</div>
-                        <div class="font-display text-lg font-bold tabular-nums">{{ $selectedOrder->order_number }}</div>
+                        <div class="font-display text-lg font-bold tabular-nums flex items-center gap-1">{{ $selectedOrder->order_number }} <x-copy-button :value="$selectedOrder->order_number" label="Copier le n° de commande" /></div>
                     </div>
                     <x-status-badge :status="$selectedOrder->status" />
                     <button type="button" wire:click="closeOrder" aria-label="Fermer"
@@ -141,7 +150,7 @@
                         <div class="rounded-lg bg-(--color-bg) p-3">
                             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1">Client</div>
                             <a href="{{ route('admin.clients.index', ['client' => $selectedOrder->customer_id]) }}" wire:navigate class="font-medium text-(--color-primary) hover:underline">{{ $selectedOrder->customer->fullName() }}</a>
-                            <div class="text-xs text-(--color-text-muted) tabular-nums">{{ $selectedOrder->customer->phone }}</div>
+                            <div class="text-xs text-(--color-text-muted) tabular-nums flex items-center gap-0.5">{{ $selectedOrder->customer->phone }} <x-copy-button :value="$selectedOrder->customer->phone" label="Copier le téléphone" /></div>
                         </div>
                     </div>
 

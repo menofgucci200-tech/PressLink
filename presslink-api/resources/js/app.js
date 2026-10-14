@@ -159,5 +159,159 @@ function animateCounts(root = document) {
 
 document.addEventListener('livewire:navigated', () => animateCounts());
 document.addEventListener('livewire:init', () => {
-    window.Livewire.hook('morphed', ({ el }) => animateCounts(el));
+    window.Livewire.hook('morphed', ({ el }) => {
+        animateCounts(el);
+        // Nouveaux résultats dans la palette : le premier redevient actif.
+        if (el.matches?.('[data-palette]')) setPaletteActive(el, 0);
+    });
+});
+
+// Visible à l'écran (les éléments x-show masqués n'ont aucune boîte).
+const isShown = (el) => !!el && el.getClientRects().length > 0;
+const isTyping = (el) => !!el && (['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName) || el.isContentEditable);
+
+// Palette de commandes (Ctrl/⌘ + K) : ↑ ↓ pour choisir, Entrée pour ouvrir,
+// Échap pour fermer. Voir resources/views/livewire/command-palette.blade.php.
+const paletteItems = (palette) => [...palette.querySelectorAll('[data-palette-item]')];
+
+function setPaletteActive(palette, index) {
+    const items = paletteItems(palette);
+    items.forEach((el, i) => {
+        el.classList.toggle('is-active', i === index);
+        el.setAttribute('aria-selected', i === index ? 'true' : 'false');
+    });
+    items[index]?.scrollIntoView({ block: 'nearest' });
+    palette.dataset.active = String(index);
+}
+
+window.PressLinkPalette = { reset: (palette) => setPaletteActive(palette, 0) };
+
+const openPalette = () => window.dispatchEvent(new CustomEvent('open-palette'));
+const closePalette = () => window.dispatchEvent(new CustomEvent('close-palette'));
+
+document.addEventListener('keydown', (e) => {
+    const input = e.target.closest?.('[data-palette-input]');
+    if (!input) return;
+    const palette = input.closest('[data-palette]');
+    const items = paletteItems(palette);
+    const index = Number(palette.dataset.active ?? 0);
+
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (items.length === 0) return;
+        setPaletteActive(palette, (index + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length);
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        (items[index] ?? items[0])?.click();
+    } else if (e.key === 'Escape') {
+        // Ferme la palette seulement (pas le panneau d'aperçu dessous).
+        e.stopPropagation();
+        closePalette();
+    }
+});
+
+document.addEventListener('mousemove', (e) => {
+    const item = e.target.closest?.('[data-palette-item]');
+    if (!item) return;
+    const palette = item.closest('[data-palette]');
+    const index = paletteItems(palette).indexOf(item);
+    if (index >= 0 && String(index) !== palette.dataset.active) setPaletteActive(palette, index);
+});
+
+document.addEventListener('click', (e) => {
+    const item = e.target.closest?.('[data-palette-item]');
+    if (!item) return;
+    closePalette();
+    if (item.dataset.paletteAction === 'theme') window.PressLinkTheme?.toggle();
+    if (item.dataset.paletteAction === 'shortcuts') window.dispatchEvent(new CustomEvent('open-shortcuts'));
+});
+
+// Raccourcis clavier (hors saisie) : Ctrl/⌘ + K ou « / » palette, « ? » aide,
+// et ceux du layout (#shortcut-map) : « N » nouvelle commande, « G » puis une
+// lettre pour aller à une page (G D tableau de bord, G C commandes…).
+let pendingGoTo = 0;
+
+document.addEventListener('keydown', (e) => {
+    const palette = document.querySelector('[data-palette]');
+
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'k') {
+        if (!palette) return;
+        e.preventDefault();
+        isShown(palette) ? closePalette() : openPalette();
+        return;
+    }
+
+    if (e.ctrlKey || e.metaKey || e.altKey || isTyping(e.target)) return;
+    // Une fenêtre (palette, confirmation, aide) est ouverte : on la laisse gérer.
+    if (isShown(palette) || [...document.querySelectorAll('[role="alertdialog"], [data-shortcuts-help]')].some(isShown)) return;
+
+    if (e.key === '/') {
+        if (!palette) return;
+        e.preventDefault();
+        openPalette();
+        return;
+    }
+
+    if (e.key === '?') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('open-shortcuts'));
+        return;
+    }
+
+    let map = {};
+    try {
+        map = JSON.parse(document.getElementById('shortcut-map')?.textContent || '{}');
+    } catch {
+        return;
+    }
+
+    const key = e.key.toLowerCase();
+    if (pendingGoTo && Date.now() - pendingGoTo < 1200) {
+        pendingGoTo = 0;
+        if (map[`g ${key}`]) {
+            e.preventDefault();
+            openRowLink(map[`g ${key}`], false);
+        }
+        return;
+    }
+    if (key === 'g') {
+        pendingGoTo = Date.now();
+        return;
+    }
+    if (map[key]) {
+        e.preventDefault();
+        openRowLink(map[key], false);
+    }
+});
+
+// Copier en un clic ([data-copy]) : n° de commande, téléphone… L'icône passe
+// au « ✓ » et la bulle d'aide affiche « Copié ».
+async function copyText(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+        return true;
+    } catch {
+        const area = Object.assign(document.createElement('textarea'), { value: text });
+        area.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(area);
+        area.select();
+        const ok = document.execCommand('copy');
+        area.remove();
+        return ok;
+    }
+}
+
+document.addEventListener('click', async (e) => {
+    const button = e.target.closest?.('[data-copy]');
+    if (!button) return;
+    e.preventDefault();
+    if (!(await copyText(button.dataset.copy))) return;
+    const tooltip = button.dataset.tooltip;
+    button.classList.add('is-copied');
+    button.dataset.tooltip = 'Copié !';
+    clearTimeout(button._copiedTimer);
+    button._copiedTimer = setTimeout(() => {
+        button.classList.remove('is-copied');
+        button.dataset.tooltip = tooltip;
+    }, 1400);
 });

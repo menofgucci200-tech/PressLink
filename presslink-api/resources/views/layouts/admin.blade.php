@@ -13,6 +13,7 @@
         @livewireStyles
     </head>
     <body class="bg-(--color-bg) text-(--color-text-primary)">
+        <a href="#contenu" class="skip-link">Aller au contenu</a>
         @php
             $user = auth()->user();
             $navItem = fn (string $key, string $route, string $label, string $icon) => [
@@ -80,20 +81,34 @@
                             class="lg:hidden -ml-1 w-10 h-10 flex-none rounded-lg flex items-center justify-center text-(--color-text-secondary) hover:bg-(--color-bg)">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
                     </button>
-                    
+
+                    <x-palette-trigger />
                     <div class="flex-1"></div>
 
                     <x-theme-toggle />
                     <x-profile-menu :user="$user" role="Super Administrateur" :active="($active ?? null) === 'account'" />
                 </header>
 
-                <main class="flex-1 min-w-0 overflow-x-clip p-4 sm:p-6 lg:p-8">
+                <main id="contenu" tabindex="-1" class="flex-1 min-w-0 overflow-x-clip p-4 sm:p-6 lg:p-8 outline-none">
                     {{ $slot }}
                 </main>
             </div>
         </div>
 
         <x-feedback />
+        @php
+            $shortcuts = [
+                'n' => route('admin.pressings.create'),
+                'g d' => route('admin.dashboard'),
+                'g p' => route('admin.pressings.index'),
+                'g c' => route('admin.orders.index'),
+                'g l' => route('admin.clients.index'),
+            ];
+        @endphp
+        <livewire:command-palette :admin="true" />
+        <x-shortcuts-help :admin="true" />
+        {{-- Raccourcis du layout, lus par resources/js/app.js à chaque page. --}}
+        <script type="application/json" id="shortcut-map">@json($shortcuts ?? [])</script>
         @livewireScripts
     </body>
 </html>

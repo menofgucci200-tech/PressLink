@@ -78,8 +78,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/commandes/export/{format}', OrderExportController::class)
         ->name('orders.export')
         ->where('format', 'csv|xlsx|pdf');
+    // Avant /commandes/{order} : « recus » n'est pas un numéro de commande.
+    Route::get('/commandes/recus/{format?}', [OrderReceiptController::class, 'batch'])
+        ->name('orders.receipts')
+        ->where('format', 'pdf');
     Route::get('/commandes/{order}', OrdersShow::class)->name('orders.show');
-    Route::get('/commandes/{order}/recu/{format?}', OrderReceiptController::class)
+    Route::get('/commandes/{order}/recu/{format?}', [OrderReceiptController::class, 'show'])
         ->name('orders.receipt')
         ->where('format', 'pdf');
 

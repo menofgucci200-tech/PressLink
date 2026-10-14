@@ -86,7 +86,7 @@
                             <span class="text-[13.5px] font-medium text-(--color-text-secondary)">{{ $kpi['label'] }}</span>
                         </div>
                         @if ($delta !== 0)
-                            <span class="text-[11.5px] font-semibold {{ $delta > 0 ? 'text-(--color-success-text)' : 'text-(--color-text-muted)' }}" title="Vs période précédente équivalente">{{ $delta > 0 ? '+'.$delta : $delta }}</span>
+                            <span class="text-[11.5px] font-semibold {{ $delta > 0 ? 'text-(--color-success-text)' : 'text-(--color-text-muted)' }}" data-tooltip="Par rapport à la période précédente">{{ $delta > 0 ? '+'.$delta : $delta }}</span>
                         @else
                             <span class="text-[11.5px] font-semibold text-(--color-text-muted)">—</span>
                         @endif
@@ -119,8 +119,22 @@
                 </div>
 
                 @if ($recent->isEmpty())
-                    <div class="px-5 py-12 text-center text-sm text-(--color-text-muted) border-t border-(--color-border)">
-                        {{ $search ? 'Aucune commande ne correspond à cette recherche.' : 'Aucune commande pour le moment.' }}
+                    <div class="border-t border-(--color-border)">
+                        @if ($search)
+                            <x-empty-state icon="search" title="Aucune commande ne correspond à « {{ $search }} »">
+                                Essayez un n° de commande, un nom, un téléphone, un montant ou une date (ex. 12/10).
+                                <x-slot:actions>
+                                    <button type="button" wire:click="$set('search', '')" class="inline-flex items-center gap-2 h-9 px-4 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">Effacer la recherche</button>
+                                </x-slot:actions>
+                            </x-empty-state>
+                        @else
+                            <x-empty-state icon="box" title="Aucune commande pour le moment">
+                                Enregistrez le premier dépôt : le client, ses articles, le paiement, et le reçu à lui remettre.
+                                <x-slot:actions>
+                                    <a href="{{ route('orders.create') }}" wire:navigate class="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">Nouvelle commande</a>
+                                </x-slot:actions>
+                            </x-empty-state>
+                        @endif
                     </div>
                 @else
                     <div class="overflow-x-auto loading-rows">

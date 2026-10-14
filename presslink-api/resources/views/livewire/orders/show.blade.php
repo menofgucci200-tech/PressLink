@@ -1,10 +1,10 @@
 <div class="max-w-4xl mx-auto">
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('orders.index') }}" data-back aria-label="Retour" title="Retour" class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center hover:border-(--color-primary)">
+        <a href="{{ route('orders.index') }}" data-back aria-label="Retour" data-tooltip="Retour à la liste" data-tooltip-pos="bottom" class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center hover:border-(--color-primary)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
         </a>
         <div>
-            <div class="font-semibold tabular-nums">Commande {{ $order->order_number }}</div>
+            <div class="font-semibold tabular-nums flex items-center gap-1">Commande {{ $order->order_number }} <x-copy-button :value="$order->order_number" label="Copier le n° de commande" /></div>
             <div class="text-xs text-(--color-text-muted)">{{ $order->customer->fullName() }}</div>
         </div>
         <div class="flex-1"></div>
@@ -124,7 +124,10 @@
             <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
                 <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-3">Client</div>
                 <div class="text-sm font-medium mb-1">{{ $order->customer->fullName() }}</div>
-                <div class="text-sm text-(--color-text-secondary) tabular-nums">{{ $order->customer->phone }}</div>
+                <div class="text-sm text-(--color-text-secondary) tabular-nums flex items-center gap-1">
+                    <a href="tel:{{ $order->customer->phone }}" class="hover:text-(--color-primary)">{{ $order->customer->phone }}</a>
+                    <x-copy-button :value="$order->customer->phone" label="Copier le téléphone" />
+                </div>
             </div>
 
             @include('livewire.orders._payment-card')

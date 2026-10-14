@@ -17,9 +17,15 @@
 
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden w-fit max-w-full">
         @if ($issues->isEmpty())
-            <div class="p-10 text-center text-sm text-(--color-text-muted)">
-                Aucun signalement {{ $status === 'open' ? 'en attente' : ($status === 'resolved' ? 'résolu' : '') }} pour le moment.
-            </div>
+            @if ($status === 'resolved')
+                <x-empty-state icon="box" title="Aucun signalement résolu pour le moment">
+                    Les signalements que vous marquez comme résolus sont conservés ici, avec votre note de résolution.
+                </x-empty-state>
+            @else
+                <x-empty-state icon="check" tone="success" title="Aucun signalement {{ $status === 'open' ? 'en attente' : '' }}, tout va bien">
+                    Quand un client signale un problème sur une commande depuis l'application, il apparaît ici et dans le menu.
+                </x-empty-state>
+            @endif
         @else
             <div class="overflow-x-auto">
                 <table class="text-sm">

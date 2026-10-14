@@ -28,7 +28,7 @@
         <div class="flex items-start gap-3 px-5 py-4 border-b border-(--color-border)">
             <div class="flex-1 min-w-0">
                 <div class="text-xs text-(--color-text-muted)">Commande</div>
-                <div class="font-display text-lg font-bold tabular-nums">{{ $previewOrder->order_number }}</div>
+                <div class="font-display text-lg font-bold tabular-nums flex items-center gap-1">{{ $previewOrder->order_number }} <x-copy-button :value="$previewOrder->order_number" label="Copier le n° de commande" /></div>
                 <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
                     <x-status-badge :status="$previewOrder->status" />
                     @if ($alert)
@@ -38,16 +38,16 @@
             </div>
             <div class="flex items-center gap-1">
                 <button type="button" @if ($previousId) wire:click="preview({{ $previousId }})" @else disabled @endif
-                        title="Commande précédente (↑)" aria-label="Commande précédente"
+                        data-tooltip="Précédente (↑)" data-tooltip-pos="bottom" aria-label="Commande précédente"
                         class="w-8 h-8 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-primary) disabled:opacity-35">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"></path></svg>
                 </button>
                 <button type="button" @if ($nextId) wire:click="preview({{ $nextId }})" @else disabled @endif
-                        title="Commande suivante (↓)" aria-label="Commande suivante"
+                        data-tooltip="Suivante (↓)" data-tooltip-pos="bottom" aria-label="Commande suivante"
                         class="w-8 h-8 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-primary) disabled:opacity-35">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
                 </button>
-                <button type="button" wire:click="closePreview" title="Fermer (Échap)" aria-label="Fermer l'aperçu"
+                <button type="button" wire:click="closePreview" data-tooltip="Fermer (Échap)" data-tooltip-pos="bottom" aria-label="Fermer l'aperçu"
                         class="w-8 h-8 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-primary)">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
                 </button>
@@ -66,9 +66,9 @@
                 </span>
                 <div class="flex-1 min-w-0">
                     <a href="{{ route('clients.show', $previewOrder->customer) }}" wire:navigate class="font-semibold hover:text-(--color-primary)">{{ $previewOrder->customer->fullName() }}</a>
-                    <div class="text-xs text-(--color-text-muted) tabular-nums">{{ $previewOrder->customer->phone }}</div>
+                    <div class="text-xs text-(--color-text-muted) tabular-nums flex items-center gap-0.5">{{ $previewOrder->customer->phone }} <x-copy-button :value="$previewOrder->customer->phone" label="Copier le téléphone" /></div>
                 </div>
-                <a href="tel:{{ $previewOrder->customer->phone }}" title="Appeler le client" aria-label="Appeler {{ $previewOrder->customer->fullName() }}"
+                <a href="tel:{{ $previewOrder->customer->phone }}" data-tooltip="Appeler" aria-label="Appeler {{ $previewOrder->customer->fullName() }}"
                    class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary)">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"></path></svg>
                 </a>

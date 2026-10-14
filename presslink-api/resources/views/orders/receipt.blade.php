@@ -1,26 +1,14 @@
 @php
     $fcfa = fn (int $amount) => number_format($amount, 0, ',', ' ');
-    $paymentState = $order->paymentStatus();
-    $balance = $order->balance_due_fcfa;
-    $logo = null;
-    if ($pressing->logo_path) {
-        // dompdf lit les images sur le disque ; le navigateur, par l'URL.
-        $logo = $isPdf
-            ? (\Illuminate\Support\Facades\Storage::disk('public')->exists($pressing->logo_path) ? \Illuminate\Support\Facades\Storage::disk('public')->path($pressing->logo_path) : null)
-            : $pressing->logo_url;
-    }
-    $stateColors = match ($paymentState) {
-        \App\Enums\PaymentStatus::Paid => ['#047857', '#ecfdf5'],
-        \App\Enums\PaymentStatus::Partial => ['#b45309', '#fffbeb'],
-        \App\Enums\PaymentStatus::Unpaid => ['#334155', '#f1f5f9'],
-    };
+    $isBatch = $orders->count() > 1;
+    $sizeUrl = fn (?string $size) => request()->fullUrlWithQuery(['taille' => $size, 'imprimer' => null]);
 @endphp
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Reçu {{ $order->order_number }} · {{ $pressing->name }}</title>
+    <title>{{ $isBatch ? $orders->count().' reçus' : 'Reçu '.$orders->first()->order_number }} · {{ $orders->first()->pressing->name }}</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -57,6 +45,7 @@
             @endif
             background: #fff;
         }
+        .sheet + .sheet { page-break-before: always; break-before: page; }
         .center { text-align: center; }
         .muted { color: #64748b; }
         .small { font-size: 0.85em; }
@@ -76,9 +65,11 @@
         .total td { font-size: 1.2em; font-weight: bold; padding-top: 6px; }
         .state {
             margin: 10px 0 6px; padding: 6px 8px; text-align: center; font-weight: bold; letter-spacing: 1px;
-            text-transform: uppercase; font-size: 0.9em; border-radius: 4px;
-            color: {{ $stateColors[0] }}; background: {{ $stateColors[1] }}; border: 1px solid {{ $stateColors[0] }};
+            text-transform: uppercase; font-size: 0.9em; border-radius: 4px; border: 1px solid currentColor;
         }
+        .state--payee { color: #047857; background: #ecfdf5; }
+        .state--acompte { color: #b45309; background: #fffbeb; }
+        .state--a_payer { color: #334155; background: #f1f5f9; }
         .balance td { font-size: 1.15em; font-weight: bold; padding-top: 4px; }
         .note { margin-top: 8px; padding: 6px 8px; background: #f8fafc; border-left: 3px solid #cbd5e1; }
         .footer { margin-top: 12px; text-align: center; color: #64748b; font-size: 0.85em; }
@@ -94,95 +85,17 @@
 <body>
     @unless ($isPdf)
         <div class="toolbar">
-            <button type="button" class="primary" onclick="window.print()">Imprimer</button>
-            <a href="{{ route('orders.receipt', ['order' => $order, 'format' => 'pdf']) }}">Télécharger le PDF</a>
+            <button type="button" class="primary" onclick="window.print()">Imprimer{{ $isBatch ? ' les '.$orders->count().' reçus' : '' }}</button>
+            <a href="{{ $pdfUrl }}">Télécharger le PDF</a>
             <span class="sep"></span>
-            <a href="{{ route('orders.receipt', ['order' => $order]) }}" class="{{ $size === 'ticket' ? 'on' : '' }}">Ticket 80 mm</a>
-            <a href="{{ route('orders.receipt', ['order' => $order, 'taille' => 'a5']) }}" class="{{ $size === 'a5' ? 'on' : '' }}">Feuille A5</a>
+            <a href="{{ $sizeUrl(null) }}" class="{{ $size === 'ticket' ? 'on' : '' }}">Ticket 80 mm</a>
+            <a href="{{ $sizeUrl('a5') }}" class="{{ $size === 'a5' ? 'on' : '' }}">Feuille A5</a>
         </div>
     @endunless
 
-    <div class="sheet">
-        <div class="center">
-            @if ($logo)
-                <img src="{{ $logo }}" alt="" class="logo">
-            @endif
-            <p class="pressing-name">{{ $pressing->name }}</p>
-            @if ($pressing->address || $pressing->city)
-                <div class="muted small">{{ collect([$pressing->address, $pressing->city])->filter()->implode(', ') }}</div>
-            @endif
-            @if ($pressing->phone)
-                <div class="muted small">Tél. {{ $pressing->phone }}</div>
-            @endif
-            <p class="title">Reçu de dépôt</p>
-            <p class="number">{{ $order->order_number }}</p>
-        </div>
-
-        <hr class="rule">
-
-        <table>
-            <tr><td class="muted">Client</td><td class="r bold">{{ $order->customer->fullName() }}</td></tr>
-            <tr><td class="muted">Téléphone</td><td class="r">{{ $order->customer->phone }}</td></tr>
-            <tr><td class="muted">Déposé le</td><td class="r">{{ $order->dropped_off_at->format('d/m/Y à H:i') }}</td></tr>
-            @if ($order->expected_at)
-                <tr><td class="muted">Retrait prévu</td><td class="r bold">{{ $order->expected_at->translatedFormat('D j M Y') }}</td></tr>
-            @endif
-            @if ($order->recovered_at)
-                <tr><td class="muted">Récupéré le</td><td class="r">{{ $order->recovered_at->format('d/m/Y à H:i') }}</td></tr>
-            @endif
-            @if ($order->creator)
-                <tr><td class="muted">Reçu par</td><td class="r">{{ $order->creator->name }}</td></tr>
-            @endif
-        </table>
-
-        <hr class="rule">
-
-        <table class="items">
-            @foreach ($order->items as $item)
-                <tr>
-                    <td class="qty">{{ $item->quantity }} ×</td>
-                    <td>{{ $item->name }}@if ($item->quantity > 1)<br><span class="muted small">{{ $fcfa($item->unit_price_fcfa) }} F l'unité</span>@endif</td>
-                    <td class="r">{{ $fcfa($item->subtotal_fcfa) }} F</td>
-                </tr>
-            @endforeach
-        </table>
-
-        <hr class="rule">
-
-        <table>
-            <tr class="total"><td>Total</td><td class="r">{{ $fcfa($order->total_fcfa) }} F</td></tr>
-        </table>
-
-        <div class="state">{{ $paymentState->label() }}</div>
-
-        <table>
-            @foreach ($order->payments as $payment)
-                <tr>
-                    <td class="muted small">{{ $payment->paid_at->format('d/m/Y') }} · {{ $payment->method->label() }}</td>
-                    <td class="r small">{{ $fcfa($payment->amount_fcfa) }} F</td>
-                </tr>
-            @endforeach
-            <tr><td>Déjà payé</td><td class="r">{{ $fcfa($order->amount_paid_fcfa) }} F</td></tr>
-            <tr class="balance">
-                <td>{{ $order->recovered_at ? 'Reste dû' : 'Reste à payer au retrait' }}</td>
-                <td class="r">{{ $balance > 0 ? $fcfa($balance).' F' : '0 F' }}</td>
-            </tr>
-        </table>
-
-        @if ($order->notes)
-            <div class="note small"><span class="bold">Note :</span> {{ $order->notes }}</div>
-        @endif
-
-        <hr class="rule">
-
-        <div class="footer">
-            Présentez ce reçu pour retirer vos vêtements.<br>
-            Suivez votre commande dans l'application PressLink<br>
-            avec le code pressing <span class="code">{{ $pressing->code }}</span>.<br>
-            Merci de votre confiance !
-        </div>
-        <div class="footer small">Imprimé le {{ now()->format('d/m/Y à H:i') }}</div>
-    </div>
+    @foreach ($orders as $order)
+        @include('orders._receipt-sheet', ['order' => $order, 'pressing' => $order->pressing])
+    @endforeach
 
     @if ($autoPrint && ! $isPdf)
         <script>window.addEventListener('load', () => setTimeout(() => window.print(), 300));</script>

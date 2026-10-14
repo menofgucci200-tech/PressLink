@@ -76,6 +76,16 @@ class Index extends Component
 
     public bool $showExportMenu = false;
 
+    /**
+     * Commandes cochées pour une action groupée (identifiants).
+     *
+     * @var list<string>
+     */
+    public array $selected = [];
+
+    /** Au-delà, l'action groupée est refusée (garde-fou). */
+    public const MAX_SELECTION = 100;
+
     public function mount(): void
     {
         $this->baselineOrderId = (int) ($this->pressing()?->orders()->max('id') ?? 0);
@@ -85,6 +95,8 @@ class Index extends Component
     {
         if (in_array($property, ['search', 'status', 'dateFrom', 'dateTo', 'payment'], true)) {
             $this->resetPage();
+            // Pas d'action groupée sur des commandes qui ne sont plus affichées.
+            $this->selected = [];
         }
     }
 
@@ -127,6 +139,77 @@ class Index extends Component
         $this->baselineOrderId = (int) ($this->pressing()?->orders()->max('id') ?? 0);
         $this->newOrdersCount = 0;
         $this->resetPage();
+    }
+
+    /** @param  list<int>  $ids  commandes de la page affichée */
+    public function togglePage(array $ids): void
+    {
+        $ids = array_map('strval', $ids);
+        $this->selected = array_diff($ids, $this->selected) === []
+            ? array_values(array_diff($this->selected, $ids))
+            : array_values(array_unique([...$this->selected, ...$ids]));
+    }
+
+    public function clearSelection(): void
+    {
+        $this->selected = [];
+    }
+
+    /**
+     * Change le statut de toutes les commandes cochées qui le permettent. Une
+     * remise au client n'est faite en groupe que pour les commandes soldées :
+     * celles avec un reste à payer sont laissées de côté (à encaisser une par
+     * une).
+     */
+    public function bulkTransition(string $status, ChangeOrderStatusAction $changeStatus): void
+    {
+        $target = OrderStatus::tryFrom($status);
+        $pressing = $this->pressing();
+
+        if ($target === null || $pressing === null || $this->selected === []) {
+            return;
+        }
+
+        if (count($this->selected) > self::MAX_SELECTION) {
+            $this->toast('Sélectionnez au plus '.self::MAX_SELECTION.' commandes à la fois.', 'warning');
+
+            return;
+        }
+
+        $orders = $pressing->orders()->whereIn('id', array_map('intval', $this->selected))->get();
+        $done = 0;
+        $skipped = 0;
+
+        foreach ($orders as $order) {
+            $blocked = ! $order->status->canTransitionTo($target)
+                || ($target === OrderStatus::Recuperee && $order->balance_due_fcfa > 0)
+                || ! auth()->user()->can('update', $order);
+
+            if ($blocked) {
+                $skipped++;
+
+                continue;
+            }
+
+            try {
+                $changeStatus->handle($order, $target);
+                $done++;
+            } catch (RuntimeException) {
+                $skipped++;
+            }
+        }
+
+        $this->selected = [];
+
+        $message = $done > 0
+            ? $done.' commande'.($done > 1 ? 's passées' : ' passée').' au statut « '.$target->label().' ».'
+            : 'Aucune commande n\'a changé de statut.';
+        if ($skipped > 0) {
+            $message .= ' '.$skipped.' laissée'.($skipped > 1 ? 's' : '').' de côté ('
+                .($target === OrderStatus::Recuperee ? 'statut incompatible ou solde à encaisser' : 'statut incompatible').').';
+        }
+
+        $this->toast($message, $done > 0 ? 'success' : 'warning');
     }
 
     public function preview(int $orderId): void

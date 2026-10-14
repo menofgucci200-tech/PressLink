@@ -1,6 +1,6 @@
 <div class="max-w-4xl mx-auto">
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('clients.index') }}" data-back aria-label="Retour" title="Retour" class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center hover:border-(--color-primary)">
+        <a href="{{ route('clients.index') }}" data-back aria-label="Retour" data-tooltip="Retour" data-tooltip-pos="bottom" class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center hover:border-(--color-primary)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
         </a>
         <div>
@@ -10,7 +10,7 @@
                     <span class="ml-1.5 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-(--color-error-tint) text-(--color-error)" title="Compte désactivé par PressLink : le client ne peut plus se connecter à l'application.">Compte désactivé</span>
                 @endunless
             </div>
-            <div class="text-xs text-(--color-text-muted) tabular-nums">{{ $customer->phone }}</div>
+            <div class="text-xs text-(--color-text-muted) tabular-nums flex items-center gap-0.5">{{ $customer->phone }} <x-copy-button :value="$customer->phone" label="Copier le téléphone" /></div>
         </div>
         @if ($canResetPassword)
             <div class="flex-1"></div>

@@ -101,8 +101,40 @@
             'sortable' => true,
             'previewable' => true,
             'previewId' => $previewId,
+            'selectable' => true,
+            'selected' => $selected,
+            'hasFilters' => $search !== '' || $status !== '' || $dateFrom !== '' || $dateTo !== '' || $payment !== '',
         ])
     </div>
+
+    {{-- Actions groupées sur les commandes cochées --}}
+    @if ($selected !== [])
+        @php $selectedCount = count($selected); @endphp
+        <div class="fixed bottom-5 inset-x-4 lg:left-[calc(239px+2rem)] lg:right-8 z-30 flex justify-center pointer-events-none">
+            <div class="pointer-events-auto flex flex-wrap items-center gap-2 rounded-2xl bg-slate-900 text-white shadow-2xl px-4 py-3 animate-step dark:ring-1 dark:ring-white/10"
+                 role="region" aria-label="Actions sur la sélection">
+                <span class="text-sm font-semibold mr-1 tabular-nums">{{ $selectedCount }} sélectionnée{{ $selectedCount > 1 ? 's' : '' }}</span>
+                @foreach ([\App\Enums\OrderStatus::Traitement, \App\Enums\OrderStatus::Prete, \App\Enums\OrderStatus::Recuperee] as $bulkStatus)
+                    <button type="button" wire:click="bulkTransition('{{ $bulkStatus->value }}')"
+                            data-confirm-title="Changer le statut" data-confirm-label="Marquer {{ mb_strtolower($bulkStatus->label()) }}"
+                            wire:confirm="Marquer {{ $selectedCount }} commande{{ $selectedCount > 1 ? 's' : '' }} « {{ $bulkStatus->label() }} » ? Celles dont le statut ne le permet pas{{ $bulkStatus === \App\Enums\OrderStatus::Recuperee ? ', ou qui ont un reste à payer,' : '' }} seront laissées de côté.{{ $bulkStatus === \App\Enums\OrderStatus::Prete ? ' Les clients seront prévenus.' : '' }}"
+                            wire:loading.attr="disabled" wire:target="bulkTransition"
+                            class="h-9 px-3.5 rounded-lg bg-white/10 hover:bg-white/20 text-[13px] font-semibold disabled:opacity-50">
+                        {{ $bulkStatus === \App\Enums\OrderStatus::Recuperee ? 'Remettre (soldées)' : 'Marquer '.mb_strtolower($bulkStatus->label()) }}
+                    </button>
+                @endforeach
+                <a href="{{ route('orders.receipts', ['ids' => implode(',', $selected)]) }}" target="_blank" rel="noopener"
+                   class="h-9 px-3.5 rounded-lg bg-white/10 hover:bg-white/20 text-[13px] font-semibold inline-flex items-center gap-1.5">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><path d="M6 14h12v8H6z"></path></svg>
+                    Imprimer les reçus
+                </a>
+                <button type="button" wire:click="clearSelection" aria-label="Annuler la sélection" data-tooltip="Annuler la sélection"
+                        class="w-9 h-9 rounded-lg hover:bg-white/15 flex items-center justify-center">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+                </button>
+            </div>
+        </div>
+    @endif
 
     @if (is_countable($orders) && method_exists($orders, 'links'))
         <div class="mt-5">{{ $orders->links() }}</div>

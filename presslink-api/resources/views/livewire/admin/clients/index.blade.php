@@ -79,7 +79,16 @@
 
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden">
         @if ($customers->isEmpty())
-            <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucun client trouvé.</div>
+            @if ($hasFilters)
+                <x-empty-state icon="search" title="Aucun client trouvé pour ces filtres">
+                    Modifiez la recherche ou retirez un filtre pour élargir la liste.
+                    <x-slot:actions>
+                        <button type="button" wire:click="resetFilters" class="inline-flex items-center gap-2 h-9 px-4 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">Réinitialiser les filtres</button>
+                    </x-slot:actions>
+                </x-empty-state>
+            @else
+                <x-empty-state icon="users" title="Aucun client pour le moment" />
+            @endif
         @else
             <div class="overflow-x-auto"><table class="w-full min-w-[900px] whitespace-nowrap text-sm">
                 <thead>

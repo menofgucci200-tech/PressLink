@@ -206,6 +206,19 @@ deploy_pwa() {
     --dart-define=API_BASE_URL="$PWA_API_BASE_URL" \
     --dart-define=ONESIGNAL_APP_ID="$ONESIGNAL_APP_ID")
 
+  log "PWA — police d'icônes renommée selon son contenu"
+  # Flutter ne garde dans MaterialIcons-Regular.otf que les icônes utilisées
+  # par CETTE version, sous un nom de fichier toujours identique. Un téléphone
+  # qui l'a en cache (1 semaine) affichait donc des cases vides pour toute
+  # nouvelle icône. On lui donne un nom unique par contenu, référencé par
+  # FontManifest.json et le préchargement d'index.html (jamais mis en cache).
+  (cd "$APP_DIR/build/web" && {
+    local hash
+    hash=$(md5 -q assets/fonts/MaterialIcons-Regular.otf | cut -c1-10)
+    mv assets/fonts/MaterialIcons-Regular.otf "assets/fonts/MaterialIcons-Regular.$hash.otf"
+    sed -i '' "s#fonts/MaterialIcons-Regular.otf#fonts/MaterialIcons-Regular.$hash.otf#g" assets/FontManifest.json index.html
+  })
+
   log "PWA — purge des dossiers générés côté serveur avant renvoi"
   # Même raison que vendor/composer : main.dart.js, flutter_service_worker.js
   # (qui référence le hash de chaque fichier) et assets/ sont générés

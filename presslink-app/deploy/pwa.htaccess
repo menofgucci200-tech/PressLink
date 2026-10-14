@@ -7,7 +7,7 @@
     # Point d'entrée, code de l'app et manifeste : toujours revalidés (réponse
     # 304 quasi instantanée si rien n'a changé), pour qu'un déploiement soit
     # pris en compte tout de suite.
-    <FilesMatch "^(index\.html|flutter_bootstrap\.js|flutter\.js|main\.dart\.js|flutter_service_worker\.js|version\.json|manifest\.json)$">
+    <FilesMatch "^(index\.html|flutter_bootstrap\.js|flutter\.js|main\.dart\.js|flutter_service_worker\.js|version\.json|manifest\.json|FontManifest\.json|AssetManifest\.bin|AssetManifest\.bin\.json|AssetManifest\.json)$">
         Header set Cache-Control "no-cache"
     </FilesMatch>
 

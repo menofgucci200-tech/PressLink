@@ -68,7 +68,13 @@ class SupportScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final customer = ref.watch(authControllerProvider).customer;
+    // Onglet de la barre de navigation (pas de retour), ou page ouverte par-
+    // dessus un autre écran, ex. depuis la connexion. On interroge la route
+    // de l'écran lui-même : `Navigator.canPop()` dirait aussi « oui » quand un
+    // autre écran est simplement ouvert au-dessus de l'onglet.
+    final canPop = ModalRoute.of(context)?.canPop ?? false;
 
     return Scaffold(
       body: SafeArea(
@@ -77,8 +83,10 @@ class SupportScreen extends ConsumerWidget {
           children: [
             Row(
               children: [
-                AppBackButton(onPressed: () => Navigator.of(context).pop()),
-                const SizedBox(width: AppSpacing.sm + 2),
+                if (canPop) ...[
+                  AppBackButton(onPressed: () => Navigator.of(context).pop()),
+                  const SizedBox(width: AppSpacing.sm + 2),
+                ],
                 Text(
                   'Aide & support',
                   style: theme.textTheme.headlineSmall?.copyWith(fontSize: 18),
@@ -89,9 +97,13 @@ class SupportScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
-                color: AppColors.primaryTint,
+                color: isDark
+                    ? AppColors.primary.withValues(alpha: 0.16)
+                    : AppColors.primaryTint,
                 border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.2),
+                  color: AppColors.primary.withValues(
+                    alpha: isDark ? 0.35 : 0.2,
+                  ),
                 ),
                 borderRadius: BorderRadius.circular(AppRadius.xl),
               ),
@@ -113,9 +125,12 @@ class SupportScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.md),
                   Text(
                     'Une question ? Un problème ?',
-                    style: theme.textTheme.titleLarge?.copyWith(
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontSize: 20,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -123,7 +138,9 @@ class SupportScreen extends ConsumerWidget {
                   Text(
                     'Contactez l\'équipe PressLink : par appel, sur WhatsApp ou par email.',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -144,14 +161,18 @@ class SupportScreen extends ConsumerWidget {
                             style: theme.textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.w800,
                               letterSpacing: 0.5,
-                              color: AppColors.primaryDark,
+                              color: isDark
+                                  ? const Color(0xFF93C5FD)
+                                  : AppColors.primaryDark,
                             ),
                           ),
                           const SizedBox(width: AppSpacing.sm),
-                          const Icon(
+                          Icon(
                             Icons.copy,
                             size: 16,
-                            color: AppColors.textSecondary,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondary,
                           ),
                         ],
                       ),

@@ -7,14 +7,14 @@ import '../../features/pressings/presentation/my_pressings_screen.dart';
 import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/profile/presentation/customer_avatar.dart';
 import '../../features/profile/presentation/profile_screen.dart';
-import '../../features/support/presentation/support_screen.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import 'pwa_install_banner.dart';
 import 'staggered_fade_in.dart';
 
 /// Feuille de menu ouverte depuis l'onglet "Menu" (icône burger) —
-/// regroupe Profil, Signaler un problème, et les futurs menus de l'app.
+/// regroupe Profil, Mes pressings, Signaler un problème, et les futurs menus
+/// de l'app (le support a son propre onglet dans la barre de navigation).
 Future<void> showMainMenuSheet(BuildContext context) {
   return showModalBottomSheet(
     context: context,
@@ -116,19 +116,6 @@ class _MainMenuSheet extends StatelessWidget {
                     },
                   ),
                 ),
-              StaggeredFadeIn(
-                index: 4,
-                child: _MenuTile(
-                  icon: Icons.support_agent_outlined,
-                  label: 'Aide & support',
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(
-                      context,
-                    ).push(AppPageRoute(builder: (_) => const SupportScreen()));
-                  },
-                ),
-              ),
               // Les prochains menus (fidélité, promotions, statistiques…) viendront
               // s'ajouter ici au fil des évolutions V1/V2 du cahier des fonctionnalités.
             ],

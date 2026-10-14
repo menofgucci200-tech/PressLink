@@ -1,17 +1,21 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../theme/app_colors.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/notifications/presentation/notifications_controller.dart';
-import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/orders/presentation/orders_controller.dart';
 import '../../features/orders/presentation/orders_list_screen.dart';
+import '../../features/pressings/presentation/join_pressing_screen.dart';
+import '../../features/support/presentation/support_screen.dart';
+import 'app_page_route.dart';
 import 'main_menu_sheet.dart';
 
-/// Coquille de navigation principale — bottom nav 3 onglets + menu
-/// (Architecture des écrans §3 revue le 26/08) : Accueil · Commandes ·
-/// Notifications · Menu (Profil, Signaler un problème, futurs menus).
+/// Coquille de navigation principale — barre « onglet découpé » à 5
+/// emplacements : Accueil · Commandes · + (rejoindre un pressing) · Support
+/// · Menu. Les notifications restent sur la cloche de l'accueil.
 class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
 
@@ -23,11 +27,7 @@ class _MainShellState extends ConsumerState<MainShell>
     with WidgetsBindingObserver {
   int _index = 0;
 
-  static const _screens = [
-    HomeScreen(),
-    OrdersListScreen(),
-    NotificationsScreen(),
-  ];
+  static const _screens = [HomeScreen(), OrdersListScreen(), SupportScreen()];
 
   @override
   void initState() {
@@ -41,7 +41,7 @@ class _MainShellState extends ConsumerState<MainShell>
     super.dispose();
   }
 
-  /// Les 3 onglets sont construits une seule fois et gardés vivants en
+  /// Les onglets sont construits une seule fois et gardés vivants en
   /// permanence (`IndexedStack`) pour préserver leur état de scroll — mais
   /// ça veut dire que rien ne les recrée jamais pour aller chercher des
   /// données fraîches. On invalide donc explicitement à deux moments où
@@ -59,11 +59,7 @@ class _MainShellState extends ConsumerState<MainShell>
     if (state == AppLifecycleState.resumed) _invalidateAll();
   }
 
-  void _onTap(int index) {
-    if (index == 3) {
-      showMainMenuSheet(context);
-      return;
-    }
+  void _onTabSelected(int index) {
     setState(() => _index = index);
     _invalidateAll();
   }
@@ -73,87 +69,335 @@ class _MainShellState extends ConsumerState<MainShell>
     return Scaffold(
       // `IndexedStack` (pas de rebuild des onglets cachés, cf. commentaire
       // plus haut) : on ne peut donc pas faire un crossfade classique entre
-      // écrans sans les reconstruire. La touche de fluidité vient plutôt
-      // d'une transition douce sur la barre elle-même (icône/label animés).
+      // écrans sans les reconstruire. La touche de fluidité vient plutôt de
+      // la barre elle-même (bulle qui glisse, encoche qui la suit).
       body: IndexedStack(index: _index, children: _screens),
-      bottomNavigationBar: _AnimatedBottomNav(index: _index, onTap: _onTap),
+      bottomNavigationBar: NotchedBottomNav(
+        index: _index,
+        onTabSelected: _onTabSelected,
+        onAdd: () => Navigator.of(
+          context,
+        ).push(AppPageRoute(builder: (_) => const JoinPressingScreen())),
+        onMenu: () => showMainMenuSheet(context),
+      ),
     );
   }
 }
 
-class _AnimatedBottomNav extends StatelessWidget {
-  const _AnimatedBottomNav({required this.index, required this.onTap});
+/// Barre de navigation « onglet découpé » (même bleu que la sidebar des
+/// dashboards) : l'onglet actif sort de la barre dans une bulle posée dans
+/// une encoche circulaire ; le « + » central garde en permanence la sienne.
+class NotchedBottomNav extends StatelessWidget {
+  const NotchedBottomNav({
+    super.key,
+    required this.index,
+    required this.onTabSelected,
+    required this.onAdd,
+    required this.onMenu,
+  });
 
+  /// Onglet actif : 0 Accueil, 1 Commandes, 2 Support.
   final int index;
-  final ValueChanged<int> onTap;
+  final ValueChanged<int> onTabSelected;
+  final VoidCallback onAdd;
+  final VoidCallback onMenu;
 
-  static const _items = [
+  static const bubbleRadius = 24.0;
+  static const barHeight = 58.0;
+  static const _addSlot = 2;
+
+  /// Emplacement (0 à 4) de chaque onglet ; le 2 est le « + », le 4 le menu.
+  static const _tabSlots = [0, 1, 3];
+
+  static const _slots = [
     (icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Accueil'),
     (
       icon: Icons.inventory_2_outlined,
       activeIcon: Icons.inventory_2,
       label: 'Commandes',
     ),
+    (icon: Icons.add, activeIcon: Icons.add, label: 'Ajouter'),
     (
-      icon: Icons.notifications_outlined,
-      activeIcon: Icons.notifications,
-      label: 'Notifs',
+      icon: Icons.headset_mic_outlined,
+      activeIcon: Icons.headset_mic,
+      label: 'Support',
     ),
     (icon: Icons.menu, activeIcon: Icons.menu, label: 'Menu'),
   ];
 
+  void _onSlotTap(int slot) {
+    if (slot == _addSlot) {
+      onAdd();
+    } else if (slot == 4) {
+      onMenu();
+    } else {
+      onTabSelected(_tabSlots.indexOf(slot));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return BottomAppBar(
-      padding: EdgeInsets.zero,
-      child: SizedBox(
-        height: 60,
-        child: Row(
-          children: [
-            for (var i = 0; i < _items.length; i++)
-              Expanded(
-                child: InkWell(
-                  onTap: () => onTap(i),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TweenAnimationBuilder<double>(
-                        duration: const Duration(milliseconds: 220),
-                        curve: Curves.easeOutBack,
-                        tween: Tween(begin: 1, end: i == index ? 1.12 : 1.0),
-                        builder: (context, scale, child) =>
-                            Transform.scale(scale: scale, child: child),
-                        child: Icon(
-                          i == index ? _items[i].activeIcon : _items[i].icon,
-                          color: i == index
-                              ? AppColors.primary
-                              : theme.textTheme.bodyMedium?.color,
-                          size: 24,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+    final activeSlot = _tabSlots[index];
+
+    return SizedBox(
+      height: bubbleRadius + barHeight + bottomInset,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final slotWidth = constraints.maxWidth / _slots.length;
+          double centerOf(int slot) => (slot + 0.5) * slotWidth;
+
+          return TweenAnimationBuilder<double>(
+            tween: Tween(end: centerOf(activeSlot)),
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeOutCubic,
+            builder: (context, activeX, _) {
+              final plusX = centerOf(_addSlot);
+              return Material(
+                type: MaterialType.transparency,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: _NotchedBarPainter(
+                          notches: [activeX, plusX],
+                          top: bubbleRadius,
+                          notchRadius: bubbleRadius + 6,
                         ),
                       ),
-                      const SizedBox(height: 3),
-                      AnimatedDefaultTextStyle(
-                        duration: const Duration(milliseconds: 200),
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: i == index
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                          color: i == index
-                              ? AppColors.primary
-                              : theme.textTheme.bodyMedium?.color,
-                        ),
-                        child: Text(_items[i].label),
+                    ),
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      top: bubbleRadius,
+                      height: barHeight,
+                      child: Row(
+                        children: [
+                          for (var slot = 0; slot < _slots.length; slot++)
+                            Expanded(
+                              child: _SlotButton(
+                                icon: _slots[slot].icon,
+                                label: _slots[slot].label,
+                                selected: slot == activeSlot,
+                                emphasized:
+                                    slot == activeSlot || slot == _addSlot,
+                                // L'icône s'efface sous la bulle qui passe
+                                // (et sous le « + », qui a sa propre bulle).
+                                iconOpacity: slot == _addSlot
+                                    ? 0
+                                    : (((centerOf(slot) - activeX).abs() - 16) /
+                                              40)
+                                          .clamp(0.0, 1.0),
+                                onTap: () => _onSlotTap(slot),
+                              ),
+                            ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    Positioned(
+                      left: plusX - bubbleRadius,
+                      top: 0,
+                      // Toute la bulle du « + » est touchable, y compris
+                      // la moitié qui dépasse au-dessus de la barre.
+                      child: ExcludeSemantics(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: onAdd,
+                          child: _Bubble(
+                            isDark: isDark,
+                            plus: true,
+                            icon: Icons.add,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: activeX - bubbleRadius,
+                      top: 0,
+                      child: IgnorePointer(
+                        child: _Bubble(
+                          isDark: isDark,
+                          icon: _slots[activeSlot].activeIcon,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _SlotButton extends StatelessWidget {
+  const _SlotButton({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.emphasized,
+    required this.iconOpacity,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final bool emphasized;
+  final double iconOpacity;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = emphasized ? Colors.white : const Color(0xD1DBEAFE);
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      excludeSemantics: true,
+      child: InkResponse(
+        onTap: onTap,
+        radius: 34,
+        highlightShape: BoxShape.circle,
+        splashColor: Colors.white.withValues(alpha: 0.12),
+        highlightColor: Colors.white.withValues(alpha: 0.06),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Opacity(
+              opacity: iconOpacity,
+              child: Icon(icon, size: 24, color: color),
+            ),
+            const SizedBox(height: 3),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: emphasized ? FontWeight.w700 : FontWeight.w500,
+                color: color,
               ),
+              child: Text(label, maxLines: 1, overflow: TextOverflow.clip),
+            ),
           ],
         ),
       ),
     );
   }
+}
+
+class _Bubble extends StatelessWidget {
+  const _Bubble({required this.isDark, required this.icon, this.plus = false});
+
+  final bool isDark;
+  final IconData icon;
+  final bool plus;
+
+  @override
+  Widget build(BuildContext context) {
+    const size = NotchedBottomNav.bubbleRadius * 2;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: plus
+            ? const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF22D3EE), AppColors.primary],
+                stops: [0, 0.7],
+              )
+            : null,
+        color: plus ? null : (isDark ? const Color(0xFF16233D) : Colors.white),
+        border: !plus && isDark
+            ? Border.all(color: const Color(0xFF2D3F5F))
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: plus
+                ? AppColors.secondary.withValues(alpha: 0.55)
+                : Colors.black.withValues(alpha: isDark ? 0.5 : 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+            spreadRadius: -6,
+          ),
+        ],
+      ),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 180),
+        child: Icon(
+          icon,
+          key: ValueKey(icon),
+          size: plus ? 28 : 24,
+          color: plus
+              ? Colors.white
+              : (isDark ? const Color(0xFF93C5FD) : AppColors.primary),
+        ),
+      ),
+    );
+  }
+}
+
+/// Fond de la barre : dégradé bleu PressLink, creusé sous chaque bulle d'une
+/// encoche circulaire (demi-cercle concentrique à la bulle, raccordé au bord
+/// par deux petits arrondis). Deux encoches proches se combinent.
+class _NotchedBarPainter extends CustomPainter {
+  const _NotchedBarPainter({
+    required this.notches,
+    required this.top,
+    required this.notchRadius,
+  });
+
+  final List<double> notches;
+  final double top;
+  final double notchRadius;
+
+  static const _fillet = 8.0;
+
+  double _depthAt(double dx) {
+    final r = notchRadius;
+    const f = _fillet;
+    final xf = math.sqrt((r + f) * (r + f) - f * f);
+    final xp = r * xf / (r + f);
+    final a = dx.abs();
+    if (a <= xp) return math.sqrt(r * r - a * a);
+    if (a <= xf) return f - math.sqrt(math.max(0, f * f - (xf - a) * (xf - a)));
+    return 0;
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    double edge(double x) =>
+        top + notches.map((c) => _depthAt(x - c)).reduce(math.max);
+
+    final path = Path()..moveTo(0, edge(0));
+    for (var x = 0.5; x <= size.width; x += 0.5) {
+      path.lineTo(x, edge(x));
+    }
+    path
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+
+    final paint = Paint()
+      ..shader = const LinearGradient(
+        colors: [Color(0xFF1E3A8A), Color(0xFF1E40AF), AppColors.primary],
+        stops: [0, 0.55, 1],
+      ).createShader(Offset.zero & size);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_NotchedBarPainter oldDelegate) =>
+      oldDelegate.top != top ||
+      oldDelegate.notchRadius != notchRadius ||
+      oldDelegate.notches.length != notches.length ||
+      [
+        for (var i = 0; i < notches.length; i++)
+          oldDelegate.notches[i] != notches[i],
+      ].any((changed) => changed);
 }

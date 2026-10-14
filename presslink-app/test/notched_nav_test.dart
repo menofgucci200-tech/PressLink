@@ -79,7 +79,8 @@ void main() {
         ),
       );
       await tester.pump();
-      expect(find.text('PressLink', findRichText: true), findsOneWidget);
+      // Le nom de la page est au centre de la barre (et n'est plus répété).
+      expect(find.text('Aide & support'), findsOneWidget);
       expect(find.byTooltip('Retour'), findsNothing);
       expect(find.text('P'), findsOneWidget);
 

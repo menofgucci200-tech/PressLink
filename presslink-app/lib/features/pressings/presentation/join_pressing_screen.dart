@@ -56,6 +56,7 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: PressLinkTopBar(
+        title: 'Ajouter un pressing',
         onBack: () => Navigator.of(context).pop(_found != null),
       ),
       body: SafeArea(
@@ -64,18 +65,6 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Text(
-                    'Ajouter un pressing',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.lg + 6),
               Text(
                 'Rejoignez votre pressing',
                 style: theme.textTheme.headlineSmall?.copyWith(fontSize: 20),
@@ -105,7 +94,20 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
                     fontSize: 17,
                     letterSpacing: 1.2,
                   ),
-                  decoration: const InputDecoration(hintText: 'PE-4821'),
+                  // Exemple en gris clair et non gras, précédé de « Ex. » :
+                  // on ne doit pas croire que le champ est déjà rempli.
+                  decoration: InputDecoration(
+                    hintText: 'Ex. PE-4821',
+                    hintStyle: TextStyle(
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 0.4,
+                      color:
+                          (theme.brightness == Brightness.dark
+                                  ? AppColors.textMutedDark
+                                  : AppColors.textMuted)
+                              .withValues(alpha: 0.75),
+                    ),
+                  ),
                 ),
               ),
               if (_found != null) ...[

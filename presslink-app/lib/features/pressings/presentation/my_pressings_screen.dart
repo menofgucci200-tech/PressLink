@@ -24,24 +24,13 @@ class MyPressingsScreen extends ConsumerWidget {
     final pressingsAsync = ref.watch(myPressingsProvider);
 
     return Scaffold(
-      appBar: const PressLinkTopBar(),
+      appBar: const PressLinkTopBar(title: 'Mes pressings'),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Text(
-                    'Mes pressings',
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontSize: 18,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.md),
               SizedBox(
                 width: double.infinity,
                 height: 52,

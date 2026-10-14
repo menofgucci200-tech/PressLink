@@ -14,14 +14,18 @@ import 'app_page_route.dart';
 final mainTabIndexProvider = StateProvider.autoDispose<int>((ref) => 0);
 
 /// Barre du haut de l'application, sur toutes les pages une fois connecté :
-/// flèche retour (ou le « P » PressLink sur l'Accueil), nom de l'appli et
+/// flèche retour (ou le « P » PressLink sur l'Accueil), nom de la page et
 /// cloche des notifications. Même dégradé bleu que la barre du bas.
 class PressLinkTopBar extends ConsumerWidget implements PreferredSizeWidget {
   const PressLinkTopBar({
     super.key,
+    required this.title,
     this.onBack,
     this.showNotifications = true,
   });
+
+  /// Nom de la page, au centre de la barre.
+  final String title;
 
   /// Retour personnalisé (ex. renvoyer un résultat) ; par défaut, page
   /// précédente, ou Accueil depuis un autre onglet.
@@ -102,26 +106,21 @@ class PressLinkTopBar extends ConsumerWidget implements PreferredSizeWidget {
                       ),
                     ),
                   Expanded(
-                    child: Semantics(
-                      header: true,
-                      label: 'PressLink',
-                      excludeSemantics: true,
-                      child: Text.rich(
-                        TextSpan(
-                          text: 'Press',
-                          children: const [
-                            TextSpan(
-                              text: 'Link',
-                              style: TextStyle(color: Color(0xFFBFDBFE)),
-                            ),
-                          ],
-                        ),
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          color: Colors.white,
-                          fontSize: 21,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.4,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Semantics(
+                        header: true,
+                        child: Text(
+                          title,
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.2,
+                          ),
                         ),
                       ),
                     ),

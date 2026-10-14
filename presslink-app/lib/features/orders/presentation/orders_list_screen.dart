@@ -28,7 +28,9 @@ class OrdersListScreen extends ConsumerStatefulWidget {
 class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
   _Filter _filter = _Filter.toutes;
 
-  bool _matches(OrderModel order) => switch (_filter) {
+  bool _matches(OrderModel order) => _isIn(_filter, order);
+
+  static bool _isIn(_Filter filter, OrderModel order) => switch (filter) {
     _Filter.toutes => true,
     _Filter.enCours =>
       order.status == OrderStatus.recue ||
@@ -41,17 +43,18 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final ordersAsync = ref.watch(ordersProvider);
+    // Nombre de commandes par filtre, affiché sur chaque filtre une fois la
+    // liste chargée (même liste que celle qui est filtrée plus bas).
+    final loadedOrders = ordersAsync.valueOrNull;
 
     return Scaffold(
-      appBar: const PressLinkTopBar(),
+      appBar: const PressLinkTopBar(title: 'Mes commandes'),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Mes commandes', style: theme.textTheme.headlineSmall),
-              const SizedBox(height: AppSpacing.md),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -59,10 +62,13 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
                     for (final f in _Filter.values) ...[
                       _FilterChip(
                         label: _labelFor(f),
+                        count: loadedOrders
+                            ?.where((order) => _isIn(f, order))
+                            .length,
                         selected: _filter == f,
                         onTap: () => setState(() => _filter = f),
                       ),
-                      const SizedBox(width: AppSpacing.xs + 4),
+                      const SizedBox(width: AppSpacing.xs + 1),
                     ],
                   ],
                 ),
@@ -173,38 +179,103 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
 class _FilterChip extends StatelessWidget {
   const _FilterChip({
     required this.label,
+    required this.count,
     required this.selected,
     required this.onTap,
   });
 
   final String label;
+
+  /// Nombre de commandes du filtre (inconnu tant que la liste charge).
+  final int? count;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(999),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.primary : Colors.white,
-          border: Border.all(
-            color: selected ? AppColors.primary : AppColors.border,
-          ),
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: AnimatedDefaultTextStyle(
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final idleText = isDark
+        ? AppColors.textSecondaryDark
+        : AppColors.textSecondary;
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: count == null ? label : '$label, $count',
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: selected ? Colors.white : AppColors.textSecondary,
+          curve: Curves.easeOut,
+          padding: EdgeInsets.only(
+            left: 10,
+            right: count == null ? 10 : 4,
+            top: 6,
+            bottom: 6,
           ),
-          child: Text(label),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.primary : theme.cardTheme.color,
+            border: Border.all(
+              color: selected
+                  ? AppColors.primary
+                  : (theme.dividerTheme.color ?? AppColors.border),
+            ),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                  color: selected ? Colors.white : idleText,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text(label),
+                ),
+              ),
+              if (count != null) ...[
+                const SizedBox(width: 4),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  constraints: const BoxConstraints(minWidth: 20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? Colors.white.withValues(alpha: 0.22)
+                        : (isDark
+                              ? AppColors.primary.withValues(alpha: 0.2)
+                              : AppColors.primaryTint),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '$count',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: selected
+                          ? Colors.white
+                          : (count == 0
+                                ? idleText
+                                : (isDark
+                                      ? const Color(0xFF93C5FD)
+                                      : AppColors.primary)),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );

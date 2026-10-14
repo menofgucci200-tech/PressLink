@@ -47,17 +47,11 @@ class PressingDetailScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: const PressLinkTopBar(),
+      appBar: const PressLinkTopBar(title: 'Détail du pressing'),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            Row(
-              children: [
-                Text('Pressing', style: theme.textTheme.headlineSmall),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
             Center(
               child: Column(
                 children: [

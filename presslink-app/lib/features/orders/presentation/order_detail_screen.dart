@@ -34,7 +34,7 @@ class OrderDetailScreen extends ConsumerWidget {
     final orderAsync = ref.watch(orderDetailProvider(orderId));
 
     return Scaffold(
-      appBar: const PressLinkTopBar(),
+      appBar: const PressLinkTopBar(title: 'Détail de la commande'),
       body: SafeArea(
         child: orderAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),

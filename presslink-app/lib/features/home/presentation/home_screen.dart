@@ -35,7 +35,7 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       // La cloche des notifications est dans la barre du haut ; le profil,
       // dans le menu en éventail.
-      appBar: const PressLinkTopBar(),
+      appBar: const PressLinkTopBar(title: 'Accueil'),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {

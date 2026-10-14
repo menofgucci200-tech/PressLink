@@ -72,20 +72,11 @@ class SupportScreen extends ConsumerWidget {
     final customer = ref.watch(authControllerProvider).customer;
 
     return Scaffold(
-      appBar: const PressLinkTopBar(),
+      appBar: const PressLinkTopBar(title: 'Aide & support'),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            Row(
-              children: [
-                Text(
-                  'Aide & support',
-                  style: theme.textTheme.headlineSmall?.copyWith(fontSize: 18),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
             Container(
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(

@@ -25,7 +25,10 @@ class NotificationsScreen extends ConsumerWidget {
     final notificationsAsync = ref.watch(notificationsProvider);
 
     return Scaffold(
-      appBar: const PressLinkTopBar(showNotifications: false),
+      appBar: const PressLinkTopBar(
+        title: 'Notifications',
+        showNotifications: false,
+      ),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,7 +42,6 @@ class NotificationsScreen extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  Text('Notifications', style: theme.textTheme.headlineSmall),
                   const Spacer(),
                   AnimatedSwitcher(
                     duration: const Duration(milliseconds: 220),

@@ -80,11 +80,11 @@ void main() {
     expect(find.text('Mot de passe'), findsOneWidget);
   });
 
-  testWidgets('the home screen shows the PressLink top bar', (tester) async {
+  testWidgets('the home screen shows its name in the top bar', (tester) async {
     await tester.pumpWidget(app(const HomeScreen()));
     await tester.pump();
 
-    expect(find.text('PressLink', findRichText: true), findsOneWidget);
+    expect(find.text('Accueil'), findsOneWidget);
     expect(find.byTooltip('Notifications'), findsOneWidget);
     // Accueil : pas de page où revenir, le « P » PressLink à la place.
     expect(find.byTooltip('Retour'), findsNothing);

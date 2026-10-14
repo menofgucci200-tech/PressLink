@@ -39,18 +39,11 @@ class ProfileScreen extends ConsumerWidget {
     ).push(AppPageRoute(builder: (_) => const EditProfileScreen()));
 
     return Scaffold(
-      appBar: const PressLinkTopBar(),
+      appBar: const PressLinkTopBar(title: 'Mon profil'),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            Row(
-              children: [
-                Text('Mon profil', style: theme.textTheme.headlineSmall),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-
             // ===== Photo et identité =====
             _Card(
               padding: const EdgeInsets.fromLTRB(

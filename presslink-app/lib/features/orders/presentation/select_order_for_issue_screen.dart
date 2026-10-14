@@ -21,27 +21,15 @@ class SelectOrderForIssueScreen extends ConsumerWidget {
     final ordersAsync = ref.watch(ordersProvider);
 
     return Scaffold(
-      appBar: const PressLinkTopBar(),
+      appBar: const PressLinkTopBar(title: 'Signaler un problème'),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Text(
-                    'Signaler un problème',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
               Padding(
-                padding: const EdgeInsets.only(left: 48),
+                padding: EdgeInsets.zero,
                 child: Text(
                   'Sur quelle commande ?',
                   style: theme.textTheme.bodyMedium,

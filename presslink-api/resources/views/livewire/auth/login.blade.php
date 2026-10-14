@@ -1,5 +1,5 @@
 {{-- Portail « Espace pressing » : clair, bleu PressLink, tourné métier. --}}
-<div class="min-h-screen grid lg:grid-cols-[1.05fr_1fr] bg-white">
+<div class="min-h-screen grid lg:grid-cols-[1.05fr_1fr] bg-(--color-surface)">
     {{-- Panneau de présentation (masqué sur mobile) --}}
     <aside class="relative hidden lg:flex flex-col justify-between overflow-hidden bg-(--color-primary) text-white p-12">
         <div class="absolute -top-32 -right-32 w-[28rem] h-[28rem] rounded-full bg-white/10 blur-2xl" aria-hidden="true"></div>
@@ -29,7 +29,8 @@
     </aside>
 
     {{-- Formulaire --}}
-    <main class="flex flex-col justify-center px-6 py-12 sm:px-12 bg-(--color-bg) lg:bg-white">
+    <main class="relative flex flex-col justify-center px-6 py-12 sm:px-12 bg-(--color-bg) lg:bg-(--color-surface)">
+        <x-theme-toggle class="absolute top-5 right-5 sm:top-6 sm:right-6" />
         <div class="w-full max-w-sm mx-auto animate-step">
             <a href="{{ route('home') }}" class="lg:hidden inline-block font-display text-2xl font-bold tracking-tight mb-10">Press<span class="text-(--color-primary)">Link</span></a>
 
@@ -41,7 +42,7 @@
 
             @include('livewire.auth._form', ['dark' => false])
 
-            <div class="mt-8 rounded-xl border border-(--color-border) bg-white lg:bg-(--color-bg) p-4 text-sm text-(--color-text-secondary)">
+            <div class="mt-8 rounded-xl border border-(--color-border) bg-(--color-surface) lg:bg-(--color-bg) p-4 text-sm text-(--color-text-secondary)">
                 Mot de passe oublié ou pas encore de compte ?
                 <a href="{{ route('site.contact') }}" class="font-semibold text-(--color-primary) hover:underline">Contactez PressLink</a>
                 ou demandez à l'administrateur de votre pressing.

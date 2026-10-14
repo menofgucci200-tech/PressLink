@@ -4,12 +4,12 @@
         <p class="text-sm text-(--color-text-muted)">Une question, un problème ? L'équipe PressLink vous répond.</p>
     </div>
 
-    <div class="bg-(--color-primary-tint) border border-blue-100 rounded-2xl p-6 sm:p-8 text-center mb-6">
+    <div class="bg-(--color-primary-tint) border border-(--color-primary)/15 rounded-2xl p-6 sm:p-8 text-center mb-6">
         <div class="w-14 h-14 mx-auto rounded-full bg-(--color-primary) text-white flex items-center justify-center mb-4">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"></path></svg>
         </div>
         <p class="text-(--color-text-secondary) mb-2">Appelez ou écrivez-nous sur WhatsApp, au même numéro :</p>
-        <p class="font-display text-3xl sm:text-4xl font-extrabold text-(--color-primary-600) tabular-nums mb-6" data-testid="support-phone">{{ $phoneDisplay }}</p>
+        <p class="font-display text-3xl sm:text-4xl font-extrabold text-(--color-primary-600) dark:text-(--color-primary) tabular-nums mb-6" data-testid="support-phone">{{ $phoneDisplay }}</p>
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
             <a href="tel:{{ $phoneE164 }}" class="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl bg-(--color-primary) text-white font-semibold hover:bg-(--color-primary-600)">
                 <img src="{{ asset('images/phone.png') }}" alt="" width="26" height="26" class="rounded-full ring-2 ring-white">

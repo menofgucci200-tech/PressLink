@@ -78,7 +78,7 @@
     <div class="relative max-w-sm mb-5">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-(--color-text-muted)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
         <input type="text" wire:model.live.debounce.400ms="search" placeholder="Nom, login ou téléphone…"
-               class="w-full h-10 pl-9 pr-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-white">
+               class="w-full h-10 pl-9 pr-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-(--color-surface)">
     </div>
 
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden">

@@ -63,7 +63,7 @@
                     <a href="{{ $appUrl }}" class="inline-flex items-center justify-center h-12 px-6 rounded-xl bg-(--color-primary) text-white font-semibold hover:bg-(--color-primary-600)">
                         Ouvrir l'application
                     </a>
-                    <a href="{{ route('site.how') }}" class="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl border border-(--color-border) bg-white font-semibold hover:border-(--color-primary)">
+                    <a href="{{ route('site.how') }}" class="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl border border-(--color-border) bg-(--color-surface) font-semibold hover:border-(--color-primary)">
                         <svg class="w-4 h-4 text-(--color-primary)" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
                         Voir comment ça marche
                     </a>
@@ -98,11 +98,11 @@
                 <p class="text-(--color-text-secondary) text-lg">Pas de store : ouvrez <a href="{{ $appUrl }}" class="font-semibold text-(--color-primary) hover:underline">presslink.org/app</a> et ajoutez l'application à votre écran d'accueil.</p>
             </div>
             <div class="grid lg:grid-cols-2 gap-8">
-                <div class="bg-white border border-(--color-border) rounded-3xl p-6 md:p-8">
+                <div class="bg-(--color-surface) border border-(--color-border) rounded-3xl p-6 md:p-8">
                     <h3 class="font-display text-2xl font-bold mb-6">Sur Android <span class="text-(--color-text-muted) font-semibold text-base">· Chrome</span></h3>
                     <x-site.install-demo os="android" />
                 </div>
-                <div class="bg-white border border-(--color-border) rounded-3xl p-6 md:p-8">
+                <div class="bg-(--color-surface) border border-(--color-border) rounded-3xl p-6 md:p-8">
                     <h3 class="font-display text-2xl font-bold mb-6">Sur iPhone <span class="text-(--color-text-muted) font-semibold text-base">· Safari</span></h3>
                     <x-site.install-demo os="ios" />
                 </div>
@@ -118,7 +118,7 @@
                 ['site.pressings', 'Pour les pressings', 'Un logiciel de gestion simple : commandes, clients, équipe, exports.'],
                 ['site.install', 'Installer l\'application', 'Android ou iPhone : l\'installation pas à pas, en images.'],
             ] as [$route, $heading, $text])
-                <a href="{{ route($route) }}" class="group bg-white border border-(--color-border) rounded-2xl p-6 hover:border-(--color-primary) hover:-translate-y-0.5">
+                <a href="{{ route($route) }}" class="group bg-(--color-surface) border border-(--color-border) rounded-2xl p-6 hover:border-(--color-primary) hover:-translate-y-0.5">
                     <h2 class="font-display text-xl font-bold mb-2">{{ $heading }}</h2>
                     <p class="text-(--color-text-secondary) leading-relaxed mb-4">{{ $text }}</p>
                     <span class="font-semibold text-(--color-primary)">Découvrir <span class="inline-block group-hover:translate-x-1 transition-transform">→</span></span>
@@ -129,7 +129,7 @@
 
     {{-- ===== QR + contact ===== --}}
     <section class="max-w-6xl mx-auto px-5 py-16 md:py-20 grid gap-10 md:grid-cols-2 items-center">
-        <div class="bg-white border border-(--color-border) rounded-3xl shadow-sm p-6 text-center max-w-sm mx-auto w-full">
+        <div class="bg-(--color-surface) border border-(--color-border) rounded-3xl shadow-sm p-6 text-center max-w-sm mx-auto w-full">
             <img src="{{ asset('qr-presslink-app.png') }}" width="280" height="280" alt="Code QR pour ouvrir l'application PressLink : presslink.org/app" class="mx-auto rounded-xl" loading="lazy">
             <p class="mt-4 font-display text-lg font-bold">Scannez pour installer l'application</p>
             <a href="{{ $appUrl }}" class="mt-1 inline-block text-sm font-semibold text-(--color-primary) hover:underline">presslink.org/app</a>
@@ -137,7 +137,7 @@
         <div>
             <h2 class="font-display text-3xl font-bold tracking-tight mb-3">Une question ? Parlons-en.</h2>
             <p class="text-(--color-text-secondary) text-lg mb-2">L'équipe PressLink vous répond par appel ou sur WhatsApp.</p>
-            <p class="font-display text-2xl font-extrabold text-(--color-primary-600) mb-6">{{ $supportPhoneDisplay }}</p>
+            <p class="font-display text-2xl font-extrabold text-(--color-primary-600) dark:text-(--color-primary) mb-6">{{ $supportPhoneDisplay }}</p>
             <x-site.contact-buttons />
         </div>
     </section>

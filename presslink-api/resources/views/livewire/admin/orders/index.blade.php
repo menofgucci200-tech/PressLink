@@ -194,7 +194,7 @@
                             <h3 class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-2">Signalements</h3>
                             <div class="space-y-2">
                                 @foreach ($selectedOrder->issues as $issue)
-                                    <div class="rounded-lg border p-3 {{ $issue->status === \App\Enums\OrderIssueStatus::Open ? 'border-red-200 bg-(--color-error-tint)' : 'border-(--color-border)' }}">
+                                    <div class="rounded-lg border p-3 {{ $issue->status === \App\Enums\OrderIssueStatus::Open ? 'border-(--color-error)/30 bg-(--color-error-tint)' : 'border-(--color-border)' }}">
                                         <div class="flex items-center justify-between gap-2 mb-1">
                                             <span class="font-semibold">{{ $issue->category->label() }}</span>
                                             <span class="text-xs font-medium {{ $issue->status === \App\Enums\OrderIssueStatus::Open ? 'text-(--color-error)' : 'text-(--color-success-text)' }}">{{ $issue->status->label() }}</span>

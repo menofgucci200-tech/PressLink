@@ -8,6 +8,7 @@
         <meta name="robots" content="noindex, nofollow">
         <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
         <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+        <x-theme-script />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
     </head>
@@ -36,11 +37,10 @@
             {{-- Mobile/tablette : le menu devient un panneau qui glisse depuis la gauche. --}}
             <div x-show="menu" x-cloak x-transition.opacity.duration.200ms @click="menu = false"
                  class="fixed inset-0 z-30 bg-slate-900/50 lg:hidden" aria-hidden="true"></div>
-            <aside class="fixed inset-y-0 left-0 z-40 max-lg:-translate-x-full lg:static lg:z-auto w-[239px] flex-none flex flex-col py-[22px] pl-5 overflow-y-auto lg:overflow-hidden text-white transition-transform duration-200 ease-out"
+            <aside class="fixed inset-y-0 left-0 z-40 max-lg:-translate-x-full lg:static lg:z-auto w-[239px] flex-none flex flex-col py-[22px] pl-5 overflow-y-auto lg:overflow-hidden text-white transition-transform duration-200 ease-out app-sidebar"
                    :class="menu && 'max-lg:translate-x-0!'"
-                   @click="if ($event.target.closest('a')) menu = false"
-                   style="background:linear-gradient(180deg, #1e3a8a 0%, #1e40af 45%, #2563eb 100%);">
-                <div class="font-display text-[21px] font-bold tracking-tight pr-1 pb-[6px]">Press<span class="text-(--color-primary-tint)">Link</span></div>
+                   @click="if ($event.target.closest('a')) menu = false">
+                <div class="font-display text-[21px] font-bold tracking-tight pr-1 pb-[6px]">Press<span class="text-blue-100">Link</span></div>
                 <div class="pr-5 pb-[24px] text-[11px] font-semibold uppercase tracking-wide text-blue-200">Super Admin</div>
 
                 <nav class="flex flex-col gap-1.5">
@@ -80,6 +80,7 @@
                     <a href="{{ route('account.settings') }}" wire:navigate title="Mon compte" class="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white hover:opacity-85" style="background:#1e3a8a;">
                         {{ $userInitials ?: '?' }}
                     </a>
+                    <x-theme-toggle />
                     <form novalidate method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-error) hover:text-(--color-error)" title="Se déconnecter">

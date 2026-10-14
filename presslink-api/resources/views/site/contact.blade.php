@@ -1,5 +1,5 @@
 @php
-    $field = 'w-full h-12 px-4 rounded-xl border border-(--color-border) bg-white text-sm outline-none focus:border-(--color-primary) focus:ring-4 focus:ring-blue-500/10';
+    $field = 'w-full h-12 px-4 rounded-xl border border-(--color-border) bg-(--color-surface) text-sm outline-none focus:border-(--color-primary) focus:ring-4 focus:ring-blue-500/10';
 @endphp
 <x-site.page
     title="Contact et support — PressLink"
@@ -14,12 +14,12 @@
         <div class="grid lg:grid-cols-[1fr_1.2fr] gap-8 items-start">
             {{-- Moyens de contact --}}
             <div class="space-y-4">
-                <div class="bg-(--color-primary-tint) border border-blue-100 rounded-3xl p-6">
+                <div class="bg-(--color-primary-tint) border border-(--color-primary)/15 rounded-3xl p-6">
                     <p class="text-sm font-semibold text-(--color-text-secondary) mb-1">Téléphone et WhatsApp</p>
-                    <p class="font-display text-3xl font-extrabold text-(--color-primary-600) mb-5">{{ $supportPhoneDisplay }}</p>
+                    <p class="font-display text-3xl font-extrabold text-(--color-primary-600) dark:text-(--color-primary) mb-5">{{ $supportPhoneDisplay }}</p>
                     <x-site.contact-buttons />
                 </div>
-                <a href="mailto:{{ $supportEmail }}" class="flex items-center gap-4 bg-white border border-(--color-border) rounded-3xl p-6 hover:border-(--color-primary)">
+                <a href="mailto:{{ $supportEmail }}" class="flex items-center gap-4 bg-(--color-surface) border border-(--color-border) rounded-3xl p-6 hover:border-(--color-primary)">
                     <span class="w-12 h-12 flex-none rounded-2xl bg-(--color-primary) text-white flex items-center justify-center">
                         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
                     </span>
@@ -35,12 +35,12 @@
             </div>
 
             {{-- Formulaire --}}
-            <div class="bg-white border border-(--color-border) rounded-3xl p-6 md:p-8 shadow-sm">
+            <div class="bg-(--color-surface) border border-(--color-border) rounded-3xl p-6 md:p-8 shadow-sm">
                 <h2 class="font-display text-2xl font-bold mb-1">Envoyez-nous un message</h2>
                 <p class="text-sm text-(--color-text-secondary) mb-6">Nous vous répondons par email ou par téléphone.</p>
 
                 @if (session('contact_sent'))
-                    <div class="rounded-2xl bg-(--color-success-tint) border border-emerald-200 p-5 text-(--color-success-text)" role="status">
+                    <div class="rounded-2xl bg-(--color-success-tint) border border-(--color-success)/30 p-5 text-(--color-success-text)" role="status">
                         <p class="font-semibold mb-1">Message envoyé, merci !</p>
                         <p class="text-sm">Nous revenons vers vous rapidement.</p>
                     </div>

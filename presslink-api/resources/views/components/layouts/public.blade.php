@@ -42,6 +42,7 @@
             <script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>
         @endif
 
+        <x-theme-script />
         @vite(['resources/css/app.css'])
     </head>
     <body class="bg-(--color-surface) text-(--color-text-primary) antialiased">

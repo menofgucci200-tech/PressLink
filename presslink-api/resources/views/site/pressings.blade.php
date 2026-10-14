@@ -2,7 +2,7 @@
     title="Logiciel de gestion de pressing en Côte d'Ivoire — PressLink"
     description="Commandes, clients, services et tarifs, équipe, exports et notifications automatiques : le logiciel de gestion de pressing simple et complet."
     path="/pour-les-pressings">
-    <section class="bg-(--color-text-primary) text-white">
+    <section class="bg-slate-900 text-white dark:border-b dark:border-(--color-border)">
         <div class="max-w-6xl mx-auto px-5 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-widest text-blue-300 mb-3">Pour les pressings</p>
@@ -58,7 +58,7 @@
             @endforeach
         </ol>
 
-        <div class="mt-14 bg-(--color-primary-tint) border border-blue-100 rounded-3xl px-6 py-10 md:px-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div class="mt-14 bg-(--color-primary-tint) border border-(--color-primary)/15 rounded-3xl px-6 py-10 md:px-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
                 <h2 class="font-display text-2xl font-bold mb-1">Équipez votre pressing</h2>
                 <p class="text-(--color-text-secondary)">Démonstration et mise en place avec l'équipe PressLink.</p>

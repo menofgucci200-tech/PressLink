@@ -3,6 +3,11 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+/* Mode nuit piloté par l'attribut `data-theme` posé sur <html> (cf.
+   components/theme-script) plutôt que par la seule préférence système :
+   l'utilisateur peut basculer à la main, et `dark:` suit ce choix. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
 @theme {
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
@@ -34,6 +39,49 @@
     --radius-md: 8px;
     --radius-lg: 12px;
     --radius-xl: 16px;
+}
+
+/*
+ * Mode nuit — mêmes rôles que les tokens ci-dessus, déclinés en sombre
+ * (palette identique à celle de l'application mobile, AppColors.*Dark).
+ * Presque toute l'interface passe par ces variables : les redéfinir suffit
+ * à basculer le site, le dashboard pressing et la console Super Admin.
+ */
+:root[data-theme='dark'] {
+    color-scheme: dark;
+    --color-primary: #3b82f6;
+    --color-primary-600: #2563eb;
+    --color-primary-tint: #172a4d;
+    --color-secondary: #22d3ee;
+    --color-success: #10b981;
+    --color-success-tint: #0f2e2b;
+    --color-success-text: #34d399;
+    --color-warning: #f59e0b;
+    --color-warning-tint: #2e2415;
+    --color-warning-text: #fbbf24;
+    --color-error: #f05252;
+    --color-error-tint: #351c22;
+    --color-info: #60a5fa;
+    --color-info-tint: #15264a;
+    --color-bg: #0b1220;
+    --color-surface: #121b2e;
+    --color-border: #223049;
+    --color-text-primary: #f1f5f9;
+    --color-text-secondary: #a9b7cc;
+    --color-text-muted: #7a8aa3;
+    --livewire-progress-bar-color: #3b82f6;
+}
+
+/* Bascule jour/nuit : transition douce des couleurs, le temps du
+   changement seulement (posée puis retirée par PressLinkTheme.toggle). */
+:root.theme-switching *,
+:root.theme-switching *::before,
+:root.theme-switching *::after {
+    transition:
+        background-color 250ms ease,
+        border-color 250ms ease,
+        color 250ms ease,
+        fill 250ms ease !important;
 }
 
 /*
@@ -124,6 +172,15 @@ main.is-navigating {
     opacity: 0.4;
 }
 
+/* Sidebar des dashboards (pressing et Super Admin). */
+.app-sidebar {
+    background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 45%, #2563eb 100%);
+}
+[data-theme='dark'] .app-sidebar {
+    background: linear-gradient(180deg, #0c1834 0%, #0f2150 50%, #16367f 100%);
+    box-shadow: inset -1px 0 0 var(--color-border);
+}
+
 /* Sidebar dashboard pressing — item de nav actif "découpé" dans le fond de
    page, comme un onglet qui rejoint le contenu (au lieu d'un simple fond
    coloré). Les deux coins arrondis (nav-notch-*) sont l'astuce classique du
@@ -165,6 +222,10 @@ main.is-navigating {
     font-weight: 600;
     color: #1d4ed8;
     background: var(--color-bg);
+}
+[data-theme='dark'] .nav-item-active,
+[data-theme='dark'] .nav-item-active:hover {
+    color: #93c5fd;
 }
 .nav-notch {
     position: absolute;
@@ -262,8 +323,32 @@ main.is-navigating {
 .phone-mock--hands .phone-mock__screen { left: 39.6%; top: 2.3%; width: 25.8%; height: 62.8%; }
 .phone-mock--hand .phone-mock__screen { left: 15%; top: 3.2%; width: 54%; height: 85.4%; border-radius: 12% / 6%; }
 .mock { font-size: 6.4cqw; font-family: var(--font-sans); color: var(--color-text-primary); height: 100%; padding: 2.6em .9em 1em; background: var(--color-bg); }
-.mock-card { background: #fff; border: 1px solid var(--color-border); border-radius: .8em; padding: .8em; }
+.mock-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: .8em; padding: .8em; }
 .mock-pill { display: inline-flex; align-items: center; gap: .35em; border-radius: 99em; padding: .2em .65em; font-size: .72em; font-weight: 600; }
+
+/* Les écrans de téléphone reproduisent l'application et les navigateurs
+   tels qu'on les voit en journée : ils gardent la palette claire, même en
+   mode nuit. */
+[data-theme='dark'] .phone-mock__screen {
+    color-scheme: light;
+    --color-primary: #2563eb;
+    --color-primary-tint: #eff4fe;
+    --color-success: #10b981;
+    --color-success-tint: #ecfdf5;
+    --color-success-text: #059669;
+    --color-warning-tint: #fffbeb;
+    --color-warning-text: #b45309;
+    --color-error: #ef4444;
+    --color-error-tint: #fef2f2;
+    --color-info: #3b82f6;
+    --color-info-tint: #eff6ff;
+    --color-bg: #f8fafc;
+    --color-surface: #ffffff;
+    --color-border: #e2e8f0;
+    --color-text-primary: #0f172a;
+    --color-text-secondary: #475569;
+    --color-text-muted: #94a3b8;
+}
 
 /* Démos d'installation : 3 écrans enchaînés en boucle de 12 s, et la liste
    d'étapes à côté s'illumine au même rythme. */
@@ -274,7 +359,7 @@ main.is-navigating {
 .install-steps li { animation: install-step 12s infinite; }
 .install-steps li:nth-child(2) { animation-delay: 4s; }
 .install-steps li:nth-child(3) { animation-delay: 8s; }
-@keyframes install-step { 0%, 33% { border-color: var(--color-primary); background: var(--color-primary-tint); } 34%, 100% { border-color: var(--color-border); background: #fff; } }
+@keyframes install-step { 0%, 33% { border-color: var(--color-primary); background: var(--color-primary-tint); } 34%, 100% { border-color: var(--color-border); background: var(--color-surface); } }
 .tap-dot { position: absolute; width: 2.2em; height: 2.2em; margin: -1.1em 0 0 -1.1em; border-radius: 50%; background: rgb(37 99 235 / .35); border: .15em solid rgb(37 99 235 / .8); animation: tap 4s infinite; }
 @keyframes tap { 0%, 40% { transform: scale(.4); opacity: 0; } 55% { transform: scale(1); opacity: 1; } 75%, 100% { transform: scale(1.5); opacity: 0; } }
 .float-y { animation: float-y 6s ease-in-out infinite; }

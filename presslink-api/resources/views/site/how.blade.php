@@ -38,7 +38,7 @@
         <div class="max-w-5xl mx-auto px-5 py-14 md:py-20">
             <h1 class="font-display text-4xl md:text-5xl font-extrabold tracking-tight mb-4 max-w-2xl">Comment ça marche</h1>
             <p class="text-(--color-text-secondary) text-lg mb-10 max-w-2xl">De l'inscription à la récupération de vos vêtements, voici tout le parcours PressLink.</p>
-            <video class="w-full rounded-3xl border border-(--color-border) shadow-lg bg-white" controls playsinline preload="metadata"
+            <video class="w-full rounded-3xl border border-(--color-border) shadow-lg bg-(--color-surface)" controls playsinline preload="metadata"
                    poster="{{ asset('video/presslink-parcours.jpg') }}?v=2" width="1280" height="720">
                 <source src="{{ asset('video/presslink-parcours.mp4') }}?v=2" type="video/mp4">
                 Votre navigateur ne lit pas cette vidéo.

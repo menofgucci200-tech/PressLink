@@ -171,7 +171,7 @@
                     </div>
                 </div>
 
-                <div wire:key="revenue-{{ $period }}-{{ $revenuePeriod }}" class="rounded-xl p-[18px] text-white animate-step" style="background:#0f172a;">
+                <div wire:key="revenue-{{ $period }}-{{ $revenuePeriod }}" class="rounded-xl p-[18px] text-white animate-step dark:ring-1 dark:ring-(--color-border)" style="background:#0f172a;">
                     <div class="text-[10.5px] font-semibold tracking-widest text-(--color-text-muted) uppercase">Encaissé · {{ ucfirst($periodLabel) }}</div>
                     <div class="flex items-baseline gap-2 mt-[11px]">
                         <div class="text-[29px] font-bold tracking-tight tabular-nums">{{ number_format($revenuePeriod, 0, ',', ' ') }}</div>

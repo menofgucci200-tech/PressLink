@@ -26,6 +26,35 @@ class OrderItemModel {
   );
 }
 
+/// État du règlement, calculé par l'API (payée, acompte versé, à payer).
+enum PaymentState { paid, partial, unpaid }
+
+PaymentState _paymentStateFromApi(String? value) => switch (value) {
+  'payee' => PaymentState.paid,
+  'acompte' => PaymentState.partial,
+  _ => PaymentState.unpaid,
+};
+
+/// Un paiement enregistré par le pressing (au dépôt, acompte, solde).
+class OrderPaymentModel {
+  const OrderPaymentModel({
+    required this.amountFcfa,
+    required this.methodLabel,
+    required this.paidAt,
+  });
+
+  final int amountFcfa;
+  final String methodLabel;
+  final DateTime paidAt;
+
+  factory OrderPaymentModel.fromJson(Map<String, dynamic> json) =>
+      OrderPaymentModel(
+        amountFcfa: json['amount_fcfa'] as int,
+        methodLabel: json['method_label'] as String? ?? '',
+        paidAt: DateTime.parse(json['paid_at'] as String),
+      );
+}
+
 class OrderStatusEvent {
   const OrderStatusEvent({required this.status, required this.at});
 
@@ -108,6 +137,10 @@ class OrderModel {
     this.expectedAt,
     this.history = const [],
     this.issues = const [],
+    this.amountPaidFcfa = 0,
+    this.balanceDueFcfa = 0,
+    this.paymentState = PaymentState.unpaid,
+    this.payments = const [],
   });
 
   final int id;
@@ -121,6 +154,12 @@ class OrderModel {
   final List<OrderItemModel> items;
   final List<OrderStatusEvent> history;
   final List<OrderIssueModel> issues;
+  final int amountPaidFcfa;
+
+  /// Reste à payer au pressing (au retrait).
+  final int balanceDueFcfa;
+  final PaymentState paymentState;
+  final List<OrderPaymentModel> payments;
 
   String get itemsLabel =>
       items.map((i) => '${i.quantity} ${i.name}').join(' · ');
@@ -145,6 +184,13 @@ class OrderModel {
         .toList(),
     issues: (json['issues'] as List? ?? [])
         .map((e) => OrderIssueModel.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    amountPaidFcfa: json['amount_paid_fcfa'] as int? ?? 0,
+    balanceDueFcfa:
+        json['balance_due_fcfa'] as int? ?? json['total_fcfa'] as int,
+    paymentState: _paymentStateFromApi(json['payment_status'] as String?),
+    payments: (json['payments'] as List? ?? [])
+        .map((e) => OrderPaymentModel.fromJson(e as Map<String, dynamic>))
         .toList(),
   );
 }

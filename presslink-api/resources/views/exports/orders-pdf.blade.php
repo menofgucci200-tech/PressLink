@@ -32,6 +32,7 @@
                 <th>Téléphone</th>
                 <th>Statut</th>
                 <th>Total</th>
+                <th>Reste à payer</th>
                 <th>Déposée le</th>
                 <th>Retrait prévu</th>
                 <th>Récupérée le</th>
@@ -45,6 +46,7 @@
                     <td>{{ $order->customer->phone }}</td>
                     <td>{{ $order->status->label() }}</td>
                     <td class="num">{{ number_format($order->total_fcfa, 0, ',', ' ') }} F</td>
+                    <td class="num">{{ $order->status->value === 'annulee' ? '—' : number_format($order->balance_due_fcfa, 0, ',', ' ').' F' }}</td>
                     <td>{{ $order->dropped_off_at?->format('d/m/Y') ?? '—' }}</td>
                     <td>{{ $order->expected_at?->format('d/m/Y') ?? '—' }}</td>
                     <td>{{ $order->recovered_at?->format('d/m/Y') ?? '—' }}</td>
@@ -55,6 +57,7 @@
             <tr>
                 <td colspan="4">Total</td>
                 <td class="num">{{ number_format($orders->sum('total_fcfa'), 0, ',', ' ') }} F</td>
+                <td class="num">{{ number_format($orders->where('status', '!=', \App\Enums\OrderStatus::Annulee)->sum('balance_due_fcfa'), 0, ',', ' ') }} F</td>
                 <td colspan="3"></td>
             </tr>
         </tfoot>

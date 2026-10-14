@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\OrderStatus;
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 use Carbon\Carbon;
 use Database\Factories\OrderFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -27,6 +29,7 @@ class Order extends Model
         'customer_id',
         'status',
         'total_fcfa',
+        'amount_paid_fcfa',
         'notes',
         'dropped_off_at',
         'expected_at',
@@ -35,10 +38,19 @@ class Order extends Model
         'recovered_by',
     ];
 
+    /**
+     * Exposés à l'app client (API) : reste à payer et état du règlement.
+     *
+     * @var list<string>
+     */
+    protected $appends = ['balance_due_fcfa', 'payment_status', 'payment_status_label'];
+
     protected function casts(): array
     {
         return [
             'status' => OrderStatus::class,
+            'total_fcfa' => 'integer',
+            'amount_paid_fcfa' => 'integer',
             'dropped_off_at' => 'datetime',
             'expected_at' => 'datetime',
             'recovered_at' => 'datetime',
@@ -154,6 +166,53 @@ class Order extends Model
         }
 
         return null;
+    }
+
+    /** @return HasMany<OrderPayment, $this> */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(OrderPayment::class)->orderBy('paid_at')->orderBy('id');
+    }
+
+    /** Reste à payer (jamais négatif, même si le total a baissé après un paiement). */
+    public function getBalanceDueFcfaAttribute(): int
+    {
+        return max(0, (int) $this->total_fcfa - (int) $this->amount_paid_fcfa);
+    }
+
+    public function paymentStatus(): PaymentStatus
+    {
+        return PaymentStatus::for((int) $this->total_fcfa, (int) $this->amount_paid_fcfa);
+    }
+
+    public function getPaymentStatusAttribute(): string
+    {
+        return $this->paymentStatus()->value;
+    }
+
+    public function getPaymentStatusLabelAttribute(): string
+    {
+        return $this->paymentStatus()->label();
+    }
+
+    /**
+     * Enregistre un règlement (acompte, solde ou paiement complet). Le
+     * montant est plafonné au reste à payer par l'appelant.
+     */
+    public function recordPayment(int $amountFcfa, PaymentMethod $method, ?int $recordedBy = null, ?string $note = null): OrderPayment
+    {
+        return $this->payments()->create([
+            'amount_fcfa' => $amountFcfa,
+            'method' => $method,
+            'recorded_by' => $recordedBy,
+            'note' => $note,
+        ]);
+    }
+
+    public function refreshAmountPaid(): void
+    {
+        $this->amount_paid_fcfa = (int) $this->payments()->sum('amount_fcfa');
+        $this->saveQuietly();
     }
 
     public function recalculateTotal(): void

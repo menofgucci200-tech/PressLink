@@ -13,8 +13,8 @@
                 </button>
                 @if ($showExportMenu)
                     @php
-                        $exportParams = ['status' => $status, 'search' => $search, 'date_from' => $dateFrom, 'date_to' => $dateTo];
-                        $hasFilters = $status !== '' || $search !== '' || $dateFrom !== '' || $dateTo !== '';
+                        $exportParams = ['status' => $status, 'search' => $search, 'date_from' => $dateFrom, 'date_to' => $dateTo, 'payment' => $payment];
+                        $hasFilters = $status !== '' || $search !== '' || $dateFrom !== '' || $dateTo !== '' || $payment !== '';
                     @endphp
                     <div class="absolute right-0 mt-2 w-56 bg-(--color-surface) border border-(--color-border) rounded-lg shadow-lg overflow-hidden z-10 animate-step">
                         <div class="px-4 pt-3 pb-2 text-[11px] text-(--color-text-muted) border-b border-(--color-border)">
@@ -57,7 +57,17 @@
             <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Jusqu'au</label>
             <input type="date" wire:model.live="dateTo" class="h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-(--color-surface)">
         </div>
-        @if ($search !== '' || $status !== '' || $dateFrom !== '' || $dateTo !== '')
+        <div>
+            <label for="payment-filter" class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Paiement</label>
+            <select id="payment-filter" wire:model.live="payment" class="h-10 pl-3 pr-8 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-(--color-surface)">
+                <option value="">Tous</option>
+                <option value="{{ \App\Models\Pressing::UNSETTLED_FILTER }}">Non soldées</option>
+                @foreach (\App\Enums\PaymentStatus::cases() as $case)
+                    <option value="{{ $case->value }}">{{ $case->label() }}</option>
+                @endforeach
+            </select>
+        </div>
+        @if ($search !== '' || $status !== '' || $dateFrom !== '' || $dateTo !== '' || $payment !== '')
             <button type="button" wire:click="resetFilters" class="h-10 px-3.5 rounded-lg text-[13px] font-medium text-(--color-text-secondary) hover:text-(--color-error)">
                 Réinitialiser
             </button>
@@ -68,7 +78,7 @@
     <x-status-filter-chips :current="$status" :counts="$counts" :statuses="$statuses" class="mb-5" />
 
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden">
-        @include('livewire.orders._table', ['orders' => $orders, 'showPhone' => true, 'statusFilterable' => true])
+        @include('livewire.orders._table', ['orders' => $orders, 'showPhone' => true, 'statusFilterable' => true, 'paymentFilterable' => true])
     </div>
 
     @if (is_countable($orders) && method_exists($orders, 'links'))

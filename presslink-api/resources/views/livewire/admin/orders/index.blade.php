@@ -175,6 +175,24 @@
                     </div>
 
                     <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <h3 class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Paiement</h3>
+                            <x-payment-badge :order="$selectedOrder" />
+                        </div>
+                        <div class="rounded-lg border border-(--color-border) divide-y divide-(--color-border)">
+                            @foreach ($selectedOrder->payments as $payment)
+                                <div class="flex items-center justify-between gap-3 px-3 py-2">
+                                    <div class="text-xs text-(--color-text-secondary)">{{ $payment->paid_at->format('d/m/Y H:i') }} · {{ $payment->method->label() }}</div>
+                                    <div class="font-medium tabular-nums">{{ $fcfa($payment->amount_fcfa) }} F</div>
+                                </div>
+                            @endforeach
+                            <div class="flex justify-between px-3 py-2.5 bg-(--color-bg) font-bold">
+                                <span>Reste à payer</span><span class="tabular-nums">{{ $fcfa($selectedOrder->balance_due_fcfa) }} F</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
                         <h3 class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-2">Historique</h3>
                         <ol class="relative border-l border-(--color-border) ml-1.5 space-y-3">
                             @forelse ($selectedOrder->statusHistory as $step)

@@ -1,11 +1,11 @@
 <div class="max-w-3xl mx-auto" data-skip-back>
     <div class="mb-6">
         <h1 class="font-display text-2xl font-bold mb-1">Nouvelle commande</h1>
-        <p class="text-sm text-(--color-text-muted)">Enregistrez un dépôt en quatre étapes.</p>
+        <p class="text-sm text-(--color-text-muted)">Enregistrez un dépôt en quatre étapes : client, articles, détails et paiement, confirmation.</p>
     </div>
 
     <div class="flex items-center mb-7">
-        @php $labels = [1 => 'Client', 2 => 'Articles', 3 => 'Détails', 4 => 'Confirmation']; @endphp
+        @php $labels = [1 => 'Client', 2 => 'Articles', 3 => 'Détails et paiement', 4 => 'Confirmation']; @endphp
         @foreach ($labels as $n => $label)
             <div class="flex items-center flex-1 min-w-0 last:flex-none">
                 <div class="flex items-center gap-2.5 flex-none">
@@ -191,7 +191,7 @@
 
         {{-- Étape 3 : Détails --}}
         @if ($step === 3)
-            <h2 class="font-semibold text-[17px] mb-5">Détails</h2>
+            <h2 class="font-semibold text-[17px] mb-5">Détails et paiement</h2>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
                 <div>
@@ -204,9 +204,91 @@
                 <textarea wire:model="notes" rows="3" placeholder="Ex. tache sur la manche gauche" class="w-full px-3 py-2 rounded-lg border border-(--color-border) text-sm"></textarea>
             </div>
 
+            {{-- Paiement : déjà payé, acompte (avec le reste à payer) ou au retrait --}}
+            @if ($this->total > 0)
+                @php
+                    $fcfa = fn (int $amount) => number_format($amount, 0, ',', ' ');
+                    $choices = [
+                        'full' => ['title' => 'Déjà payée', 'hint' => 'Le client règle les '.$fcfa($this->total).' F maintenant', 'icon' => '<path d="M20 6 9 17l-5-5"></path>'],
+                        'partial' => ['title' => 'Acompte', 'hint' => 'Une partie maintenant, le reste au retrait', 'icon' => '<circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor"></path>'],
+                        'later' => ['title' => 'Au retrait', 'hint' => 'Le client paiera en récupérant', 'icon' => '<circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path>'],
+                    ];
+                    $remaining = max(0, $this->total - $this->amountPaidNow);
+                @endphp
+                <div class="mb-5">
+                    <div class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Paiement</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5" role="radiogroup" aria-label="Paiement">
+                        @foreach ($choices as $value => $choice)
+                            @php $isOn = $paymentChoice === $value; @endphp
+                            <label wire:key="pay-{{ $value }}"
+                                   class="relative flex items-start gap-3 p-3.5 rounded-xl border transition-all duration-150
+                                          {{ $isOn ? 'border-(--color-primary) bg-(--color-primary-tint) shadow-[0_0_0_1px_var(--color-primary)]' : 'border-(--color-border) hover:border-(--color-text-muted)' }}">
+                                <input type="radio" wire:model.live="paymentChoice" value="{{ $value }}" class="sr-only">
+                                <span class="flex-none w-8 h-8 rounded-lg flex items-center justify-center {{ $isOn ? 'bg-(--color-primary) text-white' : 'bg-(--color-bg) text-(--color-text-secondary)' }}">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">{!! $choice['icon'] !!}</svg>
+                                </span>
+                                <span class="min-w-0">
+                                    <span class="block text-sm font-semibold">{{ $choice['title'] }}</span>
+                                    <span class="block text-xs text-(--color-text-muted) mt-0.5">{{ $choice['hint'] }}</span>
+                                </span>
+                            </label>
+                        @endforeach
+                    </div>
+                    @error('paymentChoice') <p class="text-xs text-(--color-error) mt-1.5">{{ $message }}</p> @enderror
+
+                    @if ($paymentChoice === 'partial')
+                        <div class="mt-3.5 grid grid-cols-1 sm:grid-cols-2 gap-4 animate-step">
+                            <div>
+                                <label for="deposit-amount" class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Montant versé</label>
+                                <div class="relative">
+                                    <input id="deposit-amount" type="number" inputmode="numeric" min="1" max="{{ $this->total - 1 }}" step="50"
+                                           wire:model.live.debounce.250ms="depositAmount" autofocus placeholder="Ex. {{ $fcfa((int) (round($this->total / 2 / 100) * 100)) }}"
+                                           class="w-full h-10 pl-3 pr-12 rounded-lg border border-(--color-border) text-sm tabular-nums">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-(--color-text-muted)">FCFA</span>
+                                </div>
+                                @php $half = (int) (round($this->total / 2 / 100) * 100); @endphp
+                                @if ($half > 0 && $half < $this->total)
+                                    <button type="button" wire:click="$set('depositAmount', '{{ $half }}')" class="mt-1.5 text-xs font-medium text-(--color-primary) hover:underline">
+                                        La moitié : {{ $fcfa($half) }} F
+                                    </button>
+                                @endif
+                                @error('depositAmount') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                            </div>
+                            <div class="rounded-xl bg-(--color-warning-tint) px-4 py-3 self-start">
+                                <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-warning-text)">Reste à payer au retrait</div>
+                                <div class="font-display text-xl font-bold tabular-nums mt-0.5 text-(--color-warning-text)">{{ $fcfa($remaining) }} F</div>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if ($paymentChoice === 'full' || $paymentChoice === 'partial')
+                        <div class="mt-3.5 animate-step">
+                            <div class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Moyen de paiement</div>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach ($paymentMethods as $method)
+                                    <label wire:key="method-{{ $method->value }}"
+                                           class="inline-flex items-center h-9 px-3.5 rounded-full border text-[13px] font-medium transition-colors duration-150
+                                                  {{ $paymentMethod === $method->value ? 'border-(--color-primary) bg-(--color-primary) text-white' : 'border-(--color-border) hover:border-(--color-text-muted)' }}">
+                                        <input type="radio" wire:model.live="paymentMethod" value="{{ $method->value }}" class="sr-only">
+                                        {{ $method->label() }}
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
             <div class="flex justify-between items-center pt-4 border-t border-(--color-border)">
                 <span class="text-sm font-medium">{{ $selectedCustomer?->fullName() }}</span>
-                <span class="font-semibold tabular-nums">{{ number_format($this->total, 0, ',', ' ') }} FCFA</span>
+                <span class="text-right">
+                    <span class="block font-semibold tabular-nums">{{ number_format($this->total, 0, ',', ' ') }} FCFA</span>
+                    @if ($paymentChoice !== '' && $this->total > 0)
+                        <span class="block text-xs tabular-nums {{ $this->total - $this->amountPaidNow > 0 ? 'text-(--color-warning-text)' : 'text-(--color-success-text)' }}">
+                            {{ $this->total - $this->amountPaidNow > 0 ? 'Reste '.number_format(max(0, $this->total - $this->amountPaidNow), 0, ',', ' ').' F au retrait' : 'Soldée' }}
+                        </span>
+                    @endif
+                </span>
             </div>
         @endif
 
@@ -235,13 +317,43 @@
                 <div class="text-sm">{{ \Illuminate\Support\Carbon::parse($expectedAt)->translatedFormat('d F Y') }}</div>
             </div>
 
+            @if ($this->total > 0)
+                @php $remainingAtPickup = max(0, $this->total - $this->amountPaidNow); @endphp
+                <div class="mb-5">
+                    <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-2">Paiement</div>
+                    <div class="text-sm">
+                        @if ($paymentChoice === 'full')
+                            Déjà payée · {{ \App\Enums\PaymentMethod::from($paymentMethod)->label() }}
+                        @elseif ($paymentChoice === 'partial')
+                            Acompte de {{ number_format($this->amountPaidNow, 0, ',', ' ') }} F · {{ \App\Enums\PaymentMethod::from($paymentMethod)->label() }}
+                        @else
+                            À payer au retrait
+                        @endif
+                    </div>
+                </div>
+            @endif
+
             @if ($errorMessage)
                 <div class="mb-5 p-3 rounded-lg bg-(--color-error-tint) text-(--color-error) text-sm">{{ $errorMessage }}</div>
             @endif
 
-            <div class="flex justify-between items-center pt-4 border-t border-(--color-border)">
-                <span class="text-sm font-medium">Total</span>
-                <span class="font-display text-2xl font-bold tabular-nums">{{ number_format($this->total, 0, ',', ' ') }} FCFA</span>
+            <div class="pt-4 border-t border-(--color-border)">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm font-medium">Total</span>
+                    <span class="font-display text-2xl font-bold tabular-nums">{{ number_format($this->total, 0, ',', ' ') }} FCFA</span>
+                </div>
+                @if ($this->total > 0 && $this->amountPaidNow > 0)
+                    <div class="flex justify-between items-center text-sm mt-1.5">
+                        <span class="text-(--color-text-secondary)">Payé au dépôt</span>
+                        <span class="tabular-nums font-medium text-(--color-success-text)">− {{ number_format($this->amountPaidNow, 0, ',', ' ') }} F</span>
+                    </div>
+                @endif
+                @if ($this->total > 0)
+                    <div class="flex justify-between items-center text-sm mt-1.5">
+                        <span class="font-semibold">Reste à payer au retrait</span>
+                        <span class="tabular-nums font-bold {{ $remainingAtPickup > 0 ? 'text-(--color-warning-text)' : 'text-(--color-success-text)' }}">{{ $remainingAtPickup > 0 ? number_format($remainingAtPickup, 0, ',', ' ').' F' : 'Rien, soldée' }}</span>
+                    </div>
+                @endif
             </div>
         @endif
     </div>

@@ -121,13 +121,13 @@
                     </div>
                 @else
                     <div class="overflow-x-auto">
-                        <div class="min-w-[600px]">
-                            <div class="grid grid-cols-[100px_minmax(140px,1fr)_140px_90px_96px_24px] items-center px-5 py-2.5 border-y border-(--color-border) text-[10.5px] font-semibold tracking-wide text-(--color-text-muted) uppercase">
+                        <div class="min-w-[620px]">
+                            <div class="grid grid-cols-[100px_minmax(140px,1fr)_140px_110px_96px_24px] items-center px-5 py-2.5 border-y border-(--color-border) text-[10.5px] font-semibold tracking-wide text-(--color-text-muted) uppercase">
                                 <div>N°</div><div>Client</div><div>Statut</div><div class="text-right">Total</div><div class="text-right">Dépôt</div><div></div>
                             </div>
                             @foreach ($recent as $order)
                                 <a href="{{ route('orders.show', $order) }}" wire:navigate
-                                   class="grid grid-cols-[100px_minmax(140px,1fr)_140px_90px_96px_24px] items-center px-5 py-[15px] border-b border-(--color-border) last:border-b-0 hover:bg-(--color-bg) transition-colors duration-100">
+                                   class="grid grid-cols-[100px_minmax(140px,1fr)_140px_110px_96px_24px] items-center px-5 py-[15px] border-b border-(--color-border) last:border-b-0 hover:bg-(--color-bg) transition-colors duration-100">
                                     <div class="text-sm font-semibold truncate">{{ $order->order_number }}</div>
                                     <div class="flex items-center gap-2.5 min-w-0">
                                         <span class="w-[26px] h-[26px] flex-none rounded-lg bg-(--color-bg) text-(--color-text-secondary) text-[10px] font-bold flex items-center justify-center">
@@ -142,7 +142,12 @@
                                             <span class="text-[10.5px] font-semibold {{ $alert['tone'] === 'danger' ? 'text-(--color-error)' : 'text-(--color-warning-text)' }}">{{ $alert['label'] }}</span>
                                         @endif
                                     </div>
-                                    <div class="text-right text-sm font-bold tabular-nums">{{ number_format($order->total_fcfa, 0, ',', ' ') }} F</div>
+                                    <div class="text-right">
+                                        <div class="text-sm font-bold tabular-nums">{{ number_format($order->total_fcfa, 0, ',', ' ') }} F</div>
+                                        @if ($order->status !== \App\Enums\OrderStatus::Annulee)
+                                            <x-payment-badge :order="$order" compact class="mt-0.5" />
+                                        @endif
+                                    </div>
                                     <div class="text-right text-[13px] text-(--color-text-muted) whitespace-nowrap" title="{{ $order->dropped_off_at->translatedFormat('l j F Y à H:i') }}">{{ $order->dropped_off_at->diffForHumans(['short' => true]) }}</div>
                                     <div class="text-right text-(--color-border) text-[15px]">›</div>
                                 </a>
@@ -195,6 +200,13 @@
                         </div>
                     @else
                         <div class="text-xs text-(--color-text-muted) mt-1">Pas de comparaison disponible</div>
+                    @endif
+                    @if ($outstanding > 0)
+                        <a href="{{ route('orders.index', ['paiement' => \App\Models\Pressing::UNSETTLED_FILTER]) }}" wire:navigate
+                           class="mt-3 flex items-center justify-between gap-2 rounded-lg bg-white/5 px-3 py-2 text-xs hover:bg-white/10 transition-colors duration-150">
+                            <span class="text-(--color-text-muted)">Reste à encaisser</span>
+                            <span class="font-semibold tabular-nums text-amber-300">{{ number_format($outstanding, 0, ',', ' ') }} F →</span>
+                        </a>
                     @endif
                     @php $bestDayIndex = $spark->max() > 0 ? $spark->search($spark->max()) : null; @endphp
                     <div class="flex items-end gap-[5px] h-[52px] mt-[18px]">

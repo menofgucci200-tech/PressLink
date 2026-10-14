@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminExportController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OrderExportController;
+use App\Http\Controllers\OrderReceiptController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SitePageController;
 use App\Livewire\Account\Settings as AccountSettings;
@@ -78,6 +79,9 @@ Route::middleware('auth')->group(function () {
         ->name('orders.export')
         ->where('format', 'csv|xlsx|pdf');
     Route::get('/commandes/{order}', OrdersShow::class)->name('orders.show');
+    Route::get('/commandes/{order}/recu/{format?}', OrderReceiptController::class)
+        ->name('orders.receipt')
+        ->where('format', 'pdf');
 
     Route::get('/clients', ClientsIndex::class)->name('clients.index');
     Route::get('/clients/{customer}', ClientsShow::class)->name('clients.show');

@@ -3,6 +3,7 @@
 namespace App\Actions\Orders;
 
 use App\Enums\OrderStatus;
+use App\Enums\PaymentMethod;
 use App\Enums\PressingStatus;
 use App\Models\Customer;
 use App\Models\Order;
@@ -19,6 +20,8 @@ use RuntimeException;
  * avant toute création), et refuse toute création pour un pressing
  * suspendu par le Super Admin (voir load-testing/RAPPORT.md, finding B)
  * ou pour un client dont le compte a été désactivé depuis la console.
+ * Le montant déjà payé au dépôt (tout ou acompte) est enregistré comme un
+ * premier paiement ; le reste se règle au retrait.
  */
 class CreateOrderAction
 {
@@ -33,9 +36,17 @@ class CreateOrderAction
         array $items,
         ?string $expectedAt = null,
         ?string $notes = null,
+        int $amountPaidFcfa = 0,
+        PaymentMethod $paymentMethod = PaymentMethod::Cash,
     ): Order {
         if ($items === []) {
             throw new InvalidArgumentException('Une commande doit contenir au moins un article.');
+        }
+
+        $total = array_sum(array_map(fn (array $item) => $item['unit_price_fcfa'] * $item['quantity'], $items));
+
+        if ($amountPaidFcfa < 0 || $amountPaidFcfa > $total) {
+            throw new RuntimeException('Le montant payé doit être compris entre 0 et le total de la commande.');
         }
 
         if ($pressing->status !== PressingStatus::Active) {
@@ -56,7 +67,7 @@ class CreateOrderAction
             throw new RuntimeException("L'abonnement de ce pressing ne permet plus de créer de commande (quota atteint ou essai expiré).");
         }
 
-        return DB::transaction(function () use ($pressing, $customer, $items, $expectedAt, $notes, $subscription) {
+        return DB::transaction(function () use ($pressing, $customer, $items, $expectedAt, $notes, $subscription, $amountPaidFcfa, $paymentMethod) {
             $order = Order::create([
                 'pressing_id' => $pressing->id,
                 'customer_id' => $customer->id,
@@ -72,9 +83,13 @@ class CreateOrderAction
 
             $order->recalculateTotal();
 
+            if ($amountPaidFcfa > 0) {
+                $order->recordPayment($amountPaidFcfa, $paymentMethod, Auth::guard('web')->id(), 'Payé au dépôt');
+            }
+
             $subscription?->incrementOrdersUsed();
 
-            return $order->fresh(['items', 'customer', 'pressing']);
+            return $order->fresh(['items', 'customer', 'pressing', 'payments']);
         });
     }
 }

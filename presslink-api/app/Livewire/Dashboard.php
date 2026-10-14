@@ -5,11 +5,12 @@ namespace App\Livewire;
 use App\Enums\OrderIssueStatus;
 use App\Enums\OrderStatus;
 use App\Models\Order;
-use App\Models\OrderStatusHistory;
+use App\Models\OrderPayment;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -199,19 +200,26 @@ class Dashboard extends Component
                 'openIssues' => ['count' => $openIssueOrders->count(), 'orderId' => $openIssueOrders->first()],
             ];
 
-            // "Encaissé" = commandes marquées récupérées (le paiement se fait au
-            // retrait) — le montant du jour est agrégé sur le passage à ce statut,
-            // pas sur la date de création de la commande. Récupéré sur toute la
-            // fenêtre [période précédente → période courante] pour pouvoir
-            // calculer le delta avec une seule requête.
-            $revenueByDay = OrderStatusHistory::query()
-                ->join('orders', 'orders.id', '=', 'order_status_histories.order_id')
+            // "Encaissé" = paiements réellement reçus (au dépôt, acomptes,
+            // soldes au retrait), datés du jour de l'encaissement. Les
+            // commandes annulées en sont exclues (à rembourser). Récupéré
+            // sur toute la fenêtre [période précédente → période courante]
+            // pour calculer le delta avec une seule requête.
+            $revenueByDay = OrderPayment::query()
+                ->join('orders', 'orders.id', '=', 'order_payments.order_id')
                 ->where('orders.pressing_id', $pressing->id)
-                ->where('order_status_histories.status', OrderStatus::Recuperee->value)
-                ->whereBetween('order_status_histories.created_at', [$previousStart, $rangeEnd])
-                ->selectRaw('DATE(order_status_histories.created_at) as day, SUM(orders.total_fcfa) as total')
+                ->where('orders.status', '!=', OrderStatus::Annulee->value)
+                ->whereNull('orders.deleted_at')
+                ->whereBetween('order_payments.paid_at', [$previousStart, $rangeEnd])
+                ->selectRaw('DATE(order_payments.paid_at) as day, SUM(order_payments.amount_fcfa) as total')
                 ->groupBy('day')
                 ->pluck('total', 'day');
+
+            // Ce qui reste dû sur les commandes en cours ou remises à crédit.
+            $outstanding = (int) $pressing->orders()
+                ->where('status', '!=', OrderStatus::Annulee->value)
+                ->whereColumn('amount_paid_fcfa', '<', 'total_fcfa')
+                ->sum(DB::raw('total_fcfa - amount_paid_fcfa'));
         }
 
         $revenuePeriod = $this->sumRevenueBetween($revenueByDay, $rangeStart, $rangeEnd);
@@ -242,6 +250,7 @@ class Dashboard extends Component
             'recent' => $recent,
             'tasks' => $tasks,
             'revenuePeriod' => $revenuePeriod,
+            'outstanding' => $outstanding ?? 0,
             'revenueChangePct' => $revenueChangePct,
             'spark' => $spark,
             'sparkMax' => $sparkMax,

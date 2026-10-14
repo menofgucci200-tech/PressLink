@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
 use App\Exports\OrdersExport;
 use App\Models\Pressing;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -30,6 +31,7 @@ class OrderExportController extends Controller
             'search' => $request->string('search')->toString() ?: null,
             'date_from' => $request->string('date_from')->toString() ?: null,
             'date_to' => $request->string('date_to')->toString() ?: null,
+            'payment' => $request->string('payment')->toString() ?: null,
         ];
 
         return match ($format) {
@@ -40,7 +42,7 @@ class OrderExportController extends Controller
         };
     }
 
-    /** @param  array{status: ?string, search: ?string, date_from: ?string, date_to: ?string}  $filters */
+    /** @param  array{status: ?string, search: ?string, date_from: ?string, date_to: ?string, payment: ?string}  $filters */
     private function pdf(Pressing $pressing, array $filters): Response
     {
         $orders = $pressing->filteredOrders($filters)->latest('dropped_off_at')->get();
@@ -52,7 +54,7 @@ class OrderExportController extends Controller
         ])->download('commandes.pdf');
     }
 
-    /** @param  array{status: ?string, search: ?string, date_from: ?string, date_to: ?string}  $filters */
+    /** @param  array{status: ?string, search: ?string, date_from: ?string, date_to: ?string, payment: ?string}  $filters */
     private function describeFilters(array $filters): ?string
     {
         $parts = [];
@@ -71,6 +73,12 @@ class OrderExportController extends Controller
 
         if ($filters['date_to']) {
             $parts[] = 'jusqu\'au '.Carbon::parse($filters['date_to'])->format('d/m/Y');
+        }
+
+        if ($filters['payment'] === Pressing::UNSETTLED_FILTER) {
+            $parts[] = 'commandes non soldées';
+        } elseif ($payment = PaymentStatus::tryFrom((string) $filters['payment'])) {
+            $parts[] = 'paiement « '.$payment->label().' »';
         }
 
         return $parts === [] ? null : implode(', ', $parts);

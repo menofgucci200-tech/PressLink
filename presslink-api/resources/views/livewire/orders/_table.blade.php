@@ -56,7 +56,18 @@
                             @endif
                         </div>
                     </td>
-                    <td class="px-5 py-3.5 text-right font-semibold tabular-nums">{{ number_format($order->total_fcfa, 0, ',', ' ') }} F</td>
+                    <td class="px-5 py-3.5 text-right">
+                        <div class="font-semibold tabular-nums">{{ number_format($order->total_fcfa, 0, ',', ' ') }} F</div>
+                        @if ($order->status !== \App\Enums\OrderStatus::Annulee)
+                            @if ($paymentFilterable ?? false)
+                                <button type="button" wire:click="$set('payment', '{{ $order->payment_status }}')" title="Afficher seulement les commandes « {{ $order->payment_status_label }} »" class="mt-0.5 rounded-full hover:ring-2 hover:ring-(--color-border)">
+                                    <x-payment-badge :order="$order" compact />
+                                </button>
+                            @else
+                                <x-payment-badge :order="$order" compact class="mt-0.5" />
+                            @endif
+                        @endif
+                    </td>
                     <td class="px-5 py-3.5" title="Déposée le {{ $order->dropped_off_at->translatedFormat('j F Y à H:i') }}">
                         <div class="text-(--color-text-secondary) tabular-nums">{{ $order->dropped_off_at->format('d/m') }}</div>
                         <div class="text-[11px] text-(--color-text-muted)">{{ $order->dropped_off_at->diffForHumans(['short' => true]) }}</div>

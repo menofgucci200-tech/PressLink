@@ -11,6 +11,7 @@ import '../../../core/widgets/presslink_top_bar.dart';
 import '../../pressings/domain/pressing_repository.dart';
 import '../../pressings/presentation/pressing_detail_screen.dart';
 import '../../pressings/presentation/pressings_controller.dart';
+import '../../../shared/models/order_summary.dart';
 import '../domain/order_repository.dart';
 import 'orders_controller.dart';
 import 'report_issue_screen.dart';
@@ -318,7 +319,18 @@ class _OrderDetailBody extends ConsumerWidget {
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.lg),
+
+        // Paiement : ce qui a été payé au pressing et ce qu'il reste à régler.
+        if (order.status != OrderStatus.annulee && order.totalFcfa > 0) ...[
+          Text(
+            'PAIEMENT',
+            style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6),
+          ),
+          const SizedBox(height: AppSpacing.sm + 4),
+          _PaymentCard(order: order),
+          const SizedBox(height: AppSpacing.md),
+        ],
 
         Row(
           children: [
@@ -494,6 +506,163 @@ class _TimelineRow extends StatelessWidget {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentCard extends StatelessWidget {
+  const _PaymentCard({required this.order});
+
+  final OrderModel order;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final due = order.balanceDueFcfa;
+    final dateFormat = DateFormat('d MMM', 'fr_FR');
+
+    final (
+      Color fg,
+      Color bg,
+      IconData icon,
+      String title,
+    ) = switch (order.paymentState) {
+      PaymentState.paid => (
+        isDark ? const Color(0xFF34D399) : AppColors.successText,
+        isDark
+            ? AppColors.success.withValues(alpha: 0.16)
+            : AppColors.successTint,
+        Icons.check_circle,
+        'Commande payée',
+      ),
+      PaymentState.partial => (
+        isDark ? const Color(0xFFFBBF24) : AppColors.warningText,
+        isDark
+            ? AppColors.warning.withValues(alpha: 0.16)
+            : AppColors.warningTint,
+        Icons.timelapse,
+        'Acompte versé',
+      ),
+      PaymentState.unpaid => (
+        isDark ? const Color(0xFFFBBF24) : AppColors.warningText,
+        isDark
+            ? AppColors.warning.withValues(alpha: 0.16)
+            : AppColors.warningTint,
+        Icons.schedule,
+        'À payer au retrait',
+      ),
+    };
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color,
+        border: Border.all(color: theme.dividerTheme.color!),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: Row(
+              children: [
+                Icon(icon, size: 20, color: fg),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      color: fg,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                // Le montant de l'acompte est détaillé dessous : seul « À
+                // payer au retrait » affiche ici le montant dû.
+                if (order.paymentState == PaymentState.unpaid && due > 0)
+                  Text(
+                    '${formatFcfa(due)} F',
+                    style: TextStyle(
+                      color: fg,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (order.payments.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm + 4),
+            for (final payment in order.payments)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${dateFormat.format(payment.paidAt.toLocal())} · ${payment.methodLabel}',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '${formatFcfa(payment.amountFcfa)} F',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+          const SizedBox(height: AppSpacing.sm),
+          Divider(color: theme.dividerTheme.color, height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Déjà payé', style: theme.textTheme.bodyMedium),
+              Text(
+                '${formatFcfa(order.amountPaidFcfa)} F',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Reste à payer',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              ),
+              Text(
+                due > 0 ? '${formatFcfa(due)} F' : '0 F',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 15,
+                  color: due > 0 ? fg : null,
+                ),
+              ),
+            ],
+          ),
+          if (due > 0 && order.status != OrderStatus.recuperee) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'À régler au pressing quand vous récupérez vos vêtements.',
+              style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12.5),
+            ),
+          ],
         ],
       ),
     );

@@ -29,6 +29,10 @@ class Index extends Component
     #[Url]
     public string $dateTo = '';
 
+    /** Payée, acompte versé ou à payer (voir PaymentStatus). */
+    #[Url(as: 'paiement')]
+    public string $payment = '';
+
     public bool $showExportMenu = false;
 
     public function updatingSearch(): void
@@ -51,9 +55,14 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function updatingPayment(): void
+    {
+        $this->resetPage();
+    }
+
     public function resetFilters(): void
     {
-        $this->reset(['search', 'status', 'dateFrom', 'dateTo']);
+        $this->reset(['search', 'status', 'dateFrom', 'dateTo', 'payment']);
         $this->resetPage();
     }
 
@@ -70,6 +79,7 @@ class Index extends Component
                 'search' => $this->search ?: null,
                 'date_from' => $this->dateFrom ?: null,
                 'date_to' => $this->dateTo ?: null,
+                'payment' => $this->payment ?: null,
             ];
 
             $orders = $pressing->filteredOrders([...$filters, 'status' => $this->status ?: null])

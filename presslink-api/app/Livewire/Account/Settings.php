@@ -3,16 +3,28 @@
 namespace App\Livewire\Account;
 
 use App\Livewire\Concerns\ShowsToasts;
+use App\Support\ImageOptimizer;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 /**
- * "Mon compte" — tout membre du staff (admin ou employé) peut y modifier
- * son propre login et son mot de passe, sans passer par le Super Admin.
+ * "Mon profil" — tout membre du staff (admin ou employé) et tout super
+ * admin y personnalise son propre profil (photo, nom, email, téléphone),
+ * son login et son mot de passe, sans passer par quelqu'un d'autre.
  */
 class Settings extends Component
 {
-    use ShowsToasts;
+    use ShowsToasts, WithFileUploads;
+
+    public string $name = '';
+
+    public string $email = '';
+
+    public string $phone = '';
+
+    public $avatar = null;
 
     public string $login = '';
 
@@ -24,7 +36,81 @@ class Settings extends Component
 
     public function mount(): void
     {
-        $this->login = (string) auth()->user()->login;
+        $user = auth()->user();
+
+        $this->name = (string) $user->name;
+        $this->email = (string) $user->email;
+        $this->phone = (string) $user->phone;
+        $this->login = (string) $user->login;
+    }
+
+    public function updateProfile(): void
+    {
+        $user = auth()->user();
+        $this->name = trim($this->name);
+        $this->email = mb_strtolower(trim($this->email));
+        $this->phone = $this->normalizePhone($this->phone);
+
+        // Sans login, l'email ou le téléphone est le seul moyen de se connecter.
+        $this->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'email' => [Rule::requiredIf(blank($user->login) && blank($this->phone)), 'nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'phone' => ['nullable', 'string', 'regex:/^\+2250[0-9]{9}$/', Rule::unique('users', 'phone')->ignore($user->id)],
+        ], [
+            'name.required' => 'Indiquez votre nom.',
+            'email.required' => 'Gardez une adresse e-mail ou un téléphone : sans identifiant de connexion, c\'est ce qui vous permet de vous connecter.',
+            'email.unique' => 'Cette adresse e-mail est déjà utilisée par un autre compte.',
+        ]);
+
+        $user->update([
+            'name' => $this->name,
+            'email' => $this->email ?: null,
+            'phone' => $this->phone ?: null,
+        ]);
+
+        // Rechargement léger (wire:navigate) : le nom et la photo de l'en-tête
+        // et du menu de profil, rendus par le layout, suivent la modification.
+        $this->flashToast('Profil mis à jour.');
+        $this->redirectRoute('account.settings', navigate: true);
+    }
+
+    /** La photo est enregistrée dès qu'elle est choisie, comme sur l'application. */
+    public function updatedAvatar(): void
+    {
+        $this->validate([
+            'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096', 'dimensions:max_width='.ImageOptimizer::MAX_DIMENSION.',max_height='.ImageOptimizer::MAX_DIMENSION],
+        ], [
+            'avatar.image' => 'Choisissez une image (JPG, PNG ou WebP).',
+            'avatar.mimes' => 'Choisissez une image (JPG, PNG ou WebP).',
+            'avatar.max' => 'Cette image est trop lourde (4 Mo maximum).',
+            'avatar.dimensions' => 'Cette image est trop grande ('.ImageOptimizer::MAX_DIMENSION.' × '.ImageOptimizer::MAX_DIMENSION.' pixels maximum).',
+        ]);
+
+        $user = auth()->user();
+        $previous = $user->avatar_path;
+
+        $user->update(['avatar_path' => ImageOptimizer::store($this->avatar, 'avatars')]);
+
+        if ($previous) {
+            Storage::disk('public')->delete($previous);
+        }
+
+        $this->avatar = null;
+        $this->flashToast('Photo de profil mise à jour.');
+        $this->redirectRoute('account.settings', navigate: true);
+    }
+
+    public function removeAvatar(): void
+    {
+        $user = auth()->user();
+
+        if ($user->avatar_path) {
+            Storage::disk('public')->delete($user->avatar_path);
+            $user->update(['avatar_path' => null]);
+        }
+
+        $this->flashToast('Photo de profil retirée.');
+        $this->redirectRoute('account.settings', navigate: true);
     }
 
     public function updateLogin(): void
@@ -60,12 +146,29 @@ class Settings extends Component
         $this->toast('Mot de passe mis à jour.');
     }
 
+    /** « 07 08 12 44 00 » ou « 0708124400 » → « +2250708124400 ». */
+    private function normalizePhone(string $phone): string
+    {
+        $phone = preg_replace('/[\s.\-()]/', '', $phone) ?? '';
+
+        return match (true) {
+            preg_match('/^0[0-9]{9}$/', $phone) === 1 => '+225'.$phone,
+            preg_match('/^(00)?2250[0-9]{9}$/', $phone) === 1 => '+'.preg_replace('/^00/', '', $phone),
+            default => $phone,
+        };
+    }
+
     public function render()
     {
+        $user = auth()->user();
+
         // Même page pour l'équipe d'un pressing et pour la console Super Admin.
-        return view('livewire.account.settings')->layout(
-            auth()->user()->is_super_admin ? 'layouts.admin' : 'layouts.dashboard',
-            ['active' => 'account', 'title' => 'Mon compte'],
+        return view('livewire.account.settings', [
+            'user' => $user,
+            'memberships' => $user->is_super_admin ? collect() : $user->activePressings(),
+        ])->layout(
+            $user->is_super_admin ? 'layouts.admin' : 'layouts.dashboard',
+            ['active' => 'account', 'title' => 'Mon profil'],
         );
     }
 }

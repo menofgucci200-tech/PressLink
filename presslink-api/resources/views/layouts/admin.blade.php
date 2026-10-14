@@ -27,7 +27,6 @@
                 $navItem('administrators', 'admin.administrators.index', 'Administrateurs', 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2|M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z|M22 21v-2a4 4 0 0 0-3-3.87|M16 3.13a4 4 0 0 1 0 7.75'),
                 $navItem('users', 'admin.users.index', 'Liste des utilisateurs', 'M8 6h13|M8 12h13|M8 18h13|M3 6h.01|M3 12h.01|M3 18h.01'),
             ];
-            $userInitials = collect(explode(' ', $user->name))->filter()->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->take(2)->implode('');
         @endphp
 
         <div class="min-h-screen flex" x-data="{ menu: false }"
@@ -61,6 +60,16 @@
                 </nav>
 
                 <div class="flex-1"></div>
+
+                <div class="pr-5 pt-6">
+                    <div class="border-t border-white/20 pt-3.5">
+                        <a href="{{ route('account.settings') }}" wire:navigate class="nav-item {{ ($active ?? null) === 'account' ? 'nav-item-active' : '' }}">
+                            @if (($active ?? null) === 'account') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <span class="truncate">Mon profil</span>
+                        </a>
+                    </div>
+                </div>
             </aside>
 
             <div class="flex-1 min-w-0 flex flex-col" x-data="{ scrolled: false }">
@@ -73,20 +82,8 @@
                     
                     <div class="flex-1"></div>
 
-                    <a href="{{ route('account.settings') }}" wire:navigate class="hidden sm:block text-right min-w-0 hover:opacity-70 transition-opacity duration-150">
-                        <div class="text-sm font-semibold leading-tight truncate">{{ $user->name }}</div>
-                        <div class="text-xs text-(--color-text-muted) truncate">Super Administrateur</div>
-                    </a>
-                    <a href="{{ route('account.settings') }}" wire:navigate title="Mon compte" class="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white hover:opacity-85" style="background:#1e3a8a;">
-                        {{ $userInitials ?: '?' }}
-                    </a>
                     <x-theme-toggle />
-                    <form novalidate method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-error) hover:text-(--color-error)" title="Se déconnecter">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                        </button>
-                    </form>
+                    <x-profile-menu :user="$user" role="Super Administrateur" :active="($active ?? null) === 'account'" />
                 </header>
 
                 <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" @scroll="scrolled = $event.target.scrollTop > 4">

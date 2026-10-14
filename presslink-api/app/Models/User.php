@@ -7,18 +7,20 @@ use App\Enums\PressingRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
  * Membre du staff d'un ou plusieurs pressings (employé ou admin).
  * Distinct de Customer (client final, authentifié par téléphone).
  */
-#[Fillable(['name', 'email', 'phone', 'login', 'password', 'must_change_password', 'is_super_admin'])]
+#[Fillable(['name', 'email', 'phone', 'login', 'avatar_path', 'password', 'must_change_password', 'is_super_admin'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -38,6 +40,26 @@ class User extends Authenticatable
             'is_super_admin' => 'boolean',
             'must_change_password' => 'boolean',
         ];
+    }
+
+    /** URL publique de la photo de profil, null tant qu'aucune n'est envoyée. */
+    protected function avatarUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->avatar_path ? Storage::disk('public')->url($this->avatar_path) : null,
+        );
+    }
+
+    /** Initiales affichées à la place de la photo (« Koffi Gérant » → « KG »). */
+    protected function initials(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => collect(explode(' ', (string) $this->name))
+                ->filter()
+                ->map(fn (string $word) => mb_strtoupper(mb_substr($word, 0, 1)))
+                ->take(2)
+                ->implode(''),
+        );
     }
 
     /** @return BelongsToMany<Pressing, $this> */

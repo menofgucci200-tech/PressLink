@@ -224,6 +224,7 @@ return [
         'currentPassword' => 'mot de passe actuel',
         'newPassword' => 'nouveau mot de passe',
         'newPasswordConfirmation' => 'confirmation du nouveau mot de passe',
+        'avatar' => 'photo de profil',
         'pressingRows' => 'pressings du groupe',
         'pressingRows.*.name' => 'nom du pressing',
         'pressingRows.*.code' => 'code du pressing',

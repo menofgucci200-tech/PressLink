@@ -81,10 +81,15 @@
                     @foreach ($members as $member)
                         <tr class="border-t border-(--color-border) hover:bg-(--color-bg)">
                             <td class="px-5 py-3.5 font-medium">
-                                {{ $member->name }}
-                                @if ($member->id === auth()->id())
-                                    <span class="text-(--color-text-muted) font-normal">(vous)</span>
-                                @endif
+                                <div class="flex items-center gap-3">
+                                    <x-user-avatar :user="$member" class="w-8 h-8 text-[11px] rounded-full" />
+                                    <span>
+                                        {{ $member->name }}
+                                        @if ($member->id === auth()->id())
+                                            <span class="text-(--color-text-muted) font-normal">(vous)</span>
+                                        @endif
+                                    </span>
+                                </div>
                             </td>
                             <td class="px-5 py-3.5 text-(--color-text-secondary)">
                                 <div class="font-mono">{{ $member->login }}</div>

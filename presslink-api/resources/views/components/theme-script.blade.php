@@ -38,23 +38,42 @@
             }
         }
 
+        function remember(mode) {
+            try {
+                if (mode === 'system') {
+                    localStorage.removeItem(storageKey);
+                } else {
+                    localStorage.setItem(storageKey, mode);
+                }
+            } catch (e) {}
+        }
+
+        function switchTo(theme) {
+            var root = document.documentElement;
+            root.classList.add('theme-switching');
+            apply(theme);
+            setTimeout(function () {
+                root.classList.remove('theme-switching');
+            }, 300);
+            window.dispatchEvent(new CustomEvent('presslink-theme-changed'));
+        }
+
         window.PressLinkTheme = {
             current: function () {
                 return document.documentElement.getAttribute('data-theme') || 'light';
             },
+            /** Choix enregistré : 'light', 'dark' ou 'system' (réglage de l'appareil). */
+            mode: function () {
+                return stored() || 'system';
+            },
+            set: function (mode) {
+                remember(mode);
+                switchTo(preferred());
+            },
             toggle: function () {
                 var next = this.current() === 'dark' ? 'light' : 'dark';
-                var root = document.documentElement;
-
-                try {
-                    localStorage.setItem(storageKey, next);
-                } catch (e) {}
-
-                root.classList.add('theme-switching');
-                apply(next);
-                setTimeout(function () {
-                    root.classList.remove('theme-switching');
-                }, 300);
+                remember(next);
+                switchTo(next);
             },
         };
 

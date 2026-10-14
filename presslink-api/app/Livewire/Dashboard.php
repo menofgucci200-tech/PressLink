@@ -5,11 +5,12 @@ namespace App\Livewire;
 use App\Enums\OrderIssueStatus;
 use App\Enums\OrderStatus;
 use App\Models\Order;
-use App\Models\OrderStatusHistory;
+use App\Models\OrderPayment;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -151,21 +152,23 @@ class Dashboard extends Component
         [$rangeStart, $rangeEnd, $previousStart, $previousEnd, $periodLabel] = $this->resolvePeriod();
 
         if ($pressing !== null) {
+            // Date de dépôt, comme le filtre de la liste des commandes : un
+            // clic sur une carte retrouve exactement le même nombre.
             $counts = array_merge(
                 $counts,
                 $pressing->orders()
                     ->selectRaw('status, count(*) as aggregate')
-                    ->whereBetween('created_at', [$rangeStart, $rangeEnd])
+                    ->whereBetween('dropped_off_at', [$rangeStart, $rangeEnd])
                     ->groupBy('status')
                     ->pluck('aggregate', 'status')
                     ->all(),
             );
 
-            $recent = $pressing->filteredOrders(['search' => $this->search ?: null])->latest()->take(8)->get();
+            $recent = $pressing->filteredOrders(['search' => $this->search ?: null])->withReadySince()->latest()->take(8)->get();
 
             $countsPrevious = $pressing->orders()
                 ->selectRaw('status, count(*) as aggregate')
-                ->whereBetween('created_at', [$previousStart, $previousEnd])
+                ->whereBetween('dropped_off_at', [$previousStart, $previousEnd])
                 ->groupBy('status')
                 ->pluck('aggregate', 'status');
 
@@ -174,9 +177,15 @@ class Dashboard extends Component
             // pas un historique. On récupère l'id de la première commande
             // concernée pour pouvoir y renvoyer directement quand il n'y en
             // a qu'une (sinon, la liste filtrée par statut).
+            // Même règle que l'alerte « Prête depuis N j » des listes : date
+            // du passage au statut « prête » (historique), pas la dernière
+            // modification de la commande.
             $readyOverdueOrders = $pressing->orders()
                 ->where('status', OrderStatus::Prete->value)
-                ->where('updated_at', '<=', now()->subDays(5))
+                ->withReadySince()
+                ->oldest('id')
+                ->get(['id', 'status', 'updated_at'])
+                ->filter(fn (Order $order) => $order->delayAlert() !== null)
                 ->pluck('id');
 
             $receivedOrders = $pressing->orders()->where('status', OrderStatus::Recue->value)->pluck('id');
@@ -191,19 +200,26 @@ class Dashboard extends Component
                 'openIssues' => ['count' => $openIssueOrders->count(), 'orderId' => $openIssueOrders->first()],
             ];
 
-            // "Encaissé" = commandes marquées récupérées (le paiement se fait au
-            // retrait) — le montant du jour est agrégé sur le passage à ce statut,
-            // pas sur la date de création de la commande. Récupéré sur toute la
-            // fenêtre [période précédente → période courante] pour pouvoir
-            // calculer le delta avec une seule requête.
-            $revenueByDay = OrderStatusHistory::query()
-                ->join('orders', 'orders.id', '=', 'order_status_histories.order_id')
+            // "Encaissé" = paiements réellement reçus (au dépôt, acomptes,
+            // soldes au retrait), datés du jour de l'encaissement. Les
+            // commandes annulées en sont exclues (à rembourser). Récupéré
+            // sur toute la fenêtre [période précédente → période courante]
+            // pour calculer le delta avec une seule requête.
+            $revenueByDay = OrderPayment::query()
+                ->join('orders', 'orders.id', '=', 'order_payments.order_id')
                 ->where('orders.pressing_id', $pressing->id)
-                ->where('order_status_histories.status', OrderStatus::Recuperee->value)
-                ->whereBetween('order_status_histories.created_at', [$previousStart, $rangeEnd])
-                ->selectRaw('DATE(order_status_histories.created_at) as day, SUM(orders.total_fcfa) as total')
+                ->where('orders.status', '!=', OrderStatus::Annulee->value)
+                ->whereNull('orders.deleted_at')
+                ->whereBetween('order_payments.paid_at', [$previousStart, $rangeEnd])
+                ->selectRaw('DATE(order_payments.paid_at) as day, SUM(order_payments.amount_fcfa) as total')
                 ->groupBy('day')
                 ->pluck('total', 'day');
+
+            // Ce qui reste dû sur les commandes en cours ou remises à crédit.
+            $outstanding = (int) $pressing->orders()
+                ->where('status', '!=', OrderStatus::Annulee->value)
+                ->whereColumn('amount_paid_fcfa', '<', 'total_fcfa')
+                ->sum(DB::raw('total_fcfa - amount_paid_fcfa'));
         }
 
         $revenuePeriod = $this->sumRevenueBetween($revenueByDay, $rangeStart, $rangeEnd);
@@ -234,6 +250,7 @@ class Dashboard extends Component
             'recent' => $recent,
             'tasks' => $tasks,
             'revenuePeriod' => $revenuePeriod,
+            'outstanding' => $outstanding ?? 0,
             'revenueChangePct' => $revenueChangePct,
             'spark' => $spark,
             'sparkMax' => $sparkMax,

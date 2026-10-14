@@ -1,6 +1,6 @@
 <div class="max-w-4xl">
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('admin.pressings.index') }}" class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center hover:border-(--color-primary)">
+        <a href="{{ route('admin.pressings.index') }}" data-back aria-label="Retour" data-tooltip="Retour" data-tooltip-pos="bottom" class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center hover:border-(--color-primary)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
         </a>
         <div>

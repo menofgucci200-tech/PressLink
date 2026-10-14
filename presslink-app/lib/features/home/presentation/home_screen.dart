@@ -146,6 +146,7 @@ class HomeScreen extends ConsumerWidget {
                               items: recentOrders[i].itemsLabel,
                               status: recentOrders[i].status,
                               totalFcfa: recentOrders[i].totalFcfa,
+                              balanceDueFcfa: recentOrders[i].balanceDueFcfa,
                             ),
                             onTap: () => Navigator.of(context)
                                 .push(

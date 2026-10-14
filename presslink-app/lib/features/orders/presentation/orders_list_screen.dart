@@ -145,6 +145,7 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
                                 items: order.itemsLabel,
                                 status: order.status,
                                 totalFcfa: order.totalFcfa,
+                                balanceDueFcfa: order.balanceDueFcfa,
                               ),
                               onTap: () => Navigator.of(context)
                                   .push(

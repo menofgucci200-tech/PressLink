@@ -34,7 +34,7 @@ class OrdersExport implements Export, FromCollection, ShouldAutoSize, WithHeadin
     /** @return list<string> */
     public function headings(): array
     {
-        return ['N° commande', 'Client', 'Téléphone', 'Statut', 'Total (FCFA)', 'Déposée le', 'Retrait prévu', 'Récupérée le'];
+        return ['N° commande', 'Client', 'Téléphone', 'Statut', 'Total (FCFA)', 'Payé (FCFA)', 'Reste à payer (FCFA)', 'Paiement', 'Déposée le', 'Retrait prévu', 'Récupérée le'];
     }
 
     /**
@@ -49,6 +49,9 @@ class OrdersExport implements Export, FromCollection, ShouldAutoSize, WithHeadin
             $order->customer->phone,
             $order->status->label(),
             $order->total_fcfa,
+            $order->amount_paid_fcfa,
+            $order->balance_due_fcfa,
+            $order->payment_status_label,
             $order->dropped_off_at?->format('d/m/Y') ?? '',
             $order->expected_at?->format('d/m/Y') ?? '',
             $order->recovered_at?->format('d/m/Y') ?? '',

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Actions\Demo\ResetDemoPressing;
+use App\Enums\PaymentStatus;
 use App\Enums\PressingRole;
 use App\Enums\PressingStatus;
 use Database\Factories\PressingFactory;
@@ -36,6 +37,9 @@ class Pressing extends Model
     ];
 
     protected $appends = ['logo_url'];
+
+    /** Filtre « commandes non soldées » (acompte ou rien payé). */
+    public const UNSETTLED_FILTER = 'non_soldee';
 
     protected function casts(): array
     {
@@ -119,12 +123,26 @@ class Pressing extends Model
      * (Orders\Index, Dashboard) et par les exports, pour garantir qu'un
      * export "avec filtres" contient exactement ce qui est affiché.
      *
-     * @param  array{status?: ?string, search?: ?string, date_from?: ?string, date_to?: ?string}  $filters
+     * @param  array{status?: ?string, search?: ?string, date_from?: ?string, date_to?: ?string, payment?: ?string}  $filters
      * @return HasMany<Order, $this>
      */
     public function filteredOrders(array $filters = []): HasMany
     {
         $query = $this->orders()->with('customer');
+
+        // État du règlement : payée, acompte versé, rien encore payé, ou
+        // « non soldée » (acompte ou rien payé : il reste de l'argent dû).
+        if (($filters['payment'] ?? null) === self::UNSETTLED_FILTER) {
+            $query->whereColumn('amount_paid_fcfa', '<', 'total_fcfa')
+                ->where('status', '!=', 'annulee');
+        }
+
+        match (PaymentStatus::tryFrom((string) ($filters['payment'] ?? ''))) {
+            PaymentStatus::Paid => $query->whereColumn('amount_paid_fcfa', '>=', 'total_fcfa'),
+            PaymentStatus::Partial => $query->where('amount_paid_fcfa', '>', 0)->whereColumn('amount_paid_fcfa', '<', 'total_fcfa'),
+            PaymentStatus::Unpaid => $query->where('amount_paid_fcfa', 0)->where('total_fcfa', '>', 0),
+            null => null,
+        };
 
         if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);

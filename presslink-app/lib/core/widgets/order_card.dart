@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/models/order_summary.dart';
+import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import 'status_badge.dart';
 import 'tap_scale.dart';
@@ -16,6 +17,7 @@ class OrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return TapScale(
       child: Card(
         child: InkWell(
@@ -63,11 +65,34 @@ class OrderCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      order.formattedTotal,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          order.formattedTotal,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (order.balanceDueFcfa != null &&
+                            order.status != OrderStatus.annulee)
+                          Text(
+                            order.balanceDueFcfa! > 0
+                                ? 'Reste ${formatFcfa(order.balanceDueFcfa!)} F à payer'
+                                : 'Payée',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: order.balanceDueFcfa! > 0
+                                  ? (isDark
+                                        ? const Color(0xFFFBBF24)
+                                        : AppColors.warningText)
+                                  : (isDark
+                                        ? const Color(0xFF34D399)
+                                        : AppColors.successText),
+                            ),
+                          ),
+                      ],
                     ),
                     Row(
                       mainAxisSize: MainAxisSize.min,

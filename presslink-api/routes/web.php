@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminExportController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OrderExportController;
+use App\Http\Controllers\OrderReceiptController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SitePageController;
 use App\Http\Middleware\EnsureUserHasPressing;
@@ -87,7 +88,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/commandes/export/{format}', OrderExportController::class)
             ->name('orders.export')
             ->where('format', 'csv|xlsx|pdf');
+        // Avant /commandes/{order} : « recus » n'est pas un numéro de commande.
+        Route::get('/commandes/recus/{format?}', [OrderReceiptController::class, 'batch'])
+            ->name('orders.receipts')
+            ->where('format', 'pdf');
         Route::get('/commandes/{order}', OrdersShow::class)->name('orders.show');
+        Route::get('/commandes/{order}/recu/{format?}', [OrderReceiptController::class, 'show'])
+            ->name('orders.receipt')
+            ->where('format', 'pdf');
 
         Route::get('/clients', ClientsIndex::class)->name('clients.index');
         Route::get('/clients/{customer}', ClientsShow::class)->name('clients.show');

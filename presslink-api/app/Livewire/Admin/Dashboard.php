@@ -198,11 +198,12 @@ class Dashboard extends Component
 
     /**
      * @param  Collection<int, Subscription>  $subscriptions
-     * @return list<array{label: string, count: int}>
+     * @return list<array{key: string, label: string, count: int}>
      */
     private function planBreakdown(Collection $subscriptions): array
     {
         return array_map(fn (SubscriptionPlan $plan) => [
+            'key' => $plan->value,
             'label' => $plan->label(),
             'count' => $subscriptions->filter(fn (Subscription $s) => $s->plan === $plan)->count(),
         ], SubscriptionPlan::cases());
@@ -226,7 +227,7 @@ class Dashboard extends Component
      * couverte) — une seule requête groupée par jour, regroupée ensuite.
      *
      * @param  Builder<Order>  $orders
-     * @return array{bars: list<array{label: string, count: int}>, max: int}
+     * @return array{bars: list<array{label: string, count: int, from: string, to: string}>, max: int}
      */
     private function ordersChart(Builder $orders, ?Carbon $since): array
     {
@@ -259,7 +260,13 @@ class Dashboard extends Component
             for ($day = $cursor->copy(); $day->lt($next) && $day->lte($end); $day->addDay()) {
                 $count += (int) ($perDay[$day->toDateString()] ?? 0);
             }
-            $bars[] = ['label' => $cursor->format($format), 'count' => $count];
+            $bars[] = [
+                'label' => $cursor->format($format),
+                'count' => $count,
+                // Bornes de la tranche, pour ouvrir la liste des commandes au clic.
+                'from' => $cursor->toDateString(),
+                'to' => $next->copy()->subDay()->min($end)->toDateString(),
+            ];
             $cursor = $next;
         }
 

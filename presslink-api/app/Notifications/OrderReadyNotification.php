@@ -11,7 +11,12 @@ class OrderReadyNotification extends OrderNotification
 
     public function body(): string
     {
-        return "La commande #{$this->order->order_number} est prête à être récupérée au {$this->order->pressing->name}.";
+        $body = "La commande #{$this->order->order_number} est prête à être récupérée au {$this->order->pressing->name}.";
+        $balance = $this->order->balance_due_fcfa;
+
+        return $balance > 0
+            ? $body.' Reste à payer au retrait : '.number_format($balance, 0, ',', ' ').' F.'
+            : $body.' Elle est déjà payée.';
     }
 
     protected function sendsEmail(): bool

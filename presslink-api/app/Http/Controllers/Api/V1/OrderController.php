@@ -27,7 +27,7 @@ class OrderController extends Controller
     {
         abort_unless($order->customer_id === $request->user()->id, 403);
 
-        $order->load(['pressing', 'items', 'statusHistory', 'issues']);
+        $order->load(['pressing', 'items', 'statusHistory', 'issues', 'payments:id,order_id,amount_fcfa,method,paid_at']);
 
         return response()->json($order);
     }

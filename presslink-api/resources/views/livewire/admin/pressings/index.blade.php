@@ -91,7 +91,16 @@
 
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden">
         @if ($pressings->isEmpty())
-            <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucun pressing trouvé.</div>
+            @if ($hasFilters)
+                <x-empty-state icon="search" title="Aucun pressing trouvé pour ces filtres">
+                    Modifiez la recherche ou retirez un filtre pour élargir la liste.
+                    <x-slot:actions>
+                        <button type="button" wire:click="resetFilters" class="inline-flex items-center gap-2 h-9 px-4 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">Réinitialiser les filtres</button>
+                    </x-slot:actions>
+                </x-empty-state>
+            @else
+                <x-empty-state icon="store" title="Aucun pressing pour le moment" />
+            @endif
         @else
             <div class="overflow-x-auto"><table class="w-full min-w-[980px] whitespace-nowrap text-sm">
                 <thead>
@@ -113,7 +122,7 @@
                             $lastOrderAt = $pressing->last_order_at ? \Illuminate\Support\Carbon::parse($pressing->last_order_at) : null;
                             $isDemo = $pressing->code === \App\Actions\Demo\ResetDemoPressing::PRESSING_CODE;
                         @endphp
-                        <tr wire:key="pressing-{{ $pressing->id }}" class="border-t border-(--color-border) hover:bg-(--color-bg)">
+                        <tr wire:key="pressing-{{ $pressing->id }}" data-href="{{ route('admin.pressings.show', $pressing) }}" tabindex="0" role="link" class="border-t border-(--color-border)">
                             <td class="px-5 py-3.5">
                                 <a href="{{ route('admin.pressings.show', $pressing) }}" wire:navigate class="font-medium hover:text-(--color-primary)">{{ $pressing->name }}</a>
                                 @if ($isDemo)
@@ -125,7 +134,8 @@
                                 @if ($subscription)
                                     <div class="flex items-center gap-2">
                                         <span class="font-medium">{{ $subscription->plan->label() }}</span>
-                                        <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full {{ $subscriptionTones[$subscription->status->value] }}">{{ $subscription->status->label() }}</span>
+                                        <button type="button" wire:click="$set('subscriptionStatus', '{{ $subscription->status->value }}')" title="Filtrer : {{ $subscription->status->label() }}"
+                                                class="text-[11px] font-semibold px-2 py-0.5 rounded-full hover:ring-2 hover:ring-current/25 {{ $subscriptionTones[$subscription->status->value] }}">{{ $subscription->status->label() }}</button>
                                     </div>
                                     @if ($subscription->status === \App\Enums\SubscriptionStatus::Trialing && $subscription->trial_ends_at)
                                         <div class="text-xs mt-0.5 {{ $subscription->trial_ends_at->isPast() ? 'text-(--color-error)' : ($subscription->trial_ends_at->lte(now()->addDays(7)) ? 'text-(--color-warning-text)' : 'text-(--color-text-muted)') }}">
@@ -153,9 +163,10 @@
                                 @endif
                             </td>
                             <td class="px-5 py-3.5">
-                                <span class="text-xs font-medium {{ $pressing->status->value === 'active' ? 'text-(--color-success-text)' : 'text-(--color-warning-text)' }}">
+                                <button type="button" wire:click="$set('status', '{{ $pressing->status->value }}')" title="Filtrer : {{ $pressing->status->label() }}"
+                                        class="text-xs font-medium hover:underline {{ $pressing->status->value === 'active' ? 'text-(--color-success-text)' : 'text-(--color-warning-text)' }}">
                                     {{ $pressing->status->label() }}
-                                </span>
+                                </button>
                             </td>
                             <td class="px-5 py-3.5 text-right">
                                 <button wire:click="toggleStatus({{ $pressing->id }})"

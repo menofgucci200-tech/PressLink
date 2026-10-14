@@ -186,6 +186,7 @@ class Index extends Component
                     'statusHistory.changedBy:id,name',
                     'issues' => fn ($q) => $q->latest(),
                     'creator:id,name',
+                    'payments',
                 ])->find($this->selectedOrderId)
                 : null,
             'hasFilters' => collect($filters)->filter()->isNotEmpty(),

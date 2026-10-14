@@ -1,15 +1,34 @@
 <div class="max-w-4xl mx-auto">
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('orders.index') }}" class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center hover:border-(--color-primary)">
+        <a href="{{ route('orders.index') }}" data-back aria-label="Retour" data-tooltip="Retour à la liste" data-tooltip-pos="bottom" class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center hover:border-(--color-primary)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
         </a>
         <div>
-            <div class="font-semibold tabular-nums">Commande {{ $order->order_number }}</div>
+            <div class="font-semibold tabular-nums flex items-center gap-1">Commande {{ $order->order_number }} <x-copy-button :value="$order->order_number" label="Copier le n° de commande" /></div>
             <div class="text-xs text-(--color-text-muted)">{{ $order->customer->fullName() }}</div>
         </div>
         <div class="flex-1"></div>
         <x-status-badge :status="$order->status" />
+        <a href="{{ route('orders.receipt', $order) }}" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><path d="M6 14h12v8H6z"></path></svg>
+            Reçu
+        </a>
     </div>
+
+    @if (session('order_created'))
+        <div class="mb-5 flex flex-wrap items-center gap-3 p-4 rounded-xl bg-(--color-success-tint) border border-[color-mix(in_srgb,var(--color-success)_30%,transparent)] animate-step">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-success-text)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><path d="M20 6 9 17l-5-5"></path></svg>
+            <div class="flex-1 min-w-0 text-sm">
+                <span class="font-semibold text-(--color-success-text)">Commande enregistrée.</span>
+                <span class="text-(--color-text-secondary)">Remettez le reçu au client : il y retrouve son numéro, ses articles et ce qu'il lui reste à payer.</span>
+            </div>
+            <a href="{{ route('orders.receipt', ['order' => $order, 'imprimer' => 1]) }}" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
+                Imprimer le reçu
+            </a>
+        </div>
+    @endif
 
     @if ($errorMessage)
         <div class="mb-5 p-3 rounded-lg bg-(--color-error-tint) text-(--color-error) text-sm">{{ $errorMessage }}</div>
@@ -105,8 +124,13 @@
             <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
                 <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-3">Client</div>
                 <div class="text-sm font-medium mb-1">{{ $order->customer->fullName() }}</div>
-                <div class="text-sm text-(--color-text-secondary) tabular-nums">{{ $order->customer->phone }}</div>
+                <div class="text-sm text-(--color-text-secondary) tabular-nums flex items-center gap-1">
+                    <a href="tel:{{ $order->customer->phone }}" class="hover:text-(--color-primary)">{{ $order->customer->phone }}</a>
+                    <x-copy-button :value="$order->customer->phone" label="Copier le téléphone" />
+                </div>
             </div>
+
+            @include('livewire.orders._payment-card')
 
             <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
                 <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-3">Dates</div>
@@ -125,18 +149,43 @@
             @if ($nextActions !== [])
                 <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 flex flex-col gap-2">
                     <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1">Actions</div>
+                    @php $balance = $order->balance_due_fcfa; @endphp
+                    @if ($balance > 0 && in_array(\App\Enums\OrderStatus::Recuperee, $nextActions, true))
+                        {{-- Remise avec un solde : encaisser et remettre en un geste --}}
+                        <div class="rounded-lg bg-(--color-warning-tint) p-3 mb-1">
+                            <div class="text-xs font-semibold text-(--color-warning-text)">Reste à payer au retrait</div>
+                            <div class="font-display text-xl font-bold tabular-nums text-(--color-warning-text)">{{ number_format($balance, 0, ',', ' ') }} F</div>
+                            <label for="settle-method" class="block text-[11px] font-medium text-(--color-text-secondary) mt-2 mb-1">Payé en</label>
+                            <select id="settle-method" wire:model="paymentMethod" class="w-full h-9 px-2.5 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm">
+                                @foreach ($paymentMethods as $method)
+                                    <option value="{{ $method->value }}">{{ $method->label() }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button wire:click="settleAndRecover"
+                                data-confirm-title="Encaisser et remettre" data-confirm-label="Encaisser et remettre"
+                                wire:confirm="Encaisser {{ number_format($balance, 0, ',', ' ') }} F et marquer la commande {{ $order->order_number }} comme récupérée par {{ $order->customer->fullName() }} ?"
+                                wire:loading.attr="disabled" wire:target="settleAndRecover"
+                                class="h-10 rounded-lg text-sm font-semibold bg-(--color-primary) text-white hover:bg-(--color-primary-600) disabled:opacity-60">
+                            <span wire:loading.remove wire:target="settleAndRecover">Encaisser {{ number_format($balance, 0, ',', ' ') }} F et remettre</span>
+                            <span wire:loading wire:target="settleAndRecover">Mise à jour…</span>
+                        </button>
+                    @endif
                     @foreach ($nextActions as $action)
                         <button wire:click="transitionTo('{{ $action->value }}')"
                                 @if ($action->value === 'annulee')
                                     data-confirm-title="Annuler la commande" data-confirm-label="Annuler la commande" data-confirm-cancel="Garder la commande" data-confirm-tone="danger"
-                                    wire:confirm="Annuler la commande {{ $order->order_number }} ? Cette action est définitive : la commande ne pourra plus changer de statut."
+                                    wire:confirm="Annuler la commande {{ $order->order_number }} ? Cette action est définitive : la commande ne pourra plus changer de statut.{{ $order->amount_paid_fcfa > 0 ? ' Le client a déjà payé '.number_format($order->amount_paid_fcfa, 0, ',', ' ').' F : pensez à le rembourser.' : '' }}"
+                                @elseif ($action->value === 'recuperee' && $balance > 0)
+                                    data-confirm-title="Remettre sans encaisser" data-confirm-label="Remettre sans encaisser" data-confirm-tone="warning"
+                                    wire:confirm="{{ $order->customer->fullName() }} récupère la commande {{ $order->order_number }} sans régler les {{ number_format($balance, 0, ',', ' ') }} F restants : ce montant restera dû (à encaisser plus tard dans Paiement)."
                                 @elseif ($action->value === 'recuperee')
                                     data-confirm-title="Remise au client" data-confirm-label="Confirmer la remise"
-                                    wire:confirm="Confirmez-vous que {{ $order->customer->fullName() }} a récupéré la commande {{ $order->order_number }} ({{ number_format($order->total_fcfa, 0, ',', ' ') }} F) ?"
+                                    wire:confirm="Confirmez-vous que {{ $order->customer->fullName() }} a récupéré la commande {{ $order->order_number }} ({{ number_format($order->total_fcfa, 0, ',', ' ') }} F, déjà payée) ?"
                                 @endif
                                 wire:loading.attr="disabled" wire:target="transitionTo('{{ $action->value }}')"
-                                class="h-10 rounded-lg text-sm font-semibold disabled:opacity-60 {{ $action->value === 'recuperee' || $action->value === 'prete' ? 'bg-(--color-primary) text-white hover:bg-(--color-primary-600)' : 'border border-(--color-border) hover:border-(--color-primary)' }}">
-                            <span wire:loading.remove wire:target="transitionTo('{{ $action->value }}')">Marquer {{ mb_strtolower($action->label()) }}</span>
+                                class="h-10 rounded-lg text-sm font-semibold disabled:opacity-60 {{ ($action->value === 'recuperee' && $balance === 0) || $action->value === 'prete' ? 'bg-(--color-primary) text-white hover:bg-(--color-primary-600)' : 'border border-(--color-border) hover:border-(--color-primary)' }}">
+                            <span wire:loading.remove wire:target="transitionTo('{{ $action->value }}')">{{ $action->value === 'recuperee' && $balance > 0 ? 'Remettre sans encaisser' : 'Marquer '.mb_strtolower($action->label()) }}</span>
                             <span wire:loading wire:target="transitionTo('{{ $action->value }}')">Mise à jour…</span>
                         </button>
                     @endforeach

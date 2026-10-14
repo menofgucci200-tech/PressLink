@@ -2,7 +2,6 @@
     $th = 'px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)';
     $field = 'h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm focus:outline-none focus:border-(--color-primary)';
     $fcfa = fn (int $amount) => number_format($amount, 0, ',', ' ');
-    $allCount = $statusCounts->sum();
     $openStatuses = \App\Livewire\Admin\Orders\Index::OPEN_STATUSES;
 @endphp
 
@@ -23,18 +22,7 @@
     </div>
 
     {{-- Compteurs par statut (cliquables) --}}
-    <div class="flex flex-wrap gap-2 mb-5">
-        <button type="button" wire:click="$set('status', '')"
-                class="inline-flex items-center gap-2 h-9 px-3.5 rounded-full border text-sm font-medium {{ $status === '' ? 'border-(--color-primary) bg-(--color-primary-tint) text-(--color-primary)' : 'border-(--color-border) bg-(--color-surface) hover:border-(--color-text-muted)' }}">
-            Toutes <span class="tabular-nums font-bold">{{ $fcfa($allCount) }}</span>
-        </button>
-        @foreach ($statuses as $case)
-            <button type="button" wire:click="$set('status', '{{ $status === $case->value ? '' : $case->value }}')"
-                    class="inline-flex items-center gap-2 h-9 px-3.5 rounded-full border text-sm font-medium {{ $status === $case->value ? 'border-(--color-primary) bg-(--color-primary-tint) text-(--color-primary)' : 'border-(--color-border) bg-(--color-surface) hover:border-(--color-text-muted)' }}">
-                {{ $case->label() }} <span class="tabular-nums font-bold">{{ $fcfa((int) ($statusCounts[$case->value] ?? 0)) }}</span>
-            </button>
-        @endforeach
-    </div>
+    <x-status-filter-chips :current="$status" :counts="$statusCounts" :statuses="$statuses" class="mb-5" />
 
     <div class="flex flex-wrap items-center gap-3 mb-5">
         <div class="relative w-full sm:w-auto sm:flex-1 sm:max-w-xs">
@@ -67,7 +55,16 @@
 
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden">
         @if ($orders->isEmpty())
-            <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucune commande trouvée.</div>
+            @if ($hasFilters)
+                <x-empty-state icon="search" title="Aucune commande trouvée pour ces filtres">
+                    Modifiez la recherche ou retirez un filtre pour élargir la liste.
+                    <x-slot:actions>
+                        <button type="button" wire:click="resetFilters" class="inline-flex items-center gap-2 h-9 px-4 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">Réinitialiser les filtres</button>
+                    </x-slot:actions>
+                </x-empty-state>
+            @else
+                <x-empty-state icon="box" title="Aucune commandee pour le moment" />
+            @endif
         @else
             <div class="overflow-x-auto"><table class="w-full min-w-[920px] whitespace-nowrap text-sm">
                 <thead>
@@ -93,15 +90,27 @@
                                     <span class="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-(--color-error-tint) text-(--color-error) text-[11px] font-bold align-middle" title="Signalement ouvert">!</span>
                                 @endif
                             </td>
-                            <td class="px-5 py-3.5">{{ $order->pressing->name }}</td>
+                            <td class="px-5 py-3.5">
+                                <button type="button" wire:click.stop="$set('pressingId', '{{ $order->pressing_id }}')" title="Voir uniquement les commandes de {{ $order->pressing->name }}"
+                                        class="hover:text-(--color-primary) hover:underline">{{ $order->pressing->name }}</button>
+                            </td>
                             <td class="px-5 py-3.5">
                                 <div>{{ $order->customer->fullName() }}</div>
                                 <div class="text-xs text-(--color-text-muted) tabular-nums">{{ $order->customer->phone }}</div>
                             </td>
-                            <td class="px-5 py-3.5"><x-status-badge :status="$order->status" /></td>
+                            <td class="px-5 py-3.5">
+                                <button type="button" wire:click.stop="$set('status', '{{ $order->status->value }}')" title="Filtrer : {{ $order->status->label() }}" class="rounded-full hover:ring-2 hover:ring-(--color-border)">
+                                    <x-status-badge :status="$order->status" />
+                                </button>
+                            </td>
                             <td class="px-5 py-3.5 text-right tabular-nums">{{ $order->items_count }}</td>
                             <td class="px-5 py-3.5 text-right font-semibold tabular-nums">{{ $fcfa($order->total_fcfa) }} F</td>
-                            <td class="px-5 py-3.5 text-(--color-text-secondary)">{{ $order->dropped_off_at?->format('d/m/Y') ?? '—' }}</td>
+                            <td class="px-5 py-3.5 text-(--color-text-secondary)" title="{{ $order->dropped_off_at?->translatedFormat('l j F Y à H:i') }}">
+                                {{ $order->dropped_off_at?->format('d/m/Y') ?? '—' }}
+                                @if ($order->dropped_off_at)
+                                    <div class="text-xs text-(--color-text-muted)">{{ $order->dropped_off_at->diffForHumans(['short' => true]) }}</div>
+                                @endif
+                            </td>
                             <td class="px-5 py-3.5 {{ $isLate ? 'text-(--color-error) font-semibold' : 'text-(--color-text-secondary)' }}">
                                 {{ $order->expected_at?->format('d/m/Y') ?? '—' }}{{ $isLate ? ' · en retard' : '' }}
                             </td>
@@ -122,7 +131,7 @@
                 <div class="flex items-start gap-3 px-5 py-4 border-b border-(--color-border)">
                     <div class="flex-1 min-w-0">
                         <div class="text-xs text-(--color-text-muted)">Commande</div>
-                        <div class="font-display text-lg font-bold tabular-nums">{{ $selectedOrder->order_number }}</div>
+                        <div class="font-display text-lg font-bold tabular-nums flex items-center gap-1">{{ $selectedOrder->order_number }} <x-copy-button :value="$selectedOrder->order_number" label="Copier le n° de commande" /></div>
                     </div>
                     <x-status-badge :status="$selectedOrder->status" />
                     <button type="button" wire:click="closeOrder" aria-label="Fermer"
@@ -141,7 +150,7 @@
                         <div class="rounded-lg bg-(--color-bg) p-3">
                             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1">Client</div>
                             <a href="{{ route('admin.clients.index', ['client' => $selectedOrder->customer_id]) }}" wire:navigate class="font-medium text-(--color-primary) hover:underline">{{ $selectedOrder->customer->fullName() }}</a>
-                            <div class="text-xs text-(--color-text-muted) tabular-nums">{{ $selectedOrder->customer->phone }}</div>
+                            <div class="text-xs text-(--color-text-muted) tabular-nums flex items-center gap-0.5">{{ $selectedOrder->customer->phone }} <x-copy-button :value="$selectedOrder->customer->phone" label="Copier le téléphone" /></div>
                         </div>
                     </div>
 
@@ -172,6 +181,24 @@
                         @if ($selectedOrder->notes)
                             <p class="mt-2 text-xs text-(--color-text-secondary)"><span class="font-semibold">Note :</span> {{ $selectedOrder->notes }}</p>
                         @endif
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <h3 class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Paiement</h3>
+                            <x-payment-badge :order="$selectedOrder" />
+                        </div>
+                        <div class="rounded-lg border border-(--color-border) divide-y divide-(--color-border)">
+                            @foreach ($selectedOrder->payments as $payment)
+                                <div class="flex items-center justify-between gap-3 px-3 py-2">
+                                    <div class="text-xs text-(--color-text-secondary)">{{ $payment->paid_at->format('d/m/Y H:i') }} · {{ $payment->method->label() }}</div>
+                                    <div class="font-medium tabular-nums">{{ $fcfa($payment->amount_fcfa) }} F</div>
+                                </div>
+                            @endforeach
+                            <div class="flex justify-between px-3 py-2.5 bg-(--color-bg) font-bold">
+                                <span>Reste à payer</span><span class="tabular-nums">{{ $fcfa($selectedOrder->balance_due_fcfa) }} F</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div>

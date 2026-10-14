@@ -126,6 +126,70 @@ button:disabled {
     cursor: not-allowed;
 }
 
+/* Tout ce qui réagit au clic prend le curseur « main » : lignes et cartes
+   cliquables ([data-href]), éléments à action Livewire ou Alpine, cases,
+   listes déroulantes, sélecteurs de date, étiquettes de champs cochables. */
+[data-href],
+[wire\:click],
+[x-on\:click],
+[\@click],
+select,
+label:has(> input[type='checkbox']),
+label:has(> input[type='radio']),
+input[type='checkbox'],
+input[type='radio'],
+input[type='file'],
+input[type='date'],
+input[type='time'],
+input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+}
+[aria-disabled='true'],
+[disabled] {
+    cursor: not-allowed;
+}
+
+/* Lignes cliquables : léger fond au survol, flèche qui glisse vers la droite,
+   contour visible quand on y arrive au clavier. */
+tr[data-href]:hover,
+[data-href].row-link:hover {
+    background-color: var(--color-bg);
+}
+[data-href] .row-chevron {
+    transition: transform 150ms ease, color 150ms ease;
+}
+[data-href]:hover .row-chevron {
+    transform: translateX(3px);
+    color: var(--color-primary);
+}
+[data-href]:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+}
+
+/* Cartes d'indicateurs cliquables (elles filtrent la liste correspondante). */
+.kpi-link {
+    transition:
+        transform 150ms ease,
+        box-shadow 150ms ease,
+        border-color 150ms ease;
+}
+.kpi-link:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+    box-shadow: 0 12px 24px -16px rgba(15, 23, 42, 0.35);
+}
+.kpi-link .kpi-cta {
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 150ms ease, transform 150ms ease;
+}
+.kpi-link:hover .kpi-cta,
+.kpi-link:focus-visible .kpi-cta {
+    opacity: 1;
+    transform: none;
+}
+
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
@@ -367,4 +431,239 @@ main.is-navigating {
 @media (prefers-reduced-motion: reduce) {
     .install-demo .scene, .install-steps li, .tap-dot, .float-y { animation: none; }
     .install-demo .scene:first-child { opacity: 1; }
+}
+
+/* Liste en cours de rechargement (filtre, tri, page) : lignes estompées et
+   reflet qui balaie la liste — Livewire pose .is-loading après 200 ms. */
+.list-loading-target,
+.loading-dim {
+    position: relative;
+}
+.loading-dim > * {
+    transition: opacity 150ms ease;
+}
+.loading-dim.is-loading > * {
+    opacity: 0.5;
+}
+.list-loading-target tbody,
+.list-loading-target .loading-rows {
+    transition: opacity 150ms ease;
+}
+.list-loading-target.is-loading tbody,
+.list-loading-target.is-loading .loading-rows {
+    opacity: 0.45;
+    pointer-events: none;
+}
+.list-loading-target.is-loading::after,
+.loading-dim.is-loading::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+        100deg,
+        transparent 20%,
+        color-mix(in srgb, var(--color-primary) 9%, transparent) 50%,
+        transparent 80%
+    );
+    background-size: 220% 100%;
+    animation: list-shimmer 1.1s ease-in-out infinite;
+}
+@keyframes list-shimmer {
+    from {
+        background-position: 120% 0;
+    }
+    to {
+        background-position: -120% 0;
+    }
+}
+
+/* Squelette générique (blocs gris animés) en attendant un contenu. */
+.skeleton {
+    border-radius: 6px;
+    background: linear-gradient(90deg, var(--color-border) 25%, var(--color-bg) 50%, var(--color-border) 75%);
+    background-size: 200% 100%;
+    animation: list-shimmer 1.2s ease-in-out infinite;
+}
+
+/* Panneau d'aperçu qui glisse depuis la droite. */
+.animate-panel {
+    animation: panel-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes panel-in {
+    from {
+        transform: translateX(24px);
+        opacity: 0;
+    }
+    to {
+        transform: none;
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .list-loading-target.is-loading::after,
+    .loading-dim.is-loading::after,
+    .skeleton,
+    .animate-panel {
+        animation: none;
+    }
+}
+
+/* Touches de clavier affichées (palette, aide des raccourcis). */
+.kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.35rem;
+    padding: 0 0.4rem;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    border-bottom-width: 2px;
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    font: 600 10.5px/1 ui-sans-serif, system-ui, sans-serif;
+    white-space: nowrap;
+}
+
+/* Palette de commandes. */
+.palette-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0.5rem;
+    padding: 0.55rem 0.6rem;
+    border-radius: 10px;
+    color: var(--color-text-primary);
+}
+.palette-item.is-active {
+    background: var(--color-primary-tint);
+}
+.palette-icon {
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg);
+    color: var(--color-text-secondary);
+}
+.palette-item.is-active .palette-icon {
+    background: var(--color-primary);
+    color: #fff;
+}
+
+/* Bulles d'aide ([data-tooltip]) : au survol ou au focus clavier, après un
+   court délai, au-dessus de l'élément (data-tooltip-pos="bottom" : dessous). */
+/* Dans la couche base : un utilitaire (absolute, fixed…) reste prioritaire. */
+@layer base {
+    [data-tooltip] {
+        position: relative;
+    }
+}
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 7px);
+    z-index: 60;
+    padding: 5px 8px;
+    border-radius: 6px;
+    background: #0f172a;
+    color: #fff;
+    font: 500 11.5px/1.25 ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: 0;
+    text-transform: none;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, 3px);
+    transition:
+        opacity 120ms ease,
+        transform 120ms ease;
+}
+[data-tooltip][data-tooltip-pos='bottom']::after {
+    bottom: auto;
+    top: calc(100% + 7px);
+    transform: translate(-50%, -3px);
+}
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    transition-delay: 350ms;
+}
+[data-tooltip]:disabled::after {
+    display: none;
+}
+:root[data-theme='dark'] [data-tooltip]::after {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+/* Bouton copier : icône ✓ un instant après la copie. */
+.copy-btn .copy-btn__done,
+.copy-btn.is-copied .copy-btn__copy {
+    display: none;
+}
+.copy-btn.is-copied .copy-btn__done {
+    display: block;
+    color: var(--color-success-text);
+}
+/* Dans une ligne de tableau, le bouton n'apparaît qu'au survol (ou au focus). */
+tr .copy-btn--reveal {
+    opacity: 0;
+    transition: opacity 120ms ease;
+}
+tr:hover .copy-btn--reveal,
+tr:focus-within .copy-btn--reveal,
+.copy-btn--reveal:focus-visible,
+.copy-btn--reveal.is-copied {
+    opacity: 1;
+}
+
+/* Focus clavier toujours visible (Tab), discret à la souris. */
+:where(a, button, summary, [role='button'], [role='link'], [tabindex]:not([tabindex='-1']), input[type='checkbox'], input[type='radio']):focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+tr[data-href]:focus-visible {
+    outline-offset: -2px;
+}
+label:has(> input.sr-only:focus-visible) {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* Lien d'évitement : visible seulement quand on y arrive au clavier. */
+.skip-link {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 100;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--color-primary);
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    transform: translateY(-150%);
+    transition: transform 150ms ease;
+}
+.skip-link:focus {
+    transform: none;
+}
+
+/* La palette a son propre cadre : pas d'anneau de focus autour du champ. */
+[data-palette-input]:focus,
+[data-palette-input]:focus-visible {
+    box-shadow: none;
+    outline: none;
+}
+/* Sur la barre latérale bleue, un contour blanc reste lisible. */
+.app-sidebar :focus-visible {
+    outline-color: #fff;
 }

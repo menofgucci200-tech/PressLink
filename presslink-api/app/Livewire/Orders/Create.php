@@ -3,6 +3,7 @@
 namespace App\Livewire\Orders;
 
 use App\Actions\Orders\CreateOrderAction;
+use App\Enums\PaymentMethod;
 use App\Models\Customer;
 use App\Models\Pressing;
 use App\Models\Service;
@@ -54,6 +55,13 @@ class Create extends Component
     public string $expectedAt = '';
 
     public string $notes = '';
+
+    // Étape 3 — paiement : déjà tout payé, acompte, ou tout au retrait.
+    public string $paymentChoice = '';
+
+    public string $depositAmount = '';
+
+    public string $paymentMethod = 'especes';
 
     public ?string $errorMessage = null;
 
@@ -250,6 +258,51 @@ class Create extends Component
         return collect($this->items)->sum(fn ($item) => $item['unit_price_fcfa'] * $item['quantity']);
     }
 
+    /** Montant encaissé au dépôt, selon le choix de paiement. */
+    public function getAmountPaidNowProperty(): int
+    {
+        return match ($this->paymentChoice) {
+            'full' => $this->total,
+            'partial' => max(0, (int) $this->depositAmount),
+            default => 0,
+        };
+    }
+
+    public function updatedPaymentChoice(): void
+    {
+        $this->resetErrorBag(['paymentChoice', 'depositAmount']);
+        if ($this->paymentChoice !== 'partial') {
+            $this->depositAmount = '';
+        }
+    }
+
+    private function validatePayment(): bool
+    {
+        if ($this->total === 0) {
+            return true;
+        }
+
+        $this->validate([
+            'paymentChoice' => ['required', 'in:full,partial,later'],
+            'paymentMethod' => ['required', 'in:'.implode(',', array_column(PaymentMethod::cases(), 'value'))],
+        ], [
+            'paymentChoice.required' => 'Indiquez si le client a déjà payé.',
+        ]);
+
+        if ($this->paymentChoice === 'partial') {
+            $this->validate([
+                'depositAmount' => ['required', 'integer', 'min:1', 'max:'.($this->total - 1)],
+            ], [
+                'depositAmount.required' => 'Indiquez le montant versé par le client.',
+                'depositAmount.integer' => 'Le montant versé doit être un nombre entier de francs.',
+                'depositAmount.min' => 'Le montant versé doit être supérieur à 0 F.',
+                'depositAmount.max' => 'Pour un acompte, le montant doit rester inférieur au total ('.number_format($this->total, 0, ',', ' ').' F). Sinon, choisissez « Déjà payée ».',
+            ]);
+        }
+
+        return true;
+    }
+
     public function goToStep(int $step): void
     {
         $this->step = $step;
@@ -263,6 +316,10 @@ class Create extends Component
 
         if ($this->step === 2 && $this->items === []) {
             return;
+        }
+
+        if ($this->step === 3) {
+            $this->validatePayment();
         }
 
         $this->step = min(4, $this->step + 1);
@@ -280,6 +337,12 @@ class Create extends Component
         $customer = $pressing->customers()->find($this->selectedCustomerId);
         abort_if($customer === null, 403);
 
+        // L'étape 3 impose un choix ; sans choix (appel direct), rien n'est
+        // considéré comme payé : tout reste à régler au retrait.
+        if ($this->paymentChoice !== '') {
+            $this->validatePayment();
+        }
+
         try {
             $order = (new CreateOrderAction)->handle(
                 pressing: $pressing,
@@ -287,6 +350,8 @@ class Create extends Component
                 items: $this->items,
                 expectedAt: $this->expectedAt,
                 notes: $this->notes ?: null,
+                amountPaidFcfa: $this->amountPaidNow,
+                paymentMethod: PaymentMethod::from($this->paymentMethod),
             );
         } catch (RuntimeException $e) {
             $this->errorMessage = $e->getMessage();
@@ -294,6 +359,8 @@ class Create extends Component
             return;
         }
 
+        // La fiche propose aussitôt d'imprimer le reçu à remettre au client.
+        session()->flash('order_created', true);
         $this->redirect(route('orders.show', $order), navigate: false);
     }
 
@@ -330,6 +397,7 @@ class Create extends Component
             'clients' => $clients,
             'selectedCustomer' => $selectedCustomer,
             'services' => $services,
+            'paymentMethods' => PaymentMethod::cases(),
         ]);
     }
 }

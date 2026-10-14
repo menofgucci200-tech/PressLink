@@ -53,27 +53,51 @@
                class="w-full h-10 pl-9 pr-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-(--color-surface)">
     </div>
 
-    <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden">
+    <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-clip list-loading-target"
+         wire:loading.delay.class="is-loading" wire:target="search, sortBy, gotoPage, nextPage, previousPage">
         @if ($clients->isEmpty())
-            <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucun client pour le moment.</div>
+            @if ($search !== '')
+                <x-empty-state icon="search" title="Aucun client ne correspond à « {{ $search }} »">
+                    Cherchez par prénom, nom ou numéro de téléphone (ex. 07 12…).
+                    <x-slot:actions>
+                        <button type="button" wire:click="$set('search', '')" class="inline-flex items-center gap-2 h-9 px-4 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">Effacer la recherche</button>
+                        <button type="button" wire:click="$set('showCreateForm', true)" class="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">Ajouter ce client</button>
+                    </x-slot:actions>
+                </x-empty-state>
+            @else
+                <x-empty-state icon="users" title="Aucun client pour le moment">
+                    Ajoutez vos clients ici, ou créez-les directement lors d'une nouvelle commande. Ils pourront suivre leurs commandes dans l'application.
+                    <x-slot:actions>
+                        <button type="button" wire:click="$set('showCreateForm', true)" class="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">Ajouter un client</button>
+                    </x-slot:actions>
+                </x-empty-state>
+            @endif
         @else
-            <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
+            @php $stickyTh = 'lg:sticky lg:top-16 lg:z-[5] bg-(--color-bg)'; @endphp
+            <div class="overflow-x-auto lg:overflow-visible"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
                 <thead>
-                    <tr class="bg-(--color-bg) text-left">
-                        <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Client</th>
-                        <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Téléphone</th>
-                        <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) text-right">Commandes</th>
+                    <tr class="text-left">
+                        <x-sort-th column="nom" label="Client" :sort="$sort" :direction="$direction" class="{{ $stickyTh }}" />
+                        <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) {{ $stickyTh }}">Téléphone</th>
+                        <x-sort-th column="commandes" label="Commandes" :sort="$sort" :direction="$direction" align="right" class="{{ $stickyTh }}" />
+                        <th class="w-10 {{ $stickyTh }}"></th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($clients as $client)
-                        <tr class="border-t border-(--color-border) hover:bg-(--color-bg) cursor-pointer" onclick="window.location='{{ route('clients.show', $client) }}'">
+                        <tr wire:key="client-{{ $client->id }}" data-href="{{ route('clients.show', $client) }}" tabindex="0" role="link" class="border-t border-(--color-border)">
                             <td class="px-5 py-3.5 font-medium">{{ $client->fullName() }}
                             @unless ($client->is_active)
                                 <span class="ml-1.5 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-(--color-error-tint) text-(--color-error)" title="Compte désactivé par PressLink : le client ne peut plus se connecter à l'application.">Compte désactivé</span>
                             @endunless</td>
-                            <td class="px-5 py-3.5 text-(--color-text-secondary) tabular-nums">{{ $client->phone }}</td>
+                            <td class="px-5 py-3.5 text-(--color-text-secondary) tabular-nums">
+                                {{ $client->phone }}
+                                <x-copy-button :value="$client->phone" label="Copier le téléphone" class="copy-btn--reveal ml-0.5" />
+                            </td>
                             <td class="px-5 py-3.5 text-right tabular-nums">{{ $client->orders_count }}</td>
+                            <td class="pr-5 py-3.5 text-right">
+                                <a href="{{ route('clients.show', $client) }}" wire:navigate tabindex="-1" class="row-chevron text-(--color-text-muted)" aria-hidden="true">›</a>
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>

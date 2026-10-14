@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/network/api_client.dart';
@@ -23,6 +24,7 @@ class Customer {
     this.gender,
     this.photoUrl,
     this.emailNotifications = true,
+    this.createdAt,
   });
 
   final int id;
@@ -36,7 +38,22 @@ class Customer {
   /// Doublon par email des étapes clés (créée, prête) si un email est renseigné.
   final bool emailNotifications;
 
+  /// Date d'inscription (« Client depuis… » sur le profil).
+  final DateTime? createdAt;
+
   String get fullName => '$firstName $lastName'.trim();
+
+  /// Initiales affichées à la place de la photo (« Aïcha Koné » → « AK »).
+  String get initials {
+    final letters = fullName
+        .split(' ')
+        .where((word) => word.isNotEmpty)
+        .map((word) => word.characters.first)
+        .take(2)
+        .join()
+        .toUpperCase();
+    return letters.isEmpty ? '?' : letters;
+  }
 
   factory Customer.fromJson(Map<String, dynamic> json) => Customer(
     id: json['id'] as int,
@@ -47,6 +64,9 @@ class Customer {
     gender: json['gender'] as String?,
     photoUrl: json['photo_url'] as String?,
     emailNotifications: json['email_notifications'] as bool? ?? true,
+    createdAt: DateTime.tryParse(
+      json['created_at'] as String? ?? '',
+    )?.toLocal(),
   );
 }
 
@@ -197,6 +217,18 @@ class AuthRepository {
         'password_confirmation': password,
       },
     );
+  }
+
+  /// Nouveau numéro (identifiant de connexion), confirmé par le mot de passe.
+  Future<Customer> updatePhone({
+    required String phone,
+    required String currentPassword,
+  }) async {
+    final response = await _apiClient.dio.put(
+      '/customer/phone',
+      data: {'phone': phone, 'current_password': currentPassword},
+    );
+    return Customer.fromJson(response.data as Map<String, dynamic>);
   }
 
   Future<void> updateOnesignalPlayerId(String playerId) async {

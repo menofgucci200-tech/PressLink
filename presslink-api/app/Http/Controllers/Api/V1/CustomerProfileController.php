@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateCustomerPasswordRequest;
+use App\Http\Requests\UpdateCustomerPhoneRequest;
 use App\Http\Requests\UpdateCustomerPhotoRequest;
 use App\Http\Requests\UpdateCustomerProfileRequest;
+use App\Support\ImageOptimizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -46,6 +48,35 @@ class CustomerProfileController extends Controller
         return response()->json(['message' => 'Mot de passe mis à jour.']);
     }
 
+    /**
+     * Nouveau numéro de téléphone (identifiant de connexion) : vérifié par
+     * le mot de passe actuel, la session en cours reste ouverte.
+     */
+    public function updatePhone(UpdateCustomerPhoneRequest $request): JsonResponse
+    {
+        $customer = $request->user();
+
+        if (! Hash::check($request->string('current_password')->toString(), $customer->password)) {
+            return response()->json([
+                'message' => 'Le mot de passe actuel est incorrect.',
+                'errors' => ['current_password' => ['Le mot de passe actuel est incorrect.']],
+            ], 422);
+        }
+
+        $phone = $request->string('phone')->toString();
+
+        if ($phone === $customer->phone) {
+            return response()->json([
+                'message' => 'C\'est déjà votre numéro actuel.',
+                'errors' => ['phone' => ['C\'est déjà votre numéro actuel.']],
+            ], 422);
+        }
+
+        $customer->update(['phone' => $phone, 'phone_verified_at' => now()]);
+
+        return response()->json($customer->fresh());
+    }
+
     public function updatePhoto(UpdateCustomerPhotoRequest $request): JsonResponse
     {
         $customer = $request->user();
@@ -54,7 +85,7 @@ class CustomerProfileController extends Controller
             Storage::disk('public')->delete($customer->photo_path);
         }
 
-        $path = $request->file('photo')->store('customers', 'public');
+        $path = ImageOptimizer::store($request->file('photo'), 'customers');
         $customer->update(['photo_path' => $path]);
 
         return response()->json($customer->fresh());

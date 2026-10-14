@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/app_page_route.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/app_back_button.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/status_badge.dart';
+import '../../../core/widgets/presslink_top_bar.dart';
 import 'orders_controller.dart';
 import 'report_issue_screen.dart';
 
@@ -21,28 +21,15 @@ class SelectOrderForIssueScreen extends ConsumerWidget {
     final ordersAsync = ref.watch(ordersProvider);
 
     return Scaffold(
+      appBar: const PressLinkTopBar(title: 'Signaler un problème'),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  AppBackButton(onPressed: () => Navigator.of(context).pop()),
-                  const SizedBox(width: AppSpacing.sm + 2),
-                  Text(
-                    'Signaler un problème',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
               Padding(
-                padding: const EdgeInsets.only(left: 48),
+                padding: EdgeInsets.zero,
                 child: Text(
                   'Sur quelle commande ?',
                   style: theme.textTheme.bodyMedium,

@@ -8,9 +8,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/app_back_button.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../../core/widgets/app_feedback.dart';
+import '../../../core/widgets/presslink_top_bar.dart';
 
 /// Aide & support — appel direct ou WhatsApp (même numéro). Accessible sans
 /// être connecté (depuis l'écran de connexion) : le nom du client n'est
@@ -75,30 +75,25 @@ class SupportScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final customer = ref.watch(authControllerProvider).customer;
 
     return Scaffold(
+      appBar: const PressLinkTopBar(title: 'Aide & support'),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            Row(
-              children: [
-                AppBackButton(onPressed: () => Navigator.of(context).pop()),
-                const SizedBox(width: AppSpacing.sm + 2),
-                Text(
-                  'Aide & support',
-                  style: theme.textTheme.headlineSmall?.copyWith(fontSize: 18),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
             Container(
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
-                color: context.primaryTint,
+                color: isDark
+                    ? AppColors.primary.withValues(alpha: 0.16)
+                    : AppColors.primaryTint,
                 border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.2),
+                  color: AppColors.primary.withValues(
+                    alpha: isDark ? 0.35 : 0.2,
+                  ),
                 ),
                 borderRadius: BorderRadius.circular(AppRadius.xl),
               ),
@@ -120,9 +115,12 @@ class SupportScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.md),
                   Text(
                     'Une question ? Un problème ?',
-                    style: theme.textTheme.titleLarge?.copyWith(
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontSize: 20,
                       fontWeight: FontWeight.w700,
-                      color: context.textPrimary,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -130,7 +128,9 @@ class SupportScreen extends ConsumerWidget {
                   Text(
                     'Contactez l\'équipe PressLink : par appel, sur WhatsApp ou par email.',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: context.textSecondary,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -151,14 +151,18 @@ class SupportScreen extends ConsumerWidget {
                             style: theme.textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.w800,
                               letterSpacing: 0.5,
-                              color: AppColors.primaryDark,
+                              color: isDark
+                                  ? const Color(0xFF93C5FD)
+                                  : AppColors.primaryDark,
                             ),
                           ),
                           const SizedBox(width: AppSpacing.sm),
                           Icon(
                             Icons.copy,
                             size: 16,
-                            color: context.textSecondary,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondary,
                           ),
                         ],
                       ),

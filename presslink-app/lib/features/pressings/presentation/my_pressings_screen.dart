@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/widgets/app_page_route.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/app_back_button.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/staggered_fade_in.dart';
@@ -13,6 +12,7 @@ import 'join_pressing_screen.dart';
 import 'pressing_detail_screen.dart';
 import 'pressings_controller.dart';
 import '../../../core/widgets/app_feedback.dart';
+import '../../../core/widgets/presslink_top_bar.dart';
 
 /// Mes pressings — Cahier §11 (rejoindre par code, consulter, quitter).
 class MyPressingsScreen extends ConsumerWidget {
@@ -24,25 +24,13 @@ class MyPressingsScreen extends ConsumerWidget {
     final pressingsAsync = ref.watch(myPressingsProvider);
 
     return Scaffold(
+      appBar: const PressLinkTopBar(title: 'Mes pressings'),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  AppBackButton(onPressed: () => Navigator.of(context).pop()),
-                  const SizedBox(width: AppSpacing.sm + 2),
-                  Text(
-                    'Mes pressings',
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontSize: 18,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.md),
               SizedBox(
                 width: double.infinity,
                 height: 52,

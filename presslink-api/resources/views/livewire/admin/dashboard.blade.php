@@ -58,7 +58,7 @@
 
     {{-- ===== Indicateurs clés ===== --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
-        <div wire:key="kpi-mrr-{{ $filterKey }}" class="rounded-xl p-5 text-white animate-step sm:col-span-2 xl:col-span-1" style="background:#0f172a;">
+        <div wire:key="kpi-mrr-{{ $filterKey }}" class="rounded-xl p-5 text-white animate-step sm:col-span-2 xl:col-span-1 dark:ring-1 dark:ring-(--color-border)" style="background:#0f172a;">
             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Revenu mensuel récurrent</div>
             <div class="flex items-baseline gap-1.5 mt-2.5">
                 <div class="text-3xl font-bold tracking-tight tabular-nums">{{ $fcfa($monthlyRecurringRevenue) }}</div>
@@ -323,7 +323,7 @@
         </div>
 
         @if ($demoAccess)
-            <div class="mt-5 rounded-lg bg-(--color-success-tint) border border-emerald-200 p-4 text-sm">
+            <div class="mt-5 rounded-lg bg-(--color-success-tint) border border-(--color-success)/30 p-4 text-sm">
                 <p class="font-semibold text-(--color-success-text) mb-3">Démo prête. Notez le mot de passe : il ne sera plus affiché.</p>
                 <div class="grid gap-3 sm:grid-cols-2">
                     <div>
@@ -337,7 +337,7 @@
                         <p>Code du pressing : <code class="font-mono font-semibold">{{ $demoAccess['code'] }}</code></p>
                     </div>
                 </div>
-                <p class="mt-3">Mot de passe (tous les comptes) : <code class="font-mono text-base font-bold bg-white px-2 py-0.5 rounded">{{ $demoAccess['password'] }}</code></p>
+                <p class="mt-3">Mot de passe (tous les comptes) : <code class="font-mono text-base font-bold bg-(--color-surface) px-2 py-0.5 rounded">{{ $demoAccess['password'] }}</code></p>
             </div>
         @endif
     </div>

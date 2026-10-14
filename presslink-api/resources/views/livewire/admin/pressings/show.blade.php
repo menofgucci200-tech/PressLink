@@ -195,7 +195,7 @@
             </div>
         </form>
     </div>
-    <div class="mt-6 border border-red-200 rounded-xl p-5" x-data="{ open: false }">
+    <div class="mt-6 border border-(--color-error)/30 rounded-xl p-5" x-data="{ open: false }">
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div class="max-w-xl">
                 <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-error) mb-1">Zone de danger</div>
@@ -205,7 +205,7 @@
                     Pour simplement bloquer l'accès, préférez « Suspendre ».
                 </p>
             </div>
-            <button type="button" @click="open = !open" class="h-9 px-3.5 rounded-lg border border-red-200 text-sm font-semibold text-(--color-error) hover:bg-(--color-error-tint)">Supprimer le pressing</button>
+            <button type="button" @click="open = !open" class="h-9 px-3.5 rounded-lg border border-(--color-error)/30 text-sm font-semibold text-(--color-error) hover:bg-(--color-error-tint)">Supprimer le pressing</button>
         </div>
         <form novalidate x-show="open" x-cloak wire:submit="deletePressing" class="mt-4 flex flex-wrap items-start gap-3">
             <div>

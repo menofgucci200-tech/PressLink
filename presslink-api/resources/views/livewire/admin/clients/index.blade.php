@@ -252,13 +252,13 @@
                             <button type="button" wire:click="toggleActive"
                                     data-confirm-title="{{ $selectedCustomer->is_active ? 'Désactiver le compte' : 'Réactiver le compte' }}" data-confirm-label="{{ $selectedCustomer->is_active ? 'Désactiver' : 'Réactiver' }}" data-confirm-tone="{{ $selectedCustomer->is_active ? 'warning' : 'primary' }}"
                                     wire:confirm="{{ $selectedCustomer->is_active ? 'Désactiver ce compte ? Le client sera déconnecté et ne pourra plus se connecter à l\'application, ni recevoir de notifications. Ses commandes sont conservées.' : 'Réactiver ce compte ? Le client pourra de nouveau se connecter.' }}"
-                                    class="h-9 px-3.5 rounded-lg border text-sm font-medium {{ $selectedCustomer->is_active ? 'border-amber-200 text-(--color-warning-text) hover:bg-(--color-warning-tint)' : 'border-emerald-200 text-(--color-success-text) hover:bg-(--color-success-tint)' }}">
+                                    class="h-9 px-3.5 rounded-lg border text-sm font-medium {{ $selectedCustomer->is_active ? 'border-(--color-warning)/40 text-(--color-warning-text) hover:bg-(--color-warning-tint)' : 'border-(--color-success)/30 text-(--color-success-text) hover:bg-(--color-success-tint)' }}">
                                 {{ $selectedCustomer->is_active ? 'Désactiver' : 'Réactiver' }}
                             </button>
                             <button type="button" wire:click="deleteCustomer"
                                     data-confirm-title="Supprimer le client" data-confirm-label="Supprimer définitivement" data-confirm-tone="danger"
                                     wire:confirm="Supprimer définitivement ce client ? Ses {{ $selectedCustomer->orders_count }} commande(s) et signalements seront aussi supprimés. Cette action est irréversible."
-                                    class="h-9 px-3.5 rounded-lg border border-red-200 text-sm font-medium text-(--color-error) hover:bg-(--color-error-tint)">Supprimer</button>
+                                    class="h-9 px-3.5 rounded-lg border border-(--color-error)/30 text-sm font-medium text-(--color-error) hover:bg-(--color-error-tint)">Supprimer</button>
                         </div>
                     @endif
 

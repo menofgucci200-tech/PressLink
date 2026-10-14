@@ -10,17 +10,17 @@
             </div>
 
             <div class="grid lg:grid-cols-2 gap-8">
-                <section class="bg-white border border-(--color-border) rounded-3xl p-6 md:p-8" aria-labelledby="android">
+                <section class="bg-(--color-surface) border border-(--color-border) rounded-3xl p-6 md:p-8" aria-labelledby="android">
                     <h2 id="android" class="font-display text-2xl font-bold mb-6">Sur Android <span class="text-(--color-text-muted) font-semibold text-base">· Chrome</span></h2>
                     <x-site.install-demo os="android" />
                 </section>
-                <section class="bg-white border border-(--color-border) rounded-3xl p-6 md:p-8" aria-labelledby="iphone">
+                <section class="bg-(--color-surface) border border-(--color-border) rounded-3xl p-6 md:p-8" aria-labelledby="iphone">
                     <h2 id="iphone" class="font-display text-2xl font-bold mb-6">Sur iPhone <span class="text-(--color-text-muted) font-semibold text-base">· Safari</span></h2>
                     <x-site.install-demo os="ios" />
                 </section>
             </div>
 
-            <div class="mt-12 grid md:grid-cols-[auto_1fr] gap-8 items-center bg-white border border-(--color-border) rounded-3xl p-6 md:p-8">
+            <div class="mt-12 grid md:grid-cols-[auto_1fr] gap-8 items-center bg-(--color-surface) border border-(--color-border) rounded-3xl p-6 md:p-8">
                 <img src="{{ asset('qr-presslink-app.png') }}" width="180" height="180" alt="Code QR vers presslink.org/app" class="rounded-xl mx-auto" loading="lazy">
                 <div>
                     <h2 class="font-display text-xl font-bold mb-2">Vous êtes sur ordinateur ?</h2>

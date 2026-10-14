@@ -19,7 +19,7 @@
             <h1 class="font-display text-4xl font-extrabold tracking-tight mb-8">Questions fréquentes</h1>
             <div class="space-y-3">
                 @foreach ($faqs as $faq)
-                    <details class="group bg-white border border-(--color-border) rounded-xl" @if ($loop->first) open @endif>
+                    <details class="group bg-(--color-surface) border border-(--color-border) rounded-xl" @if ($loop->first) open @endif>
                         <summary class="flex items-center justify-between gap-4 cursor-pointer list-none px-5 py-4 font-semibold">
                             {{ $faq['question'] }}
                             <svg class="w-5 h-5 flex-none text-(--color-text-muted) transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>

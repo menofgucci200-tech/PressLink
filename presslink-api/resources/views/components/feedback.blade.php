@@ -80,9 +80,9 @@
                     <button type="button" x-ref="confirmButton" @click="close(true)"
                             class="h-10 px-4 rounded-lg text-sm font-semibold text-white focus:outline-none focus:ring-4"
                             :class="{
-                                'bg-(--color-error) hover:brightness-95 focus:ring-red-100': dialog?.tone === 'danger',
-                                'bg-(--color-warning) hover:brightness-95 focus:ring-amber-100': dialog?.tone === 'warning',
-                                'bg-(--color-primary) hover:bg-(--color-primary-600) focus:ring-blue-100': ! ['danger', 'warning'].includes(dialog?.tone),
+                                'bg-(--color-error) hover:brightness-95 focus:ring-(--color-error-tint)': dialog?.tone === 'danger',
+                                'bg-(--color-warning) hover:brightness-95 focus:ring-(--color-warning-tint)': dialog?.tone === 'warning',
+                                'bg-(--color-primary) hover:bg-(--color-primary-600) focus:ring-(--color-primary-tint)': ! ['danger', 'warning'].includes(dialog?.tone),
                             }"
                             x-text="dialog?.confirmLabel"></button>
                 </div>

@@ -47,15 +47,15 @@
             <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Recherche</label>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="absolute left-3 top-1/2 translate-y-[3px] text-(--color-text-muted)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
             <input type="text" wire:model.live.debounce.400ms="search" placeholder="N°, client, téléphone…"
-                   class="w-full h-10 pl-9 pr-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-white">
+                   class="w-full h-10 pl-9 pr-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-(--color-surface)">
         </div>
         <div>
             <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Déposée à partir du</label>
-            <input type="date" wire:model.live="dateFrom" class="h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-white">
+            <input type="date" wire:model.live="dateFrom" class="h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-(--color-surface)">
         </div>
         <div>
             <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Jusqu'au</label>
-            <input type="date" wire:model.live="dateTo" class="h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-white">
+            <input type="date" wire:model.live="dateTo" class="h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-(--color-surface)">
         </div>
         @if ($search !== '' || $status !== '' || $dateFrom !== '' || $dateTo !== '')
             <button type="button" wire:click="resetFilters" class="h-10 px-3.5 rounded-lg text-[13px] font-medium text-(--color-text-secondary) hover:text-(--color-error)">

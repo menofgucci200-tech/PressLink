@@ -4,7 +4,7 @@
     $label = $dark ? 'text-slate-300' : 'text-(--color-text-primary)';
     $input = $dark
         ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-violet-400 focus:ring-4 focus:ring-violet-500/20'
-        : 'bg-white border-(--color-border) placeholder:text-(--color-text-muted) focus:border-(--color-primary) focus:ring-4 focus:ring-blue-500/10';
+        : 'bg-(--color-surface) border-(--color-border) placeholder:text-(--color-text-muted) focus:border-(--color-primary) focus:ring-4 focus:ring-blue-500/10';
     $button = $dark
         ? 'bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-400 hover:to-indigo-400 shadow-lg shadow-violet-900/40'
         : 'bg-(--color-primary) hover:bg-(--color-primary-600) shadow-lg shadow-blue-600/20';

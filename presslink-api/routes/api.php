@@ -50,6 +50,8 @@ Route::prefix('v1')->group(function () {
 
         Route::put('/customer/profile', [CustomerProfileController::class, 'update']);
         Route::put('/customer/password', [CustomerProfileController::class, 'updatePassword']);
+        // Le mot de passe est vérifié à chaque tentative : limite stricte.
+        Route::put('/customer/phone', [CustomerProfileController::class, 'updatePhone'])->middleware('throttle:10,1');
         Route::post('/customer/photo', [CustomerProfileController::class, 'updatePhoto']);
         Route::delete('/customer/photo', [CustomerProfileController::class, 'deletePhoto']);
         Route::put('/customer/onesignal-player-id', [CustomerProfileController::class, 'updateOnesignalPlayerId']);

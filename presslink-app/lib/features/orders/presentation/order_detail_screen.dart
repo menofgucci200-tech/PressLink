@@ -5,9 +5,9 @@ import 'package:intl/intl.dart';
 import '../../../core/widgets/app_page_route.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/app_back_button.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/widgets/error_state_view.dart';
+import '../../../core/widgets/presslink_top_bar.dart';
 import '../../pressings/domain/pressing_repository.dart';
 import '../../pressings/presentation/pressing_detail_screen.dart';
 import '../../pressings/presentation/pressings_controller.dart';
@@ -34,22 +34,13 @@ class OrderDetailScreen extends ConsumerWidget {
     final orderAsync = ref.watch(orderDetailProvider(orderId));
 
     return Scaffold(
+      appBar: const PressLinkTopBar(title: 'Détail de la commande'),
       body: SafeArea(
         child: orderAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Row(children: const [AppBackButton()]),
-              ),
-              Expanded(
-                child: ErrorStateView(
-                  message: apiErrorMessage(e),
-                  onRetry: () => ref.invalidate(orderDetailProvider(orderId)),
-                ),
-              ),
-            ],
+          error: (e, _) => ErrorStateView(
+            message: apiErrorMessage(e),
+            onRetry: () => ref.invalidate(orderDetailProvider(orderId)),
           ),
           data: (order) =>
               _OrderDetailBody(order: order, canonicalSteps: _canonicalSteps),
@@ -76,8 +67,6 @@ class _OrderDetailBody extends ConsumerWidget {
       children: [
         Row(
           children: [
-            const AppBackButton(),
-            const SizedBox(width: AppSpacing.sm + 2),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

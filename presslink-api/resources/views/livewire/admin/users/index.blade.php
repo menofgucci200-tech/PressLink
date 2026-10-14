@@ -59,14 +59,22 @@
                                     @if ($account->is_active === false)
                                         <span class="ml-1.5 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-(--color-error-tint) text-(--color-error)">Désactivé</span>
                                     @endif
-                                @else
-                                    <span class="font-medium">{{ $account->name }}</span>
-                                    @if ($account->is(auth()->user()))
-                                        <span class="ml-1.5 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-(--color-primary-tint) text-(--color-primary)">Vous</span>
+                                    @if ($account->email)
+                                        <div class="text-xs text-(--color-text-muted)">{{ $account->email }}</div>
                                     @endif
-                                @endif
-                                @if ($account->email)
-                                    <div class="text-xs text-(--color-text-muted)">{{ $account->email }}</div>
+                                @else
+                                    <div class="flex items-center gap-3">
+                                        <x-user-avatar :user="$account" class="w-8 h-8 text-[11px] rounded-full" />
+                                        <div class="min-w-0">
+                                            <span class="font-medium">{{ $account->name }}</span>
+                                            @if ($account->is(auth()->user()))
+                                                <span class="ml-1.5 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-(--color-primary-tint) text-(--color-primary)">Vous</span>
+                                            @endif
+                                            @if ($account->email)
+                                                <div class="text-xs text-(--color-text-muted)">{{ $account->email }}</div>
+                                            @endif
+                                        </div>
+                                    </div>
                                 @endif
                             </td>
                             <td class="px-5 py-3.5 text-(--color-text-secondary) tabular-nums">
@@ -109,7 +117,7 @@
                             </td>
                             <td class="px-5 py-3.5 text-right">
                                 @if (! $isCustomers && $account->is(auth()->user()))
-                                    <a href="{{ route('account.settings') }}" class="text-xs font-medium text-(--color-primary) hover:underline">Mon compte</a>
+                                    <a href="{{ route('account.settings') }}" class="text-xs font-medium text-(--color-primary) hover:underline">Mon profil</a>
                                 @else
                                     @php $name = $isCustomers ? ($account->fullName() ?: $account->phone) : $account->name; @endphp
                                     <button type="button"

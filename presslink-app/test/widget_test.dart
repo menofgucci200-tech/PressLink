@@ -16,13 +16,21 @@ void main() {
   testWidgets('Home screen renders greeting and key sections', (tester) async {
     final tokenStorage = TokenStorage(const FlutterSecureStorage());
     final repository = AuthRepository(ApiClient(tokenStorage), tokenStorage);
-    const customer = Customer(id: 1, firstName: 'Stéphane', lastName: 'SAY', phone: '+2250700000000');
+    const customer = Customer(
+      id: 1,
+      firstName: 'Stéphane',
+      lastName: 'SAY',
+      phone: '+2250700000000',
+    );
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           authControllerProvider.overrideWith(
-            (ref) => AuthController.withState(repository, const AuthState(status: AuthStatus.loggedIn, customer: customer)),
+            (ref) => AuthController.withState(
+              repository,
+              const AuthState(status: AuthStatus.loggedIn, customer: customer),
+            ),
           ),
           unreadNotificationsCountProvider.overrideWith((ref) async => 0),
           ordersProvider.overrideWith((ref) async => []),

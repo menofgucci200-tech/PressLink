@@ -11,6 +11,7 @@
         <link rel="icon" type="image/png" href="{{ asset('favicon-96.png') }}?v=2" sizes="96x96">
         <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}?v=2">
 
+        <x-theme-script />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         @livewireStyles

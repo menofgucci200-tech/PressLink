@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/app_back_button.dart';
+import '../../../core/widgets/presslink_top_bar.dart';
 import '../domain/pressing_repository.dart';
 
 const _dayLabels = {
@@ -47,18 +47,11 @@ class PressingDetailScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
+      appBar: const PressLinkTopBar(title: 'Détail du pressing'),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            Row(
-              children: [
-                AppBackButton(onPressed: () => Navigator.of(context).pop()),
-                const SizedBox(width: AppSpacing.sm + 2),
-                Text('Pressing', style: theme.textTheme.headlineSmall),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
             Center(
               child: Column(
                 children: [

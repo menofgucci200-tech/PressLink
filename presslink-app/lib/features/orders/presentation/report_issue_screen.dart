@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../domain/order_repository.dart';
 import 'orders_controller.dart';
 import '../../../core/widgets/app_feedback.dart';
+import '../../../core/widgets/presslink_top_bar.dart';
 
 /// Signaler un problème sur une commande — ex. article manquant,
 /// article qui n'appartient pas au client.
@@ -70,26 +70,13 @@ class _ReportIssueScreenState extends ConsumerState<ReportIssueScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
+      appBar: const PressLinkTopBar(title: 'Signaler un problème'),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  AppBackButton(onPressed: () => Navigator.of(context).pop()),
-                  const SizedBox(width: AppSpacing.sm + 2),
-                  Text(
-                    'Signaler un problème',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.lg),
               Text(
                 'Commande ${widget.orderNumber}',
                 style: theme.textTheme.headlineSmall?.copyWith(fontSize: 18),

@@ -8,8 +8,8 @@
     $icon = $size === 'sm' ? 'w-7 h-7' : 'w-9 h-9';
 @endphp
 <div {{ $attributes->merge(['class' => 'flex flex-wrap gap-3']) }}>
-    <a href="tel:{{ $e164 }}" class="{{ $button }} bg-white border border-(--color-border) hover:border-(--color-text-primary)">
-        <img src="{{ asset('images/phone.png') }}" alt="" class="{{ $icon }}" width="36" height="36" loading="lazy">
+    <a href="tel:{{ $e164 }}" class="{{ $button }} bg-(--color-surface) border border-(--color-border) hover:border-(--color-text-primary)">
+        <img src="{{ asset('images/phone.png') }}" alt="" class="{{ $icon }} rounded-full dark:bg-white" width="36" height="36" loading="lazy">
         Appeler
     </a>
     <a href="{{ $whatsapp }}" target="_blank" rel="noopener" class="{{ $button }} bg-[#25D366] text-white hover:brightness-95">

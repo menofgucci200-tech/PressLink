@@ -8,6 +8,7 @@
         <meta name="robots" content="noindex, nofollow">
         <link rel="icon" href="{{ asset('favicon.ico') }}?v=2" sizes="any">
         <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}?v=2">
+        <x-theme-script />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
     </head>
@@ -34,7 +35,7 @@
                 : 0;
 
             $subscription = $pressing?->subscription;
-            $userInitials = collect(explode(' ', $user->name))->filter()->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->take(2)->implode('');
+            $contextLabel = $isOverviewMode ? "Vue d'ensemble" : $pressing?->name;
         @endphp
 
         <div class="min-h-screen flex" x-data="{ menu: false }"
@@ -44,11 +45,10 @@
             {{-- Mobile/tablette : le menu devient un panneau qui glisse depuis la gauche. --}}
             <div x-show="menu" x-cloak x-transition.opacity.duration.200ms @click="menu = false"
                  class="fixed inset-0 z-30 bg-slate-900/50 lg:hidden" aria-hidden="true"></div>
-            <aside class="fixed inset-y-0 left-0 z-40 max-lg:-translate-x-full lg:static lg:z-auto w-[239px] flex-none flex flex-col py-[22px] pl-5 overflow-y-auto lg:overflow-hidden text-white transition-transform duration-200 ease-out"
+            <aside class="fixed inset-y-0 left-0 z-40 max-lg:-translate-x-full lg:static lg:z-auto w-[239px] flex-none flex flex-col py-[22px] pl-5 overflow-y-auto text-white transition-transform duration-200 ease-out app-sidebar"
                    :class="menu && 'max-lg:translate-x-0!'"
-                   @click="if ($event.target.closest('a')) menu = false"
-                   style="background:linear-gradient(180deg, #1e3a8a 0%, #1e40af 45%, #2563eb 100%);">
-                <div class="font-display text-[21px] font-bold tracking-tight pr-1 pb-[30px]">Press<span class="text-(--color-primary-tint)">Link</span></div>
+                   @click="if ($event.target.closest('a')) menu = false">
+                <div class="font-display text-[21px] font-bold tracking-tight pr-1 pb-[30px]">Press<span class="text-blue-100">Link</span></div>
 
                 @if ($user->hasMultiplePressings())
                     <div class="pr-5 pb-4">
@@ -146,6 +146,11 @@
                                 <span class="truncate">Abonnement</span>
                             </a>
                         @endif
+                        <a href="{{ route('account.settings') }}" wire:navigate class="nav-item {{ ($active ?? null) === 'account' ? 'nav-item-active' : '' }}">
+                            @if (($active ?? null) === 'account') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <span class="truncate">Mon profil</span>
+                        </a>
                         <a href="{{ route('support') }}" wire:navigate class="nav-item {{ ($active ?? null) === 'support' ? 'nav-item-active' : '' }}">
                             @if (($active ?? null) === 'support') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"></path></svg>
@@ -185,21 +190,18 @@
                         <div class="w-px h-6 bg-(--color-border)"></div>
                     @endif
 
-                    <a href="{{ route('account.settings') }}" wire:navigate class="hidden sm:block text-right min-w-0 hover:opacity-70 transition-opacity duration-150">
-                        <div class="text-sm font-semibold leading-tight truncate">{{ $user->name }}</div>
-                        <div class="text-xs text-(--color-text-muted) truncate">{{ $isAdmin ? 'Administrateur' : 'Employé' }} · {{ $isOverviewMode ? "Vue d'ensemble" : $pressing?->name }}</div>
-                    </a>
-                    <a href="{{ route('account.settings') }}" wire:navigate
-                       class="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white transition-transform duration-100 active:scale-90 {{ ($active ?? null) === 'account' ? 'ring-2 ring-offset-1 ring-(--color-primary)' : '' }}"
-                       style="background:#1e3a8a;" title="Mon compte">
-                        {{ $userInitials ?: '?' }}
-                    </a>
-                    <form novalidate method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-error) hover:text-(--color-error)" title="Se déconnecter">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                        </button>
-                    </form>
+                    <x-theme-toggle />
+                    <x-profile-menu :user="$user"
+                                    :role="$isAdmin ? 'Administrateur' : 'Employé'"
+                                    :context="$contextLabel"
+                                    :active="($active ?? null) === 'account'">
+                        @if ($isAdmin)
+                            <a href="{{ route('pressing.settings') }}" wire:navigate role="menuitem" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-(--color-text-primary) hover:bg-(--color-bg)">
+                                <svg class="w-4 h-4 flex-none text-(--color-text-muted)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+                                Paramètres du pressing
+                            </a>
+                        @endif
+                    </x-profile-menu>
                 </header>
 
                 <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8" @scroll="scrolled = $event.target.scrollTop > 4">

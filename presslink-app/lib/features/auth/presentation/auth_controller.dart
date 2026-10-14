@@ -159,6 +159,23 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
+  Future<bool> updatePhone({
+    required String phone,
+    required String currentPassword,
+  }) async {
+    try {
+      final customer = await _repository.updatePhone(
+        phone: phone,
+        currentPassword: currentPassword,
+      );
+      state = state.copyWith(customer: customer);
+      return true;
+    } catch (e) {
+      state = state.copyWith(error: AuthRepository.errorMessage(e));
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     await _repository.logout();
     state = const AuthState(status: AuthStatus.loggedOut);

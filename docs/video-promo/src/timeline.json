@@ -1,0 +1,28 @@
+{
+  "fps": 30,
+  "duree": 37.0,
+  "voix": [
+    { "cle": "depot", "debut": 0.45 },
+    { "cle": "lien", "debut": 5.0 },
+    { "cle": "suivi", "debut": 9.1 },
+    { "cle": "prete", "debut": 13.55 },
+    { "cle": "pressings", "debut": 18.35 },
+    { "cle": "signature", "debut": 25.9 },
+    { "cle": "cta", "debut": 29.75 }
+  ],
+  "scenes": [
+    { "id": "attente", "debut": 0.0, "fin": 4.6 },
+    { "id": "lien", "debut": 4.6, "fin": 8.9 },
+    { "id": "suivi", "debut": 8.9, "fin": 13.4 },
+    { "id": "prete", "debut": 13.4, "fin": 18.0 },
+    { "id": "pressings", "debut": 18.0, "fin": 25.5 },
+    { "id": "signature", "debut": 25.5, "fin": 29.5 },
+    { "id": "fin", "debut": 29.5, "fin": 37.0 }
+  ],
+  "sons": {
+    "souffles": [4.55, 8.85, 13.35, 17.95, 25.45, 29.45],
+    "signature_sonore": [5.15, 25.75],
+    "notification": [14.05],
+    "pops": [10.6, 11.2, 11.8, 19.4, 20.0, 20.6, 21.2]
+  }
+}

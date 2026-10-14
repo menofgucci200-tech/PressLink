@@ -18,6 +18,12 @@ String apiErrorMessage(Object error) {
         break;
     }
 
+    // Limite anti-abus du serveur (connexion, changement de numéro…) : son
+    // message par défaut est en anglais.
+    if (error.response?.statusCode == 429) {
+      return 'Trop de tentatives. Patientez une minute, puis réessayez.';
+    }
+
     final data = error.response?.data;
     if (data is Map) {
       if (data['errors'] is Map && (data['errors'] as Map).isNotEmpty) {

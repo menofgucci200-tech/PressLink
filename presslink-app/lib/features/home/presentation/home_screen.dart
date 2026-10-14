@@ -10,11 +10,9 @@ import '../../../core/widgets/order_card.dart';
 import '../../../core/widgets/notification_permission_banner.dart';
 import '../../../core/widgets/pwa_install_banner.dart';
 import '../../../core/widgets/staggered_fade_in.dart';
+import '../../../core/widgets/presslink_top_bar.dart';
 import '../../../shared/models/order_summary.dart';
 import '../../auth/presentation/auth_controller.dart';
-import '../../auth/presentation/logout_confirmation.dart';
-import '../../notifications/presentation/notifications_controller.dart';
-import '../../notifications/presentation/notifications_screen.dart';
 import '../../orders/presentation/order_detail_screen.dart';
 import '../../orders/presentation/orders_controller.dart';
 import '../../pressings/presentation/join_pressing_screen.dart';
@@ -36,6 +34,9 @@ class HomeScreen extends ConsumerWidget {
     final pressingsAsync = ref.watch(myPressingsProvider);
 
     return Scaffold(
+      // La cloche des notifications est dans la barre du haut ; le profil,
+      // dans le menu en éventail.
+      appBar: const PressLinkTopBar(title: 'Accueil'),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
@@ -54,47 +55,16 @@ class HomeScreen extends ConsumerWidget {
               AppSpacing.xl,
             ),
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Bonjour $firstName',
-                          style: theme.textTheme.headlineSmall,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Voici l\'état de vos commandes',
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Row(
-                    children: [
-                      _NotificationBell(
-                        onTap: () => Navigator.of(context).push(
-                          AppPageRoute(
-                            builder: (_) => const NotificationsScreen(),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      IconButton(
-                        tooltip: 'Se déconnecter',
-                        onPressed: () => confirmAndLogout(context, ref),
-                        icon: const Icon(Icons.logout, size: 20),
-                      ),
-                    ],
-                  ),
-                ],
+              Text(
+                'Bonjour $firstName',
+                style: theme.textTheme.headlineSmall,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Voici l\'état de vos commandes',
+                style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: AppSpacing.lg),
               const NotificationPermissionBanner(),
@@ -425,78 +395,6 @@ class _SummaryCardSkeleton extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.border,
         borderRadius: BorderRadius.circular(AppRadius.xl),
-      ),
-    );
-  }
-}
-
-class _NotificationBell extends ConsumerWidget {
-  const _NotificationBell({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final unreadCount =
-        ref.watch(unreadNotificationsCountProvider).valueOrNull ?? 0;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(999),
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: theme.scaffoldBackgroundColor,
-          shape: BoxShape.circle,
-          border: Border.all(color: theme.dividerTheme.color ?? context.border),
-        ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Center(
-              child: Icon(
-                Icons.notifications_outlined,
-                color: theme.textTheme.bodyMedium?.color,
-                size: 20,
-              ),
-            ),
-            Positioned(
-              top: -2,
-              right: -2,
-              child: TweenAnimationBuilder<double>(
-                key: ValueKey(unreadCount > 0),
-                tween: Tween(begin: 0, end: unreadCount > 0 ? 1.0 : 0.0),
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOutBack,
-                builder: (context, scale, child) =>
-                    Transform.scale(scale: scale, child: child),
-                child: Container(
-                  padding: const EdgeInsets.all(3),
-                  constraints: const BoxConstraints(
-                    minWidth: 16,
-                    minHeight: 16,
-                  ),
-                  decoration: const BoxDecoration(
-                    color: AppColors.error,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      '$unreadCount',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

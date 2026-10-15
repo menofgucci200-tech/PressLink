@@ -138,6 +138,14 @@ deploy_backend() {
     lftp_run "put '$API_DIR/public/$static_file' -o $REMOTE_WEBROOT/$static_file;"
   done
 
+  # Fichiers de vérification Google Search Console (googleXXXX.html) : doivent
+  # être servis à la racine du domaine pour que la vérification réussisse.
+  local verification_file
+  for verification_file in "$API_DIR"/public/google*.html; do
+    [[ -e "$verification_file" ]] || continue
+    lftp_run "put '$verification_file' -o $REMOTE_WEBROOT/$(basename "$verification_file");"
+  done
+
   # Images (photos de téléphones, icônes WhatsApp/appel) et vidéo du parcours
   # du site public.
   local static_dir

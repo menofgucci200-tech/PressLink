@@ -12,6 +12,9 @@ set -euo pipefail
 cd "$1"
 hash=$(md5 -q main.dart.js | cut -c1-10)
 dir="v$hash"
+# Dossiers de versions laissés par un build précédent (flutter build ne les
+# supprime pas) : on repart propre, sinon le déplacement échoue.
+rm -rf v[0-9a-f]*/
 mkdir -p "$dir"
 mv assets "$dir/assets"
 # Préchargements et splash d'index.html

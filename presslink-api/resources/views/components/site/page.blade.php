@@ -2,6 +2,16 @@
 @php
     $baseUrl = rtrim((string) config('app.url'), '/');
     $e164 = config('presslink.support.phone_e164');
+    // Fil d'Ariane pour Google (Accueil › page) : affiché sous le lien dans
+    // les résultats de recherche à la place de l'URL brute.
+    $breadcrumb = $path === '/' ? null : [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => [
+            ['@type' => 'ListItem', 'position' => 1, 'name' => 'Accueil', 'item' => $baseUrl.'/'],
+            ['@type' => 'ListItem', 'position' => 2, 'name' => trim(\Illuminate\Support\Str::before($title, ' — ')), 'item' => $baseUrl.$path],
+        ],
+    ];
 @endphp
 {{-- Gabarit commun des pages publiques : en-tête, pied de page et bouton
      WhatsApp flottant ; chaque page ne fournit que son contenu. --}}
@@ -11,7 +21,8 @@
     :keywords="$keywords"
     :canonical="$baseUrl.$path"
     :og-image="$baseUrl.'/og-image.png'"
-    :json-ld="$jsonLd">
+    :json-ld="$jsonLd"
+    :breadcrumb-json-ld="$breadcrumb">
     <x-site.header />
     <main>{{ $slot }}</main>
     <x-site.footer />

@@ -152,4 +152,26 @@ class LandingPageTest extends TestCase
             $this->assertStringContainsString("Disallow: {$path}", $robots);
         }
     }
+
+    public function test_google_search_console_can_verify_the_site(): void
+    {
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('<meta name="google-site-verification" content="-p_mpG-fLnmC1h9wfvAwIEAOT3GEdXL7SoUghpxpJtk">', false);
+
+        $this->assertSame(
+            'google-site-verification: googlee36bec6159a79626.html',
+            trim(file_get_contents(public_path('googlee36bec6159a79626.html'))),
+        );
+    }
+
+    public function test_site_pages_expose_a_breadcrumb_for_search_results(): void
+    {
+        $this->get('/questions-frequentes')
+            ->assertOk()
+            ->assertSee('"@type":"BreadcrumbList"', false)
+            ->assertSee('"name":"Questions fréquentes"', false);
+
+        $this->get('/')->assertDontSee('BreadcrumbList', false);
+    }
 }

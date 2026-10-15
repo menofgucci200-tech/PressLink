@@ -35,6 +35,12 @@ return [
         ],
     ],
 
+    // Google Search Console : jeton de la balise <meta name="google-site-verification">
+    // (le fichier public/googlee36bec6159a79626.html vérifie aussi le domaine).
+    'google' => [
+        'site_verification' => env('GOOGLE_SITE_VERIFICATION', '-p_mpG-fLnmC1h9wfvAwIEAOT3GEdXL7SoUghpxpJtk'),
+    ],
+
     'onesignal' => [
         // Vides en dev/pilote : les notifications sont loguées au lieu
         // d'être réellement envoyées (cf. App\Notifications\Channels\OneSignalChannel).

@@ -20,7 +20,7 @@ use Laravel\Sanctum\HasApiTokens;
  * Membre du staff d'un ou plusieurs pressings (employé ou admin).
  * Distinct de Customer (client final, authentifié par téléphone).
  */
-#[Fillable(['name', 'email', 'phone', 'login', 'avatar_path', 'password', 'must_change_password', 'is_super_admin'])]
+#[Fillable(['name', 'email', 'phone', 'login', 'avatar_path', 'password', 'must_change_password', 'is_super_admin', 'group_report_opt_in'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -38,6 +38,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_super_admin' => 'boolean',
+            'group_report_opt_in' => 'boolean',
             'must_change_password' => 'boolean',
         ];
     }
@@ -105,6 +106,37 @@ class User extends Authenticatable
     public function activePressings(): Collection
     {
         return $this->pressings()->wherePivot('is_active', true)->orderBy('name')->get();
+    }
+
+    /**
+     * Pressings que ce membre administre (rôle Administrateur actif) : le
+     * « groupe » qu'il pilote. Un responsable de zone n'administre que
+     * quelques pressings, le propriétaire les administre tous.
+     *
+     * @return Collection<int, Pressing>
+     */
+    public function managedPressings(): Collection
+    {
+        return $this->pressings()
+            ->wherePivot('is_active', true)
+            ->wherePivot('role', PressingRole::Admin->value)
+            ->orderBy('name')
+            ->get();
+    }
+
+    /** @return list<int> */
+    public function managedPressingIds(): array
+    {
+        return $this->managedPressings()->pluck('id')->map(fn ($id) => (int) $id)->all();
+    }
+
+    /** Pilote un groupe : administre au moins deux pressings. */
+    public function managesGroup(): bool
+    {
+        return $this->pressings()
+            ->wherePivot('is_active', true)
+            ->wherePivot('role', PressingRole::Admin->value)
+            ->count() > 1;
     }
 
     /** Un propriétaire multi-pressing voit une vue d'ensemble consolidée. */

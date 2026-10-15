@@ -55,7 +55,12 @@ class CommandPalette extends Component
     /** @return list<array{label: string, items: list<array<string, mixed>>}> */
     private function pressingSearch(string $term): array
     {
-        $pressing = auth()->user()->currentPressing();
+        $user = auth()->user();
+        if ($user->managesGroup()) {
+            return $this->groupSearch($term);
+        }
+
+        $pressing = $user->currentPressing();
         if ($pressing === null) {
             return [];
         }
@@ -84,6 +89,59 @@ class CommandPalette extends Component
             ])->all();
 
         return [
+            ['label' => 'Commandes', 'items' => $orders],
+            ['label' => 'Clients', 'items' => $clients],
+        ];
+    }
+
+    /**
+     * Propriétaire ou responsable de zone : la recherche couvre tous les
+     * pressings qu'il administre, et propose de basculer sur un pressing.
+     *
+     * @return list<array{label: string, items: list<array<string, mixed>>}>
+     */
+    private function groupSearch(string $term): array
+    {
+        $user = auth()->user();
+        $ids = $user->managedPressingIds();
+        $ascii = Str::ascii(mb_strtolower($term));
+
+        $pressings = $user->managedPressings()
+            ->filter(fn (Pressing $p) => Str::contains(Str::ascii(mb_strtolower($p->name.' '.$p->city.' '.$p->code)), $ascii))
+            ->map(fn (Pressing $p) => [
+                'title' => $p->name,
+                'subtitle' => collect([$p->city, $p->code])->filter()->implode(' · '),
+                'url' => route('pressings.switch', $p),
+                'icon' => 'pressing',
+            ])->values()->all();
+
+        $orders = Order::query()->whereIn('pressing_id', $ids)->with(['customer', 'pressing:id,name'])
+            ->applyFilters(['search' => $term])
+            ->latest()->take(6)->get()
+            ->map(fn (Order $order) => [
+                'title' => $order->order_number.' · '.$order->customer->fullName(),
+                'subtitle' => $order->pressing->name.' · '.$order->status->label().' · '.number_format($order->total_fcfa, 0, ',', ' ').' F'
+                    .($order->status !== OrderStatus::Annulee && $order->balance_due_fcfa > 0 ? ' · reste '.number_format($order->balance_due_fcfa, 0, ',', ' ').' F' : ''),
+                'url' => route('group.open-order', $order),
+                'icon' => 'order',
+            ])->all();
+
+        $clients = Customer::query()
+            ->whereHas('pressings', fn ($q) => $q->whereIn('pressings.id', $ids))
+            ->where(fn ($q) => $q->where('first_name', 'like', "%{$term}%")
+                ->orWhere('last_name', 'like', "%{$term}%")
+                ->orWhere('phone', 'like', "%{$term}%"))
+            ->with(['pressings' => fn ($q) => $q->whereIn('pressings.id', $ids)->select('pressings.id', 'pressings.name')])
+            ->orderBy('last_name')->take(5)->get()
+            ->map(fn (Customer $customer) => [
+                'title' => $customer->fullName(),
+                'subtitle' => $customer->phone.' · '.$customer->pressings->pluck('name')->implode(', '),
+                'url' => route('pressings.switch', ['pressing' => $customer->pressings->first(), 'vers' => '/clients/'.$customer->id]),
+                'icon' => 'client',
+            ])->all();
+
+        return [
+            ['label' => 'Pressings', 'items' => $pressings],
             ['label' => 'Commandes', 'items' => $orders],
             ['label' => 'Clients', 'items' => $clients],
         ];
@@ -146,7 +204,20 @@ class CommandPalette extends Component
         $pressing = $user->currentPressing();
         $isAdmin = $pressing !== null && $user->isAdminOf($pressing);
 
+        $group = $user->managesGroup() ? [
+            ['title' => 'Vue du groupe', 'subtitle' => 'Totaux, comparatif et alertes', 'url' => route('pressings.overview'), 'icon' => 'home'],
+            ['title' => 'Commandes du groupe', 'subtitle' => null, 'url' => route('group.orders'), 'icon' => 'order'],
+            ['title' => 'Caisse du groupe', 'subtitle' => 'Clôtures et écarts', 'url' => route('group.cash'), 'icon' => 'money'],
+            ['title' => 'Clients du groupe', 'subtitle' => null, 'url' => route('group.clients'), 'icon' => 'client'],
+            ['title' => 'Équipe du groupe', 'subtitle' => null, 'url' => route('group.team'), 'icon' => 'team'],
+            ['title' => 'Harmoniser tarifs et paramètres', 'subtitle' => null, 'url' => route('group.harmonize'), 'icon' => 'tag'],
+            ['title' => 'Journal d\'activité', 'subtitle' => null, 'url' => route('group.activity'), 'icon' => 'clock'],
+            ['title' => 'Rapports du groupe', 'subtitle' => 'PDF mensuel et exports', 'url' => route('group.reports'), 'icon' => 'chart'],
+        ] : [];
+
         return array_values(array_filter([
+            ...$group,
+            ['title' => 'Caisse du jour', 'subtitle' => 'Encaissements et clôture', 'url' => route('cash.index'), 'icon' => 'money'],
             ['title' => 'Nouvelle commande', 'subtitle' => 'Enregistrer un dépôt', 'url' => route('orders.create'), 'icon' => 'plus', 'hint' => 'N'],
             ['title' => 'Tableau de bord', 'subtitle' => null, 'url' => route('dashboard'), 'icon' => 'home', 'hint' => 'G D'],
             ['title' => 'Toutes les commandes', 'subtitle' => null, 'url' => route('orders.index'), 'icon' => 'order', 'hint' => 'G C'],

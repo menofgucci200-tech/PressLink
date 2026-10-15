@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Actions\Demo\ResetDemoPressing;
-use App\Enums\PaymentStatus;
 use App\Enums\PressingRole;
 use App\Enums\PressingStatus;
 use Database\Factories\PressingFactory;
@@ -128,59 +127,7 @@ class Pressing extends Model
      */
     public function filteredOrders(array $filters = []): HasMany
     {
-        $query = $this->orders()->with('customer');
-
-        // État du règlement : payée, acompte versé, rien encore payé, ou
-        // « non soldée » (acompte ou rien payé : il reste de l'argent dû).
-        if (($filters['payment'] ?? null) === self::UNSETTLED_FILTER) {
-            $query->whereColumn('amount_paid_fcfa', '<', 'total_fcfa')
-                ->where('status', '!=', 'annulee');
-        }
-
-        match (PaymentStatus::tryFrom((string) ($filters['payment'] ?? ''))) {
-            PaymentStatus::Paid => $query->whereColumn('amount_paid_fcfa', '>=', 'total_fcfa'),
-            PaymentStatus::Partial => $query->where('amount_paid_fcfa', '>', 0)->whereColumn('amount_paid_fcfa', '<', 'total_fcfa'),
-            PaymentStatus::Unpaid => $query->where('amount_paid_fcfa', 0)->where('total_fcfa', '>', 0),
-            null => null,
-        };
-
-        if (! empty($filters['status'])) {
-            $query->where('status', $filters['status']);
-        }
-
-        if (! empty($filters['search'])) {
-            $term = $filters['search'];
-            // MySQL (prod) et SQLite (tests) n'utilisent pas la même syntaxe
-            // pour extraire un format de date — DATE_FORMAT vs strftime.
-            $isSqlite = $this->getConnection()->getDriverName() === 'sqlite';
-            [$dmy, $dm] = $isSqlite
-                ? ["strftime('%d/%m/%Y', dropped_off_at)", "strftime('%d/%m', dropped_off_at)"]
-                : ["DATE_FORMAT(dropped_off_at, '%d/%m/%Y')", "DATE_FORMAT(dropped_off_at, '%d/%m')"];
-
-            $query->where(function (Builder $q) use ($term, $dmy, $dm) {
-                $q->where('order_number', 'like', "%{$term}%")
-                    ->orWhere('total_fcfa', 'like', "%{$term}%")
-                    // Date de dépôt, dans les deux formats qu'un utilisateur
-                    // tape naturellement (avec ou sans l'année).
-                    ->orWhereRaw("{$dmy} LIKE ?", ["%{$term}%"])
-                    ->orWhereRaw("{$dm} LIKE ?", ["%{$term}%"])
-                    ->orWhereHas('customer', function (Builder $c) use ($term) {
-                        $c->where('first_name', 'like', "%{$term}%")
-                            ->orWhere('last_name', 'like', "%{$term}%")
-                            ->orWhere('phone', 'like', "%{$term}%");
-                    });
-            });
-        }
-
-        if (! empty($filters['date_from'])) {
-            $query->whereDate('dropped_off_at', '>=', $filters['date_from']);
-        }
-
-        if (! empty($filters['date_to'])) {
-            $query->whereDate('dropped_off_at', '<=', $filters['date_to']);
-        }
-
-        return $query;
+        return $this->orders()->with('customer')->applyFilters($filters);
     }
 
     /** @return HasOne<Subscription, $this> */

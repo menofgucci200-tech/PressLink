@@ -13,3 +13,6 @@ Artisan::command('inspire', function () {
 Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3')
     ->everyMinute()
     ->withoutOverlapping();
+
+// Rapport mensuel des groupes de pressings, le 1er du mois au matin.
+Schedule::command('presslink:send-group-reports')->monthlyOn(1, '07:00');

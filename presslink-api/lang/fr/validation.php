@@ -176,6 +176,11 @@ return [
     */
 
     'custom' => [
+        'form.phone' => ['regex' => 'Saisissez un numéro ivoirien à 10 chiffres, par exemple 07 00 00 00 00 ou 27 22 00 00 00.'],
+        'info.phone' => ['regex' => 'Saisissez un numéro ivoirien à 10 chiffres, par exemple 07 00 00 00 00 ou 27 22 00 00 00.'],
+        'newPhone' => ['regex' => 'Saisissez un numéro ivoirien à 10 chiffres, par exemple 07 00 00 00 00 ou 27 22 00 00 00.'],
+        'ownerPhone' => ['regex' => 'Saisissez un numéro ivoirien à 10 chiffres, par exemple 07 00 00 00 00 ou 27 22 00 00 00.'],
+        'pressingRows.*.phone' => ['regex' => 'Saisissez un numéro ivoirien à 10 chiffres, par exemple 07 00 00 00 00 ou 27 22 00 00 00.'],
         'phone' => [
             'regex' => 'Saisissez un numéro ivoirien à 10 chiffres, par exemple 07 00 00 00 00 ou 27 22 00 00 00.',
             'required' => 'Le numéro de téléphone est obligatoire.',

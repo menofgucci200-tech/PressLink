@@ -7,6 +7,7 @@ use App\Enums\OrderStatus;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Customer;
 use App\Models\Pressing;
+use App\Support\PhoneNumber;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -115,12 +116,11 @@ class Index extends Component
         abort_unless(auth()->user()->is_super_admin, 403);
 
         $editing = $this->formMode === 'edit' ? Customer::findOrFail($this->selectedCustomerId) : null;
-        $this->form['phone'] = preg_replace('/\s+/', '', $this->form['phone']);
-
+        $this->form['phone'] = PhoneNumber::normalize($this->form['phone']);
         $this->validate([
             'form.first_name' => ['required', 'string', 'max:100'],
             'form.last_name' => ['required', 'string', 'max:100'],
-            'form.phone' => ['required', 'string', 'regex:/^\+2250[0-9]{9}$/', Rule::unique('customers', 'phone')->ignore($editing?->id)],
+            'form.phone' => ['required', 'string', PhoneNumber::RULE, Rule::unique('customers', 'phone')->ignore($editing?->id)],
             'form.email' => ['nullable', 'email', 'max:255'],
             'form.pressing_id' => ['nullable', 'integer', 'exists:pressings,id'],
         ], [

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminExportController;
+use App\Http\Controllers\GroupExportController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OrderExportController;
 use App\Http\Controllers\OrderReceiptController;
@@ -18,9 +19,17 @@ use App\Livewire\Admin\Pressings\Show as AdminPressingsShow;
 use App\Livewire\Admin\Users\Index as AdminUsersIndex;
 use App\Livewire\Auth\AdminLogin;
 use App\Livewire\Auth\Login;
+use App\Livewire\Cash\Index as CashIndex;
 use App\Livewire\Clients\Index as ClientsIndex;
 use App\Livewire\Clients\Show as ClientsShow;
 use App\Livewire\Dashboard;
+use App\Livewire\Group\Activity as GroupActivity;
+use App\Livewire\Group\Cash as GroupCash;
+use App\Livewire\Group\Clients as GroupClients;
+use App\Livewire\Group\Harmonize as GroupHarmonize;
+use App\Livewire\Group\Orders as GroupOrders;
+use App\Livewire\Group\Reports as GroupReports;
+use App\Livewire\Group\Team as GroupTeam;
 use App\Livewire\Issues\Index as IssuesIndex;
 use App\Livewire\Orders\Create as OrdersCreate;
 use App\Livewire\Orders\Index as OrdersIndex;
@@ -32,6 +41,7 @@ use App\Livewire\Subscription\Show as SubscriptionShow;
 use App\Livewire\Support\Show as SupportShow;
 use App\Livewire\Team\Index as TeamIndex;
 use App\Models\Customer;
+use App\Models\Order;
 use App\Models\Pressing;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -79,7 +89,13 @@ Route::middleware('auth')->group(function () {
 
         session(['active_pressing_id' => $pressing->id]);
 
-        return redirect()->route('dashboard');
+        // ?vers=/commandes?status=prete : ouvre directement la bonne page du
+        // pressing (alertes du groupe). Chemins internes uniquement.
+        $to = (string) request()->query('vers', '');
+
+        return str_starts_with($to, '/') && ! str_starts_with($to, '//') && ! str_contains($to, '\\')
+            ? redirect($to)
+            : redirect()->route('dashboard');
     })->name('pressings.switch');
 
     Route::middleware(EnsureUserHasPressing::class)->group(function () {
@@ -96,6 +112,31 @@ Route::middleware('auth')->group(function () {
         Route::get('/commandes/{order}/recu/{format?}', [OrderReceiptController::class, 'show'])
             ->name('orders.receipt')
             ->where('format', 'pdf');
+
+        Route::get('/caisse', CashIndex::class)->name('cash.index');
+
+        // Groupe : propriétaire ou responsable de zone qui administre au moins
+        // deux pressings (contrôle dans chaque page / contrôleur).
+        Route::prefix('groupe')->name('group.')->group(function () {
+            Route::get('/commandes', GroupOrders::class)->name('orders');
+            Route::get('/commandes/{order}', function (Order $order) {
+                abort_unless(in_array($order->pressing_id, auth()->user()->managedPressingIds(), true), 403);
+                session(['active_pressing_id' => $order->pressing_id]);
+
+                return redirect()->route('orders.show', $order);
+            })->name('open-order');
+            Route::get('/caisse', GroupCash::class)->name('cash');
+            Route::get('/journal', GroupActivity::class)->name('activity');
+            Route::get('/clients', GroupClients::class)->name('clients');
+            Route::get('/equipe', GroupTeam::class)->name('team');
+            Route::get('/harmoniser', GroupHarmonize::class)->name('harmonize');
+            Route::get('/rapports', GroupReports::class)->name('reports');
+            Route::get('/rapport.pdf', [GroupExportController::class, 'report'])->name('report');
+            Route::get('/export/{type}/{format}', [GroupExportController::class, 'export'])
+                ->whereIn('type', ['commandes', 'paiements'])
+                ->whereIn('format', ['csv', 'xlsx'])
+                ->name('export');
+        });
 
         Route::get('/clients', ClientsIndex::class)->name('clients.index');
         Route::get('/clients/{customer}', ClientsShow::class)->name('clients.show');

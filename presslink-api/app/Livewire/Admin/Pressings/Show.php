@@ -9,6 +9,7 @@ use App\Enums\SubscriptionStatus;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Pressing;
 use App\Models\Subscription;
+use App\Support\PhoneNumber;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -91,9 +92,10 @@ class Show extends Component
     {
         abort_unless(auth()->user()->is_super_admin, 403);
 
+        $this->info['phone'] = PhoneNumber::normalize($this->info['phone']);
         $this->validate([
             'info.name' => ['required', 'string', 'max:150'],
-            'info.phone' => ['required', 'string', 'regex:/^\+2250[0-9]{9}$/'],
+            'info.phone' => ['required', 'string', PhoneNumber::RULE],
             'info.email' => ['nullable', 'email', 'max:255'],
             'info.city' => ['nullable', 'string', 'max:100'],
             'info.address' => ['nullable', 'string', 'max:255'],

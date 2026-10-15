@@ -75,7 +75,9 @@ class MultiPressingDashboardTest extends TestCase
 
         Livewire::actingAs($owner)
             ->test(Dashboard::class)
-            ->assertViewHas('totals', fn ($totals) => $totals['today_count'] === 2 && $totals['open_count'] === 2);
+            // Tableau de bord du groupe : commandes déposées sur la période
+            // (aujourd'hui par défaut) et commandes en cours, tous pressings.
+            ->assertViewHas('totals', fn ($totals) => $totals['orders'] === 2 && $totals['in_progress'] === 2);
     }
 
     public function test_owner_can_switch_to_a_specific_pressing_dashboard_via_the_route(): void

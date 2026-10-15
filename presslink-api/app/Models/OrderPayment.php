@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ActivityAction;
 use App\Enums\PaymentMethod;
 use Database\Factories\OrderPaymentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -46,6 +47,18 @@ class OrderPayment extends Model
 
         static::saved(fn (self $payment) => $payment->order->refreshAmountPaid());
         static::deleted(fn (self $payment) => $payment->order->refreshAmountPaid());
+
+        // Journal d'activité : chaque encaissement et chaque suppression.
+        static::created(fn (self $payment) => ActivityLog::record(
+            $payment->order->pressing_id, ActivityAction::PaymentRecorded,
+            'Paiement de '.number_format($payment->amount_fcfa, 0, ',', ' ').' F ('.$payment->method->label().') sur '.$payment->order->order_number,
+            $payment->order, ['amount_fcfa' => $payment->amount_fcfa, 'method' => $payment->method->value],
+        ));
+        static::deleted(fn (self $payment) => ActivityLog::record(
+            $payment->order->pressing_id, ActivityAction::PaymentRemoved,
+            'Paiement de '.number_format($payment->amount_fcfa, 0, ',', ' ').' F ('.$payment->method->label().') supprimé sur '.$payment->order->order_number,
+            $payment->order, ['amount_fcfa' => $payment->amount_fcfa, 'method' => $payment->method->value, 'paid_at' => $payment->paid_at?->toIso8601String()],
+        ));
     }
 
     public function getMethodLabelAttribute(): string

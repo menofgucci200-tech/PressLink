@@ -7,6 +7,7 @@ use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderPayment;
 use App\Models\User;
+use App\Support\GroupMetrics;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -32,6 +33,10 @@ class Dashboard extends Component
     #[Url]
     public string $customTo = '';
 
+    /** Tri du comparatif des pressings (tableau de bord du groupe). */
+    #[Url(as: 'tri', except: 'revenue')]
+    public string $groupSort = 'revenue';
+
     public function setPeriod(string $period): void
     {
         $this->period = $period;
@@ -47,7 +52,7 @@ class Dashboard extends Component
         $user = auth()->user();
 
         if ($user->hasMultiplePressings() && ! session()->has('active_pressing_id')) {
-            return $this->renderOverview($user);
+            return $user->managesGroup() ? $this->renderGroup($user) : $this->renderOverview($user);
         }
 
         return $this->renderSinglePressing($user);
@@ -92,6 +97,28 @@ class Dashboard extends Component
             'rows' => $rows,
             'totals' => $totals,
             'recent' => $recent,
+        ]);
+    }
+
+    /**
+     * Tableau de bord du groupe — propriétaire ou responsable de zone qui
+     * administre plusieurs pressings : totaux, comparatif, alertes et
+     * évolution de l'encaissé sur la période choisie.
+     */
+    private function renderGroup(User $user): View
+    {
+        [$start, $end, , , $periodLabel] = $this->resolvePeriod();
+        $metrics = new GroupMetrics($user->managedPressings(), $start, $end);
+        $rows = $metrics->perPressing();
+
+        return view('livewire.group.dashboard', [
+            'rows' => $rows,
+            'totals' => $metrics->totals($rows),
+            'alerts' => $metrics->alerts($rows),
+            'chart' => $metrics->dailyRevenue(),
+            'periodLabel' => $periodLabel,
+            'periodFrom' => $start->toDateString(),
+            'periodTo' => $end->toDateString(),
         ]);
     }
 

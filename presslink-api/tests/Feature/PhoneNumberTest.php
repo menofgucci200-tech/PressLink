@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\Orders\Create;
 use App\Livewire\Pressing\Settings as PressingSettings;
 use App\Models\Pressing;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Support\PhoneNumber;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -50,5 +52,23 @@ class PhoneNumberTest extends TestCase
             ->call('save')
             ->assertHasErrors(['phone'])
             ->assertSee('Saisissez un numéro ivoirien à 10 chiffres');
+    }
+
+    public function test_new_customer_from_the_order_form_accepts_spaces(): void
+    {
+        $user = User::factory()->create();
+        $pressing = Pressing::factory()->create();
+        $pressing->staff()->attach($user, ['role' => 'admin', 'is_active' => true]);
+        Subscription::factory()->for($pressing)->create();
+        $this->actingAs($user);
+
+        Livewire::test(Create::class)
+            ->set('newFirstName', 'Mariam')
+            ->set('newLastName', 'Bamba')
+            ->set('newPhone', '05 44 33 22 11')
+            ->call('createAndPickCustomer')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('customers', ['phone' => '+2250544332211']);
     }
 }

@@ -28,6 +28,22 @@
                 $navItem('orders', 'orders.index', 'Commandes', 'M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z|m3.3 7 8.7 5 8.7-5|M12 22V12'),
                 $navItem('clients', 'clients.index', 'Clients', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M9 11A4 4 0 1 0 9 3a4 4 0 0 0 0 8Z'),
                 $navItem('issues', 'issues.index', 'Signalements', 'M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z|M12 9v4|M12 17h.01'),
+                $navItem('cash', 'cash.index', 'Caisse', 'M2 7h20v12H2Z|M16 13h.01|M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2'),
+            ];
+            // Groupe : qui administre plusieurs pressings. En vue d'ensemble, le
+            // menu ne montre que les pages du groupe ; dans un pressing, un lien
+            // ramène à la vue du groupe.
+            $managesGroup = $user->managesGroup();
+            $groupMode = $isOverviewMode && $managesGroup;
+            $groupNavItems = [
+                $navItem('dashboard', 'pressings.overview', "Vue d'ensemble", 'M3 3h7v9H3Z|M14 3h7v5h-7Z|M14 12h7v9h-7Z|M3 16h7v5H3Z'),
+                $navItem('group-orders', 'group.orders', 'Commandes', 'M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z|m3.3 7 8.7 5 8.7-5|M12 22V12'),
+                $navItem('group-cash', 'group.cash', 'Caisse', 'M2 7h20v12H2Z|M16 13h.01|M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2'),
+                $navItem('group-clients', 'group.clients', 'Clients', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M9 11A4 4 0 1 0 9 3a4 4 0 0 0 0 8Z'),
+                $navItem('group-team', 'group.team', 'Équipe', 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2|M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z|M23 21v-2a4 4 0 0 0-3-3.87|M16 3.13a4 4 0 0 1 0 7.75'),
+                $navItem('group-harmonize', 'group.harmonize', 'Harmoniser', 'M4 6h16|M4 12h10|M4 18h6|m15 15 3 3 4-5'),
+                $navItem('group-activity', 'group.activity', 'Journal', 'M12 8v4l3 3|M3.05 11a9 9 0 1 1 .5 4'),
+                $navItem('group-reports', 'group.reports', 'Rapports', 'M3 3v18h18|m7 15 4-4 3 3 5-6'),
             ];
             $openIssuesCount = $pressing
                 ? \App\Models\OrderIssue::whereHas('order', fn ($q) => $q->where('pressing_id', $pressing->id))
@@ -77,8 +93,20 @@
                     </div>
                 @endif
 
+                @if ($managesGroup && ! $groupMode)
+                    <div class="pr-5 pb-3">
+                        <a href="{{ route('pressings.overview') }}" wire:navigate class="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-[13px] font-semibold">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+                            Vue du groupe
+                        </a>
+                    </div>
+                @endif
+                @if ($groupMode)
+                    <div class="pr-5 pb-2 text-[11px] font-semibold uppercase tracking-wide text-blue-200">Groupe · {{ $user->managedPressings()->count() }} pressings</div>
+                @endif
+
                 <nav class="flex flex-col gap-1.5">
-                    @foreach ($navItems as $item)
+                    @foreach ($groupMode ? $groupNavItems : $navItems as $item)
                         <a href="{{ route($item['route']) }}" wire:navigate style="--nav-i:{{ $loop->index }}" class="nav-item {{ $item['active'] ? 'nav-item-active' : '' }}">
                             @if ($item['active'])
                                 <span class="nav-notch nav-notch-top"></span>
@@ -98,7 +126,7 @@
                         </a>
                     @endforeach
 
-                    @if ($isAdmin)
+                    @if ($isAdmin && ! $groupMode)
                         @php $active = $active ?? null; @endphp
                         <a href="{{ route('services.index') }}" wire:navigate style="--nav-i:4" class="nav-item {{ $active === 'services' ? 'nav-item-active' : '' }}">
                             @if ($active === 'services') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif

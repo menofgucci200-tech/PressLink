@@ -114,6 +114,35 @@
       #pl-splash .pl-bar { animation: none; }
     }
   </style>
+  <script id="gl-recovery-script">
+    // Retour sur l'appli après une mise en arrière-plan (Android surtout) : le
+    // système peut retirer à la page sa mémoire graphique (« contexte WebGL »).
+    // Le moteur de rendu Flutter ne sait pas la récupérer et l'écran reste
+    // noir. On surveille cette perte et on recharge la page au retour : la
+    // session étant conservée, l'utilisateur retrouve son accueil.
+    (function () {
+      var lost = false, reloading = false;
+      function reloadWhenVisible() {
+        if (reloading) return;
+        if (document.visibilityState === 'visible') { reloading = true; setTimeout(function () { location.reload(); }, 150); }
+      }
+      function onLost() { lost = true; reloadWhenVisible(); }
+      document.addEventListener('visibilitychange', function () { if (lost) reloadWhenVisible(); });
+      window.addEventListener('pageshow', function (e) { if (e.persisted && lost) reloadWhenVisible(); });
+      [window.HTMLCanvasElement, window.OffscreenCanvas].forEach(function (C) {
+        if (!C || !C.prototype.getContext) return;
+        var original = C.prototype.getContext;
+        C.prototype.getContext = function (type) {
+          var ctx = original.apply(this, arguments);
+          if (ctx && /webgl/i.test(type) && !this.__plWatched) {
+            this.__plWatched = true;
+            this.addEventListener('webglcontextlost', onLost);
+          }
+          return ctx;
+        };
+      });
+    })();
+  </script>
   <script id="pwa-install-script">
     // Aide à l'installation de la PWA, consommée côté Dart (lib/core/pwa).
     // Android/Chrome : on garde l'événement "beforeinstallprompt" pour

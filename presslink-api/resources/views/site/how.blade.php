@@ -13,13 +13,24 @@
         '@type' => 'HowTo',
         'name' => 'Suivre sa commande de pressing avec PressLink',
         'video' => [
-            '@type' => 'VideoObject',
-            'name' => 'PressLink : du dépôt à la récupération',
-            'description' => 'Le parcours client PressLink en vidéo : inscription, code du pressing, suivi, notification et récupération.',
-            'thumbnailUrl' => asset('video/presslink-parcours.jpg'),
-            'contentUrl' => asset('video/presslink-parcours.mp4'),
-            'uploadDate' => '2026-10-13',
-            'duration' => 'PT1M34S',
+            [
+                '@type' => 'VideoObject',
+                'name' => 'PressLink : inscription, ajout du pressing et connexion',
+                'description' => 'Le vrai parcours dans l\'application PressLink : création du compte, ajout du pressing avec son code, puis connexion.',
+                'thumbnailUrl' => asset('video/presslink-inscription.jpg'),
+                'contentUrl' => asset('video/presslink-inscription.mp4'),
+                'uploadDate' => '2026-10-15',
+                'duration' => 'PT1M44S',
+            ],
+            [
+                '@type' => 'VideoObject',
+                'name' => 'PressLink : le suivi d\'une commande, du dépôt au retrait',
+                'description' => 'Une commande suivie côté pressing et côté client : dépôt avec acompte, traitement, notification « prête », encaissement et reçu.',
+                'thumbnailUrl' => asset('video/presslink-suivi-commande.jpg'),
+                'contentUrl' => asset('video/presslink-suivi-commande.mp4'),
+                'uploadDate' => '2026-10-15',
+                'duration' => 'PT2M18S',
+            ],
         ],
         'step' => collect($steps)->map(fn ($step, $i) => [
             '@type' => 'HowToStep',
@@ -38,11 +49,21 @@
         <div class="max-w-5xl mx-auto px-5 py-14 md:py-20">
             <h1 class="font-display text-4xl md:text-5xl font-extrabold tracking-tight mb-4 max-w-2xl">Comment ça marche</h1>
             <p class="text-(--color-text-secondary) text-lg mb-10 max-w-2xl">De l'inscription à la récupération de vos vêtements, voici tout le parcours PressLink.</p>
-            <video class="w-full rounded-3xl border border-(--color-border) shadow-lg bg-(--color-surface)" controls playsinline preload="metadata"
-                   poster="{{ asset('video/presslink-parcours.jpg') }}?v=2" width="1280" height="720">
-                <source src="{{ asset('video/presslink-parcours.mp4') }}?v=2" type="video/mp4">
-                Votre navigateur ne lit pas cette vidéo.
-            </video>
+            <div class="grid md:grid-cols-2 gap-8">
+                @foreach ([
+                    ['presslink-inscription', '1. Inscription, ajout du pressing et connexion', '1 min 44'],
+                    ['presslink-suivi-commande', '2. Le suivi d\'une commande, du dépôt au retrait', '2 min 18'],
+                ] as [$video, $label, $duration])
+                    <figure>
+                        <video class="w-full rounded-3xl border border-(--color-border) shadow-lg bg-(--color-surface)" controls playsinline preload="metadata"
+                               poster="{{ asset('video/'.$video.'.jpg') }}" width="1280" height="720">
+                            <source src="{{ asset('video/'.$video.'.mp4') }}" type="video/mp4">
+                            Votre navigateur ne lit pas cette vidéo.
+                        </video>
+                        <figcaption class="mt-3 font-semibold">{{ $label }} <span class="font-normal text-(--color-text-muted)">· {{ $duration }}</span></figcaption>
+                    </figure>
+                @endforeach
+            </div>
         </div>
     </section>
 

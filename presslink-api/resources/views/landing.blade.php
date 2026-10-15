@@ -77,17 +77,27 @@
         </div>
     </section>
 
-    {{-- ===== Vidéo du parcours ===== --}}
+    {{-- ===== Vidéos du parcours ===== --}}
     <section class="max-w-6xl mx-auto px-5 py-16 md:py-20">
         <div class="max-w-2xl mb-8">
-            <h2 class="font-display text-3xl font-bold tracking-tight mb-3">Du dépôt à la récupération, en vidéo</h2>
-            <p class="text-(--color-text-secondary) text-lg">Inscription, code du pressing, suivi, notification : le vrai parcours dans l'application, commenté pas à pas (1 min 30).</p>
+            <h2 class="font-display text-3xl font-bold tracking-tight mb-3">Le vrai parcours, en vidéo</h2>
+            <p class="text-(--color-text-secondary) text-lg">Filmé dans l'application et le tableau de bord, commenté pas à pas.</p>
         </div>
-        <video class="w-full rounded-3xl border border-(--color-border) shadow-sm bg-(--color-bg)" controls playsinline preload="none"
-               poster="{{ asset('video/presslink-parcours.jpg') }}?v=2" width="1280" height="720">
-            <source src="{{ asset('video/presslink-parcours.mp4') }}?v=2" type="video/mp4">
-        </video>
-        <a href="{{ route('site.how') }}" class="mt-4 inline-block font-semibold text-(--color-primary) hover:underline">Le parcours étape par étape →</a>
+        <div class="grid md:grid-cols-2 gap-8">
+            @foreach ([
+                ['presslink-inscription', 'Inscription, ajout du pressing et connexion', '1 min 44'],
+                ['presslink-suivi-commande', 'Le suivi d\'une commande, du dépôt au retrait', '2 min 18'],
+            ] as [$video, $label, $duration])
+                <figure>
+                    <video class="w-full rounded-3xl border border-(--color-border) shadow-sm bg-(--color-bg)" controls playsinline preload="none"
+                           poster="{{ asset('video/'.$video.'.jpg') }}" width="1280" height="720">
+                        <source src="{{ asset('video/'.$video.'.mp4') }}" type="video/mp4">
+                    </video>
+                    <figcaption class="mt-3 font-semibold">{{ $label }} <span class="font-normal text-(--color-text-muted)">· {{ $duration }}</span></figcaption>
+                </figure>
+            @endforeach
+        </div>
+        <a href="{{ route('site.how') }}" class="mt-6 inline-block font-semibold text-(--color-primary) hover:underline">Le parcours étape par étape →</a>
     </section>
 
     {{-- ===== Installation ===== --}}

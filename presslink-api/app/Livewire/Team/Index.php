@@ -6,6 +6,7 @@ use App\Actions\Auth\ResetPasswordToDefault;
 use App\Enums\PressingRole;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\User;
+use App\Support\PhoneNumber;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -48,10 +49,11 @@ class Index extends Component
     {
         $this->createdMember = null;
 
+        $this->phone = PhoneNumber::normalize($this->phone);
         $this->validate([
             'name' => ['required', 'string', 'max:100'],
             'login' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9._-]+$/', 'unique:users,login'],
-            'phone' => ['nullable', 'string', 'regex:/^\+2250[0-9]{9}$/', 'unique:users,phone'],
+            'phone' => ['nullable', 'string', PhoneNumber::RULE, 'unique:users,phone'],
             'password' => ['required', 'string', 'min:8'],
             'role' => ['required', Rule::enum(PressingRole::class)],
         ]);

@@ -78,9 +78,11 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'fr'),
+    // Application exclusivement en français : on ne dépend pas du .env du serveur
+    // (un APP_LOCALE=en y affichait les messages d'erreur en anglais).
+    'locale' => 'fr',
 
-    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'fr'),
+    'fallback_locale' => 'fr',
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 

@@ -4,6 +4,7 @@ namespace App\Livewire\Account;
 
 use App\Livewire\Concerns\ShowsToasts;
 use App\Support\ImageOptimizer;
+use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -49,13 +50,13 @@ class Settings extends Component
         $user = auth()->user();
         $this->name = trim($this->name);
         $this->email = mb_strtolower(trim($this->email));
-        $this->phone = $this->normalizePhone($this->phone);
+        $this->phone = PhoneNumber::normalize($this->phone);
 
         // Sans login, l'email ou le téléphone est le seul moyen de se connecter.
         $this->validate([
             'name' => ['required', 'string', 'max:100'],
             'email' => [Rule::requiredIf(blank($user->login) && blank($this->phone)), 'nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-            'phone' => ['nullable', 'string', 'regex:/^\+2250[0-9]{9}$/', Rule::unique('users', 'phone')->ignore($user->id)],
+            'phone' => ['nullable', 'string', PhoneNumber::RULE, Rule::unique('users', 'phone')->ignore($user->id)],
         ], [
             'name.required' => 'Indiquez votre nom.',
             'email.required' => 'Gardez une adresse e-mail ou un téléphone : sans identifiant de connexion, c\'est ce qui vous permet de vous connecter.',
@@ -147,17 +148,6 @@ class Settings extends Component
     }
 
     /** « 07 08 12 44 00 » ou « 0708124400 » → « +2250708124400 ». */
-    private function normalizePhone(string $phone): string
-    {
-        $phone = preg_replace('/[\s.\-()]/', '', $phone) ?? '';
-
-        return match (true) {
-            preg_match('/^0[0-9]{9}$/', $phone) === 1 => '+225'.$phone,
-            preg_match('/^(00)?2250[0-9]{9}$/', $phone) === 1 => '+'.preg_replace('/^00/', '', $phone),
-            default => $phone,
-        };
-    }
-
     public function render()
     {
         $user = auth()->user();

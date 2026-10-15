@@ -177,7 +177,7 @@ return [
 
     'custom' => [
         'phone' => [
-            'regex' => 'Le numéro de téléphone doit être au format +2250XXXXXXXXX.',
+            'regex' => 'Saisissez un numéro ivoirien à 10 chiffres, par exemple 07 00 00 00 00 ou 27 22 00 00 00.',
             'required' => 'Le numéro de téléphone est obligatoire.',
             'unique' => 'Ce numéro de téléphone est déjà utilisé.',
         ],

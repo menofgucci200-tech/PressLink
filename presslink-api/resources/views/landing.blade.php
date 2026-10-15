@@ -11,7 +11,17 @@
                 '@id' => $baseUrl.'/#organization',
                 'name' => 'PressLink',
                 'url' => $baseUrl.'/',
-                'logo' => $baseUrl.'/apple-touch-icon.png',
+                // Logo carré dédié (Google : au moins 112 px, de préférence 512 px).
+                'logo' => [
+                    '@type' => 'ImageObject',
+                    '@id' => $baseUrl.'/#logo',
+                    'url' => $baseUrl.'/images/logo-presslink.png',
+                    'contentUrl' => $baseUrl.'/images/logo-presslink.png',
+                    'width' => 512,
+                    'height' => 512,
+                    'caption' => 'PressLink',
+                ],
+                'image' => ['@id' => $baseUrl.'/#logo'],
                 'slogan' => 'Le lien entre votre pressing et vos clients',
                 'areaServed' => ['@type' => 'Country', 'name' => 'Côte d\'Ivoire'],
                 'contactPoint' => [

@@ -1,4 +1,4 @@
-@props(['title', 'description', 'canonical', 'ogImage', 'keywords' => null, 'jsonLd' => null])
+@props(['title', 'description', 'canonical', 'ogImage', 'keywords' => null, 'jsonLd' => null, 'breadcrumbJsonLd' => null])
 <!DOCTYPE html>
 <html lang="fr">
     <head>
@@ -13,6 +13,9 @@
         <meta name="robots" content="index, follow, max-image-preview:large">
         <meta name="author" content="PressLink">
         <meta name="theme-color" content="#2563EB">
+        @if (config('services.google.site_verification'))
+            <meta name="google-site-verification" content="{{ config('services.google.site_verification') }}">
+        @endif
         <link rel="canonical" href="{{ $canonical }}">
 
         {{-- Google exige un favicon d'au moins 48 px (multiple de 48) pour l'afficher dans ses résultats --}}
@@ -40,6 +43,9 @@
 
         @if ($jsonLd)
             <script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>
+        @endif
+        @if ($breadcrumbJsonLd)
+            <script type="application/ld+json">{!! json_encode($breadcrumbJsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>
         @endif
 
         <x-theme-script />

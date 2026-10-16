@@ -1,0 +1,33 @@
+{
+  "fps": 30,
+  "duree": 55.0,
+  "voix": [
+    { "cle": "intro", "debut": 0.4 },
+    { "cle": "simple", "debut": 4.6 },
+    { "cle": "depot", "debut": 7.5 },
+    { "cle": "recu", "debut": 16.0 },
+    { "cle": "prete", "debut": 19.4 },
+    { "cle": "pilotage", "debut": 24.1 },
+    { "cle": "client", "debut": 32.0 },
+    { "cle": "suivi", "debut": 36.0 },
+    { "cle": "notif", "debut": 40.4 },
+    { "cle": "cta", "debut": 45.8 }
+  ],
+  "scenes": [
+    { "id": "intro", "debut": 0.0, "fin": 7.3, "note": "chaos (carnets, tickets, appels) puis logo" },
+    { "id": "depot", "debut": 7.3, "fin": 15.8, "note": "côté pressing : nouvelle commande en 4 étapes" },
+    { "id": "recu", "debut": 15.8, "fin": 19.2, "note": "reçu imprimé / PDF" },
+    { "id": "prete", "debut": 19.2, "fin": 23.9, "note": "« Marquer prête », client prévenu" },
+    { "id": "pilotage", "debut": 23.9, "fin": 31.8, "note": "tableau de bord, caisse, vue d'ensemble du groupe" },
+    { "id": "client", "debut": 31.8, "fin": 35.8, "note": "côté client : rejoindre avec un code" },
+    { "id": "suivi", "debut": 35.8, "fin": 40.2, "note": "suivi en temps réel, reste à payer" },
+    { "id": "notif", "debut": 40.2, "fin": 45.6, "note": "notification « prête »" },
+    { "id": "fin", "debut": 45.6, "fin": 55.0, "note": "gratuit pendant le test, WhatsApp, e-mail" }
+  ],
+  "sons": {
+    "souffles": [7.3, 15.8, 19.2, 23.9, 31.8, 35.8, 40.2, 45.6],
+    "signature_sonore": [4.65, 45.75],
+    "notification": [21.5, 41.55],
+    "pops": [0.5, 1.95, 2.8, 3.3, 11.25, 11.95, 12.65, 13.75, 14.35, 14.95, 16.9, 17.3, 17.7, 24.15, 25.3, 27.7, 32.7, 36.3, 36.7, 37.1, 38.6, 47.0, 48.6, 49.0]
+  }
+}

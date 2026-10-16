@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>PressLink — vidéo de présentation</title>
+<style>
+:root {
+    --primary: #2563EB; --primary-dark: #1D4ED8; --primary-tint: #EFF4FE; --sky: #93C5FD;
+    --success: #10B981; --success-tint: #ECFDF5; --success-text: #059669;
+    --warning: #F59E0B; --warning-tint: #FEF3C7; --warning-text: #B45309;
+    --navy: #0B1530; --ink: #0F172A; --ink-2: #475569; --muted: #94A3B8;
+    --bg: #F4F7FE; --border: #E2E8F0; --yellow: #FBBF24;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+body { font-family: "Inter", sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+#stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--bg); }
+.scene { position: absolute; inset: 0; overflow: hidden; display: none; will-change: transform, opacity; }
+.abs { position: absolute; }
+.display { font-family: "Inter Display", "Inter", sans-serif; font-weight: 800; letter-spacing: -0.035em; line-height: 1.04; }
+.center { left: 0; right: 0; text-align: center; }
+.wax { position: absolute; inset: -200px; }
+img { display: block; }
+
+/* Titres de scène */
+.kicker { display: inline-flex; align-items: center; gap: 14px; background: #fff; color: var(--primary); font-weight: 800; font-size: 30px;
+    letter-spacing: .12em; padding: 14px 30px 14px 18px; border-radius: 999px; box-shadow: 0 14px 30px rgba(37,99,235,.18); }
+.kicker i { width: 48px; height: 48px; border-radius: 50%; background: var(--primary); display: grid; place-items: center; font-style: normal; }
+.h { font-size: 74px; }
+.h .b { color: var(--primary); }
+
+/* Téléphone */
+.phone { position: absolute; width: 560px; padding: 14px; background: #0B0F19; border-radius: 62px;
+    box-shadow: 0 50px 90px rgba(15,23,42,.35), inset 0 0 0 3px #2A3245; }
+.phone .scr { position: relative; width: 532px; height: 1153px; border-radius: 48px; overflow: hidden; background: #fff; }
+.phone .scr img { position: absolute; left: 0; top: 54px; width: 532px; height: auto; }
+.phone .sb { position: absolute; left: 0; right: 0; top: 0; height: 54px; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: 6px 44px 0 50px;
+    font-size: 22px; font-weight: 700; color: var(--ink); background: #fff; }
+.phone .sb.app { background: linear-gradient(90deg, #1E3B8B, #1E3EAB 50%, #2563EA); color: #fff; }
+.phone .sb svg { display: block; }
+.phone .notch { position: absolute; left: 50%; top: 26px; width: 130px; height: 34px; margin-left: -65px; border-radius: 20px; background: #0B0F19; z-index: 3; }
+.tap { position: absolute; width: 110px; height: 110px; margin: -55px 0 0 -55px; border-radius: 50%; background: rgba(255,255,255,.5); border: 5px solid rgba(255,255,255,.95); box-shadow: 0 0 0 3px rgba(15,23,42,.25), 0 10px 26px rgba(15,23,42,.35); z-index: 4; opacity: 0; }
+
+/* Pastilles flottantes */
+.chip { position: absolute; display: inline-flex; align-items: center; gap: 16px; background: #fff; border-radius: 999px; padding: 14px 30px 14px 14px;
+    font-weight: 700; font-size: 34px; box-shadow: 0 18px 40px rgba(15,23,42,.18); white-space: nowrap; z-index: 5; }
+.chip i { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-weight: 800; font-size: 26px; flex: none; }
+.chip.dark { background: #fff; color: var(--ink); }
+
+/* Intro */
+#s1 { background: radial-gradient(120% 80% at 50% 30%, #17306E 0, var(--navy) 70%); color: #fff; z-index: 20; }
+.carnet { width: 470px; height: 560px; background: #FFFDF6; border-radius: 14px; box-shadow: 0 30px 60px rgba(0,0,0,.4); padding: 70px 40px 30px 76px; color: #34312B;
+    background-image: linear-gradient(transparent 0 58px, #D9E2F1 58px 60px); background-size: 100% 60px; background-position: 0 36px; overflow: hidden;
+    font-family: "Courier New", monospace; font-size: 30px; line-height: 60px; }
+.carnet::before { content: ""; position: absolute; left: 56px; top: 0; bottom: 0; width: 3px; background: #F2A3A3; }
+.carnet .x { text-decoration: line-through; text-decoration-color: #E11D48; text-decoration-thickness: 4px; color: #8A857A; }
+.ticket { width: 400px; padding: 30px 32px 26px; background: #FFFDF6; color: #3B3A36; border-radius: 10px; box-shadow: 0 30px 60px rgba(0,0,0,.4); font-family: "Courier New", monospace; }
+.ticket .l { display: flex; justify-content: space-between; font-size: 26px; padding: 6px 0; border-bottom: 2px dashed #D9D3C1; }
+.ticket .big { font-size: 58px; font-weight: 700; text-align: center; margin: 16px 0 10px; font-family: "Inter Display", sans-serif; color: #1F2A44; }
+.bubble { position: absolute; background: #fff; color: var(--ink); font-size: 36px; font-weight: 600; padding: 22px 30px; border-radius: 30px 30px 30px 8px;
+    box-shadow: 0 20px 40px rgba(0,0,0,.35); white-space: nowrap; }
+.bubble.r { border-radius: 30px 30px 8px 30px; background: #DCF8C6; }
+.bubble small { display: block; font-size: 22px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+.ring { width: 150px; height: 150px; border-radius: 50%; background: #22C55E; display: grid; place-items: center; box-shadow: 0 20px 50px rgba(34,197,94,.45); }
+#s1-light { position: absolute; inset: 0; background: var(--bg); clip-path: circle(0% at 50% 45%); }
+
+/* Imprimante */
+.printer { width: 780px; height: 92px; border-radius: 30px; background: linear-gradient(#334155, #0F172A); box-shadow: 0 24px 50px rgba(15,23,42,.35); }
+.printer::after { content: ""; position: absolute; left: 90px; right: 90px; bottom: 18px; height: 12px; border-radius: 6px; background: #020617; }
+.printer .led { position: absolute; right: 40px; top: 26px; width: 16px; height: 16px; border-radius: 50%; background: #22C55E; box-shadow: 0 0 14px #22C55E; }
+
+/* Pilotage */
+#s5 { background: radial-gradient(120% 70% at 50% 0%, #1B3A86 0, var(--navy) 65%); color: #fff; }
+.pill { display: inline-block; padding: 16px 30px; border-radius: 999px; background: rgba(255,255,255,.08); border: 2px solid rgba(147,197,253,.4); font-size: 32px; font-weight: 700; color: #BFDBFE; margin: 0 6px; }
+.pill.on { background: #fff; color: var(--navy); border-color: #fff; }
+.laptop .lid { width: 960px; padding: 20px 20px 26px; background: #0E1424; border-radius: 30px 30px 10px 10px; box-shadow: 0 40px 90px rgba(0,0,0,.5); }
+.laptop .view { position: relative; width: 920px; height: 575px; border-radius: 8px; overflow: hidden; background: #fff; }
+.laptop .view img { position: absolute; left: 0; top: 0; width: 920px; height: 575px; transform-origin: 0 0; }
+.laptop .base { width: 1080px; margin-left: -60px; height: 34px; background: linear-gradient(#C9D2E3, #8C97AD); border-radius: 0 0 40px 40px; }
+.toast { display: flex; gap: 22px; align-items: center; background: #fff; color: var(--ink); border-radius: 26px; padding: 22px 30px; font-size: 34px; font-weight: 700; box-shadow: 0 24px 60px rgba(0,0,0,.4); white-space: nowrap; }
+.toast i { width: 58px; height: 58px; border-radius: 50%; background: var(--success-tint); display: grid; place-items: center; flex: none; }
+
+/* Notification */
+#s8 { background: linear-gradient(#DADADC, #C6C6C8); }
+.notif { width: 960px; left: 60px; background: rgba(255,255,255,.97); border-radius: 40px; padding: 30px 34px; display: flex; gap: 26px; align-items: flex-start; box-shadow: 0 30px 70px rgba(15,23,42,.28); }
+.notif .ic { width: 92px; height: 92px; border-radius: 24px; background: var(--primary); display: grid; place-items: center; flex: none; }
+.notif .app { font-size: 25px; font-weight: 700; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; display: flex; justify-content: space-between; }
+.notif .t { font-size: 40px; font-weight: 800; margin-top: 6px; letter-spacing: -.01em; }
+.notif .b { font-size: 31px; color: var(--ink-2); margin-top: 4px; line-height: 1.3; }
+
+/* Fin */
+#s9 { background: radial-gradient(90% 60% at 85% 10%, #3B82F6 0, var(--primary) 45%, var(--primary-dark) 100%); color: #fff; }
+.free { width: 820px; left: 130px; background: var(--yellow); color: #1E293B; border-radius: 40px; padding: 34px 20px 30px; text-align: center; box-shadow: 0 30px 60px rgba(15,23,42,.3); }
+.free b { display: block; font-family: "Inter Display", sans-serif; font-weight: 900; font-size: 104px; letter-spacing: -.03em; line-height: 1; }
+.free span { display: block; font-size: 42px; font-weight: 700; margin-top: 10px; }
+.contact { width: 880px; left: 100px; height: 150px; background: #fff; color: var(--ink); border-radius: 36px; display: flex; align-items: center; gap: 30px; padding: 0 40px; box-shadow: 0 24px 50px rgba(15,23,42,.25); }
+.contact .ci { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.contact small { display: block; font-size: 24px; font-weight: 700; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; }
+.contact b { display: block; font-size: 54px; font-weight: 800; letter-spacing: -.01em; }
+
+/* Sous-titres */
+#caption { position: absolute; left: 60px; right: 60px; top: 1688px; display: flex; justify-content: center; z-index: 50; pointer-events: none; }
+#caption span { background: rgba(11,21,48,.8); color: #fff; font-size: 40px; font-weight: 600; line-height: 1.32; text-align: center; padding: 16px 30px; border-radius: 22px; max-width: 960px; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+</style>
+</head>
+<body>
+<div id="stage">
+
+<svg width="0" height="0" style="position:absolute">
+    <defs>
+        <pattern id="wax-light" width="180" height="180" patternUnits="userSpaceOnUse">
+            <g fill="none" stroke="#2563EB" stroke-width="5">
+                <circle cx="45" cy="45" r="32"/><circle cx="45" cy="45" r="16" fill="#2563EB" stroke="none"/>
+                <path d="M135 12 L168 45 L135 78 L102 45Z"/><path d="M135 30 L150 45 L135 60 L120 45Z" fill="#2563EB" stroke="none"/>
+                <path d="M12 135 Q45 102 78 135 Q45 168 12 135Z"/>
+                <circle cx="135" cy="135" r="30"/><circle cx="135" cy="135" r="6" fill="#2563EB" stroke="none"/>
+                <circle cx="90" cy="90" r="5" fill="#2563EB" stroke="none"/><circle cx="0" cy="90" r="5" fill="#2563EB" stroke="none"/><circle cx="90" cy="0" r="5" fill="#2563EB" stroke="none"/>
+            </g>
+        </pattern>
+        <pattern id="wax-dark" width="180" height="180" patternUnits="userSpaceOnUse">
+            <g fill="none" stroke="#93C5FD" stroke-width="5">
+                <circle cx="45" cy="45" r="32"/><circle cx="45" cy="45" r="16" fill="#93C5FD" stroke="none"/>
+                <path d="M135 12 L168 45 L135 78 L102 45Z"/><path d="M135 30 L150 45 L135 60 L120 45Z" fill="#93C5FD" stroke="none"/>
+                <path d="M12 135 Q45 102 78 135 Q45 168 12 135Z"/>
+                <circle cx="135" cy="135" r="30"/><circle cx="135" cy="135" r="6" fill="#93C5FD" stroke="none"/>
+                <circle cx="90" cy="90" r="5" fill="#93C5FD" stroke="none"/><circle cx="0" cy="90" r="5" fill="#93C5FD" stroke="none"/><circle cx="90" cy="0" r="5" fill="#93C5FD" stroke="none"/>
+            </g>
+        </pattern>
+    </defs>
+</svg>
+
+<!-- ============ 1. Intro : le désordre, puis PressLink ============ -->
+<section class="scene" id="s1">
+    <svg class="wax" id="wax1" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-dark)" opacity=".06"/></svg>
+    <div id="s1-carnet" class="abs carnet" style="left:70px; top:250px;">
+        <div class="x">Mme Koné · 3 chem.</div>
+        <div>Yao · costume ??</div>
+        <div class="x">Fatou · 2 pagnes</div>
+        <div>payé ? acompte ?</div>
+        <div>Bamba · prêt mardi ?</div>
+        <div class="x">Diallo · drap</div>
+        <div>???</div>
+    </div>
+    <div id="s1-ticket" class="abs ticket" style="left:600px; top:330px;">
+        <div style="text-align:center; font-size:22px; letter-spacing:.3em; margin-top:6px;">TICKET PRESSING</div>
+        <div class="big">N° 2041</div>
+        <div class="l"><span>Chemises</span><span>×3</span></div>
+        <div class="l" style="border-bottom:0; font-weight:700;"><span>Prêt le :</span><span style="color:#E11D48; font-weight:800;">?</span></div>
+    </div>
+    <div id="s1-b1" class="bubble" style="left:90px; top:960px;"><small>Client · 08:12</small>Bonjour, c'est prêt ? 🙏</div>
+    <div id="s1-b2" class="bubble" style="left:330px; top:1110px;"><small>Client · 10:47</small>Toujours pas ? 😕</div>
+    <div id="s1-b3" class="bubble" style="left:150px; top:1260px;"><small>Client · 12:30</small>Je passe quand alors ?</div>
+    <div id="s1-ring" class="abs ring" style="left:820px; top:1000px;">
+        <svg width="74" height="74" viewBox="0 0 24 24" fill="#fff"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>
+    </div>
+    <div id="s1-light">
+        <svg class="wax" id="wax1b" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-light)" opacity=".07"/></svg>
+        <img id="s1-logo" class="abs" src="assets/wordmark_logo.png" style="left:190px; top:700px; width:700px;">
+        <div id="s1-tag" class="abs center display" style="top:900px; font-size:84px; color:var(--ink);">Tout devient <span style="color:var(--primary);">simple.</span></div>
+        <svg class="abs" style="left:0; top:0;" width="1080" height="1920">
+            <path id="s1-under" d="M560 1010 C 650 1030, 760 995, 860 1012" fill="none" stroke="#2563EB" stroke-width="10" stroke-linecap="round" pathLength="1"/>
+        </svg>
+    </div>
+</section>
+
+<!-- ============ 2. Côté pressing : nouvelle commande ============ -->
+<section class="scene" id="s2">
+    <svg class="wax" id="wax2" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-light)" opacity=".06"/></svg>
+    <div id="s2-k" class="abs center" style="top:120px;"><span class="kicker"><i><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 4.5 4h15L21 9.5"/><path d="M3 9.5a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M5 12v8h14v-8"/></svg></i>CÔTÉ PRESSING</span></div>
+    <div id="s2-h1" class="abs center display h" style="top:230px;">Enregistrez un dépôt</div>
+    <div id="s2-h2" class="abs center display h" style="top:310px; color:var(--primary);">en quelques secondes</div>
+    <div id="s2-phone" class="phone" style="left:260px; top:450px;">
+        <div class="notch"></div>
+        <div class="scr"><div class="sb"><span>9:41</span><span style="display:flex; gap:8px; align-items:center;"><svg width="30" height="20" viewBox="0 0 30 20" fill="currentColor"><rect x="0" y="13" width="5" height="7" rx="1"/><rect x="8" y="9" width="5" height="11" rx="1"/><rect x="16" y="5" width="5" height="15" rx="1"/><rect x="24" y="1" width="5" height="19" rx="1"/></svg><svg width="44" height="22" viewBox="0 0 44 22"><rect x="1" y="1" width="37" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"/><rect x="4" y="4" width="29" height="14" rx="3" fill="currentColor"/><rect x="40" y="7" width="3" height="8" rx="1.5" fill="currentColor" opacity=".5"/></svg></span></div>
+            <img id="s2-a" src="assets/p-new1.jpg"><img id="s2-b" src="assets/p-new2.jpg"><img id="s2-c" src="assets/p-new3.jpg"><img id="s2-d" src="assets/p-new4.jpg">
+            <div id="s2-t1" class="tap" style="left:434px; top:775px;"></div>
+            <div id="s2-t2" class="tap" style="left:434px; top:1160px;"></div>
+            <div id="s2-t3" class="tap" style="left:434px; top:1160px;"></div>
+        </div>
+    </div>
+    <div id="s2-c1" class="chip" style="left:30px; top:760px;"><i style="background:var(--primary); color:#fff;">1</i>Client</div>
+    <div id="s2-c2" class="chip" style="left:30px; top:880px;"><i style="background:var(--primary); color:#fff;">2</i>Articles</div>
+    <div id="s2-c3" class="chip" style="left:30px; top:1000px;"><i style="background:var(--primary); color:#fff;">3</i>Paiement</div>
+    <div id="s2-p1" class="chip" style="left:690px; top:1130px;"><i style="background:var(--success-tint);"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Payé</div>
+    <div id="s2-p2" class="chip" style="left:640px; top:1250px;"><i style="background:var(--warning-tint);"><svg width="28" height="28" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="#B45309" stroke-width="2.6"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17Z" fill="#B45309"/></svg></i>Acompte</div>
+    <div id="s2-p3" class="chip" style="left:660px; top:1370px;"><i style="background:var(--primary-tint);"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3 2"/></svg></i>Au retrait</div>
+</section>
+
+<!-- ============ 3. Le reçu ============ -->
+<section class="scene" id="s3">
+    <svg class="wax" id="wax3" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-light)" opacity=".06"/></svg>
+    <div id="s3-h" class="abs center display h" style="top:170px;">Le reçu, <span class="b">aussitôt.</span></div>
+    <div id="s3-paper" class="abs" style="left:250px; top:400px; width:580px; height:1260px; overflow:hidden; -webkit-mask-image:linear-gradient(#000 0, #000 calc(100% - 160px), transparent 100%);">
+        <img id="s3-recu" src="assets/recu.jpg" style="width:580px; box-shadow:0 20px 40px rgba(15,23,42,.18);">
+    </div>
+    <div id="s3-printer" class="abs printer" style="left:150px; top:330px;"><div class="led"></div></div>
+    <div id="s3-c1" class="chip" style="left:690px; top:720px;"><i style="background:var(--primary); color:#fff;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg></i>Imprimer</div>
+    <div id="s3-c2" class="chip" style="left:720px; top:840px;"><i style="background:#FEE2E2; color:#B91C1C; font-size:20px;">PDF</i>PDF</div>
+    <div id="s3-c3" class="chip" style="left:660px; top:960px;"><i style="background:var(--primary-tint);"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2.4" stroke-linecap="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></i>Ticket 80 mm</div>
+</section>
+
+<!-- ============ 4. Prête : le client est prévenu ============ -->
+<section class="scene" id="s4">
+    <svg class="wax" id="wax4" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-light)" opacity=".06"/></svg>
+    <div id="s4-h1" class="abs center display h" style="top:170px;">Un clic,</div>
+    <div id="s4-h2" class="abs center display h" style="top:250px; color:var(--primary);">la commande est prête.</div>
+    <div id="s4-phone" class="phone" style="left:260px; top:420px;">
+        <div class="notch"></div>
+        <div class="scr"><div class="sb"><span>9:41</span><span style="display:flex; gap:8px; align-items:center;"><svg width="30" height="20" viewBox="0 0 30 20" fill="currentColor"><rect x="0" y="13" width="5" height="7" rx="1"/><rect x="8" y="9" width="5" height="11" rx="1"/><rect x="16" y="5" width="5" height="15" rx="1"/><rect x="24" y="1" width="5" height="19" rx="1"/></svg><svg width="44" height="22" viewBox="0 0 44 22"><rect x="1" y="1" width="37" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"/><rect x="4" y="4" width="29" height="14" rx="3" fill="currentColor"/><rect x="40" y="7" width="3" height="8" rx="1.5" fill="currentColor" opacity=".5"/></svg></span></div>
+            <img id="s4-a" src="assets/p-avant-prete.jpg"><img id="s4-b" src="assets/p-prete.jpg">
+            <div id="s4-t" class="tap" style="left:263px; top:1017px;"></div>
+        </div>
+    </div>
+    <div id="s4-chip" class="chip" style="left:200px; top:1340px; padding-right:36px;">
+        <i style="background:#D6D6D8 url(assets/man.png) no-repeat; background-size:190px; background-position:-58px -14px; width:76px; height:76px;"></i>
+        <span style="line-height:1.15;"><span style="display:block; font-size:26px; color:var(--muted); font-weight:600;">Awa Konan</span>Prévenue sur son téléphone</span>
+        <i style="background:var(--success); width:46px; height:46px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>
+    </div>
+</section>
+
+<!-- ============ 5. Pilotage : tableau de bord, caisse, groupe ============ -->
+<section class="scene" id="s5">
+    <svg class="wax" id="wax5" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-dark)" opacity=".07"/></svg>
+    <div id="s5-k" class="abs center" style="top:150px; font-size:32px; font-weight:800; letter-spacing:.14em; color:var(--sky);">POUR LE GÉRANT</div>
+    <div id="s5-h1" class="abs center display h" style="top:210px;">Tout votre pressing,</div>
+    <div id="s5-h2" class="abs center display h" style="top:290px; color:var(--sky);">en un coup d'œil.</div>
+    <div class="abs center" style="top:450px;">
+        <span id="s5-p1" class="pill">Tableau de bord</span><span id="s5-p2" class="pill">Caisse</span><span id="s5-p3" class="pill">Plusieurs pressings</span>
+    </div>
+    <div id="s5-laptop" class="abs laptop" style="left:60px; top:620px; transform-origin:50% 100%;">
+        <div class="lid"><div class="view">
+            <img id="s5-a" src="assets/d-dashboard.jpg"><img id="s5-b" src="assets/d-caisse.jpg"><img id="s5-c" src="assets/d-groupe.jpg">
+        </div></div>
+        <div class="base"></div>
+    </div>
+    <div id="s5-t1" class="abs toast" style="left:150px; top:1350px;">
+        <i><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>
+        <span>Caisse clôturée : aucun écart</span>
+    </div>
+    <div id="s5-t2" class="abs toast" style="left:110px; top:1350px;">
+        <i style="background:var(--primary-tint);"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 4.5 4h15L21 9.5"/><path d="M5 12v8h14v-8"/></svg></i>
+        <span>3 pressings · une seule vue d'ensemble</span>
+    </div>
+</section>
+
+<!-- ============ 6. Côté client : rejoindre avec un code ============ -->
+<section class="scene" id="s6">
+    <svg class="wax" id="wax6" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-light)" opacity=".06"/></svg>
+    <div id="s6-k" class="abs center" style="top:120px;"><span class="kicker"><i><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></i>CÔTÉ CLIENT</span></div>
+    <div id="s6-h1" class="abs center display h" style="top:230px;">Il rejoint son pressing</div>
+    <div id="s6-h2" class="abs center display h" style="top:310px; color:var(--primary);">avec un simple code</div>
+    <div id="s6-phone" class="phone" style="left:260px; top:450px;">
+        <div class="notch"></div>
+        <div class="scr"><div class="sb app"><span>9:41</span><span style="display:flex; gap:8px; align-items:center;"><svg width="30" height="20" viewBox="0 0 30 20" fill="currentColor"><rect x="0" y="13" width="5" height="7" rx="1"/><rect x="8" y="9" width="5" height="11" rx="1"/><rect x="16" y="5" width="5" height="15" rx="1"/><rect x="24" y="1" width="5" height="19" rx="1"/></svg><svg width="44" height="22" viewBox="0 0 44 22"><rect x="1" y="1" width="37" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"/><rect x="4" y="4" width="29" height="14" rx="3" fill="currentColor"/><rect x="40" y="7" width="3" height="8" rx="1.5" fill="currentColor" opacity=".5"/></svg></span></div>
+            <img id="s6-a" src="assets/c-code.jpg"><img id="s6-b" src="assets/c-accueil.jpg">
+            <div id="s6-t" class="tap" style="left:266px; top:453px;"></div>
+        </div>
+    </div>
+    <div id="s6-code" class="chip" style="left:40px; top:960px; font-family:'Inter Display'; font-size:58px; font-weight:800; letter-spacing:.06em; padding:22px 40px; border-radius:30px; border:4px solid var(--primary);">
+        <span id="s6-code-t">DM-0001</span><span id="s6-caret" style="display:inline-block; width:5px; height:58px; background:var(--primary); margin-left:6px;"></span>
+    </div>
+</section>
+
+<!-- ============ 7. Suivi en temps réel ============ -->
+<section class="scene" id="s7">
+    <svg class="wax" id="wax7" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-light)" opacity=".06"/></svg>
+    <div id="s7-h1" class="abs center display h" style="top:170px;">Il suit ses vêtements</div>
+    <div id="s7-h2" class="abs center display h" style="top:250px; color:var(--primary);">en temps réel</div>
+    <div id="s7-phone" class="phone" style="left:420px; top:420px;">
+        <div class="notch"></div>
+        <div class="scr"><div class="sb app"><span>9:41</span><span style="display:flex; gap:8px; align-items:center;"><svg width="30" height="20" viewBox="0 0 30 20" fill="currentColor"><rect x="0" y="13" width="5" height="7" rx="1"/><rect x="8" y="9" width="5" height="11" rx="1"/><rect x="16" y="5" width="5" height="15" rx="1"/><rect x="24" y="1" width="5" height="19" rx="1"/></svg><svg width="44" height="22" viewBox="0 0 44 22"><rect x="1" y="1" width="37" height="20" rx="6" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"/><rect x="4" y="4" width="29" height="14" rx="3" fill="currentColor"/><rect x="40" y="7" width="3" height="8" rx="1.5" fill="currentColor" opacity=".5"/></svg></span></div><img id="s7-a" src="assets/c-detail.jpg"><img id="s7-b" src="assets/c-detail-paiement.jpg"></div>
+    </div>
+    <div id="s7-c1" class="chip" style="left:30px; top:820px;"><i style="background:var(--success); color:#fff;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Reçue</div>
+    <div id="s7-c2" class="chip" style="left:30px; top:940px;"><i style="background:var(--success); color:#fff;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>En traitement</div>
+    <div id="s7-c3" class="chip" style="left:30px; top:1060px;"><i style="background:var(--success); color:#fff;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Prête !</div>
+    <div id="s7-c4" class="chip" style="left:300px; top:1440px; padding-right:36px;"><i style="background:var(--warning-tint);"><svg width="28" height="28" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="#B45309" stroke-width="2.6"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17Z" fill="#B45309"/></svg></i><span>Reste à payer <b style="color:var(--warning-text);">7 000 F</b></span></div>
+</section>
+
+<!-- ============ 8. La notification ============ -->
+<section class="scene" id="s8">
+    <div id="s8-photo" class="abs" style="left:-110px; top:420px; width:1300px; height:1300px; transform-origin:50% 45%; -webkit-mask-image:linear-gradient(transparent 0, #000 140px, #000 calc(100% - 260px), transparent 100%);">
+        <div class="abs" style="left:422px; top:526px; width:351px; height:696px; border-radius:26px; overflow:hidden; background:#fff;">
+            <img src="assets/c-detail.jpg" style="width:351px;">
+            <div id="s8-flash" class="abs" style="inset:0; background:#fff; opacity:0;"></div>
+        </div>
+        <img src="assets/man.png" style="position:relative; width:1300px;">
+    </div>
+    <div id="s8-notif" class="abs notif" style="top:120px;">
+        <div class="ic"><img src="assets/icon.png" style="width:64px; filter:brightness(0) invert(1);"></div>
+        <div style="flex:1; min-width:0;">
+            <div class="app"><span>PressLink</span><span style="letter-spacing:0; text-transform:none; font-weight:600;">maintenant</span></div>
+            <div class="t">Votre commande est prête !</div>
+            <div class="b">La commande #PL-286571 est prête à être récupérée au Pressing du Plateau. Reste à payer au retrait : 7 000 F.</div>
+        </div>
+    </div>
+    <div id="s8-h" class="abs center" style="top:150px;">
+        <div class="display" style="font-size:92px; color:var(--ink);">Fini les déplacements</div>
+        <div class="display" style="font-size:92px; color:var(--primary);">pour rien.</div>
+    </div>
+</section>
+
+<!-- ============ 9. Fin : gratuit pendant le test, contacts ============ -->
+<section class="scene" id="s9">
+    <svg class="wax" id="wax9" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-dark)" opacity=".09"/></svg>
+    <img id="s9-logo" class="abs" src="assets/wordmark_white.png" style="left:250px; top:250px; width:580px;">
+    <div id="s9-free" class="abs free" style="top:520px;"><b>100 % GRATUIT</b><span>pendant la phase de test</span></div>
+    <div id="s9-l" class="abs center" style="top:880px; font-size:32px; font-weight:800; letter-spacing:.16em; color:#DBEAFE;">ÉCRIVEZ-NOUS</div>
+    <div id="s9-wa" class="abs contact" style="top:950px;">
+        <div class="ci" style="background:#22C55E;"><svg width="56" height="56" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg></div>
+        <div><small>WhatsApp</small><b>+225 07 18 00 22 93</b></div>
+    </div>
+    <div id="s9-mail" class="abs contact" style="top:1130px;">
+        <div class="ci" style="background:var(--primary);"><svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div>
+        <div><small>E-mail</small><b>contact@presslink.org</b></div>
+    </div>
+    <div id="s9-url" class="abs center display" style="top:1360px; font-size:72px;">presslink.org</div>
+    <svg class="abs" style="left:0; top:0;" width="1080" height="1920">
+        <path id="s9-under" d="M330 1452 C 470 1474, 640 1434, 760 1452" fill="none" stroke="#FBBF24" stroke-width="8" stroke-linecap="round" pathLength="1"/>
+    </svg>
+</section>
+
+<div id="caption"><span id="caption-text"></span></div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const lerp = (a, b, p) => a + (b - a) * p;
+const E = {
+    out: (p) => 1 - Math.pow(1 - p, 3),
+    inOut: (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2),
+    back: (p) => { const c = 1.7; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); },
+    in: (p) => p * p * p,
+};
+function set(el, { o = 1, x = 0, y = 0, s = 1, r = 0, extra = '' } = {}) {
+    if (typeof el === 'string') el = $(el);
+    el.style.opacity = o;
+    el.style.transform = `translate(${x}px, ${y}px) scale(${s}) rotate(${r}deg) ${extra}`;
+}
+/** Apparition (montée + fondu), puis éventuelle disparition. */
+function rise(el, t, a, dur = 0.55, dy = 40, out = null) {
+    const p = E.out(prog(t, a, a + dur));
+    let o = p, y = (1 - p) * dy;
+    if (out !== null) { const q = E.in(prog(t, out, out + 0.35)); o *= 1 - q; y -= q * 30; }
+    set(el, { o, y });
+}
+function pop(el, t, a, dur = 0.5, out = null) {
+    const p = prog(t, a, a + dur);
+    let s = p === 0 ? 0.6 : lerp(0.6, 1, E.back(p)), o = clamp(p * 3);
+    if (out !== null) { const q = E.in(prog(t, out, out + 0.3)); o *= 1 - q; s *= 1 - 0.15 * q; }
+    set(el, { o, s });
+}
+/** Pastille qui glisse depuis le côté (dx < 0 : depuis la gauche). */
+function slideIn(el, t, a, dx = -60, dur = 0.5) {
+    const p = prog(t, a, a + dur);
+    set(el, { o: clamp(p * 2.5), x: (1 - E.back(p)) * dx, s: 0.94 + 0.06 * E.out(p) });
+}
+function draw(path, p) { path.style.strokeDashoffset = 1 - p; path.style.strokeDasharray = '1 1'; }
+/** Écrans d'un téléphone qui défilent horizontalement aux instants donnés. */
+function screens(ids, switches, t, w = 532, dur = 0.5) {
+    const f = switches.reduce((s, a) => s + E.inOut(prog(t, a, a + dur)), 0);
+    ids.forEach((id, i) => { $(id).style.transform = `translateX(${w * (i - f)}px)`; });
+}
+/** Fondu enchaîné entre deux écrans. */
+function cross(a, b, t, at, dur = 0.35) {
+    const p = E.inOut(prog(t, at, at + dur));
+    $(a).style.opacity = 1; $(b).style.opacity = p;
+}
+/** Doigt qui touche l'écran : point, puis onde. */
+function tap(el, t, at) {
+    const p = prog(t, at - 0.18, at + 0.45);
+    const k = prog(t, at, at + 0.45);
+    el = $(el);
+    if (p <= 0 || p >= 1) { el.style.opacity = 0; return; }
+    el.style.opacity = t < at ? 0.9 : 0.9 * (1 - k);
+    el.style.transform = `scale(${t < at ? 0.55 : 0.55 + 1.1 * E.out(k)})`;
+}
+/** Zoom « Ken Burns » d'une capture de bureau vers un point (coordonnées CSS 1440×900). */
+function zoomTo(img, t, keys, W = 920, H = 575) {
+    let k = keys[0];
+    for (let i = 0; i < keys.length - 1; i++) {
+        const [a, b] = [keys[i], keys[i + 1]];
+        if (t >= a[0] && t <= b[0]) { const p = E.inOut(prog(t, a[0], b[0])); k = [t, lerp(a[1], b[1], p), lerp(a[2], b[2], p), lerp(a[3], b[3], p)]; }
+        else if (t > b[0]) k = b;
+    }
+    const [, s, cx, cy] = k;
+    const f = W / 1440;
+    let tx = W / 2 - cx * f * s, ty = H / 2 - cy * f * s;
+    tx = clamp(tx, W - W * s, 0); ty = clamp(ty, H - H * s, 0);
+    $(img).style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+}
+
+let TL = null, CAPTIONS = [];
+function scene(id, t, a, b) {
+    const el = $(id);
+    const visible = t >= a && t <= b;
+    el.style.display = visible ? 'block' : 'none';
+    return visible;
+}
+/** Entrée/sortie standard d'une scène claire : glisse depuis la droite, sort vers la gauche. */
+function slideScene(id, t, a, b) {
+    const inn = E.inOut(prog(t, a - 0.25, a + 0.25));
+    const out = E.inOut(prog(t, b - 0.25, b + 0.25));
+    set(id, { x: 1080 * (1 - inn) - 1080 * out });
+}
+
+function render(t) {
+    // ---------------- 1. Intro (0 → 7.3)
+    if (scene('s1', t, 0, 7.55)) {
+        const lift = E.inOut(prog(t, 7.05, 7.55));
+        set('s1', { y: -1920 * lift });
+        set('wax1', { x: -t * 12, y: -t * 8 });
+        set('wax1b', { x: -t * 10, y: -t * 6 });
+        const sweep = E.in(prog(t, 4.25, 4.75));
+        const enter = (id, a, dx, dy, r0) => {
+            const p = E.out(prog(t, a, a + 0.7));
+            const w = Math.sin(t * 1.7 + a) * 1.6;
+            set(id, { o: clamp(p * 2) * (1 - sweep), x: (1 - p) * dx + sweep * dx * 2.5, y: (1 - p) * dy + sweep * dy * 2.5, r: r0 + w, s: 1 - 0.2 * sweep });
+        };
+        enter('s1-carnet', 0.4, -260, -40, -8);
+        enter('s1-ticket', 1.85, 300, -60, 9);
+        const b = (id, a) => { const p = prog(t, a, a + 0.45); set(id, { o: clamp(p * 3) * (1 - sweep), s: p === 0 ? 0.6 : lerp(0.6, 1, E.back(p)) * (1 - 0.3 * sweep), y: sweep * 300 }); };
+        b('s1-b1', 2.75); b('s1-b2', 3.15); b('s1-b3', 3.55);
+        const ring = prog(t, 2.6, 2.95);
+        const shake = t > 2.95 && t < 4.3 ? Math.sin(t * 60) * 6 : 0;
+        set('s1-ring', { o: clamp(ring * 3) * (1 - sweep), s: (ring === 0 ? 0.6 : lerp(0.6, 1, E.back(ring))) * (1 - 0.3 * sweep), r: shake });
+        const light = E.inOut(prog(t, 4.35, 4.95));
+        $('s1-light').style.clipPath = `circle(${light * 130}% at 50% 45%)`;
+        pop('s1-logo', t, 4.65, 0.6);
+        rise('s1-tag', t, 5.7, 0.55);
+        draw($('s1-under'), E.inOut(prog(t, 6.15, 6.65)));
+    }
+
+    // ---------------- 2. Côté pressing : dépôt (7.3 → 15.8)
+    if (scene('s2', t, 7.0, 16.1)) {
+        const inn = E.inOut(prog(t, 7.05, 7.55));
+        const out = E.inOut(prog(t, 15.55, 16.05));
+        set('s2', { y: 1920 * (1 - inn), x: -1080 * out });
+        set('wax2', { x: -t * 10, y: -t * 6 });
+        pop('s2-k', t, 7.55, 0.5);
+        rise('s2-h1', t, 8.75); rise('s2-h2', t, 9.0);
+        const ph = E.out(prog(t, 7.6, 8.5));
+        set('s2-phone', { o: clamp(ph * 2), y: (1 - ph) * 300 });
+        screens(['s2-a', 's2-b', 's2-c', 's2-d'], [11.0, 12.45, 14.95], t);
+        tap('s2-t1', t, 10.75); tap('s2-t2', t, 12.2); tap('s2-t3', t, 14.7);
+        slideIn('s2-c1', t, 11.25); slideIn('s2-c2', t, 11.95); slideIn('s2-c3', t, 12.65);
+        slideIn('s2-p1', t, 13.75, 60); slideIn('s2-p2', t, 14.35, 60); slideIn('s2-p3', t, 14.95, 60);
+    }
+
+    // ---------------- 3. Reçu (15.8 → 19.2)
+    if (scene('s3', t, 15.55, 19.45)) {
+        slideScene('s3', t, 15.8, 19.2);
+        set('wax3', { x: -t * 10, y: -t * 6 });
+        rise('s3-h', t, 16.0);
+        const pr = E.out(prog(t, 15.9, 16.4));
+        set('s3-printer', { o: pr, y: (1 - pr) * -80 });
+        const paper = E.inOut(prog(t, 16.3, 18.0));
+        $('s3-paper').style.clipPath = `inset(0 0 ${(1 - paper) * 100}% 0)`;
+        set('s3-recu', { y: -260 * (1 - paper) });
+        slideIn('s3-c1', t, 16.9, 60); slideIn('s3-c2', t, 17.3, 60); slideIn('s3-c3', t, 17.7, 60);
+    }
+
+    // ---------------- 4. Prête (19.2 → 23.9)
+    if (scene('s4', t, 18.95, 24.15)) {
+        slideScene('s4', t, 19.2, 23.9);
+        set('wax4', { x: -t * 10, y: -t * 6 });
+        rise('s4-h1', t, 19.35); rise('s4-h2', t, 20.1);
+        tap('s4-t', t, 19.62);
+        cross('s4-a', 's4-b', t, 19.75);
+        const c = E.back(prog(t, 21.45, 21.95));
+        set('s4-chip', { o: prog(t, 21.45, 21.6), y: (1 - c) * 120, x: (1 - c) * -80, s: 0.85 + 0.15 * c });
+    }
+
+    // ---------------- 5. Pilotage (23.9 → 31.8)
+    if (scene('s5', t, 23.65, 32.05)) {
+        const inn = E.inOut(prog(t, 23.65, 24.15));
+        const out = E.inOut(prog(t, 31.55, 32.05));
+        set('s5', { o: inn, y: -1920 * out });
+        set('wax5', { x: -t * 10, y: -t * 6 });
+        rise('s5-k', t, 24.0); rise('s5-h1', t, 24.15); rise('s5-h2', t, 24.4);
+        pop('s5-p1', t, 24.15, 0.45); pop('s5-p2', t, 25.3, 0.45); pop('s5-p3', t, 27.7, 0.45);
+        const act = t < 25.3 ? 1 : t < 27.7 ? 2 : 3;
+        [1, 2, 3].forEach((i) => $('s5-p' + i).classList.toggle('on', i === act));
+        const lp = E.out(prog(t, 24.0, 24.9));
+        const tilt = 1 - E.inOut(prog(t, 24.0, 25.6));
+        set('s5-laptop', { o: lp, y: (1 - lp) * 180, s: 0.96 + 0.04 * lp, extra: `perspective(1600px) rotateX(${tilt * 14}deg)` });
+        cross('s5-a', 's5-b', t, 25.3);
+        $('s5-c').style.opacity = E.inOut(prog(t, 27.7, 28.05));
+        zoomTo('s5-a', t, [[24.6, 1, 720, 450], [25.6, 1.28, 760, 260]]);
+        zoomTo('s5-b', t, [[25.3, 1, 720, 450], [26.0, 1, 720, 450], [26.9, 2.0, 1105, 300]]);
+        zoomTo('s5-c', t, [[27.7, 1.18, 1000, 560], [31.6, 1.0, 720, 450]]);
+        const t1 = E.back(prog(t, 26.6, 27.1)), t1o = E.in(prog(t, 27.6, 27.9));
+        set('s5-t1', { o: prog(t, 26.6, 26.75) * (1 - t1o), y: (1 - t1) * 80 + t1o * 40 });
+        const t2 = E.back(prog(t, 28.6, 29.1));
+        set('s5-t2', { o: prog(t, 28.6, 28.75), y: (1 - t2) * 80 });
+    }
+
+    // ---------------- 6. Côté client : code (31.8 → 35.8)
+    if (scene('s6', t, 31.55, 36.05)) {
+        const inn = E.inOut(prog(t, 31.55, 32.05));
+        const out = E.inOut(prog(t, 35.55, 36.05));
+        set('s6', { y: 1920 * (1 - inn), x: -1080 * out });
+        set('wax6', { x: -t * 10, y: -t * 6 });
+        pop('s6-k', t, 32.05, 0.5);
+        rise('s6-h1', t, 32.3); rise('s6-h2', t, 32.55);
+        const ph = E.out(prog(t, 32.1, 32.9));
+        set('s6-phone', { o: clamp(ph * 2), y: (1 - ph) * 300 });
+        slideIn('s6-code', t, 32.7, -80, 0.5);
+        const code = 'DM-0001';
+        const n = Math.round(clamp((t - 33.0) / 0.7) * code.length);
+        $('s6-code-t').textContent = code.slice(0, n) || '​';
+        $('s6-caret').style.opacity = n < code.length || Math.floor(t * 2.5) % 2 === 0 ? 1 : 0;
+        tap('s6-t', t, 34.35);
+        screens(['s6-a', 's6-b'], [34.6], t);
+        const co = E.in(prog(t, 34.5, 34.8));
+        if (t > 34.5) set('s6-code', { o: 1 - co, x: -60 * co });
+    }
+
+    // ---------------- 7. Suivi (35.8 → 40.2)
+    if (scene('s7', t, 35.55, 40.45)) {
+        slideScene('s7', t, 35.8, 40.2);
+        set('wax7', { x: -t * 10, y: -t * 6 });
+        rise('s7-h1', t, 36.0); rise('s7-h2', t, 36.25);
+        slideIn('s7-c1', t, 36.3); slideIn('s7-c2', t, 36.7); slideIn('s7-c3', t, 37.1);
+        const sc = E.inOut(prog(t, 37.85, 38.45));
+        set('s7-a', { y: -420 * sc, o: 1 - sc });
+        set('s7-b', { y: 420 * (1 - sc), o: sc });
+        slideIn('s7-c4', t, 38.6, 60);
+    }
+
+    // ---------------- 8. Notification (40.2 → 45.6)
+    if (scene('s8', t, 39.95, 45.85)) {
+        const inn = E.out(prog(t, 39.95, 40.45));
+        const out = E.inOut(prog(t, 45.35, 45.85));
+        set('s8', { o: inn, y: -1920 * out });
+        set('s8-photo', { s: 1.0 + 0.07 * prog(t, 40.0, 45.6) });
+        const down = E.back(prog(t, 41.5, 42.05));
+        const up = E.inOut(prog(t, 42.9, 43.3));
+        set('s8-notif', { y: lerp(-460, 0, down) - 560 * up, o: prog(t, 41.5, 41.6) });
+        $('s8-flash').style.opacity = 0.55 * (1 - prog(t, 41.6, 42.15)) * (t >= 41.6 ? 1 : 0);
+        rise('s8-h', t, 43.2, 0.6, 50);
+    }
+
+    // ---------------- 9. Fin (45.6 → 55)
+    if (scene('s9', t, 45.35, 99)) {
+        const inn = E.inOut(prog(t, 45.35, 45.85));
+        set('s9', { y: 1920 * (1 - inn) });
+        set('wax9', { x: -t * 10, y: -t * 6 });
+        pop('s9-logo', t, 45.75, 0.6);
+        pop('s9-free', t, 46.55, 0.6);
+        rise('s9-l', t, 48.3);
+        slideIn('s9-wa', t, 48.6, -80, 0.55);
+        slideIn('s9-mail', t, 49.0, 80, 0.55);
+        rise('s9-url', t, 49.6);
+        draw($('s9-under'), E.inOut(prog(t, 50.0, 50.6)));
+        const breathe = 1 + 0.02 * Math.sin((t - 50) * 2.4) * prog(t, 50, 51);
+        $('s9-free').style.transform += ` scale(${breathe})`;
+    }
+
+    // ---------------- Sous-titres
+    const c = CAPTIONS.find((k) => t >= k.a && t < k.b);
+    const cap = $('caption-text');
+    if (c) {
+        cap.textContent = c.text;
+        const p = Math.min(prog(t, c.a, c.a + 0.18), 1 - prog(t, c.b - 0.12, c.b));
+        cap.style.opacity = p;
+        cap.style.transform = `translateY(${(1 - p) * 10}px)`;
+        cap.parentElement.style.display = 'flex';
+    } else {
+        cap.parentElement.style.display = 'none';
+    }
+}
+
+/** Découpe chaque réplique en sous-titres courts, minutés au prorata du texte. */
+function buildCaptions(timeline, repliques) {
+    const out = [];
+    const byKey = Object.fromEntries(repliques.map((r) => [r.cle, r]));
+    for (const v of timeline.voix) {
+        const r = byKey[v.cle];
+        const parts = r.texte.split(/(?<=[.:…])\s+|(?<=,)\s+(?=[^,]{12,})/).map((s) => s.trim()).filter(Boolean);
+        const chunks = [];
+        for (const p of parts) {
+            if (chunks.length && (chunks[chunks.length - 1] + ' ' + p).length <= 46 && !/[.…:]$/.test(chunks[chunks.length - 1])) {
+                chunks[chunks.length - 1] += ' ' + p;
+            } else chunks.push(p);
+        }
+        const total = chunks.reduce((s, c) => s + c.length, 0);
+        let a = v.debut;
+        for (const ch of chunks) {
+            const d = r.duree * ch.length / total;
+            out.push({ a, b: a + d + 0.12, text: ch.replace(/\s*:$/, '') });
+            a += d;
+        }
+    }
+    for (let i = 0; i < out.length - 1; i++) out[i].b = Math.min(out[i].b, out[i + 1].a);
+    return out;
+}
+
+window.setup = (timeline, repliques) => {
+    TL = timeline;
+    CAPTIONS = buildCaptions(timeline, repliques);
+    return CAPTIONS;
+};
+window.renderAt = (t) => { render(t); return true; };
+window.ready = Promise.all([document.fonts.ready, ...Array.from(document.images).map((im) => im.complete ? 1 : new Promise((r) => { im.onload = im.onerror = r; }))]);
+</script>
+</body>
+</html>

@@ -174,4 +174,16 @@ class LandingPageTest extends TestCase
 
         $this->get('/')->assertDontSee('BreadcrumbList', false);
     }
+
+    public function test_video_structured_data_uses_a_full_date_with_time_zone(): void
+    {
+        $html = $this->get('/comment-ca-marche')->assertOk()->getContent();
+
+        preg_match_all('/"uploadDate":"([^"]+)"/', $html, $matches);
+        $this->assertCount(2, $matches[1]);
+        foreach ($matches[1] as $date) {
+            // Google exige date, heure et fuseau horaire (ISO 8601).
+            $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/', $date);
+        }
+    }
 }

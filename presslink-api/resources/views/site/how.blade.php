@@ -19,7 +19,7 @@
                 'description' => 'Le vrai parcours dans l\'application PressLink : création du compte, ajout du pressing avec son code, puis connexion.',
                 'thumbnailUrl' => asset('video/presslink-inscription.jpg'),
                 'contentUrl' => asset('video/presslink-inscription.mp4'),
-                'uploadDate' => '2026-10-15',
+                'uploadDate' => '2026-10-15T09:00:00+00:00',
                 'duration' => 'PT1M44S',
             ],
             [
@@ -28,7 +28,7 @@
                 'description' => 'Une commande suivie côté pressing et côté client : dépôt avec acompte, traitement, notification « prête », encaissement et reçu.',
                 'thumbnailUrl' => asset('video/presslink-suivi-commande.jpg'),
                 'contentUrl' => asset('video/presslink-suivi-commande.mp4'),
-                'uploadDate' => '2026-10-15',
+                'uploadDate' => '2026-10-15T09:00:00+00:00',
                 'duration' => 'PT2M18S',
             ],
         ],

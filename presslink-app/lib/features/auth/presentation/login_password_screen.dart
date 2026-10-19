@@ -5,9 +5,14 @@ import '../../../core/utils/ivorian_phone.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../../support/presentation/support_screen.dart';
 import 'auth_controller.dart';
 
 /// Écran mot de passe — affiché quand le numéro correspond à un compte existant.
+///
+/// « Mot de passe oublié ? » ouvre WhatsApp vers le support PressLink, qui
+/// réinitialise le mot de passe (les pressings ne le peuvent pas). Au
+/// lancement, ce lien passera par un code reçu par SMS.
 class LoginPasswordScreen extends ConsumerStatefulWidget {
   const LoginPasswordScreen({required this.phone, super.key});
 
@@ -48,6 +53,16 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
+  void _forgotPassword() {
+    SupportScreen.open(
+      context,
+      SupportScreen.whatsAppUri(
+        'Bonjour, j\'ai oublié mon mot de passe PressLink. '
+        'Mon numéro : ${IvorianPhone.format(widget.phone)}.',
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -85,6 +100,16 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
                         : Icons.visibility_off_outlined,
                   ),
                   onPressed: () => setState(() => _obscure = !_obscure),
+                ),
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _forgotPassword,
+                  child: const Text(
+                    'Mot de passe oublié ?',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
               if (_error != null) ...[

@@ -25,14 +25,18 @@ class SupportScreen extends ConsumerWidget {
     final who = (customerName != null && customerName.isNotEmpty)
         ? 'Bonjour, je suis $customerName et j\'ai besoin d\'aide avec PressLink.'
         : 'Bonjour, j\'ai besoin d\'aide avec PressLink.';
-    return Uri.https(
-      'wa.me',
-      AppConfig.supportPhoneE164.replaceFirst('+', ''),
-      {'text': who},
-    );
+    return whatsAppUri(who);
   }
 
-  Future<void> _open(BuildContext context, Uri uri) async {
+  /// Discussion WhatsApp avec le support, message déjà rédigé.
+  static Uri whatsAppUri(String message) => Uri.https(
+    'wa.me',
+    AppConfig.supportPhoneE164.replaceFirst('+', ''),
+    {'text': message},
+  );
+
+  /// Ouvre WhatsApp (ou l'appel) ; un message s'affiche si c'est impossible.
+  static Future<void> open(BuildContext context, Uri uri) async {
     var opened = false;
     try {
       // Dans un navigateur (PWA), `externalApplication` n'est pas supporté
@@ -168,7 +172,7 @@ class SupportScreen extends ConsumerWidget {
             SizedBox(
               height: 52,
               child: ElevatedButton.icon(
-                onPressed: () => _open(context, _callUri),
+                onPressed: () => open(context, _callUri),
                 icon: const _ContactIcon('assets/icons/phone.png'),
                 label: const Text('Appeler le support'),
               ),
@@ -178,7 +182,7 @@ class SupportScreen extends ConsumerWidget {
               height: 52,
               child: ElevatedButton.icon(
                 onPressed: () =>
-                    _open(context, _whatsAppUri(customer?.fullName)),
+                    open(context, _whatsAppUri(customer?.fullName)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _whatsAppGreen,
                   foregroundColor: Colors.white,
@@ -191,7 +195,7 @@ class SupportScreen extends ConsumerWidget {
             SizedBox(
               height: 52,
               child: OutlinedButton.icon(
-                onPressed: () => _open(
+                onPressed: () => open(
                   context,
                   Uri(
                     scheme: 'mailto',

@@ -18,8 +18,9 @@ use Tests\TestCase;
 
 /**
  * Réinitialisation des mots de passe à la valeur par défaut (123456) :
- * liste des utilisateurs du Super Admin, équipe et fiche client du
- * dashboard pressing, puis changement par l'utilisateur lui-même.
+ * liste des utilisateurs du Super Admin et équipe du dashboard pressing,
+ * puis changement par l'utilisateur lui-même. Un pressing ne peut plus
+ * réinitialiser le mot de passe d'un client.
  */
 class PasswordResetToDefaultTest extends TestCase
 {
@@ -122,26 +123,20 @@ class PasswordResetToDefaultTest extends TestCase
         $this->assertTrue(Hash::check('123456', $employee->refresh()->password));
     }
 
-    public function test_pressing_admin_can_reset_a_client_password_but_an_employee_cannot(): void
+    public function test_a_pressing_can_no_longer_reset_a_client_password(): void
     {
         $pressing = Pressing::factory()->create();
         $admin = $this->staff($pressing, PressingRole::Admin);
-        $employee = $this->staff($pressing, PressingRole::Employee);
         $customer = Customer::factory()->create(['password' => 'ancien-secret']);
         $pressing->customers()->attach($customer, ['joined_at' => now()]);
 
-        $this->actingAs($employee);
-        Livewire::test(ClientsShow::class, ['customer' => $customer])
-            ->assertDontSee('Réinitialiser le mot de passe')
-            ->call('resetPassword')
-            ->assertForbidden();
-        $this->assertTrue(Hash::check('ancien-secret', $customer->refresh()->password));
-
         $this->actingAs($admin);
         Livewire::test(ClientsShow::class, ['customer' => $customer])
-            ->call('resetPassword')
-            ->assertDispatched('toast');
-        $this->assertTrue(Hash::check('123456', $customer->refresh()->password));
+            ->assertDontSee('Réinitialiser le mot de passe')
+            ->assertSee('Utilise l\'application', false);
+
+        $this->assertFalse(method_exists(ClientsShow::class, 'resetPassword'));
+        $this->assertTrue(Hash::check('ancien-secret', $customer->refresh()->password));
     }
 
     public function test_no_banner_is_shown_and_changing_the_password_clears_the_flag(): void

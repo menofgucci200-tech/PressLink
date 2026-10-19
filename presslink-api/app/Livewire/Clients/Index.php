@@ -86,16 +86,13 @@ class Index extends Component
                 [
                     'first_name' => $this->firstName,
                     'last_name' => $this->lastName,
-                    'password' => Customer::DEFAULT_WALK_IN_PASSWORD,
-                    'must_change_password' => true,
-                    'phone_verified_at' => now(),
                 ],
             );
 
             $pressing->customers()->syncWithoutDetaching([$customer->id => ['joined_at' => now()]]);
         });
 
-        $this->toast("{$this->firstName} {$this->lastName} a été ajouté à vos clients. Mot de passe par défaut : ".Customer::DEFAULT_WALK_IN_PASSWORD.'.');
+        $this->toast("{$this->firstName} {$this->lastName} a été ajouté à vos clients. Il retrouvera ses commandes en créant son compte PressLink avec ce numéro.");
         $this->reset(['firstName', 'lastName', 'phone', 'showCreateForm']);
     }
 

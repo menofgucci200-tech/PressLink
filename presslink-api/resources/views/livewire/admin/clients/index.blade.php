@@ -186,7 +186,7 @@
                     </select>
                     @error('form.pressing_id') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                 </div>
-                <p class="col-span-2 text-xs text-(--color-text-muted)">Le compte reçoit le mot de passe par défaut {{ \App\Models\Customer::DEFAULT_WALK_IN_PASSWORD }}, que le client change depuis l'application.</p>
+                <p class="col-span-2 text-xs text-(--color-text-muted)">Le compte attend le client : en s'inscrivant dans l'application avec ce numéro, il confirme ses informations, choisit son mot de passe et retrouve ses commandes.</p>
                     <div class="col-span-2 flex justify-end gap-2">
                         <button type="button" wire:click="cancelForm" class="h-10 px-4 rounded-lg border border-(--color-border) text-sm font-medium">Annuler</button>
                         <button type="submit" wire:loading.attr="disabled" wire:target="saveCustomer" class="h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600) disabled:opacity-60">Créer le client</button>

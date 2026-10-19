@@ -13,18 +13,35 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 /**
- * Authentification client — Cahier §3.1 (revu le 26/08) :
+ * Authentification client — Cahier §3.1 (revu le 26/08, puis le 19/10) :
  * 1. Le client saisit son numéro de téléphone.
- * 2. Si un compte existe déjà → on demande le mot de passe (login).
- * 3. Sinon → formulaire d'inscription complet (register).
+ * 2. S'il a déjà créé son compte → on demande le mot de passe (login).
+ * 3. Si un pressing l'a déjà enregistré → inscription pré-remplie avec les
+ *    informations du pressing, qu'il confirme ou corrige (register réclame
+ *    alors ce compte et ses commandes).
+ * 4. Sinon → formulaire d'inscription complet (register).
  */
 class CustomerAuthController extends Controller
 {
     public function checkPhone(CheckPhoneRequest $request): JsonResponse
     {
-        $exists = Customer::where('phone', $request->string('phone')->toString())->exists();
+        $customer = Customer::where('phone', $request->string('phone')->toString())->first();
 
-        return response()->json(['exists' => $exists]);
+        // Compte ouvert par un pressing, en attente du client.
+        if ($customer !== null && ! $customer->hasAppAccount()) {
+            return response()->json([
+                'exists' => false,
+                'pending' => true,
+                'prefill' => [
+                    'first_name' => $customer->first_name,
+                    'last_name' => $customer->last_name,
+                    'gender' => $customer->gender?->value,
+                ],
+                'orders_count' => $customer->orders()->count(),
+            ]);
+        }
+
+        return response()->json(['exists' => $customer !== null, 'pending' => false]);
     }
 
     public function login(LoginCustomerRequest $request): JsonResponse
@@ -53,17 +70,36 @@ class CustomerAuthController extends Controller
 
     public function register(RegisterCustomerRequest $request): JsonResponse
     {
-        $customer = Customer::create([
-            'phone' => $request->string('phone')->toString(),
+        $details = [
             'first_name' => $request->string('first_name')->toString(),
             'last_name' => $request->string('last_name')->toString(),
             'gender' => $request->string('gender')->toString(),
             'email' => $request->string('email')->toString() ?: null,
             'password' => $request->string('password')->toString(),
-            'phone_verified_at' => now(),
+            'must_change_password' => false,
             'last_login_at' => now(),
-            'is_active' => true,
-        ]);
+        ];
+
+        // Un pressing l'a déjà enregistré : il réclame ce compte (et ses
+        // commandes). Les informations qu'il confirme l'emportent sur celles
+        // saisies par le pressing.
+        $pending = Customer::where('phone', $request->string('phone')->toString())->whereNull('password')->first();
+
+        if ($pending !== null && ! $pending->is_active) {
+            return response()->json(['message' => EnsureCustomerIsActive::MESSAGE], 403);
+        }
+
+        if ($pending !== null) {
+            $pending->update($details);
+            $customer = $pending;
+        } else {
+            $customer = Customer::create([
+                ...$details,
+                'phone' => $request->string('phone')->toString(),
+                'phone_verified_at' => now(),
+                'is_active' => true,
+            ]);
+        }
 
         return response()->json([
             'token' => $customer->createToken('customer-app')->plainTextToken,

@@ -52,23 +52,26 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
       _error = null;
     });
 
-    final exists = await ref
+    final check = await ref
         .read(authControllerProvider.notifier)
-        .checkPhoneExists(_fullPhone);
+        .checkPhone(_fullPhone);
 
     if (!mounted) return;
     setState(() => _loading = false);
 
-    if (exists == null) {
+    if (check == null) {
       setState(() => _error = ref.read(authControllerProvider).error);
       return;
     }
 
     Navigator.of(context).push(
       AppPageRoute(
-        builder: (_) => exists
+        builder: (_) => check.exists
             ? LoginPasswordScreen(phone: _fullPhone)
-            : RegisterScreen(phone: _fullPhone),
+            : RegisterScreen(
+                phone: _fullPhone,
+                knownBy: check.pending ? check : null,
+              ),
       ),
     );
   }

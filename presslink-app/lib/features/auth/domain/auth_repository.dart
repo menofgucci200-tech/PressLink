@@ -14,6 +14,45 @@ extension GenderLabel on Gender {
   String get value => this == Gender.homme ? 'homme' : 'femme';
 }
 
+/// Résultat de la vérification du numéro, avant connexion ou inscription.
+class PhoneCheck {
+  const PhoneCheck({
+    required this.exists,
+    this.pending = false,
+    this.firstName,
+    this.lastName,
+    this.gender,
+    this.ordersCount = 0,
+  });
+
+  /// Le client a déjà créé son compte : on lui demande son mot de passe.
+  final bool exists;
+
+  /// Un pressing l'a déjà enregistré : inscription pré-remplie avec ce que
+  /// le pressing a saisi, qu'il confirme ou corrige.
+  final bool pending;
+  final String? firstName;
+  final String? lastName;
+  final Gender? gender;
+  final int ordersCount;
+
+  factory PhoneCheck.fromJson(Map<String, dynamic> json) {
+    final prefill = json['prefill'] as Map<String, dynamic>? ?? const {};
+    return PhoneCheck(
+      exists: json['exists'] as bool? ?? false,
+      pending: json['pending'] as bool? ?? false,
+      firstName: prefill['first_name'] as String?,
+      lastName: prefill['last_name'] as String?,
+      gender: switch (prefill['gender']) {
+        'homme' => Gender.homme,
+        'femme' => Gender.femme,
+        _ => null,
+      },
+      ordersCount: (json['orders_count'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
 class Customer {
   const Customer({
     required this.id,
@@ -80,12 +119,12 @@ class AuthRepository {
   final ApiClient _apiClient;
   final TokenStorage _tokenStorage;
 
-  Future<bool> checkPhoneExists(String phone) async {
+  Future<PhoneCheck> checkPhone(String phone) async {
     final response = await _apiClient.dio.post(
       '/auth/customer/check-phone',
       data: {'phone': phone},
     );
-    return (response.data as Map<String, dynamic>)['exists'] as bool;
+    return PhoneCheck.fromJson(response.data as Map<String, dynamic>);
   }
 
   Future<Customer> login({

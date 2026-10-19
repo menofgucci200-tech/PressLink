@@ -144,12 +144,8 @@ class Index extends Component
             $this->toast('Client mis à jour.');
         } else {
             $customer = DB::transaction(function () use ($data) {
-                $customer = Customer::create([
-                    ...$data,
-                    'password' => Customer::DEFAULT_WALK_IN_PASSWORD,
-                    'must_change_password' => true,
-                    'phone_verified_at' => now(),
-                ]);
+                // Sans mot de passe : le client crée son compte dans l'appli avec ce numéro.
+                $customer = Customer::create($data);
 
                 if ($this->form['pressing_id'] !== '') {
                     $customer->pressings()->attach((int) $this->form['pressing_id'], ['joined_at' => now()]);

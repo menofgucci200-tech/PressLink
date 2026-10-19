@@ -31,6 +31,9 @@
                 <x-phone-input wire:model="phone" />
                 @error('phone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
+            @if ($knownCustomerId)
+                @include('livewire.clients._known-number', ['name' => $knownCustomerName])
+            @endif
             <p class="sm:col-span-3 text-xs text-(--color-text-muted)">
                 En installant l'application PressLink avec ce numéro, le client retrouvera toutes ses commandes.
             </p>

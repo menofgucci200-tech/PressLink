@@ -124,9 +124,79 @@ class PressingCreatedCustomerTest extends TestCase
             ->set('firstName', $customer->first_name)
             ->set('lastName', $customer->last_name)
             ->set('phone', '+2250701020306')
-            ->call('createClient');
+            ->call('createClient')
+            ->call('confirmKnownCustomer');
 
         $this->assertTrue(Hash::check('a-real-chosen-password', $customer->fresh()->password));
+    }
+
+    public function test_a_number_already_known_shows_its_name_and_asks_for_confirmation(): void
+    {
+        $other = Pressing::factory()->create();
+        $pressing = Pressing::factory()->create();
+        $this->actingAs($this->admin($pressing));
+        $known = Customer::factory()->create(['phone' => '+2250701020307', 'first_name' => 'Mme', 'last_name' => 'Koné', 'password' => null]);
+        $other->customers()->attach($known, ['joined_at' => now()]);
+
+        // Wizard de commande : le nom connu est montré, rien n'est rattaché avant confirmation.
+        Livewire::test(OrdersCreate::class)
+            ->set('showNewClientForm', true)
+            ->set('newFirstName', 'Awa')
+            ->set('newLastName', 'Koné')
+            ->set('newPhone', '07 01 02 03 07')
+            ->call('createAndPickCustomer')
+            ->assertSet('knownCustomerId', $known->id)
+            ->assertSee('Ce numéro est déjà enregistré au nom de Mme Koné.')
+            ->assertSet('selectedCustomerId', null)
+            ->call('dismissKnownCustomer')
+            ->assertSet('knownCustomerId', null)
+            ->call('createAndPickCustomer')
+            ->call('confirmKnownCustomer')
+            ->assertSet('selectedCustomerId', $known->id);
+
+        // Le nom saisi par le second pressing ne remplace pas celui déjà connu.
+        $known->refresh();
+        $this->assertSame('Mme', $known->first_name);
+        $this->assertTrue($pressing->customers()->whereKey($known->id)->exists());
+        $this->assertSame(1, Customer::where('phone', '+2250701020307')->count());
+    }
+
+    public function test_the_clients_page_also_asks_before_adding_a_known_number(): void
+    {
+        $pressing = Pressing::factory()->create();
+        $this->actingAs($this->admin($pressing));
+        $known = Customer::factory()->create(['phone' => '+2250701020308', 'first_name' => 'Mme', 'last_name' => 'Koné']);
+
+        $component = Livewire::test(ClientsIndex::class)
+            ->set('showCreateForm', true)
+            ->set('phone', '0701020308')
+            ->call('createClient')
+            ->assertHasNoErrors()
+            ->assertSee('Ce numéro est déjà enregistré au nom de Mme Koné.');
+        $this->assertFalse($pressing->customers()->whereKey($known->id)->exists());
+
+        $component->call('confirmKnownCustomer')->assertDispatched('toast');
+        $this->assertTrue($pressing->customers()->whereKey($known->id)->exists());
+
+        // Déjà dans le fichier : on le dit, sans doublon.
+        Livewire::test(ClientsIndex::class)
+            ->set('phone', '0701020308')
+            ->call('createClient')
+            ->assertSet('errorMessage', 'Mme Koné fait déjà partie de vos clients.');
+    }
+
+    public function test_the_order_wizard_picks_a_number_already_in_the_pressing_file(): void
+    {
+        $pressing = Pressing::factory()->create();
+        $this->actingAs($this->admin($pressing));
+        $known = Customer::factory()->create(['phone' => '+2250701020309']);
+        $pressing->customers()->attach($known, ['joined_at' => now()]);
+
+        Livewire::test(OrdersCreate::class)
+            ->set('newPhone', '0701020309')
+            ->call('createAndPickCustomer')
+            ->assertSet('knownCustomerId', null)
+            ->assertSet('selectedCustomerId', $known->id);
     }
 
     public function test_the_client_page_tells_whether_the_client_uses_the_app(): void

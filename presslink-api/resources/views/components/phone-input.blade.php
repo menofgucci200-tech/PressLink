@@ -31,14 +31,11 @@
      }"
      x-init="digits = fromStored(value); $watch('value', v => { if (v !== stored()) digits = fromStored(v) })"
      class="flex items-stretch h-10 rounded-lg border border-(--color-border) bg-(--color-surface) overflow-hidden focus-within:border-(--color-primary) focus-within:ring-2 focus-within:ring-(--color-primary)/15 transition-colors">
-    <span class="flex items-center gap-1.5 px-3 border-r border-(--color-border) bg-(--color-bg) text-sm font-semibold text-(--color-text-secondary) select-none" aria-hidden="true">
+    <span class="flex-none flex items-center gap-1 px-2.5 border-r border-(--color-border) bg-(--color-bg) text-sm font-semibold text-(--color-text-secondary) select-none" aria-hidden="true">
         <span class="text-base leading-none">🇨🇮</span>+225
     </span>
     <input type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="14"
            placeholder="{{ $placeholder }}" aria-label="Numéro de téléphone (10 chiffres)"
            :value="pairs(digits)" @input="onInput($event)"
-           {{ $attributes->whereDoesntStartWith('wire:model')->merge(['class' => 'flex-1 min-w-0 px-3 text-sm tabular-nums tracking-wide bg-transparent focus:outline-none']) }}>
-    <span x-show="digits.length === 10" x-cloak class="flex items-center pr-3 text-(--color-success-text)" aria-hidden="true">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
-    </span>
+           {{ $attributes->whereDoesntStartWith('wire:model')->merge(['class' => 'flex-1 min-w-0 w-full px-2.5 text-sm tabular-nums bg-transparent focus:outline-none']) }}>
 </div>

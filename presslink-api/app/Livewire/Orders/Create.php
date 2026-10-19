@@ -36,6 +36,15 @@ class Create extends Component
 
     public string $newPhone = '';
 
+    /**
+     * Numéro déjà enregistré (par un autre pressing ou par le client) : on
+     * montre le nom connu et le staff confirme qu'il s'agit bien de son
+     * client, ce qui rattrape aussi une erreur de saisie du numéro.
+     */
+    public ?int $knownCustomerId = null;
+
+    public string $knownCustomerName = '';
+
     // Étape 2 — articles
     /** @var array<int, array{service_id: ?int, service_variant_id: ?int, name: string, color: ?string, unit_price_fcfa: int, quantity: int}> */
     public array $items = [];
@@ -91,29 +100,64 @@ class Create extends Component
     {
         $pressing = $this->pressing();
         $this->newPhone = PhoneNumber::normalize($this->newPhone);
+        $this->reset(['knownCustomerId', 'knownCustomerName']);
+
+        $this->validate(['newPhone' => ['required', 'string', new IvorianPhone]]);
+
+        $known = Customer::where('phone', $this->newPhone)->first();
+
+        if ($known !== null) {
+            // Déjà dans le fichier de ce pressing : on le choisit directement.
+            if ($pressing->customers()->whereKey($known->id)->exists()) {
+                $this->pickCreatedCustomer($known);
+
+                return;
+            }
+
+            $this->knownCustomerId = $known->id;
+            $this->knownCustomerName = $known->fullName();
+
+            return;
+        }
 
         $this->validate([
             'newFirstName' => ['required', 'string', 'max:100'],
             'newLastName' => ['required', 'string', 'max:100'],
-            'newPhone' => ['required', 'string', new IvorianPhone],
         ]);
 
         $customer = DB::transaction(function () use ($pressing) {
-            $customer = Customer::firstOrCreate(
-                ['phone' => $this->newPhone],
-                [
-                    'first_name' => $this->newFirstName,
-                    'last_name' => $this->newLastName,
-                ],
-            );
-
-            $pressing->customers()->syncWithoutDetaching([$customer->id => ['joined_at' => now()]]);
+            $customer = Customer::create([
+                'phone' => $this->newPhone,
+                'first_name' => $this->newFirstName,
+                'last_name' => $this->newLastName,
+            ]);
+            $pressing->customers()->attach($customer->id, ['joined_at' => now()]);
 
             return $customer;
         });
 
+        $this->pickCreatedCustomer($customer);
+    }
+
+    /** « Oui, c'est mon client » : rattaché au pressing avec le nom déjà connu. */
+    public function confirmKnownCustomer(): void
+    {
+        $customer = Customer::findOrFail($this->knownCustomerId);
+        $this->pressing()->customers()->syncWithoutDetaching([$customer->id => ['joined_at' => now()]]);
+
+        $this->pickCreatedCustomer($customer);
+    }
+
+    /** « Corriger le numéro » : on revient au formulaire. */
+    public function dismissKnownCustomer(): void
+    {
+        $this->reset(['knownCustomerId', 'knownCustomerName']);
+    }
+
+    private function pickCreatedCustomer(Customer $customer): void
+    {
         $this->showNewClientForm = false;
-        $this->reset(['newFirstName', 'newLastName', 'newPhone']);
+        $this->reset(['newFirstName', 'newLastName', 'newPhone', 'knownCustomerId', 'knownCustomerName']);
 
         if ($customer->is_active === false) {
             $this->dispatch('toast', type: 'error', message: CreateOrderAction::INACTIVE_CUSTOMER_MESSAGE);

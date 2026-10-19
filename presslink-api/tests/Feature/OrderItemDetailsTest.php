@@ -10,6 +10,7 @@ use App\Models\Pressing;
 use App\Models\Service;
 use App\Models\ServiceVariant;
 use App\Models\User;
+use App\Support\ColorPalette;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
 use Livewire\Livewire;
@@ -149,6 +150,30 @@ class OrderItemDetailsTest extends TestCase
             ->call('setItemColor', 0, '  ')
             ->assertSet('items.0.name', 'Chemise · Repassage')
             ->assertSet('items.0.color', null);
+    }
+
+    public function test_a_color_picked_with_the_color_picker_becomes_the_closest_color_name(): void
+    {
+        $shirt = $this->shirt();
+
+        Livewire::test(OrdersCreate::class)
+            ->call('selectPrestation', $this->repassage()->id)
+            ->call('addPiece', $shirt->id)
+            ->call('setItemColorFromPicker', 0, '#7dd3fc')
+            ->assertSet('items.0.color', 'Bleu ciel')
+            ->assertSet('items.0.name', 'Chemise · Repassage · Bleu ciel')
+            ->call('setItemColorFromPicker', 0, 'pas-une-couleur')
+            ->assertSet('items.0.color', 'Bleu ciel');
+    }
+
+    public function test_the_color_palette_names_common_colors(): void
+    {
+        $this->assertSame('Rouge', ColorPalette::nameFor('#dc2626'));
+        $this->assertSame('Noir', ColorPalette::nameFor('#000000'));
+        $this->assertSame('Blanc', ColorPalette::nameFor('#fafafa'));
+        $this->assertSame('Vert', ColorPalette::nameFor('#16a34a'));
+        $this->assertNull(ColorPalette::nameFor('rouge'));
+        $this->assertSame('#16A34A', ColorPalette::hex('Vert'));
     }
 
     public function test_a_custom_piece_uses_the_typed_name_and_price_under_the_chosen_service(): void

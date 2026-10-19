@@ -223,8 +223,6 @@
                                     <div class="text-sm font-semibold truncate">{{ $item['base_name'] }}</div>
                                     <div class="text-xs text-(--color-text-secondary)">{{ $item['prestation_name'] }} · {{ number_format($item['unit_price_fcfa'], 0, ',', ' ') }} F</div>
                                 </div>
-                                <input type="text" value="{{ $item['color'] }}" wire:change="setItemColor({{ $i }}, $event.target.value)" maxlength="50" placeholder="Couleur"
-                                       class="hidden sm:block w-28 h-8 px-2.5 rounded-lg border border-(--color-border) text-xs" aria-label="Couleur (facultatif)">
                             </div>
                             <div class="flex items-center gap-3">
                                 <button type="button" wire:click="decrementItem({{ $i }})" aria-label="Retirer une unité"
@@ -233,6 +231,46 @@
                                 <button type="button" wire:click="incrementItem({{ $i }})" aria-label="Ajouter une unité"
                                         class="w-8 h-8 rounded-md border border-(--color-border) flex items-center justify-center text-sm transition-colors duration-150 hover:border-(--color-primary) hover:text-(--color-primary)">+</button>
                                 <span class="w-24 text-right font-semibold tabular-nums">{{ number_format($item['unit_price_fcfa'] * $item['quantity'], 0, ',', ' ') }} F</span>
+                            </div>
+                            @php
+                                $currentColor = $item['color'];
+                                $currentHex = \App\Support\ColorPalette::hex($currentColor);
+                                $isMulti = $currentColor === \App\Support\ColorPalette::MULTICOLOR;
+                                $isCustom = $currentColor !== null && ! $isMulti && ! isset(\App\Support\ColorPalette::presets()[$currentColor]);
+                            @endphp
+                            <div class="basis-full flex flex-wrap items-center gap-1.5" role="group" aria-label="Couleur de la pièce (facultatif)">
+                                <span class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mr-1">Couleur</span>
+                                @foreach (\App\Support\ColorPalette::presets() as $colorName => $colorHex)
+                                    @php
+                                        $isColor = $currentColor === $colorName;
+                                    @endphp
+                                    <button type="button" wire:click="setItemColor({{ $i }}, '{{ $isColor ? '' : $colorName }}')" title="{{ $colorName }}" aria-label="{{ $colorName }}" aria-pressed="{{ $isColor ? 'true' : 'false' }}"
+                                            class="w-7 h-7 rounded-full border border-(--color-border) flex items-center justify-center transition-transform duration-150 hover:scale-110 {{ $isColor ? 'ring-2 ring-offset-2 ring-(--color-primary) ring-offset-(--color-surface)' : '' }}"
+                                            style="background-color: {{ $colorHex }}">
+                                        @if ($isColor)
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="{{ in_array($colorName, ['Blanc', 'Jaune', 'Beige', 'Gris'], true) ? '#111' : '#fff' }}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>
+                                        @endif
+                                    </button>
+                                @endforeach
+                                <button type="button" wire:click="setItemColor({{ $i }}, '{{ $isMulti ? '' : \App\Support\ColorPalette::MULTICOLOR }}')" title="Multicolore" aria-label="Multicolore" aria-pressed="{{ $isMulti ? 'true' : 'false' }}"
+                                        class="w-7 h-7 rounded-full border border-(--color-border) flex items-center justify-center transition-transform duration-150 hover:scale-110 {{ $isMulti ? 'ring-2 ring-offset-2 ring-(--color-primary) ring-offset-(--color-surface)' : '' }}"
+                                        style="background: conic-gradient(#dc2626, #facc15, #16a34a, #2563eb, #7c3aed, #dc2626)">
+                                    @if ($isMulti)
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>
+                                    @endif
+                                </button>
+                                {{-- Autre couleur : le sélecteur du téléphone / de l'ordinateur --}}
+                                <label title="Autre couleur" class="relative w-7 h-7 rounded-full border border-dashed border-(--color-text-muted) flex items-center justify-center cursor-pointer overflow-hidden transition-transform duration-150 hover:scale-110 text-(--color-text-secondary) {{ $isCustom ? 'ring-2 ring-offset-2 ring-(--color-primary) ring-offset-(--color-surface) border-solid' : '' }}"
+                                       style="{{ $isCustom && $currentHex ? 'background-color: '.$currentHex : '' }}">
+                                    @unless ($isCustom)
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                                    @endunless
+                                    <input type="color" value="{{ $currentHex ?? '#2563eb' }}" wire:change="setItemColorFromPicker({{ $i }}, $event.target.value)" aria-label="Autre couleur"
+                                           class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+                                </label>
+                                @if ($currentColor)
+                                    <span class="text-xs font-medium text-(--color-text-secondary) ml-1">{{ $currentColor }}</span>
+                                @endif
                             </div>
                         </div>
                     @endforeach

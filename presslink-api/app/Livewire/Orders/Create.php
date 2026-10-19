@@ -9,6 +9,7 @@ use App\Models\Pressing;
 use App\Models\Prestation;
 use App\Models\Service;
 use App\Models\ServiceVariant;
+use App\Support\ColorPalette;
 use App\Support\PhoneNumber;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -247,6 +248,16 @@ class Create extends Component
         $color = trim(mb_substr($color, 0, 50));
         $this->items[$index]['color'] = $color !== '' ? $color : null;
         $this->items[$index]['name'] = $this->displayName($this->items[$index]['base_name'], $this->items[$index]['prestation_name'], $this->items[$index]['color']);
+    }
+
+    /** Couleur choisie au sélecteur : ramenée au nom de couleur le plus proche. */
+    public function setItemColorFromPicker(int $index, string $hex): void
+    {
+        $name = ColorPalette::nameFor($hex);
+
+        if ($name !== null) {
+            $this->setItemColor($index, $name);
+        }
     }
 
     /** Retire une unité de la pièce (hors variantes : voir la liste de la commande). */

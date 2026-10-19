@@ -21,6 +21,7 @@ use App\Models\CashClosing;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Pressing;
+use App\Models\Prestation;
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -205,7 +206,8 @@ class PressingGroupTest extends TestCase
     public function test_harmonizing_copies_missing_services_and_aligns_prices(): void
     {
         $shirt = Service::factory()->for($this->north)->create(['name' => 'Chemise', 'price_fcfa' => 1000]);
-        $shirt->variants()->create(['name' => 'Manche longue', 'price_fcfa' => 1200, 'is_active' => true]);
+        $longSleeve = $shirt->variants()->create(['name' => 'Manche longue', 'price_fcfa' => 1200, 'is_active' => true]);
+        $shirt->setPrice($this->north->cleaningPrestation(), 1200, $longSleeve);
         Service::factory()->for($this->north)->create(['name' => 'Costume', 'price_fcfa' => 5000]);
         Service::factory()->for($this->south)->create(['name' => 'chemise', 'price_fcfa' => 800]);
         Service::factory()->for($this->south)->create(['name' => 'Rideau', 'price_fcfa' => 7000]);
@@ -216,10 +218,11 @@ class PressingGroupTest extends TestCase
             ->call('syncCatalog');
 
         $south = $this->south->services()->with('variants')->get()->keyBy(fn ($s) => mb_strtolower($s->name));
-        $this->assertSame(1000, $south['chemise']->price_fcfa);
-        $this->assertSame(1200, $south['chemise']->variants->firstWhere('name', 'Manche longue')->price_fcfa);
-        $this->assertSame(5000, $south['costume']->price_fcfa);
-        $this->assertSame(7000, $south['rideau']->price_fcfa, 'Les services en plus de la cible ne sont pas touchés.');
+        $cleaning = $this->south->cleaningPrestation();
+        $this->assertSame(1000, $south['chemise']->priceFor($cleaning));
+        $this->assertSame(1200, $south['chemise']->priceFor($cleaning, $south['chemise']->variants->firstWhere('name', 'Manche longue')));
+        $this->assertSame(5000, $south['costume']->priceFor($cleaning));
+        $this->assertSame(7000, $south['rideau']->priceFor($cleaning), 'Les pièces en plus de la cible ne sont pas touchées.');
         $this->assertDatabaseHas('activity_logs', ['pressing_id' => $this->south->id, 'action' => ActivityAction::CatalogSynced->value]);
 
         Livewire::actingAs($this->owner)->test(Harmonize::class)
@@ -227,6 +230,28 @@ class PressingGroupTest extends TestCase
             ->set('catalogTargets', [(string) $this->foreign->id])
             ->call('syncCatalog')
             ->assertForbidden();
+    }
+
+    public function test_harmonizing_copies_services_and_the_price_of_each_piece_per_service(): void
+    {
+        $retouches = Prestation::factory()->for($this->north)->create(['name' => 'Retouches', 'icon' => 'retouche']);
+        $repassage = $this->north->prestations()->where('name', 'Repassage')->firstOrFail();
+        $pants = Service::factory()->for($this->north)->create(['name' => 'Pantalon', 'price_fcfa' => 1500]);
+        $pants->setPrice($repassage, 700);
+        $pants->setPrice($retouches, 1200);
+
+        Livewire::actingAs($this->owner)->test(Harmonize::class)
+            ->set('catalogSource', (string) $this->north->id)
+            ->set('catalogTargets', [(string) $this->south->id])
+            ->call('syncCatalog');
+
+        $southRetouches = $this->south->prestations()->where('name', 'Retouches')->firstOrFail();
+        $this->assertSame('retouche', $southRetouches->icon);
+        $southPants = $this->south->services()->where('name', 'Pantalon')->firstOrFail();
+        $this->assertSame(700, $southPants->priceFor($this->south->prestations()->where('name', 'Repassage')->firstOrFail()));
+        $this->assertSame(1200, $southPants->priceFor($southRetouches));
+        $this->assertSame(1500, $southPants->priceFor($this->south->cleaningPrestation()));
+        $this->assertSame(0, $this->foreign->prestations()->where('name', 'Retouches')->count());
     }
 
     public function test_harmonizing_settings_copies_hours_to_other_pressings(): void

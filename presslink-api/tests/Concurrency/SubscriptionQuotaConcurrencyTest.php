@@ -85,11 +85,11 @@ class SubscriptionQuotaConcurrencyTest extends ConcurrencyTestCase
             'newFirstName' => $firstName, 'newLastName' => 'Concurrent', 'newPhone' => $phone,
         ], [['path' => '', 'method' => 'createAndPickCustomer', 'params' => []]]);
 
-        $afterService = $session->call($afterPick['snapshot'], ['pickerService' => 'other']);
+        $afterService = $session->call($afterPick['snapshot'], ['prestationId' => $pressing->cleaningPrestation()->id]);
 
         $afterAddItem = $session->call($afterService['snapshot'], [
-            'pickerCustomName' => 'Article', 'pickerCustomPrice' => '1000', 'pickerQuantity' => 1,
-        ], [['path' => '', 'method' => 'addPickedItem', 'params' => []]]);
+            'customName' => 'Article', 'customPrice' => '1000',
+        ], [['path' => '', 'method' => 'addCustomPiece', 'params' => []]]);
 
         $this->assertNotNull($afterAddItem['snapshot']);
 

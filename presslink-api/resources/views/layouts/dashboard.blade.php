@@ -131,7 +131,7 @@
                         <a href="{{ route('services.index') }}" wire:navigate style="--nav-i:4" class="nav-item {{ $active === 'services' ? 'nav-item-active' : '' }}">
                             @if ($active === 'services') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><circle cx="8" cy="8" r="6"></circle><path d="M18.09 10.37A6 6 0 1 1 10.34 18"></path></svg>
-                            <span class="truncate">Tarifs</span>
+                            <span class="truncate">Services</span>
                         </a>
                         <a href="{{ route('team.index') }}" wire:navigate style="--nav-i:5" class="nav-item {{ $active === 'team' ? 'nav-item-active' : '' }}">
                             @if ($active === 'team') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif

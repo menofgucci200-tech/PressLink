@@ -28,7 +28,7 @@ class CreateOrderAction
     public const INACTIVE_CUSTOMER_MESSAGE = 'Le compte de ce client a été désactivé par PressLink : impossible de lui créer une commande.';
 
     /**
-     * @param  list<array{service_id: ?int, service_variant_id: ?int, name: string, color: ?string, unit_price_fcfa: int, quantity: int}>  $items
+     * @param  list<array{service_id: ?int, service_variant_id?: ?int, prestation_id?: ?int, prestation_name?: ?string, name: string, color?: ?string, unit_price_fcfa: int, quantity: int}>  $items
      */
     public function handle(
         Pressing $pressing,
@@ -59,6 +59,16 @@ class CreateOrderAction
 
         if (! $pressing->customers()->where('customers.id', $customer->id)->exists()) {
             throw new InvalidArgumentException('Ce client ne fait pas partie de ce pressing.');
+        }
+
+        // Pièces et services d'une ligne : toujours ceux de CE pressing (une
+        // requête forgée ne doit pas piocher dans le catalogue d'un autre).
+        $pieceIds = array_values(array_unique(array_filter(array_column($items, 'service_id'))));
+        $prestationIds = array_values(array_unique(array_filter(array_column($items, 'prestation_id'))));
+
+        if (($pieceIds !== [] && $pressing->services()->whereIn('id', $pieceIds)->count() !== count($pieceIds))
+            || ($prestationIds !== [] && $pressing->prestations()->whereIn('id', $prestationIds)->count() !== count($prestationIds))) {
+            throw new InvalidArgumentException('Une pièce ou un service de la commande n\'appartient pas à ce pressing.');
         }
 
         $subscription = $pressing->subscription;

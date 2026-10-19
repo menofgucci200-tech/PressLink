@@ -225,7 +225,7 @@ class CommandPalette extends Component
             ['title' => 'Commandes non soldées', 'subtitle' => 'Acompte ou rien payé', 'url' => route('orders.index', ['paiement' => Pressing::UNSETTLED_FILTER]), 'icon' => 'money'],
             ['title' => 'Clients', 'subtitle' => null, 'url' => route('clients.index'), 'icon' => 'client', 'hint' => 'G L'],
             ['title' => 'Signalements', 'subtitle' => null, 'url' => route('issues.index'), 'icon' => 'flag', 'hint' => 'G S'],
-            $isAdmin ? ['title' => 'Tarifs', 'subtitle' => null, 'url' => route('services.index'), 'icon' => 'tag'] : null,
+            $isAdmin ? ['title' => 'Services et tarifs', 'subtitle' => null, 'url' => route('services.index'), 'icon' => 'tag'] : null,
             $isAdmin ? ['title' => 'Équipe', 'subtitle' => null, 'url' => route('team.index'), 'icon' => 'team'] : null,
             $isAdmin ? ['title' => 'Paramètres du pressing', 'subtitle' => null, 'url' => route('pressing.settings'), 'icon' => 'settings'] : null,
             ['title' => 'Mon profil', 'subtitle' => null, 'url' => route('account.settings'), 'icon' => 'user'],

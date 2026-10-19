@@ -61,6 +61,9 @@ class Pressing extends Model
         static::creating(function (self $pressing): void {
             $pressing->code ??= self::generateUniqueCode();
         });
+
+        // Tout pressing démarre avec deux services : Repassage et Nettoyage.
+        static::created(fn (self $pressing) => Prestation::createDefaultsFor($pressing));
     }
 
     /**
@@ -105,7 +108,56 @@ class Pressing extends Model
         return $now >= ($today['open'] ?? '00:00') && $now <= ($today['close'] ?? '23:59');
     }
 
-    /** @return HasMany<Service, $this> */
+    /** @return HasMany<Prestation, $this> */
+    public function prestations(): HasMany
+    {
+        return $this->hasMany(Prestation::class)->orderBy('position')->orderBy('id');
+    }
+
+    /**
+     * Services et prix visibles par les clients : pour chaque service actif, les
+     * pièces actives qui y ont un prix (variantes comprises).
+     *
+     * @return list<array{id: int, name: string, icon: string, pieces: list<array<string, mixed>>}>
+     */
+    public function publicCatalog(): array
+    {
+        $pieces = $this->services()->where('is_active', true)
+            ->with(['variants' => fn ($q) => $q->where('is_active', true)->orderBy('name'), 'prices'])
+            ->orderBy('name')->get();
+
+        return $this->prestations()->where('is_active', true)->get()->map(function (Prestation $prestation) use ($pieces) {
+            $listed = $pieces->map(function (Service $piece) use ($prestation) {
+                $prices = $piece->prices->where('prestation_id', $prestation->id);
+                $variants = $piece->variants
+                    ->map(fn ($v) => ['id' => $v->id, 'name' => $v->name, 'price_fcfa' => $prices->firstWhere('service_variant_id', $v->id)?->price_fcfa])
+                    ->filter(fn (array $v) => $v['price_fcfa'] !== null)->values();
+                $base = $prices->firstWhere('service_variant_id', null)?->price_fcfa;
+
+                if ($variants->isEmpty() && $base === null) {
+                    return null;
+                }
+
+                return [
+                    'id' => $piece->id,
+                    'name' => $piece->name,
+                    'icon' => $piece->iconKey(),
+                    'price_fcfa' => $variants->isNotEmpty() ? null : $base,
+                    'variants' => $variants->all(),
+                ];
+            })->filter()->values()->all();
+
+            return ['id' => $prestation->id, 'name' => $prestation->name, 'icon' => $prestation->iconKey(), 'pieces' => $listed];
+        })->filter(fn (array $p) => $p['pieces'] !== [])->values()->all();
+    }
+
+    /** Service « Nettoyage » (ou, à défaut, le premier) : sert de service par défaut aux données de démonstration et de test. */
+    public function cleaningPrestation(): ?Prestation
+    {
+        return $this->prestations()->where('icon', 'nettoyage')->first() ?? $this->prestations()->first();
+    }
+
+    /** Pièces du catalogue (Chemise, Robe, Drap…) — modèle `Service`, nom historique. @return HasMany<Service, $this> */
     public function services(): HasMany
     {
         return $this->hasMany(Service::class);

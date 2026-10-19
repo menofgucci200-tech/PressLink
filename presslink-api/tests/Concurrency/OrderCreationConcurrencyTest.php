@@ -50,18 +50,18 @@ class OrderCreationConcurrencyTest extends ConcurrencyTestCase
         $this->assertNotNull($afterPickA['snapshot']);
         $this->assertNotNull($afterPickB['snapshot']);
 
-        $afterServiceA = $sessionA->call($afterPickA['snapshot'], ['pickerService' => 'other']);
-        $afterServiceB = $sessionB->call($afterPickB['snapshot'], ['pickerService' => 'other']);
+        $afterServiceA = $sessionA->call($afterPickA['snapshot'], ['prestationId' => $pressing->cleaningPrestation()->id]);
+        $afterServiceB = $sessionB->call($afterPickB['snapshot'], ['prestationId' => $pressing->cleaningPrestation()->id]);
 
-        // Les deux appels addPickedItem() sont réellement envoyés EN
+        // Les deux appels addCustomPiece() sont réellement envoyés EN
         // PARALLÈLE ici via Http::pool().
         $addItemResponses = Http::pool(fn ($pool) => [
             $sessionA->pooledClient($pool)->post($sessionA->updateUrl(), $sessionA->updatePayload($afterServiceA['snapshot'], [
-                'pickerCustomName' => 'Article Alpha', 'pickerCustomPrice' => '1111', 'pickerQuantity' => 1,
-            ], [['path' => '', 'method' => 'addPickedItem', 'params' => []]])),
+                'customName' => 'Article Alpha', 'customPrice' => '1111',
+            ], [['path' => '', 'method' => 'addCustomPiece', 'params' => []]])),
             $sessionB->pooledClient($pool)->post($sessionB->updateUrl(), $sessionB->updatePayload($afterServiceB['snapshot'], [
-                'pickerCustomName' => 'Article Beta', 'pickerCustomPrice' => '2222', 'pickerQuantity' => 1,
-            ], [['path' => '', 'method' => 'addPickedItem', 'params' => []]])),
+                'customName' => 'Article Beta', 'customPrice' => '2222',
+            ], [['path' => '', 'method' => 'addCustomPiece', 'params' => []]])),
         ]);
 
         $afterAddItemA = LivewireSession::extractComponent($addItemResponses[0]);

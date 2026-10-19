@@ -53,9 +53,8 @@ class SecurityAuditFindingsTest extends TestCase
         Livewire::actingAs($admin)
             ->test(OrdersCreate::class)
             ->set('selectedCustomerId', $foreignCustomer->id)
-            ->set('pickerService', (string) $service->id)
-            ->set('pickerQuantity', 1)
-            ->call('addPickedItem')
+            ->call('selectPrestation', $service->pressing->cleaningPrestation()->id)
+            ->call('addPiece', $service->id)
             ->call('create')
             ->assertForbidden();
 
@@ -73,9 +72,8 @@ class SecurityAuditFindingsTest extends TestCase
         Livewire::actingAs($admin)
             ->test(OrdersCreate::class)
             ->set('selectedCustomerId', $customer->id)
-            ->set('pickerService', (string) $service->id)
-            ->set('pickerQuantity', 1)
-            ->call('addPickedItem')
+            ->call('selectPrestation', $service->pressing->cleaningPrestation()->id)
+            ->call('addPiece', $service->id)
             ->call('create');
 
         $this->assertSame(1, $pressing->orders()->count());

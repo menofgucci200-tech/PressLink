@@ -156,55 +156,64 @@ class PressingDetailScreen extends StatelessWidget {
                 ],
               ),
             ],
-            if (pressing.services != null && pressing.services!.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.md),
-              _SectionCard(
-                title: 'Grille tarifaire',
-                children: [
-                  for (final service in pressing.services!) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              service.name,
-                              style: theme.textTheme.bodyMedium,
-                            ),
-                          ),
-                          Text(
-                            _formatFcfa(service.priceFcfa),
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    for (final variant in service.variants)
+            if (pressing.prestations != null &&
+                pressing.prestations!.isNotEmpty) ...[
+              for (final prestation in pressing.prestations!) ...[
+                const SizedBox(height: AppSpacing.md),
+                _SectionCard(
+                  title: prestation.name,
+                  leading: Icon(
+                    _prestationIcon(prestation.icon),
+                    size: 18,
+                    color: AppColors.primary,
+                  ),
+                  children: [
+                    for (final piece in prestation.pieces) ...[
                       Padding(
-                        padding: const EdgeInsets.only(
-                          left: AppSpacing.md,
-                          bottom: 4,
-                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Row(
                           children: [
                             Expanded(
                               child: Text(
-                                '· ${variant.name}',
-                                style: theme.textTheme.bodySmall,
+                                piece.name,
+                                style: theme.textTheme.bodyMedium,
                               ),
                             ),
-                            Text(
-                              _formatFcfa(variant.priceFcfa),
-                              style: theme.textTheme.bodySmall,
-                            ),
+                            if (piece.priceFcfa != null)
+                              Text(
+                                _formatFcfa(piece.priceFcfa!),
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                           ],
                         ),
                       ),
+                      for (final variant in piece.variants)
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: AppSpacing.md,
+                            bottom: 4,
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  '· ${variant.name}',
+                                  style: theme.textTheme.bodySmall,
+                                ),
+                              ),
+                              Text(
+                                _formatFcfa(variant.priceFcfa),
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ],
-                ],
-              ),
+                ),
+              ],
             ],
           ],
         ),
@@ -213,11 +222,31 @@ class PressingDetailScreen extends StatelessWidget {
   }
 }
 
+/// Icône Material la plus proche de l'icône du service choisie par le pressing.
+IconData _prestationIcon(String key) => switch (key) {
+  'repassage' => Icons.iron_outlined,
+  'nettoyage' || 'blanchisserie' => Icons.local_laundry_service_outlined,
+  'nettoyage_sec' => Icons.dry_cleaning_outlined,
+  'retouche' => Icons.content_cut,
+  'detachage' => Icons.water_drop_outlined,
+  'teinture' => Icons.palette_outlined,
+  'express' => Icons.bolt,
+  'cordonnerie' => Icons.hiking,
+  'tapis' => Icons.texture,
+  'livraison' => Icons.local_shipping_outlined,
+  _ => Icons.auto_awesome_outlined,
+};
+
 class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.title, required this.children});
+  const _SectionCard({
+    required this.title,
+    required this.children,
+    this.leading,
+  });
 
   final String title;
   final List<Widget> children;
+  final Widget? leading;
 
   @override
   Widget build(BuildContext context) {
@@ -233,9 +262,14 @@ class _SectionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6),
+          Row(
+            children: [
+              if (leading != null) ...[leading!, const SizedBox(width: 8)],
+              Text(
+                title,
+                style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6),
+              ),
+            ],
           ),
           const SizedBox(height: AppSpacing.sm),
           ...children,

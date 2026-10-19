@@ -36,7 +36,6 @@ use App\Livewire\Orders\Index as OrdersIndex;
 use App\Livewire\Orders\Show as OrdersShow;
 use App\Livewire\Pressing\Settings as PressingSettings;
 use App\Livewire\Services\Index as ServicesIndex;
-use App\Livewire\Services\Variants as ServicesVariants;
 use App\Livewire\Subscription\Show as SubscriptionShow;
 use App\Livewire\Support\Show as SupportShow;
 use App\Livewire\Team\Index as TeamIndex;
@@ -143,8 +142,9 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/signalements', IssuesIndex::class)->name('issues.index');
 
-        Route::get('/tarifs', ServicesIndex::class)->name('services.index');
-        Route::get('/tarifs/{service}/variantes', ServicesVariants::class)->name('services.variants');
+        Route::get('/services', ServicesIndex::class)->name('services.index');
+        // Ancienne adresse du module « Tarifs » (favoris, liens enregistrés).
+        Route::redirect('/tarifs', '/services', 301);
 
         Route::get('/equipe', TeamIndex::class)->name('team.index');
         Route::get('/parametres', PressingSettings::class)->name('pressing.settings');

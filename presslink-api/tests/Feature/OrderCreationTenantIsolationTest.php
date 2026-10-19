@@ -62,10 +62,10 @@ class OrderCreationTenantIsolationTest extends TestCase
         // fixant directement la propriété publique selectedCustomerId.
         Livewire::test(OrdersCreate::class)
             ->set('selectedCustomerId', $foreignCustomer->id)
-            ->set('pickerService', 'other')
-            ->set('pickerCustomName', 'Nappe')
-            ->set('pickerCustomPrice', 1000)
-            ->call('addPickedItem')
+            ->call('selectPrestation', $pressing->cleaningPrestation()->id)
+            ->set('customName', 'Nappe')
+            ->set('customPrice', 1000)
+            ->call('addCustomPiece')
             ->call('create')
             ->assertForbidden();
 

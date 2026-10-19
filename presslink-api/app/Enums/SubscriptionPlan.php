@@ -106,7 +106,7 @@ enum SubscriptionPlan: string
         };
     }
 
-    /** Nombre de services/tarifs. Null = illimité. */
+    /** Nombre de pièces au catalogue (Chemise, Robe…). Null = illimité. */
     public function servicesLimit(): ?int
     {
         return match ($this) {

@@ -11,6 +11,21 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ServiceFactory extends Factory
 {
+    /**
+     * Le prix d'une pièce dépend du service : celui indiqué ici est rattaché au
+     * service « Nettoyage » du pressing (créé avec lui).
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (Service $service) {
+            $cleaning = $service->pressing?->cleaningPrestation();
+
+            if ($cleaning !== null && $service->price_fcfa !== null) {
+                $service->setPrice($cleaning, (int) $service->price_fcfa);
+            }
+        });
+    }
+
     public function definition(): array
     {
         return [

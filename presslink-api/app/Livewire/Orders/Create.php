@@ -6,6 +6,7 @@ use App\Actions\Orders\CreateOrderAction;
 use App\Enums\PaymentMethod;
 use App\Models\Customer;
 use App\Models\Pressing;
+use App\Models\Prestation;
 use App\Models\Service;
 use App\Models\ServiceVariant;
 use App\Support\PhoneNumber;
@@ -35,22 +36,21 @@ class Create extends Component
 
     public string $newPhone = '';
 
-    // Étape 2 — articles
-    /** @var array<int, array{service_id: ?int, service_variant_id: ?int, name: string, color: ?string, unit_price_fcfa: int, quantity: int}> */
+    // Étape 2 — services et pièces
+    /** @var array<int, array{service_id: ?int, service_variant_id: ?int, prestation_id: ?int, prestation_name: ?string, base_name: string, name: string, color: ?string, unit_price_fcfa: int, quantity: int}> */
     public array $items = [];
 
-    // Étape 2 — formulaire d'ajout d'un article (service + variante + couleur)
-    public string $pickerService = '';
+    /** Service (Repassage, Nettoyage…) dont on choisit les pièces. */
+    public ?int $prestationId = null;
 
-    public string $pickerVariant = '';
+    /** Pièce à variantes dont on attend le choix de la variante. */
+    public ?int $variantPieceId = null;
 
-    public string $pickerCustomName = '';
+    public bool $showCustomForm = false;
 
-    public string $pickerCustomPrice = '';
+    public string $customName = '';
 
-    public string $pickerColor = '';
-
-    public int $pickerQuantity = 1;
+    public string $customPrice = '';
 
     // Étape 3 — détails
     public string $expectedAt = '';
@@ -126,116 +126,167 @@ class Create extends Component
         $this->selectedCustomerId = $customer->id;
     }
 
-    public function updatedPickerService(): void
+    public function selectPrestation(int $prestationId): void
     {
-        $this->pickerVariant = '';
-        $this->pickerCustomName = '';
-        $this->pickerCustomPrice = '';
-    }
+        $prestation = $this->pressing()->prestations()->where('is_active', true)->find($prestationId);
+        abort_if($prestation === null, 404);
 
-    public function updatedPickerVariant(): void
-    {
-        $this->pickerCustomName = '';
-        $this->pickerCustomPrice = '';
+        $this->prestationId = $prestation->id;
+        $this->variantPieceId = null;
+        $this->showCustomForm = false;
     }
 
     /**
-     * Ajoute un article à la commande — Service + variante (chacune à son
-     * propre tarif, ex. Chemise manche courte vs manche longue) et une
-     * couleur libre, ou un article entièrement personnalisé via "Autre".
+     * Touche sur une pièce : ajoute 1 au service choisi. Une pièce à variantes
+     * (Chemise manche courte / longue…) demande d'abord laquelle.
      */
-    public function addPickedItem(): void
+    public function addPiece(int $pieceId): void
     {
-        $this->validate([
-            'pickerService' => ['required', 'string'],
-            'pickerColor' => ['nullable', 'string', 'max:50'],
-            'pickerQuantity' => ['required', 'integer', 'min:1'],
-        ]);
-
-        $serviceId = null;
-        $variantId = null;
-
-        if ($this->pickerService === 'other') {
-            $name = $this->validatedCustomName();
-            $price = $this->validatedCustomPrice();
-        } else {
-            $service = $this->pressing()->services()->where('is_active', true)->findOrFail((int) $this->pickerService);
-            $serviceId = $service->id;
-            $activeVariants = $service->variants()->where('is_active', true)->get();
-
-            if ($this->pickerVariant === 'other') {
-                $name = $service->name.' · '.$this->validatedCustomName();
-                $price = $this->validatedCustomPrice();
-            } elseif ($this->pickerVariant !== '') {
-                $variant = $activeVariants->firstWhere('id', (int) $this->pickerVariant);
-                abort_if($variant === null, 404);
-                $variantId = $variant->id;
-                $name = $service->name.' · '.$variant->name;
-                $price = $variant->price_fcfa;
-            } elseif ($activeVariants->isNotEmpty()) {
-                $this->addError('pickerVariant', 'Choisissez une variante pour ce service.');
-
-                return;
-            } else {
-                $name = $service->name;
-                $price = $service->price_fcfa;
-            }
+        $prestation = $this->selectedPrestation();
+        if ($prestation === null) {
+            return;
         }
 
-        $color = $this->pickerColor !== '' ? $this->pickerColor : null;
-        $displayName = $color !== null ? "{$name} · {$color}" : $name;
+        $piece = $this->pressing()->services()->where('is_active', true)->find($pieceId);
+        abort_if($piece === null, 404);
 
+        if ($this->pricedVariants($piece, $prestation)->isNotEmpty()) {
+            $this->variantPieceId = $piece->id;
+
+            return;
+        }
+
+        $price = $piece->priceFor($prestation);
+        if ($price === null) {
+            $this->dispatch('toast', type: 'error', message: "« {$piece->name} » n'est pas proposé pour le service {$prestation->name}.");
+
+            return;
+        }
+
+        $this->pushItem($piece, null, $prestation, $piece->name, $price);
+    }
+
+    public function addVariant(int $pieceId, int $variantId): void
+    {
+        $prestation = $this->selectedPrestation();
+        if ($prestation === null) {
+            return;
+        }
+
+        $piece = $this->pressing()->services()->where('is_active', true)->find($pieceId);
+        $variant = $piece?->variants()->where('is_active', true)->find($variantId);
+        abort_if($piece === null || $variant === null, 404);
+        $price = $piece->priceFor($prestation, $variant);
+        abort_if($price === null, 404);
+
+        $this->pushItem($piece, $variant, $prestation, $piece->name.' · '.$variant->name, $price);
+        $this->variantPieceId = null;
+    }
+
+    /** Pièce hors catalogue (« Autre pièce »), au prix saisi, pour le service choisi. */
+    public function addCustomPiece(): void
+    {
+        $prestation = $this->selectedPrestation();
+        if ($prestation === null) {
+            return;
+        }
+
+        $this->validate([
+            'customName' => ['required', 'string', 'max:150'],
+            'customPrice' => ['required', 'integer', 'min:0'],
+        ], [
+            'customName.required' => 'Indiquez le nom de la pièce.',
+            'customPrice.required' => 'Indiquez le prix.',
+            'customPrice.integer' => 'Le prix doit être un nombre entier de francs.',
+        ]);
+
+        $this->pushItem(null, null, $prestation, trim($this->customName), (int) $this->customPrice);
+        $this->reset(['customName', 'customPrice', 'showCustomForm']);
+    }
+
+    private function pushItem(?Service $piece, ?ServiceVariant $variant, Prestation $prestation, string $baseName, int $price): void
+    {
         foreach ($this->items as $i => $item) {
-            if ($item['service_id'] === $serviceId && $item['service_variant_id'] === $variantId && $item['name'] === $displayName) {
-                $this->items[$i]['quantity'] += $this->pickerQuantity;
-                $this->resetPicker();
+            if ($item['service_id'] === $piece?->id
+                && $item['service_variant_id'] === $variant?->id
+                && $item['prestation_id'] === $prestation->id
+                && $item['base_name'] === $baseName
+                && $item['unit_price_fcfa'] === $price
+                && $item['color'] === null) {
+                $this->items[$i]['quantity']++;
 
                 return;
             }
         }
 
         $this->items[] = [
-            'service_id' => $serviceId,
-            'service_variant_id' => $variantId,
-            'name' => $displayName,
-            'color' => $color,
+            'service_id' => $piece?->id,
+            'service_variant_id' => $variant?->id,
+            'prestation_id' => $prestation->id,
+            'prestation_name' => $prestation->name,
+            'base_name' => $baseName,
+            'name' => $this->displayName($baseName, $prestation->name, null),
+            'color' => null,
             'unit_price_fcfa' => $price,
-            'quantity' => $this->pickerQuantity,
+            'quantity' => 1,
         ];
-
-        $this->resetPicker();
     }
 
-    private function validatedCustomName(): string
+    private function displayName(string $baseName, ?string $prestationName, ?string $color): string
     {
-        $this->validate(['pickerCustomName' => ['required', 'string', 'max:150']]);
-
-        return $this->pickerCustomName;
+        return collect([$baseName, $prestationName, $color])->filter(fn ($part) => filled($part))->implode(' · ');
     }
 
-    private function validatedCustomPrice(): int
+    /** Couleur (facultative) d'une ligne : « Chemise · Repassage · Bleu ». */
+    public function setItemColor(int $index, string $color): void
     {
-        $this->validate(['pickerCustomPrice' => ['required', 'integer', 'min:0']]);
-
-        return (int) $this->pickerCustomPrice;
-    }
-
-    private function resetPicker(): void
-    {
-        $this->reset(['pickerService', 'pickerVariant', 'pickerCustomName', 'pickerCustomPrice', 'pickerColor']);
-        $this->pickerQuantity = 1;
-    }
-
-    /** @return Collection<int, ServiceVariant> */
-    public function getPickerServiceVariantsProperty()
-    {
-        if ($this->pickerService === '' || $this->pickerService === 'other') {
-            return collect();
+        if (! isset($this->items[$index])) {
+            return;
         }
 
-        $service = Service::find((int) $this->pickerService);
+        $color = trim(mb_substr($color, 0, 50));
+        $this->items[$index]['color'] = $color !== '' ? $color : null;
+        $this->items[$index]['name'] = $this->displayName($this->items[$index]['base_name'], $this->items[$index]['prestation_name'], $this->items[$index]['color']);
+    }
 
-        return $service?->variants()->where('is_active', true)->orderBy('name')->get() ?? collect();
+    /** Retire une unité de la pièce (hors variantes : voir la liste de la commande). */
+    public function decrementPiece(int $pieceId): void
+    {
+        foreach (array_reverse(array_keys($this->items)) as $i) {
+            if ($this->items[$i]['service_id'] === $pieceId && $this->items[$i]['prestation_id'] === $this->prestationId && $this->items[$i]['service_variant_id'] === null) {
+                $this->decrementItem($i);
+
+                return;
+            }
+        }
+    }
+
+    private function selectedPrestation(): ?Prestation
+    {
+        return $this->prestationId === null
+            ? null
+            : $this->pressing()->prestations()->where('is_active', true)->find($this->prestationId);
+    }
+
+    /**
+     * Variantes actives de la pièce proposées pour ce service (celles qui y ont un prix).
+     *
+     * @return Collection<int, ServiceVariant>
+     */
+    private function pricedVariants(Service $piece, Prestation $prestation): Collection
+    {
+        $pricedIds = $piece->prices()->where('prestation_id', $prestation->id)->whereNotNull('service_variant_id')->pluck('service_variant_id');
+
+        return $piece->variants()->where('is_active', true)->whereIn('id', $pricedIds)->orderBy('name')->get();
+    }
+
+    /** Quantité déjà ajoutée d'une pièce (toutes variantes confondues) pour le service choisi. */
+    public function quantityOfPiece(int $pieceId): int
+    {
+        return (int) collect($this->items)
+            ->where('service_id', $pieceId)
+            ->where('prestation_id', $this->prestationId)
+            ->sum('quantity');
     }
 
     public function incrementItem(int $index): void
@@ -349,7 +400,7 @@ class Create extends Component
             $order = (new CreateOrderAction)->handle(
                 pressing: $pressing,
                 customer: $customer,
-                items: $this->items,
+                items: array_map(fn (array $item) => collect($item)->except('base_name')->all(), $this->items),
                 expectedAt: $this->expectedAt,
                 notes: $this->notes ?: null,
                 amountPaidFcfa: $this->amountPaidNow,
@@ -389,16 +440,29 @@ class Create extends Component
         }
 
         $selectedCustomer = $this->selectedCustomerId ? $pressing->customers()->find($this->selectedCustomerId) : null;
-        $services = $pressing->services()
-            ->where('is_active', true)
-            ->withCount(['variants' => fn ($q) => $q->where('is_active', true)])
-            ->orderBy('name')
-            ->get();
+        $prestations = $pressing->prestations()->where('is_active', true)->get();
+        $selectedPrestation = $prestations->firstWhere('id', $this->prestationId);
+
+        // Pièces proposées pour le service choisi (celles qui y ont un prix).
+        $pieces = collect();
+        if ($selectedPrestation !== null) {
+            $pieces = $pressing->services()
+                ->where('is_active', true)
+                ->whereHas('prices', fn ($q) => $q->where('prestation_id', $selectedPrestation->id))
+                ->with([
+                    'variants' => fn ($q) => $q->where('is_active', true)->orderBy('name'),
+                    'prices' => fn ($q) => $q->where('prestation_id', $selectedPrestation->id),
+                ])
+                ->orderBy('name')
+                ->get();
+        }
 
         return view('livewire.orders.create', [
             'clients' => $clients,
             'selectedCustomer' => $selectedCustomer,
-            'services' => $services,
+            'prestations' => $prestations,
+            'selectedPrestation' => $selectedPrestation,
+            'pieces' => $pieces,
             'paymentMethods' => PaymentMethod::cases(),
         ]);
     }

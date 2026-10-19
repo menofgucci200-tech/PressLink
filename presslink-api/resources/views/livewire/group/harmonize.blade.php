@@ -9,8 +9,8 @@
         {{-- Tarifs --}}
         <form wire:submit="syncCatalog" class="{{ $card }} flex flex-col gap-4">
             <div>
-                <h2 class="font-semibold">Tarifs</h2>
-                <p class="text-xs text-(--color-text-muted) mt-0.5">Ajoute les services manquants et aligne les prix des services de même nom. Rien n'est supprimé ; un prix peut ensuite être ajusté localement.</p>
+                <h2 class="font-semibold">Services et tarifs</h2>
+                <p class="text-xs text-(--color-text-muted) mt-0.5">Ajoute les services (repassage, nettoyage…) et les pièces manquants, et aligne le prix de chaque pièce pour chaque service. Rien n'est supprimé ; un prix peut ensuite être ajusté localement.</p>
             </div>
             <div>
                 <label for="catalog-source" class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Pressing modèle</label>
@@ -19,7 +19,7 @@
                         <option value="{{ $p->id }}">{{ $p->name }}</option>
                     @endforeach
                 </select>
-                <p class="text-xs text-(--color-text-muted) mt-1">{{ $sourceServicesCount }} service(s) actif(s) à recopier.</p>
+                <p class="text-xs text-(--color-text-muted) mt-1">{{ $sourceServicesCount }} pièce(s) active(s) à recopier.</p>
             </div>
             <fieldset>
                 <legend class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Pressings à mettre à jour</legend>
@@ -42,7 +42,7 @@
             </fieldset>
             <button type="submit" wire:loading.attr="disabled" wire:target="syncCatalog"
                     data-confirm-title="Harmoniser les tarifs" data-confirm-label="Harmoniser"
-                    wire:confirm="Recopier les tarifs du pressing modèle dans les pressings cochés ? Les prix des services de même nom seront remplacés."
+                    wire:confirm="Recopier les services et les tarifs du pressing modèle dans les pressings cochés ? Les prix des pièces de même nom seront remplacés."
                     class="h-10 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600) disabled:opacity-60">Harmoniser les tarifs</button>
         </form>
 

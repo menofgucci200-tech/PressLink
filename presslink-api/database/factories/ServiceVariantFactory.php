@@ -11,6 +11,18 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ServiceVariantFactory extends Factory
 {
+    /** Le prix de la variante est rattaché au service « Nettoyage » du pressing. */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (ServiceVariant $variant) {
+            $cleaning = $variant->service?->pressing?->cleaningPrestation();
+
+            if ($cleaning !== null && $variant->price_fcfa !== null) {
+                $variant->service->setPrice($cleaning, (int) $variant->price_fcfa, $variant);
+            }
+        });
+    }
+
     /**
      * Define the model's default state.
      *

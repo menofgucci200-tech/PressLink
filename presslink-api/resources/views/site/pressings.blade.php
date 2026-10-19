@@ -25,7 +25,7 @@
                 @foreach ([
                     'Création et suivi des commandes',
                     'Fiches clients et historique',
-                    'Services et tarifs, avec variantes',
+                    'Services (repassage, nettoyage…) et prix de chaque pièce, avec variantes',
                     'Équipe : employés et administrateurs',
                     'Tableau de bord et indicateurs du jour',
                     'Exports CSV, Excel et PDF',
@@ -45,7 +45,7 @@
         <h2 class="font-display text-3xl font-bold tracking-tight mb-8">Comment ça se passe au comptoir</h2>
         <ol class="grid md:grid-cols-4 gap-5">
             @foreach ([
-                ['Le client dépose', 'Vous créez la commande en quelques secondes : client, articles, services, total.'],
+                ['Le client dépose', 'Vous créez la commande en quelques secondes : client, service (repassage, nettoyage…), pièces, total.'],
                 ['Vous traitez', 'Passez la commande « en traitement » : le client suit l\'avancement depuis son téléphone.'],
                 ['C\'est prêt', 'Marquez-la « prête » : le client reçoit automatiquement une notification.'],
                 ['Il récupère', 'Marquez-la « récupérée » : votre historique et vos chiffres sont à jour.'],

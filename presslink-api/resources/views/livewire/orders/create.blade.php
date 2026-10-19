@@ -1,11 +1,11 @@
 <div class="max-w-3xl mx-auto" data-skip-back>
     <div class="mb-6">
         <h1 class="font-display text-2xl font-bold mb-1">Nouvelle commande</h1>
-        <p class="text-sm text-(--color-text-muted)">Enregistrez un dépôt en quatre étapes : client, articles, détails et paiement, confirmation.</p>
+        <p class="text-sm text-(--color-text-muted)">Enregistrez un dépôt en quatre étapes : client, services et pièces, détails et paiement, confirmation.</p>
     </div>
 
     <div class="flex items-center mb-7">
-        @php $labels = [1 => 'Client', 2 => 'Articles', 3 => 'Détails et paiement', 4 => 'Confirmation']; @endphp
+        @php $labels = [1 => 'Client', 2 => 'Services et pièces', 3 => 'Détails et paiement', 4 => 'Confirmation']; @endphp
         @foreach ($labels as $n => $label)
             <div class="flex items-center flex-1 min-w-0 last:flex-none">
                 <div class="flex items-center gap-2.5 flex-none">
@@ -87,97 +87,152 @@
             @endif
         @endif
 
-        {{-- Étape 2 : Articles --}}
+        {{-- Étape 2 : Services et pièces --}}
         @if ($step === 2)
-            <h2 class="font-semibold text-[17px] mb-1">Ajouter des articles</h2>
-            <p class="text-[13px] text-(--color-text-muted) mb-5">Choisissez un service, sa variante et sa couleur si besoin.</p>
+            <h2 class="font-semibold text-[17px] mb-1">Services et pièces</h2>
+            <p class="text-[13px] text-(--color-text-muted) mb-5">Choisissez le service, puis touchez les pièces à ajouter à la commande.</p>
 
-            <div class="border border-(--color-border) rounded-lg p-4 mb-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                    <div>
-                        <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Service</label>
-                        <select wire:model.live="pickerService" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
-                            <option value="">— Sélectionner —</option>
-                            @foreach ($services as $service)
-                                <option value="{{ $service->id }}">
-                                    {{ $service->name }}
-                                    @if ($service->variants_count > 0)
-                                        (variantes)
-                                    @else
-                                        · {{ number_format($service->price_fcfa, 0, ',', ' ') }} F
-                                    @endif
-                                </option>
-                            @endforeach
-                            <option value="other">Autre article (non listé)</option>
-                        </select>
-                        @error('pickerService') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
-                    </div>
+            {{-- 1. Le service --}}
+            @if ($prestations->isEmpty())
+                <div class="rounded-xl border border-dashed border-(--color-border) p-6 text-center mb-6">
+                    <p class="text-sm text-(--color-text-secondary) mb-3">Aucun service n'est proposé pour l'instant.</p>
+                    <a href="{{ route('services.index') }}" wire:navigate class="text-sm font-semibold text-(--color-primary) hover:underline">Définir mes services →</a>
+                </div>
+            @else
+                <p class="text-xs font-semibold uppercase tracking-wide text-(--color-text-muted) mb-2">1 · Quel service ?</p>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-7">
+                    @foreach ($prestations as $prestation)
+                        @php $isSelected = $prestationId === $prestation->id; @endphp
+                        <button type="button" wire:click="selectPrestation({{ $prestation->id }})" wire:key="prestation-{{ $prestation->id }}" aria-pressed="{{ $isSelected ? 'true' : 'false' }}"
+                                class="relative flex flex-col items-center gap-2 rounded-2xl border-2 px-3 py-4 text-center transition-all duration-150 active:scale-[.97]
+                                       {{ $isSelected ? 'border-(--color-primary) bg-(--color-primary-tint) shadow-sm' : 'border-(--color-border) hover:border-(--color-primary)' }}">
+                            @if ($isSelected)
+                                <span class="absolute top-2 right-2 w-5 h-5 rounded-full bg-(--color-primary) text-white flex items-center justify-center">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>
+                                </span>
+                            @endif
+                            <x-service-icon kind="service" :name="$prestation->iconKey()" :size="48"/>
+                            <span class="text-sm font-semibold leading-tight">{{ $prestation->name }}</span>
+                        </button>
+                    @endforeach
+                </div>
 
-                    @if ($pickerService !== '' && $pickerService !== 'other' && $this->pickerServiceVariants->isNotEmpty())
-                        <div>
-                            <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Variante</label>
-                            <select wire:model.live="pickerVariant" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
-                                <option value="">— Sélectionner —</option>
-                                @foreach ($this->pickerServiceVariants as $variant)
-                                    <option value="{{ $variant->id }}">{{ $variant->name }} · {{ number_format($variant->price_fcfa, 0, ',', ' ') }} F</option>
-                                @endforeach
-                                <option value="other">Autre (non listée)</option>
-                            </select>
-                            @error('pickerVariant') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                {{-- 2. Les pièces --}}
+                @if ($selectedPrestation === null)
+                    <p class="text-sm text-(--color-text-muted) mb-6">Touchez un service pour voir ses pièces et leurs prix.</p>
+                @else
+                    <p class="text-xs font-semibold uppercase tracking-wide text-(--color-text-muted) mb-2">2 · Quelles pièces ? <span class="normal-case font-medium">— {{ $selectedPrestation->name }}</span></p>
+
+                    @if ($pieces->isEmpty())
+                        <div class="rounded-xl border border-dashed border-(--color-border) p-5 text-sm text-(--color-text-secondary) mb-4">
+                            Aucune pièce n'a de prix pour « {{ $selectedPrestation->name }} ».
+                            <a href="{{ route('services.index') }}" wire:navigate class="font-semibold text-(--color-primary) hover:underline">Renseigner les prix →</a>
                         </div>
                     @endif
-                </div>
 
-                @if ($pickerService === 'other' || $pickerVariant === 'other')
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                        <div>
-                            <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom de l'article</label>
-                            <input type="text" wire:model="pickerCustomName" placeholder="Ex. Nappe" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
-                            @error('pickerCustomName') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Prix (FCFA)</label>
-                            <input type="number" wire:model="pickerCustomPrice" placeholder="1000" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
-                            @error('pickerCustomPrice') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
-                        </div>
-                    </div>
-                @endif
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-3">
+                        @foreach ($pieces as $piece)
+                            @php
+                                $variantPrices = $piece->variants->filter(fn ($v) => $piece->prices->contains(fn ($p) => $p->service_variant_id === $v->id));
+                                $basePrice = $piece->prices->firstWhere('service_variant_id', null)?->price_fcfa;
+                                $hasVariants = $variantPrices->isNotEmpty();
+                                $quantity = $this->quantityOfPiece($piece->id);
+                                $fromPrice = $hasVariants ? $piece->prices->whereIn('service_variant_id', $variantPrices->pluck('id'))->min('price_fcfa') : $basePrice;
+                            @endphp
+                            <div wire:key="piece-{{ $piece->id }}-{{ $selectedPrestation->id }}" class="relative">
+                                <button type="button" wire:click="addPiece({{ $piece->id }})"
+                                        class="w-full flex flex-col items-center gap-1.5 rounded-2xl border-2 px-2 pt-4 pb-3 text-center transition-all duration-150 active:scale-[.97]
+                                               {{ $quantity > 0 ? 'border-(--color-primary) bg-(--color-primary-tint)' : 'border-(--color-border) hover:border-(--color-primary)' }}">
+                                    <x-service-icon kind="piece" :name="$piece->iconKey()" :size="44"/>
+                                    <span class="text-sm font-semibold leading-tight">{{ $piece->name }}</span>
+                                    <span class="text-xs text-(--color-text-secondary) tabular-nums">{{ $hasVariants ? 'dès ' : '' }}{{ number_format((int) $fromPrice, 0, ',', ' ') }} F</span>
+                                </button>
+                                @if ($quantity > 0)
+                                    <span class="absolute -top-2 -right-2 min-w-6 h-6 px-1.5 rounded-full bg-(--color-primary) text-white text-xs font-bold flex items-center justify-center tabular-nums shadow animate-step">{{ $quantity }}</span>
+                                    @if (! $hasVariants)
+                                        <button type="button" wire:click="decrementPiece({{ $piece->id }})" aria-label="Retirer une {{ $piece->name }}"
+                                                class="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-(--color-surface) border border-(--color-border) text-sm font-bold leading-none flex items-center justify-center hover:border-(--color-primary) hover:text-(--color-primary)">−</button>
+                                    @endif
+                                @endif
+                            </div>
+                        @endforeach
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
-                    <div>
-                        <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Couleur (optionnel)</label>
-                        <input type="text" wire:model="pickerColor" placeholder="Ex. Bleu" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
-                        @error('pickerColor') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
-                    </div>
-                    <div class="flex items-end gap-3">
-                        <div class="flex-1">
-                            <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Quantité</label>
-                            <input type="number" min="1" wire:model="pickerQuantity" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
-                            @error('pickerQuantity') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
-                        </div>
-                        <button type="button" wire:click="addPickedItem" wire:loading.attr="disabled" wire:target="addPickedItem"
-                                class="h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600) disabled:opacity-60 flex-none">
-                            <span wire:loading.remove wire:target="addPickedItem">+ Ajouter</span>
-                            <span wire:loading wire:target="addPickedItem">…</span>
+                        <button type="button" wire:click="$toggle('showCustomForm')" wire:key="custom-tile"
+                                class="flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-(--color-border) px-2 py-4 text-center text-sm font-semibold text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary) transition-colors">
+                            <span class="w-11 h-11 rounded-2xl bg-(--color-bg) flex items-center justify-center text-xl">+</span>
+                            Autre pièce
                         </button>
                     </div>
-                </div>
-            </div>
 
+                    {{-- Choix de la variante d'une pièce (ex. manche courte / longue) --}}
+                    @if ($variantPieceId !== null)
+                        @php
+                            $variantPiece = $pieces->firstWhere('id', $variantPieceId);
+                            $choices = $variantPiece?->variants->filter(fn ($v) => $variantPiece->prices->contains(fn ($p) => $p->service_variant_id === $v->id)) ?? collect();
+                        @endphp
+                        @if ($variantPiece && $choices->isNotEmpty())
+                            <div class="rounded-xl border border-(--color-primary) bg-(--color-primary-tint) p-4 mb-3 animate-step">
+                                <div class="flex items-center justify-between mb-3">
+                                    <p class="text-sm font-semibold">{{ $variantPiece->name }} : laquelle ?</p>
+                                    <button type="button" wire:click="$set('variantPieceId', null)" class="text-xs text-(--color-text-secondary) hover:underline">Annuler</button>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach ($choices as $variant)
+                                        <button type="button" wire:click="addVariant({{ $variantPiece->id }}, {{ $variant->id }})" wire:key="variant-{{ $variant->id }}"
+                                                class="h-11 px-4 rounded-xl bg-(--color-surface) border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) active:scale-[.97] transition">
+                                            {{ $variant->name }} <span class="text-(--color-text-secondary) font-medium tabular-nums">· {{ number_format((int) $variantPiece->prices->firstWhere('service_variant_id', $variant->id)->price_fcfa, 0, ',', ' ') }} F</span>
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    @endif
+
+                    @if ($showCustomForm)
+                        <div class="rounded-xl border border-(--color-border) p-4 mb-3 animate-step">
+                            <p class="text-sm font-semibold mb-3">Pièce hors catalogue · {{ $selectedPrestation->name }}</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-[1fr_9rem_auto] gap-3 items-end">
+                                <div>
+                                    <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom de la pièce</label>
+                                    <input type="text" wire:model="customName" placeholder="Ex. Nappe brodée" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
+                                    @error('customName') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Prix (FCFA)</label>
+                                    <input type="number" min="0" wire:model="customPrice" placeholder="1000" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
+                                    @error('customPrice') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                                </div>
+                                <button type="button" wire:click="addCustomPiece" wire:loading.attr="disabled" wire:target="addCustomPiece"
+                                        class="h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600) disabled:opacity-60">+ Ajouter</button>
+                            </div>
+                        </div>
+                    @endif
+                @endif
+            @endif
+
+            {{-- 3. La commande --}}
+            <p class="text-xs font-semibold uppercase tracking-wide text-(--color-text-muted) mt-6 mb-2">Dans la commande</p>
             @if ($items === [])
-                <p class="text-sm text-(--color-text-muted) mb-4">Aucun article ajouté pour l'instant.</p>
+                <p class="text-sm text-(--color-text-muted) mb-4">Aucune pièce ajoutée pour l'instant.</p>
             @else
                 <div class="flex flex-col mb-4">
                     @foreach ($items as $i => $item)
-                        <div wire:key="item-{{ $i }}-{{ $item['name'] }}" class="flex items-center justify-between py-3.5 border-b border-(--color-border) first:border-t animate-step">
-                            <span class="text-sm font-medium">{{ $item['name'] }}</span>
+                        <div wire:key="item-{{ $i }}-{{ $item['base_name'] }}-{{ $item['prestation_id'] }}" class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3 border-b border-(--color-border) first:border-t animate-step">
+                            <div class="flex items-center gap-3 min-w-0 flex-1">
+                                <div class="min-w-0">
+                                    <div class="text-sm font-semibold truncate">{{ $item['base_name'] }}</div>
+                                    <div class="text-xs text-(--color-text-secondary)">{{ $item['prestation_name'] }} · {{ number_format($item['unit_price_fcfa'], 0, ',', ' ') }} F</div>
+                                </div>
+                                <input type="text" value="{{ $item['color'] }}" wire:change="setItemColor({{ $i }}, $event.target.value)" maxlength="50" placeholder="Couleur"
+                                       class="hidden sm:block w-28 h-8 px-2.5 rounded-lg border border-(--color-border) text-xs" aria-label="Couleur (facultatif)">
+                            </div>
                             <div class="flex items-center gap-3">
-                                <button type="button" wire:click="decrementItem({{ $i }})"
-                                        class="w-7 h-7 rounded-md border border-(--color-border) flex items-center justify-center text-sm transition-colors duration-150 hover:border-(--color-primary) hover:text-(--color-primary)">−</button>
-                                <span class="w-4 text-center font-semibold tabular-nums">{{ $item['quantity'] }}</span>
-                                <button type="button" wire:click="incrementItem({{ $i }})"
-                                        class="w-7 h-7 rounded-md border border-(--color-border) flex items-center justify-center text-sm transition-colors duration-150 hover:border-(--color-primary) hover:text-(--color-primary)">+</button>
-                                <span class="w-20 text-right font-semibold tabular-nums">{{ number_format($item['unit_price_fcfa'] * $item['quantity'], 0, ',', ' ') }} F</span>
+                                <button type="button" wire:click="decrementItem({{ $i }})" aria-label="Retirer une unité"
+                                        class="w-8 h-8 rounded-md border border-(--color-border) flex items-center justify-center text-sm transition-colors duration-150 hover:border-(--color-primary) hover:text-(--color-primary)">−</button>
+                                <span class="w-5 text-center font-semibold tabular-nums">{{ $item['quantity'] }}</span>
+                                <button type="button" wire:click="incrementItem({{ $i }})" aria-label="Ajouter une unité"
+                                        class="w-8 h-8 rounded-md border border-(--color-border) flex items-center justify-center text-sm transition-colors duration-150 hover:border-(--color-primary) hover:text-(--color-primary)">+</button>
+                                <span class="w-24 text-right font-semibold tabular-nums">{{ number_format($item['unit_price_fcfa'] * $item['quantity'], 0, ',', ' ') }} F</span>
                             </div>
                         </div>
                     @endforeach
@@ -303,7 +358,7 @@
             </div>
 
             <div class="mb-5">
-                <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-2">Articles</div>
+                <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-2">Pièces</div>
                 @foreach ($items as $item)
                     <div class="flex justify-between text-sm py-1">
                         <span>{{ $item['name'] }} × {{ $item['quantity'] }}</span>

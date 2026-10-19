@@ -65,9 +65,9 @@ class OrderPaymentTest extends TestCase
         return Livewire::test(OrdersCreate::class)
             ->call('pickCustomer', $this->customer->id)
             ->call('next')
-            ->set('pickerService', (string) $service->id)
-            ->set('pickerQuantity', 2)
-            ->call('addPickedItem')
+            ->call('selectPrestation', $service->pressing->cleaningPrestation()->id)
+            ->call('addPiece', $service->id)
+            ->call('incrementItem', 0)
             ->call('next');
     }
 

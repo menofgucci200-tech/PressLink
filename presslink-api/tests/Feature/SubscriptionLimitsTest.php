@@ -129,9 +129,9 @@ class SubscriptionLimitsTest extends TestCase
         $this->actingAs($admin);
 
         Livewire::test(ServicesIndex::class)
-            ->set('name', 'Service en trop')
-            ->set('priceFcfa', '1000')
-            ->call('createService')
+            ->call('newPiece')
+            ->set('pieceName', 'Pièce en trop')
+            ->call('savePiece')
             ->assertSet('errorMessage', fn ($message) => $message !== null);
 
         $this->assertSame(20, $pressing->services()->count());

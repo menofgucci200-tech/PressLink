@@ -6,6 +6,7 @@ use Database\Factories\ServiceVariantFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Déclinaison d'un service avec son propre tarif — ex. "Chemise" peut avoir
@@ -23,6 +24,12 @@ class ServiceVariant extends Model
         return [
             'is_active' => 'boolean',
         ];
+    }
+
+    /** @return HasMany<ServicePrice, $this> */
+    public function prices(): HasMany
+    {
+        return $this->hasMany(ServicePrice::class);
     }
 
     /** @return BelongsTo<Service, $this> */

@@ -1,6 +1,7 @@
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_error.dart';
 
+/// Variante d'une pièce (ex. manche longue) avec son prix pour un service.
 class ServiceVariantModel {
   const ServiceVariantModel({
     required this.id,
@@ -20,27 +21,57 @@ class ServiceVariantModel {
       );
 }
 
-class ServiceModel {
-  const ServiceModel({
+/// Pièce (Chemise, Robe…) avec son prix pour un service ; [priceFcfa] est
+/// nul quand le prix dépend de la variante.
+class PieceModel {
+  const PieceModel({
     required this.id,
     required this.name,
-    required this.priceFcfa,
+    required this.icon,
+    this.priceFcfa,
     this.variants = const [],
   });
 
   final int id;
   final String name;
-  final int priceFcfa;
+  final String icon;
+  final int? priceFcfa;
   final List<ServiceVariantModel> variants;
 
-  factory ServiceModel.fromJson(Map<String, dynamic> json) => ServiceModel(
+  factory PieceModel.fromJson(Map<String, dynamic> json) => PieceModel(
     id: json['id'] as int,
     name: json['name'] as String,
-    priceFcfa: json['price_fcfa'] as int,
+    icon: json['icon'] as String? ?? 'autre',
+    priceFcfa: json['price_fcfa'] as int?,
     variants: (json['variants'] as List<dynamic>? ?? [])
         .map((e) => ServiceVariantModel.fromJson(e as Map<String, dynamic>))
         .toList(),
   );
+}
+
+/// Service proposé par le pressing (Repassage, Nettoyage…) et les prix de ses pièces.
+class PrestationModel {
+  const PrestationModel({
+    required this.id,
+    required this.name,
+    required this.icon,
+    this.pieces = const [],
+  });
+
+  final int id;
+  final String name;
+  final String icon;
+  final List<PieceModel> pieces;
+
+  factory PrestationModel.fromJson(Map<String, dynamic> json) =>
+      PrestationModel(
+        id: json['id'] as int,
+        name: json['name'] as String,
+        icon: json['icon'] as String? ?? 'autre',
+        pieces: (json['pieces'] as List<dynamic>? ?? [])
+            .map((e) => PieceModel.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
 }
 
 /// Horaires d'un jour de la semaine — clé du jour en français (ex. 'lundi').
@@ -76,7 +107,7 @@ class PressingModel {
     this.logoUrl,
     this.description,
     this.openingHours,
-    this.services,
+    this.prestations,
   });
 
   final int id;
@@ -90,7 +121,7 @@ class PressingModel {
   final String? logoUrl;
   final String? description;
   final Map<String, OpeningHoursDay>? openingHours;
-  final List<ServiceModel>? services;
+  final List<PrestationModel>? prestations;
 
   String get initials {
     final words = name
@@ -121,8 +152,8 @@ class PressingModel {
         OpeningHoursDay.fromJson(hours as Map<String, dynamic>),
       ),
     ),
-    services: (json['services'] as List<dynamic>?)
-        ?.map((e) => ServiceModel.fromJson(e as Map<String, dynamic>))
+    prestations: (json['prestations'] as List<dynamic>?)
+        ?.map((e) => PrestationModel.fromJson(e as Map<String, dynamic>))
         .toList(),
   );
 }

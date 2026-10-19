@@ -61,6 +61,7 @@ class CustomerPressingApiTest extends TestCase
             ->getJson('/api/v1/pressings/mine')
             ->assertOk();
 
+        $this->assertArrayNotHasKey('prestations', $response->json()[0]);
         $this->assertArrayNotHasKey('services', $response->json()[0]);
     }
 
@@ -76,9 +77,31 @@ class CustomerPressingApiTest extends TestCase
             ->getJson('/api/v1/pressings/mine')
             ->assertOk();
 
-        $services = $response->json()[0]['services'];
-        $this->assertCount(1, $services);
-        $this->assertSame($service->id, $services[0]['id']);
+        $prestations = $response->json()[0]['prestations'];
+        $this->assertSame(['Nettoyage'], array_column($prestations, 'name'), 'Seuls les services où une pièce a un prix sont listés.');
+        $this->assertSame($service->id, $prestations[0]['pieces'][0]['id']);
+        $this->assertSame('chemise', $prestations[0]['pieces'][0]['icon']);
+        $this->assertSame($service->price_fcfa, $prestations[0]['pieces'][0]['price_fcfa']);
+    }
+
+    public function test_pricing_grid_lists_each_service_with_its_own_prices(): void
+    {
+        $pressing = Pressing::factory()->create(['show_pricing_to_customers' => true]);
+        $shirt = Service::factory()->create(['pressing_id' => $pressing->id, 'name' => 'Chemise', 'price_fcfa' => 1000]);
+        $shirt->setPrice($pressing->prestations()->where('name', 'Repassage')->first(), 500);
+        $long = $shirt->variants()->create(['name' => 'Manche longue', 'price_fcfa' => 1200, 'is_active' => true]);
+        $shirt->setPrice($pressing->prestations()->where('name', 'Repassage')->first(), 700, $long);
+        $customer = Customer::factory()->create();
+        $customer->pressings()->attach($pressing, ['joined_at' => now()]);
+        $token = $customer->createToken('test')->plainTextToken;
+
+        $prestations = collect($this->withHeader('Authorization', "Bearer {$token}")->getJson('/api/v1/pressings/mine')->assertOk()->json()[0]['prestations'])->keyBy('name');
+
+        $this->assertSame(['Repassage', 'Nettoyage'], $prestations->keys()->all());
+        $iron = $prestations['Repassage']['pieces'][0];
+        $this->assertNull($iron['price_fcfa'], 'Avec des variantes, le prix est celui de chaque variante.');
+        $this->assertSame(700, $iron['variants'][0]['price_fcfa']);
+        $this->assertSame(1000, $prestations['Nettoyage']['pieces'][0]['price_fcfa']);
     }
 
     public function test_customer_can_leave_a_pressing(): void

@@ -54,7 +54,12 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Pantalon', 'price_fcfa' => 1500],
             ['name' => 'Costume', 'price_fcfa' => 4000],
             ['name' => 'Robe', 'price_fcfa' => 3000],
-        ])->map(fn ($service) => Service::create([...$service, 'pressing_id' => $pressing->id]));
+        ])->map(function ($definition) use ($pressing) {
+            $service = Service::create([...$definition, 'pressing_id' => $pressing->id]);
+            $service->setPrice($pressing->cleaningPrestation(), $definition['price_fcfa']);
+
+            return $service;
+        });
 
         $customers = Customer::factory()->count(5)->create();
 

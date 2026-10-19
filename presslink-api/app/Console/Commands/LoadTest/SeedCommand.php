@@ -149,13 +149,17 @@ class SeedCommand extends Command
                     'is_active' => true,
                 ]);
 
+                $cleaning = $pressing->cleaningPrestation();
+                $service->setPrice($cleaning, $definition['price_fcfa']);
+
                 foreach ($definition['variants'] as $variantName) {
-                    ServiceVariant::create([
+                    $variant = ServiceVariant::create([
                         'service_id' => $service->id,
                         'name' => $variantName,
                         'price_fcfa' => $definition['price_fcfa'] + 500,
                         'is_active' => true,
                     ]);
+                    $service->setPrice($cleaning, $definition['price_fcfa'] + 500, $variant);
                 }
 
                 return $service;

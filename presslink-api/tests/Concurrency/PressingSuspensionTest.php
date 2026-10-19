@@ -40,11 +40,11 @@ class PressingSuspensionTest extends ConcurrencyTestCase
             'newFirstName' => 'Suspendu', 'newLastName' => 'Test', 'newPhone' => '+2250099998888',
         ], [['path' => '', 'method' => 'createAndPickCustomer', 'params' => []]]);
 
-        $afterService = $session->call($afterPick['snapshot'], ['pickerService' => 'other']);
+        $afterService = $session->call($afterPick['snapshot'], ['prestationId' => $pressing->cleaningPrestation()->id]);
 
         $afterAddItem = $session->call($afterService['snapshot'], [
-            'pickerCustomName' => 'Article', 'pickerCustomPrice' => '1000', 'pickerQuantity' => 1,
-        ], [['path' => '', 'method' => 'addPickedItem', 'params' => []]]);
+            'customName' => 'Article', 'customPrice' => '1000',
+        ], [['path' => '', 'method' => 'addCustomPiece', 'params' => []]]);
 
         $created = $session->call($afterAddItem['snapshot'], [], [['path' => '', 'method' => 'create', 'params' => []]]);
 
@@ -79,10 +79,10 @@ class PressingSuspensionTest extends ConcurrencyTestCase
         $afterPick = $employeeSession->call($page['snapshot'], [
             'newFirstName' => 'Course', 'newLastName' => 'Suspension', 'newPhone' => '+2250099997777',
         ], [['path' => '', 'method' => 'createAndPickCustomer', 'params' => []]]);
-        $afterService = $employeeSession->call($afterPick['snapshot'], ['pickerService' => 'other']);
+        $afterService = $employeeSession->call($afterPick['snapshot'], ['prestationId' => $pressing->cleaningPrestation()->id]);
         $afterAddItem = $employeeSession->call($afterService['snapshot'], [
-            'pickerCustomName' => 'Article', 'pickerCustomPrice' => '1000', 'pickerQuantity' => 1,
-        ], [['path' => '', 'method' => 'addPickedItem', 'params' => []]]);
+            'customName' => 'Article', 'customPrice' => '1000',
+        ], [['path' => '', 'method' => 'addCustomPiece', 'params' => []]]);
 
         $adminPage = $adminSession->visit("/admin/pressings/{$pressing->id}");
 

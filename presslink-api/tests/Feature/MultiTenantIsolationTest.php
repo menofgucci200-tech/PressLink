@@ -6,7 +6,7 @@ use App\Actions\Orders\CreateOrderAction;
 use App\Enums\PressingRole;
 use App\Livewire\Clients\Show as ClientsShow;
 use App\Livewire\Orders\Index as OrdersIndex;
-use App\Livewire\Services\Variants as ServicesVariants;
+use App\Livewire\Services\Index as ServicesIndex;
 use App\Models\Customer;
 use App\Models\Pressing;
 use App\Models\Service;
@@ -86,8 +86,9 @@ class MultiTenantIsolationTest extends TestCase
         $foreignService = Service::factory()->for($otherPressing)->create();
 
         Livewire::actingAs($admin)
-            ->test(ServicesVariants::class, ['service' => $foreignService])
-            ->assertStatus(403);
+            ->test(ServicesIndex::class)
+            ->call('newVariant', $foreignService->id)
+            ->assertNotFound();
     }
 
     public function test_orders_index_only_lists_the_current_pressings_orders(): void

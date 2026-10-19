@@ -16,6 +16,8 @@ class OrderItem extends Model
         'order_id',
         'service_id',
         'service_variant_id',
+        'prestation_id',
+        'prestation_name',
         'name',
         'color',
         'unit_price_fcfa',
@@ -43,6 +45,12 @@ class OrderItem extends Model
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);
+    }
+
+    /** @return BelongsTo<Prestation, $this> */
+    public function prestation(): BelongsTo
+    {
+        return $this->belongsTo(Prestation::class);
     }
 
     /** @return BelongsTo<ServiceVariant, $this> */

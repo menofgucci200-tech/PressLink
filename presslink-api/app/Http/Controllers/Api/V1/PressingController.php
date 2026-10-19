@@ -20,13 +20,12 @@ class PressingController extends Controller
             ->withCount(['orders' => fn ($q) => $q->where('customer_id', $request->user()->id)])
             ->get();
 
-        $pressings->loadMissing(['services' => fn ($q) => $q->where('is_active', true), 'services.variants']);
-
         $data = $pressings->map(function (Pressing $pressing) {
             $array = $pressing->toArray();
 
-            if (! $pressing->show_pricing_to_customers) {
-                unset($array['services']);
+            // Services et prix (Repassage, Nettoyage…) : seulement si le pressing les montre à ses clients.
+            if ($pressing->show_pricing_to_customers) {
+                $array['prestations'] = $pressing->publicCatalog();
             }
 
             return $array;

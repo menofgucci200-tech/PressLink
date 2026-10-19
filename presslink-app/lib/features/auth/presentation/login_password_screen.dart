@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/ivorian_phone.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_text_field.dart';
@@ -65,7 +66,7 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                widget.phone,
+                IvorianPhone.format(widget.phone),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),

@@ -11,7 +11,7 @@ class CustomerAuthTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const PHONE = '+255712345678';
+    private const PHONE = '+2250712345678';
 
     public function test_check_phone_reports_whether_an_account_exists(): void
     {
@@ -28,8 +28,28 @@ class CustomerAuthTest extends TestCase
 
     public function test_an_invalid_phone_format_is_rejected(): void
     {
+        // Moins de 10 chiffres, plus de 10, un autre pays, un préfixe qui n'est pas un mobile.
+        foreach (['07123456', '071234567890', '+255712345678', '0312345678'] as $phone) {
+            $this->postJson('/api/v1/auth/customer/check-phone', ['phone' => $phone])
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors('phone');
+        }
+    }
+
+    public function test_the_phone_can_be_sent_as_typed_and_is_stored_in_the_single_format(): void
+    {
+        $this->postJson('/api/v1/auth/customer/register', [
+            'phone' => '07 12 34 56 78',
+            'first_name' => 'Awa',
+            'last_name' => 'Konan',
+            'gender' => 'femme',
+            'password' => 'secret1',
+            'password_confirmation' => 'secret1',
+        ])->assertCreated()->assertJsonPath('customer.phone', self::PHONE);
+
         $this->postJson('/api/v1/auth/customer/check-phone', ['phone' => '0712345678'])
-            ->assertUnprocessable();
+            ->assertOk()
+            ->assertJson(['exists' => true]);
     }
 
     public function test_a_new_customer_can_register(): void

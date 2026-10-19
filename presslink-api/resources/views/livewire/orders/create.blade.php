@@ -71,7 +71,7 @@
                         @error('newLastName') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <input type="text" wire:model="newPhone" placeholder="+2250708124400" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm">
+                        <x-phone-input wire:model="newPhone" />
                         @error('newPhone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                     </div>
                     <p class="sm:col-span-3 text-xs text-(--color-text-muted)">

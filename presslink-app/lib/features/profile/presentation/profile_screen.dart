@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/config/app_config.dart';
 
 import '../../../core/widgets/app_page_route.dart';
+import '../../../core/utils/ivorian_phone.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/theme_mode_controller.dart';
@@ -242,15 +243,7 @@ class ProfileScreen extends ConsumerWidget {
 }
 
 /// « +2250708124400 » → « +225 07 08 12 44 00 » (lecture plus facile).
-String formatPhoneForDisplay(String phone) {
-  final match = RegExp(r'^\+225(\d{10})$').firstMatch(phone);
-  if (match == null) return phone;
-  final digits = match.group(1)!;
-  final pairs = [
-    for (var i = 0; i < digits.length; i += 2) digits.substring(i, i + 2),
-  ];
-  return '+225 ${pairs.join(' ')}';
-}
+String formatPhoneForDisplay(String phone) => IvorianPhone.format(phone);
 
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.text);

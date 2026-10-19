@@ -84,7 +84,7 @@ class SuperAdminListsAndCrudTest extends TestCase
 
         Livewire::test(AdminPressingsShow::class, ['pressing' => $pressing])
             ->call('editInfo')
-            ->set('info.phone', '0701020304')
+            ->set('info.phone', '070102030')
             ->call('saveInfo')
             ->assertHasErrors('info.phone');
     }

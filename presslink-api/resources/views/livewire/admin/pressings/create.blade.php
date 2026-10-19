@@ -56,7 +56,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone</label>
-                    <input type="text" wire:model="phone" placeholder="+2250708124400" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                    <x-phone-input wire:model="phone" />
                     @error('phone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
@@ -108,7 +108,7 @@
                 </div>
                 <div class="sm:col-span-2">
                     <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone (facultatif)</label>
-                    <input type="text" wire:model="ownerPhone" placeholder="+2250708124400" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                    <x-phone-input wire:model="ownerPhone" />
                     @error('ownerPhone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                 </div>
                 <p class="sm:col-span-2 text-xs text-(--color-text-muted)">
@@ -140,8 +140,7 @@
                                 @error("pressingRows.{$index}.code") <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                             </div>
                             <div class="sm:col-span-3">
-                                <input type="text" wire:model="pressingRows.{{ $index }}.phone" placeholder="+2250708124400"
-                                    class="w-full h-9 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                                <x-phone-input wire:model="pressingRows.{{ $index }}.phone" />
                                 @error("pressingRows.{$index}.phone") <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                             </div>
                             <div class="sm:col-span-2">

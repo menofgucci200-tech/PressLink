@@ -117,7 +117,7 @@ class CustomerProfileTest extends TestCase
         $customer = Customer::factory()->create(['phone' => '+2250700000001', 'password' => Hash::make('secret1')]);
         $token = $customer->createToken('test')->plainTextToken;
 
-        foreach (['+2250799999999' => 'Un compte existe déjà avec ce numéro.', '0708124400' => 'Le numéro doit être au format international, ex. +2250708124400.', '+2250700000001' => 'C\'est déjà votre numéro actuel.'] as $phone => $message) {
+        foreach (['+2250799999999' => 'Un compte existe déjà avec ce numéro.', '070812440' => 'Entrez un numéro ivoirien de 10 chiffres, ex. 07 08 12 44 00.', '+2250700000001' => 'C\'est déjà votre numéro actuel.'] as $phone => $message) {
             $this->withHeader('Authorization', "Bearer {$token}")
                 ->putJson('/api/v1/customer/phone', ['phone' => $phone, 'current_password' => 'secret1'])
                 ->assertUnprocessable()

@@ -168,7 +168,7 @@
                 </div>
                 <div class="col-span-2">
                     <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone</label>
-                    <input type="tel" wire:model="form.phone" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)" placeholder="+2250700000000">
+                    <x-phone-input wire:model="form.phone" />
                     @error('form.phone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div class="col-span-2">
@@ -240,7 +240,7 @@
                 </div>
                 <div class="col-span-2">
                     <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone</label>
-                    <input type="tel" wire:model="form.phone" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)" placeholder="+2250700000000">
+                    <x-phone-input wire:model="form.phone" />
                     @error('form.phone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div class="col-span-2">

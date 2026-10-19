@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\Gender;
 use App\Models\Customer;
+use App\Support\PhoneNumber;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 
@@ -17,7 +18,7 @@ class CustomerFactory extends Factory
         return [
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
-            'phone' => '+225'.fake()->unique()->numerify('0#########'),
+            'phone' => '+225'.fake()->randomElement(PhoneNumber::MOBILE_PREFIXES).fake()->unique()->numerify('########'),
             'password' => Hash::make('password'),
             'gender' => fake()->randomElement(Gender::cases()),
             'phone_verified_at' => now(),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
@@ -16,6 +17,8 @@ class AppTextField extends StatelessWidget {
     this.textCapitalization = TextCapitalization.none,
     this.suffixIcon,
     this.onSubmitted,
+    this.onChanged,
+    this.inputFormatters,
     super.key,
   });
 
@@ -28,6 +31,8 @@ class AppTextField extends StatelessWidget {
   final TextCapitalization textCapitalization;
   final Widget? suffixIcon;
   final ValueChanged<String>? onSubmitted;
+  final ValueChanged<String>? onChanged;
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +60,8 @@ class AppTextField extends StatelessWidget {
             autofocus: autofocus,
             textCapitalization: textCapitalization,
             onSubmitted: onSubmitted,
+            onChanged: onChanged,
+            inputFormatters: inputFormatters,
             style: theme.textTheme.bodyLarge?.copyWith(
               fontSize: 15,
               fontWeight: FontWeight.w600,

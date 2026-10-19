@@ -28,7 +28,7 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone</label>
-                <input type="text" wire:model="phone" placeholder="+2250708124400" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                <x-phone-input wire:model="phone" />
                 @error('phone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
             <p class="sm:col-span-3 text-xs text-(--color-text-muted)">

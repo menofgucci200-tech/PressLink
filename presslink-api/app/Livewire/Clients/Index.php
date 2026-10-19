@@ -4,6 +4,8 @@ namespace App\Livewire\Clients;
 
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Customer;
+use App\Rules\IvorianPhone;
+use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -61,11 +63,12 @@ class Index extends Component
     {
         $this->errorMessage = null;
         $pressing = auth()->user()->currentPressing();
+        $this->phone = PhoneNumber::normalize($this->phone);
 
         $this->validate([
             'firstName' => ['required', 'string', 'max:100'],
             'lastName' => ['required', 'string', 'max:100'],
-            'phone' => ['required', 'string', 'regex:/^\+2250[0-9]{9}$/'],
+            'phone' => ['required', 'string', new IvorianPhone],
         ]);
 
         $subscription = $pressing->subscription;

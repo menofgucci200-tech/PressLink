@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/utils/ivorian_phone.dart';
 import '../../../core/config/app_config.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -99,7 +100,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               Text('Créer votre compte', style: theme.textTheme.headlineSmall),
               const SizedBox(height: 6),
               Text(
-                widget.phone,
+                IvorianPhone.format(widget.phone),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),

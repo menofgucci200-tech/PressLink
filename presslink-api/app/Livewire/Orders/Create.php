@@ -8,6 +8,8 @@ use App\Models\Customer;
 use App\Models\Pressing;
 use App\Models\Service;
 use App\Models\ServiceVariant;
+use App\Rules\IvorianPhone;
+use App\Support\PhoneNumber;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -88,11 +90,12 @@ class Create extends Component
     public function createAndPickCustomer(): void
     {
         $pressing = $this->pressing();
+        $this->newPhone = PhoneNumber::normalize($this->newPhone);
 
         $this->validate([
             'newFirstName' => ['required', 'string', 'max:100'],
             'newLastName' => ['required', 'string', 'max:100'],
-            'newPhone' => ['required', 'string', 'regex:/^\+2250[0-9]{9}$/'],
+            'newPhone' => ['required', 'string', new IvorianPhone],
         ]);
 
         $customer = DB::transaction(function () use ($pressing) {

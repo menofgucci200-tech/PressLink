@@ -3,6 +3,7 @@
 namespace App\Livewire\Auth;
 
 use App\Models\User;
+use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
@@ -32,8 +33,10 @@ class Login extends Component
             User::where('login', $this->login)->exists() => 'login',
             default => 'phone',
         };
+        // « 07 08 12 44 00 » comme « +2250708124400 ».
+        $identifier = $field === 'phone' ? PhoneNumber::normalize($this->login) : $this->login;
 
-        if (! Auth::attempt([$field => $this->login, 'password' => $this->password], $this->remember)) {
+        if (! Auth::attempt([$field => $identifier, 'password' => $this->password], $this->remember)) {
             throw ValidationException::withMessages([
                 'login' => 'Identifiants incorrects.',
             ]);

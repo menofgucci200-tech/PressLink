@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsCatalogChanges;
 use App\Support\ServiceIcons;
 use Database\Factories\PrestationFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Prestation extends Model
 {
     /** @use HasFactory<PrestationFactory> */
-    use HasFactory;
+    use HasFactory, LogsCatalogChanges;
 
     /** Services créés d'office pour chaque pressing : [nom, icône]. */
     public const DEFAULTS = [
@@ -79,5 +80,22 @@ class Prestation extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function catalogPressingId(): ?int
+    {
+        return $this->pressing_id;
+    }
+
+    public function catalogDescription(string $event): ?string
+    {
+        return match (true) {
+            $event === 'created' => "Service « {$this->name} » créé",
+            $event === 'deleted' => "Service « {$this->name} » supprimé",
+            $this->wasChanged('name') => "Service « {$this->getOriginal('name')} » renommé en « {$this->name} »",
+            $this->activationChange() !== null => "Service « {$this->name} » ".$this->activationChange(),
+            $this->wasChanged('icon') => "Icône du service « {$this->name} » changée",
+            default => null, // ordre d'affichage : pas tracé
+        };
     }
 }

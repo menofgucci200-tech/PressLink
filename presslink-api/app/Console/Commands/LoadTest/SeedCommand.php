@@ -6,6 +6,7 @@ use App\Actions\Orders\CreateOrderAction;
 use App\Enums\OrderStatus;
 use App\Enums\PressingRole;
 use App\Enums\SubscriptionPlan;
+use App\Models\ActivityLog;
 use App\Models\Customer;
 use App\Models\Pressing;
 use App\Models\Service;
@@ -44,6 +45,11 @@ class SeedCommand extends Command
     private const PASSWORD = 'loadtest-2026';
 
     public function handle(): int
+    {
+        return ActivityLog::withoutLogging(fn () => $this->seed());
+    }
+
+    private function seed(): int
     {
         if (! $this->guardEnvironment()) {
             return self::FAILURE;

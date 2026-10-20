@@ -32,6 +32,7 @@ enum Permission: string
     case CatalogManage = 'catalog.manage';
     case TeamManage = 'team.manage';
     case RolesManage = 'roles.manage';
+    case ActivityView = 'activity.view';
     case SettingsManage = 'pressing.settings';
     case SubscriptionManage = 'subscription.manage';
 
@@ -53,6 +54,7 @@ enum Permission: string
             self::CatalogManage => 'Services et prix',
             self::TeamManage => 'Équipe (membres sans accès Équipe)',
             self::RolesManage => 'Rôles et permissions',
+            self::ActivityView => 'Journal d\'activité (qui a fait quoi, et quand)',
             self::SettingsManage => 'Paramètres du pressing (infos, logo, horaires)',
             self::SubscriptionManage => 'Abonnement et facturation',
         };
@@ -72,7 +74,7 @@ enum Permission: string
     /** Accès sensibles (revenus), signalés à côté de la case. */
     public function isSensitive(): bool
     {
-        return in_array($this, [self::CashHistory, self::RevenueView, self::ReportsExport], true);
+        return in_array($this, [self::CashHistory, self::RevenueView, self::ReportsExport, self::ActivityView], true);
     }
 
     /** @return array<string, list<self>> accès regroupés pour l'affichage */

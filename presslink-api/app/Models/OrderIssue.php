@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ActivityAction;
 use App\Enums\OrderIssueCategory;
 use App\Enums\OrderIssueStatus;
 use Database\Factories\OrderIssueFactory;
@@ -28,6 +29,25 @@ class OrderIssue extends Model
         'resolved_at',
         'resolution_note',
     ];
+
+    protected static function booted(): void
+    {
+        // Journal du pressing : signalement reçu, puis qui l'a résolu.
+        static::created(function (self $issue): void {
+            $order = $issue->order;
+            ActivityLog::record($order->pressing_id, ActivityAction::IssueReported,
+                "Signalement de {$order->customer->fullName()} sur {$order->order_number} : {$issue->category->label()}", $order, ['issue_id' => $issue->id]);
+        });
+
+        static::updated(function (self $issue): void {
+            if ($issue->wasChanged('status') && $issue->status === OrderIssueStatus::Resolved) {
+                $order = $issue->order;
+                ActivityLog::record($order->pressing_id, ActivityAction::IssueResolved,
+                    "Signalement sur {$order->order_number} résolu ({$issue->category->label()})".($issue->resolution_note ? " : {$issue->resolution_note}" : ''),
+                    $order, ['issue_id' => $issue->id]);
+            }
+        });
+    }
 
     protected function casts(): array
     {

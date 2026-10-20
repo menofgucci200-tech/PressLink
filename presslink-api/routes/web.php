@@ -10,6 +10,7 @@ use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SitePageController;
 use App\Http\Middleware\EnsureUserHasPressing;
 use App\Livewire\Account\Settings as AccountSettings;
+use App\Livewire\Activity\Index as ActivityIndex;
 use App\Livewire\Admin\Administrators\Index as AdminAdministratorsIndex;
 use App\Livewire\Admin\Clients\Index as AdminClientsIndex;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
@@ -123,6 +124,7 @@ Route::middleware('auth')->group(function () {
             ->where('format', 'pdf');
 
         Route::get('/caisse', CashIndex::class)->name('cash.index');
+        Route::get('/journal', ActivityIndex::class)->name('activity.index');
 
         // Groupe : propriétaire ou responsable de zone qui administre au moins
         // deux pressings (contrôle dans chaque page / contrôleur).

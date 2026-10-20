@@ -32,6 +32,7 @@
                 $navItem('clients', 'clients.index', 'Clients', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M9 11A4 4 0 1 0 9 3a4 4 0 0 0 0 8Z'),
                 $navItem('issues', 'issues.index', 'Signalements', 'M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z|M12 9v4|M12 17h.01'),
                 $canCash ? $navItem('cash', 'cash.index', 'Caisse', 'M2 7h20v12H2Z|M16 13h.01|M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2') : null,
+                $can(\App\Enums\Permission::ActivityView) ? $navItem('activity', 'activity.index', 'Journal', 'M12 8v4l3 3|M3.05 11a9 9 0 1 1 .5 4|M3 4v5h5') : null,
             ];
             $navItems = array_values(array_filter($navItems));
             // Groupe : qui administre plusieurs pressings. En vue d'ensemble, le

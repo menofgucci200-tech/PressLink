@@ -76,8 +76,16 @@ class OrderObserver
                 $order, ['amount_paid_fcfa' => $order->amount_paid_fcfa, 'total_fcfa' => $order->total_fcfa, 'reason' => $order->cancellation_reason?->value]);
         } elseif ($order->status === OrderStatus::Recuperee && $order->balance_due_fcfa > 0) {
             ActivityLog::record($order->pressing_id, ActivityAction::RecoveredUnpaid,
-                "Commande {$order->order_number} remise avec ".number_format($order->balance_due_fcfa, 0, ',', ' ').' F restant dus',
+                "Commande {$order->order_number} remise à {$order->customer->fullName()} avec ".number_format($order->balance_due_fcfa, 0, ',', ' ').' F restant dus',
                 $order, ['balance_due_fcfa' => $order->balance_due_fcfa]);
+        } elseif ($order->status === OrderStatus::Recuperee) {
+            ActivityLog::record($order->pressing_id, ActivityAction::OrderHandedOver,
+                "Commande {$order->order_number} remise à {$order->customer->fullName()}", $order);
+        } else {
+            $from = $this->toStatus($order->getOriginal('status'));
+            ActivityLog::record($order->pressing_id, ActivityAction::OrderStatusChanged,
+                "Commande {$order->order_number} : {$from->label()} → {$order->status->label()}", $order,
+                ['from' => $from->value, 'to' => $order->status->value]);
         }
 
         match ($order->status) {

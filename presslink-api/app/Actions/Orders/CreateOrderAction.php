@@ -2,10 +2,12 @@
 
 namespace App\Actions\Orders;
 
+use App\Enums\ActivityAction;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\Permission;
 use App\Enums\PressingStatus;
+use App\Models\ActivityLog;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Pressing;
@@ -100,6 +102,11 @@ class CreateOrderAction
             }
 
             $order->recalculateTotal();
+
+            $pieces = (int) array_sum(array_column($items, 'quantity'));
+            ActivityLog::record($pressing->id, ActivityAction::OrderCreated,
+                "Commande {$order->order_number} créée pour {$customer->fullName()} · {$pieces} pièce".($pieces > 1 ? 's' : '').' · '.number_format((int) $order->total_fcfa, 0, ',', ' ').' F',
+                $order, ['customer_id' => $customer->id, 'pieces' => $pieces, 'total_fcfa' => (int) $order->total_fcfa]);
 
             if ($amountPaidFcfa > 0) {
                 $order->recordPayment($amountPaidFcfa, $paymentMethod, Auth::guard('web')->id(), 'Payé au dépôt');

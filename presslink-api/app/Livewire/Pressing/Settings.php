@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Pressing;
 
+use App\Enums\ActivityAction;
 use App\Enums\Permission;
 use App\Livewire\Concerns\ShowsToasts;
+use App\Models\ActivityLog;
 use App\Models\Pressing;
 use App\Rules\IvorianPhone;
 use App\Support\ImageOptimizer;
@@ -99,6 +101,15 @@ class Settings extends Component
         }
 
         $this->pressing->update($data);
+
+        $labels = ['name' => 'nom', 'phone' => 'téléphone', 'email' => 'e-mail', 'address' => 'adresse', 'city' => 'ville',
+            'description' => 'description', 'opening_hours' => 'horaires', 'show_pricing_to_customers' => 'affichage des prix', 'logo_path' => 'logo'];
+        $changed = array_values(array_intersect_key($labels, $this->pressing->getChanges()));
+        if ($changed !== []) {
+            ActivityLog::record($this->pressing->id, ActivityAction::SettingsChanged, 'Paramètres modifiés : '.implode(', ', $changed),
+                null, ['fields' => array_keys(array_intersect_key($labels, $this->pressing->getChanges()))]);
+        }
+
         $this->logo = null;
         $this->toast('Paramètres du pressing enregistrés.');
     }

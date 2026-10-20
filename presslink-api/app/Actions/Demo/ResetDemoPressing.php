@@ -8,6 +8,7 @@ use App\Enums\PressingRole;
 use App\Enums\PressingStatus;
 use App\Enums\SubscriptionPlan;
 use App\Enums\SubscriptionStatus;
+use App\Models\ActivityLog;
 use App\Models\Customer;
 use App\Models\Pressing;
 use App\Models\Prestation;
@@ -47,6 +48,13 @@ class ResetDemoPressing
      * @return array{password: string, pressing: Pressing}
      */
     public function handle(): array
+    {
+        // La remise à zéro de la démo n'a pas à remplir son journal d'activité.
+        return ActivityLog::withoutLogging(fn () => $this->reset());
+    }
+
+    /** @return array{password: string, pressing: Pressing} */
+    private function reset(): array
     {
         $password = Str::password(10, symbols: false);
 

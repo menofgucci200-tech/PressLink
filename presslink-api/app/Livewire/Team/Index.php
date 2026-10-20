@@ -3,9 +3,11 @@
 namespace App\Livewire\Team;
 
 use App\Actions\Auth\ResetPasswordToDefault;
+use App\Enums\ActivityAction;
 use App\Enums\Permission;
 use App\Enums\PressingRole;
 use App\Livewire\Concerns\ShowsToasts;
+use App\Models\ActivityLog;
 use App\Models\Pressing;
 use App\Models\Role;
 use App\Models\User;
@@ -161,6 +163,8 @@ class Index extends Component
 
         $pressing->staff()->attach($member, ['role' => $this->legacyRole($role), 'role_id' => $role->id, 'is_active' => true]);
 
+        $this->logTeam("{$member->name} ajouté à l'équipe comme « {$role->name} » (identifiant {$member->login})");
+
         $this->createdMember = $member;
         $this->reset(['name', 'login', 'phone', 'password', 'showCreateForm']);
         $this->roleId = $pressing->defaultRole(Role::EMPLOYEE)->id;
@@ -189,6 +193,7 @@ class Index extends Component
         }
 
         $pressing->staff()->updateExistingPivot($member->id, ['role' => $this->legacyRole($role), 'role_id' => $role->id]);
+        $this->logTeam("Rôle de {$member->name} : « ".($current?->name ?? '—')." » → « {$role->name} »");
         $this->toast("{$member->name} est maintenant « {$role->name} ».");
     }
 
@@ -203,6 +208,7 @@ class Index extends Component
         abort_unless($this->canManageMember($member), 403);
 
         (new ResetPasswordToDefault)->handle($member);
+        $this->logTeam("Mot de passe de {$member->name} réinitialisé");
 
         $this->toast("Mot de passe de {$member->name} réinitialisé à ".ResetPasswordToDefault::DEFAULT_PASSWORD.'. Il doit maintenant le changer pour sécuriser son compte.');
     }
@@ -232,10 +238,16 @@ class Index extends Component
         }
 
         $pressing->staff()->updateExistingPivot($member->id, ['is_active' => ! $member->pivot->is_active]);
+        $this->logTeam($member->pivot->is_active ? "{$member->name} retiré de l'équipe (accès coupé)" : "{$member->name} réintégré dans l'équipe");
 
         $this->toast($member->pivot->is_active
             ? "{$member->name} a été retiré de l'équipe : son accès est coupé."
             : "{$member->name} a retrouvé l'accès au pressing.", $member->pivot->is_active ? 'warning' : 'success');
+    }
+
+    private function logTeam(string $description): void
+    {
+        ActivityLog::record($this->pressing()->id, ActivityAction::TeamChanged, $description);
     }
 
     private function activeOwnersCount(): int
@@ -325,11 +337,28 @@ class Index extends Component
         $kept = array_diff($role?->permissionValues() ?? [], $grantable);
         $permissions = array_values(array_intersect(Permission::all(), array_unique([...array_intersect($this->rolePermissions, $grantable), ...$kept])));
 
+        $label = fn (array $values) => implode(', ', array_map(fn (string $value) => Permission::from($value)->label(), $values));
+
         if ($role === null) {
             $pressing->roles()->create(['name' => $this->roleName, 'permissions' => $permissions]);
+            ActivityLog::record($pressing->id, ActivityAction::RolesChanged, "Rôle « {$this->roleName} » créé avec ".count($permissions).' accès',
+                null, ['permissions' => $permissions]);
             $this->toast("Rôle « {$this->roleName} » créé.");
         } else {
+            $before = $role->permissionValues();
+            $oldName = $role->name;
             $role->update(['name' => $this->roleName, 'permissions' => $permissions]);
+            $added = array_values(array_diff($permissions, $before));
+            $removed = array_values(array_diff($before, $permissions));
+            $changes = array_filter([
+                $oldName !== $this->roleName ? "renommé en « {$this->roleName} »" : null,
+                $added !== [] ? 'accès ajoutés : '.$label($added) : null,
+                $removed !== [] ? 'accès retirés : '.$label($removed) : null,
+            ]);
+            if ($changes !== []) {
+                ActivityLog::record($pressing->id, ActivityAction::RolesChanged, "Rôle « {$oldName} » ".implode(' ; ', $changes),
+                    null, ['added' => $added, 'removed' => $removed]);
+            }
             $this->toast("Accès du rôle « {$this->roleName} » enregistrés.");
         }
 
@@ -355,6 +384,7 @@ class Index extends Component
         }
 
         $role->delete();
+        ActivityLog::record($this->pressing()->id, ActivityAction::RolesChanged, "Rôle « {$role->name} » supprimé");
         $this->toast("Rôle « {$role->name} » supprimé.", 'warning');
     }
 

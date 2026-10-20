@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsCatalogChanges;
 use App\Support\ServiceIcons;
 use Database\Factories\ServiceFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Service extends Model
 {
     /** @use HasFactory<ServiceFactory> */
-    use HasFactory;
+    use HasFactory, LogsCatalogChanges;
 
     protected $fillable = ['pressing_id', 'name', 'icon', 'price_fcfa', 'is_active'];
 
@@ -76,11 +77,28 @@ class Service extends Model
         ];
 
         if ($amount === null) {
-            ServicePrice::where($keys)->delete();
+            ServicePrice::where($keys)->get()->each->delete();
 
             return;
         }
 
         ServicePrice::updateOrCreate($keys, ['price_fcfa' => max(0, $amount)]);
+    }
+
+    public function catalogPressingId(): ?int
+    {
+        return $this->pressing_id;
+    }
+
+    public function catalogDescription(string $event): ?string
+    {
+        return match (true) {
+            $event === 'created' => "Pièce « {$this->name} » ajoutée",
+            $event === 'deleted' => "Pièce « {$this->name} » supprimée",
+            $this->wasChanged('name') => "Pièce « {$this->getOriginal('name')} » renommée en « {$this->name} »",
+            $this->activationChange() !== null => "Pièce « {$this->name} » ".str_replace(['activé'], ['activée'], $this->activationChange()),
+            $this->wasChanged('icon') => "Icône de la pièce « {$this->name} » changée",
+            default => null,
+        };
     }
 }

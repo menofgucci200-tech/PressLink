@@ -41,6 +41,7 @@ class OpenStatus extends Component
         abort_unless($pressing !== null && auth()->user()->may(Permission::OpenExceptionally, $pressing), 403);
 
         $pressing->update(['exceptional_open_until' => null]);
+        ActivityLog::record($pressing->id, ActivityAction::ExceptionalOpening, 'Ouverture exceptionnelle terminée par '.auth()->user()->name);
 
         $this->redirect(url()->previous() ?: route('dashboard'), navigate: true);
     }

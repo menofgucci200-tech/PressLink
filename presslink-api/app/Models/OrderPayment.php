@@ -58,8 +58,8 @@ class OrderPayment extends Model
 
         // Journal d'activité : chaque encaissement (et remboursement).
         static::created(fn (self $payment) => ActivityLog::record(
-            $payment->order->pressing_id, ActivityAction::PaymentRecorded,
-            ($payment->isRefund() ? 'Remboursement de ' : 'Paiement de ').number_format(abs($payment->amount_fcfa), 0, ',', ' ').' F ('.$payment->method->label().') sur '.$payment->order->order_number,
+            $payment->order->pressing_id, $payment->isRefund() ? ActivityAction::PaymentRefunded : ActivityAction::PaymentRecorded,
+            ($payment->isRefund() ? 'Remboursement de ' : 'Encaissement de ').number_format(abs($payment->amount_fcfa), 0, ',', ' ').' F ('.$payment->method->label().') sur '.$payment->order->order_number.' · '.$payment->order->customer->fullName(),
             $payment->order, ['amount_fcfa' => $payment->amount_fcfa, 'method' => $payment->method->value],
         ));
     }

@@ -131,6 +131,27 @@
                     @endforeach
                 </div>
             </div>
+
+            @if ($orderActivity !== null && $orderActivity->isNotEmpty())
+                {{-- Traçabilité : qui a créé, encaissé, remis… cette commande --}}
+                <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Journal de la commande</div>
+                        <a href="{{ route('activity.index', ['q' => $order->order_number]) }}" wire:navigate class="text-xs font-medium text-(--color-primary) hover:underline">Tout le journal</a>
+                    </div>
+                    <div class="flex flex-col">
+                        @foreach ($orderActivity as $entry)
+                            <div class="flex items-start gap-3 py-2 border-b border-(--color-border) last:border-b-0 text-sm">
+                                <span class="w-[88px] flex-none text-xs tabular-nums text-(--color-text-muted) pt-0.5">{{ $entry->created_at->format('d/m H:i') }}</span>
+                                <div class="flex-1 min-w-0">
+                                    <div>{{ $entry->description }}</div>
+                                    <div class="text-xs text-(--color-text-muted)">{{ $entry->user?->name ?? 'Client / système' }}{{ $entry->authorRole() ? ' · '.$entry->authorRole() : '' }}</div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
         </div>
 
         <div class="flex flex-col gap-6">

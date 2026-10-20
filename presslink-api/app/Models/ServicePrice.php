@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\LogsCatalogChanges;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -12,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class ServicePrice extends Model
 {
+    use LogsCatalogChanges;
+
     protected $fillable = ['service_id', 'service_variant_id', 'prestation_id', 'price_fcfa'];
 
     protected function casts(): array
@@ -35,5 +38,23 @@ class ServicePrice extends Model
     public function prestation(): BelongsTo
     {
         return $this->belongsTo(Prestation::class);
+    }
+
+    public function catalogPressingId(): ?int
+    {
+        return $this->piece?->pressing_id;
+    }
+
+    public function catalogDescription(string $event): ?string
+    {
+        $label = collect([$this->piece?->name, $this->variant?->name])->filter()->implode(' · ').' ('.($this->prestation?->name ?? 'service').')';
+        $fcfa = fn (?int $amount) => number_format((int) $amount, 0, ',', ' ').' F';
+
+        return match (true) {
+            $event === 'created' => "Prix de {$label} : {$fcfa($this->price_fcfa)}",
+            $event === 'deleted' => "Prix de {$label} retiré (était {$fcfa($this->price_fcfa)})",
+            $this->wasChanged('price_fcfa') => "Prix de {$label} : {$fcfa($this->getOriginal('price_fcfa'))} → {$fcfa($this->price_fcfa)}",
+            default => null,
+        };
     }
 }

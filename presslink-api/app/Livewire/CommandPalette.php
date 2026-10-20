@@ -220,6 +220,7 @@ class CommandPalette extends Component
         return array_values(array_filter([
             ...$group,
             $canCash ? ['title' => 'Caisse du jour', 'subtitle' => 'Encaissements et clôture', 'url' => route('cash.index'), 'icon' => 'money'] : null,
+            $can(Permission::ActivityView) ? ['title' => 'Journal d\'activité', 'subtitle' => 'Qui a fait quoi, et quand', 'url' => route('activity.index'), 'icon' => 'clock'] : null,
             $can(Permission::OrdersCreate) ? ['title' => 'Nouvelle commande', 'subtitle' => 'Enregistrer un dépôt', 'url' => route('orders.create'), 'icon' => 'plus', 'hint' => 'N'] : null,
             ['title' => 'Tableau de bord', 'subtitle' => null, 'url' => route('dashboard'), 'icon' => 'home', 'hint' => 'G D'],
             ['title' => 'Toutes les commandes', 'subtitle' => null, 'url' => route('orders.index'), 'icon' => 'order', 'hint' => 'G C'],

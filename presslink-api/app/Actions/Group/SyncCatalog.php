@@ -130,7 +130,8 @@ class SyncCatalog
             }
         };
 
-        $dryRun ? $run() : DB::transaction($run);
+        // Une seule ligne de synthèse au journal, pas une par prix recopié.
+        ActivityLog::withoutLogging(fn () => $dryRun ? $run() : DB::transaction($run));
 
         if (! $dryRun && ($stats['created'] + $stats['updated'] + $stats['services']) > 0) {
             ActivityLog::record($target->id, ActivityAction::CatalogSynced,

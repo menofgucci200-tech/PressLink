@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Auth;
 
+use App\Enums\ActivityAction;
+use App\Models\ActivityLog;
 use App\Models\User;
 use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\Auth;
@@ -51,6 +53,14 @@ class Login extends Component
         }
 
         session()->regenerate();
+
+        // Journal de chaque pressing du membre : qui s'est connecté, et quand.
+        $user = Auth::user();
+        if (! $user->is_super_admin) {
+            foreach ($user->pressings()->wherePivot('is_active', true)->get() as $pressing) {
+                ActivityLog::record($pressing->id, ActivityAction::StaffLogin, "Connexion de {$user->name}");
+            }
+        }
 
         $this->redirect(Auth::user()->is_super_admin ? '/admin' : route('dashboard'), navigate: false);
     }

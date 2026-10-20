@@ -125,7 +125,7 @@ class Index extends Component
         $closing = CashClosing::where('pressing_id', $pressing->id)->whereDate('business_date', $day)->firstOrFail();
         $closing->delete();
 
-        ActivityLog::record($pressing->id, ActivityAction::CashClosed, 'Clôture de caisse du '.$day->format('d/m/Y').' annulée (journée rouverte)', null, ['reopened' => true]);
+        ActivityLog::record($pressing->id, ActivityAction::CashReopened, 'Clôture de caisse du '.$day->format('d/m/Y').' annulée (journée rouverte)', null, ['business_date' => $day->toDateString()]);
         $this->toast('Journée rouverte : vous pouvez la clôturer à nouveau.', 'warning');
     }
 

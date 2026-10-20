@@ -35,6 +35,17 @@ class Settings extends Component
     // Droit de magasinage
     public bool $storageFeeEnabled = false;
 
+    /** flat (montant unique), per_piece (selon la pièce) ou tiers (paliers). */
+    public string $storageFeeMode = 'flat';
+
+    /** @var array<int|string, string> montant par pièce du catalogue (id => montant) */
+    public array $storageFeePieceAmounts = [];
+
+    public string $storageFeeDefaultAmount = '';
+
+    /** @var list<array{periods: string, amount: string}> paliers ; le dernier s'applique ensuite sans limite */
+    public array $storageFeeTiers = [];
+
     public string $storageFeeGraceDays = '7';
 
     public string $storageFeeAmount = '';
@@ -62,6 +73,47 @@ class Settings extends Component
         $this->storageFeeUnit = $fee['unit'] ?? 'order';
         $this->storageFeePeriod = $fee['period'] ?? 'day';
         $this->storageFeeCap = isset($fee['cap']) ? (string) $fee['cap'] : '';
+        $this->storageFeeMode = in_array($fee['mode'] ?? 'flat', Pressing::STORAGE_FEE_MODES, true) ? ($fee['mode'] ?? 'flat') : 'flat';
+        $this->storageFeePieceAmounts = collect($fee['piece_amounts'] ?? [])->map(fn ($amount) => (string) $amount)->all();
+        $this->storageFeeDefaultAmount = isset($fee['default_amount']) && (int) $fee['default_amount'] > 0 ? (string) $fee['default_amount'] : '';
+        $this->storageFeeTiers = collect($fee['tiers'] ?? [])->map(fn ($tier) => ['periods' => (string) ($tier['periods'] ?? ''), 'amount' => (string) ($tier['amount'] ?? '')])->values()->all()
+            ?: [['periods' => '1', 'amount' => ''], ['periods' => '', 'amount' => '']];
+    }
+
+    public function addTier(): void
+    {
+        // Le nouveau palier se place avant le dernier (celui « ensuite »).
+        array_splice($this->storageFeeTiers, max(0, count($this->storageFeeTiers) - 1), 0, [['periods' => '1', 'amount' => '']]);
+    }
+
+    public function removeTier(int $index): void
+    {
+        if (count($this->storageFeeTiers) > 1 && isset($this->storageFeeTiers[$index])) {
+            unset($this->storageFeeTiers[$index]);
+            $this->storageFeeTiers = array_values($this->storageFeeTiers);
+        }
+    }
+
+    /** @return array<string, mixed> réglage du droit de magasinage, tel que saisi */
+    private function storageFeeSettings(): array
+    {
+        $lastTier = count($this->storageFeeTiers) - 1;
+
+        return [
+            'enabled' => $this->storageFeeEnabled,
+            'mode' => $this->storageFeeMode,
+            'grace_days' => (int) ($this->storageFeeGraceDays ?: 0),
+            'period' => $this->storageFeePeriod,
+            'unit' => $this->storageFeeUnit,
+            'amount' => (int) ($this->storageFeeAmount ?: 0),
+            'piece_amounts' => collect($this->storageFeePieceAmounts)->map(fn ($amount) => (int) $amount)->filter()->all(),
+            'default_amount' => (int) ($this->storageFeeDefaultAmount ?: 0),
+            'tiers' => collect($this->storageFeeTiers)->map(fn ($tier, $i) => [
+                'periods' => $i === $lastTier ? null : max(1, (int) $tier['periods']),
+                'amount' => (int) ($tier['amount'] ?: 0),
+            ])->values()->all(),
+            'cap' => $this->storageFeeCap !== '' ? (int) $this->storageFeeCap : null,
+        ];
     }
 
     public function save(): void
@@ -71,13 +123,19 @@ class Settings extends Component
             'openingHours.*.open' => ['nullable', 'date_format:H:i'],
             'openingHours.*.close' => ['nullable', 'date_format:H:i'],
             'terms' => ['nullable', 'string', 'max:5000'],
+            'storageFeeMode' => [Rule::in(Pressing::STORAGE_FEE_MODES)],
             'storageFeeGraceDays' => ['required_if:storageFeeEnabled,true', 'nullable', 'integer', 'min:0', 'max:365'],
-            'storageFeeAmount' => ['required_if:storageFeeEnabled,true', 'nullable', 'integer', 'min:1', 'max:1000000'],
+            'storageFeeAmount' => [$this->storageFeeEnabled && $this->storageFeeMode === 'flat' ? 'required' : 'nullable', 'nullable', 'integer', 'min:1', 'max:1000000'],
+            'storageFeePieceAmounts.*' => ['nullable', 'integer', 'min:0', 'max:1000000'],
+            'storageFeeDefaultAmount' => ['nullable', 'integer', 'min:0', 'max:1000000'],
+            'storageFeeTiers.*.periods' => ['nullable', 'integer', 'min:1', 'max:365'],
+            'storageFeeTiers.*.amount' => [$this->storageFeeEnabled && $this->storageFeeMode === 'tiers' ? 'required' : 'nullable', 'nullable', 'integer', 'min:0', 'max:1000000'],
             'storageFeeUnit' => [Rule::in(['order', 'piece'])],
             'storageFeePeriod' => [Rule::in(array_keys(Pressing::STORAGE_FEE_PERIODS))],
             'storageFeeCap' => ['nullable', 'integer', 'min:1', 'max:100000000'],
         ], [
-            'storageFeeAmount.required_if' => 'Indiquez le montant du droit de magasinage.',
+            'storageFeeAmount.required' => 'Indiquez le montant du droit de magasinage.',
+            'storageFeeTiers.*.amount.required' => 'Indiquez le montant de chaque palier.',
             'storageFeeAmount.min' => 'Le montant doit être d\'au moins 1 F.',
             'storageFeeGraceDays.required_if' => 'Indiquez le délai avant facturation.',
         ]);
@@ -86,14 +144,7 @@ class Settings extends Component
             'opening_hours' => $this->openingHours,
             'show_pricing_to_customers' => $this->showPricingToCustomers,
             'terms' => trim($this->terms) ?: null,
-            'storage_fee' => [
-                'enabled' => $this->storageFeeEnabled,
-                'grace_days' => (int) ($this->storageFeeGraceDays ?: 0),
-                'amount' => (int) ($this->storageFeeAmount ?: 0),
-                'unit' => $this->storageFeeUnit,
-                'period' => $this->storageFeePeriod,
-                'cap' => $this->storageFeeCap !== '' ? (int) $this->storageFeeCap : null,
-            ],
+            'storage_fee' => $this->storageFeeSettings(),
         ]);
 
         $labels = ['opening_hours' => 'horaires', 'show_pricing_to_customers' => 'affichage des prix',
@@ -132,21 +183,15 @@ class Settings extends Component
         return view('livewire.pressing.settings', [
             'days' => self::DAYS,
             'storageFeePreview' => $this->previewClause(),
+            'pieces' => $this->pressing->services()->where('is_active', true)->orderBy('name')->get(['id', 'name', 'icon']),
         ]);
     }
 
     /** La règle de magasinage telle que la lira le client, d'après le formulaire en cours. */
     private function previewClause(): ?string
     {
-        $preview = $this->pressing->replicate();
-        $preview->storage_fee = [
-            'enabled' => $this->storageFeeEnabled,
-            'grace_days' => (int) ($this->storageFeeGraceDays ?: 0),
-            'amount' => (int) ($this->storageFeeAmount ?: 0),
-            'unit' => $this->storageFeeUnit,
-            'period' => $this->storageFeePeriod,
-            'cap' => $this->storageFeeCap !== '' ? (int) $this->storageFeeCap : null,
-        ];
+        $preview = clone $this->pressing;
+        $preview->storage_fee = $this->storageFeeSettings();
 
         return $preview->storageFeeClause();
     }

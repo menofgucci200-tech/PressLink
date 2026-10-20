@@ -15,6 +15,7 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Pressing;
 use App\Models\Role;
+use App\Models\Service;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -100,6 +101,59 @@ class StorageFeeAndTermsTest extends TestCase
 
         Carbon::setTestNow('2026-10-25 10:00'); // 13 jours → 2 semaines → 600 F, plafonné à 500 F
         $this->assertSame(500, $order->fresh()->storageFee()['amount']);
+    }
+
+    public function test_each_piece_can_have_its_own_amount(): void
+    {
+        $this->staff();
+        $shirt = Service::factory()->for($this->pressing)->create(['name' => 'Chemise', 'price_fcfa' => 1000]);
+        $this->pressing->update(['storage_fee' => ['enabled' => true, 'mode' => 'per_piece', 'grace_days' => 0, 'period' => 'day',
+            'piece_amounts' => [$shirt->id => 100], 'default_amount' => 50]]);
+        $order = (new CreateOrderAction)->handle($this->pressing, $this->customer, [
+            ['service_id' => $shirt->id, 'name' => 'Chemise', 'unit_price_fcfa' => 1000, 'quantity' => 3],
+            ['service_id' => null, 'name' => 'Nappe', 'unit_price_fcfa' => 2000, 'quantity' => 1],
+        ], expectedAt: '2026-10-12');
+        $order->update(['status' => OrderStatus::Traitement]);
+        $order->update(['status' => OrderStatus::Prete]);
+
+        Carbon::setTestNow('2026-10-14 10:00'); // 2 jours : (3 × 100 + 1 × 50) × 2
+        $this->assertSame(700, $order->fresh()->storageFee()['amount']);
+        $this->assertStringContainsString('par jour, selon la pièce : Chemise 100 F, autres pièces 50 F', $this->pressing->fresh()->storageFeeClause());
+    }
+
+    public function test_tiers_raise_the_amount_over_time(): void
+    {
+        $this->staff();
+        $this->pressing->update(['storage_fee' => ['enabled' => true, 'mode' => 'tiers', 'grace_days' => 0, 'period' => 'week', 'unit' => 'order',
+            'tiers' => [['periods' => 2, 'amount' => 500], ['periods' => null, 'amount' => 1000]]]]);
+        $order = $this->readyOrder();
+
+        Carbon::setTestNow('2026-10-13 10:00'); // 1re semaine
+        $this->assertSame(500, $order->fresh()->storageFee()['amount']);
+        Carbon::setTestNow('2026-11-01 10:00'); // 20 jours → 3 semaines : 500 + 500 + 1 000
+        $this->assertSame(2000, $order->fresh()->storageFee()['amount']);
+        $this->assertStringContainsString('500 F par semaine pendant 2 semaines, puis 1 000 F par semaine et par commande', $this->pressing->fresh()->storageFeeClause());
+    }
+
+    public function test_the_owner_sets_tiers_in_settings(): void
+    {
+        $this->staff();
+
+        Livewire::test(PressingSettings::class)
+            ->set('storageFeeEnabled', true)
+            ->set('storageFeeMode', 'tiers')
+            ->set('storageFeePeriod', 'week')
+            ->set('storageFeeTiers.0.periods', '2')
+            ->set('storageFeeTiers.0.amount', '500')
+            ->set('storageFeeTiers.1.amount', '1000')
+            ->assertSee('500 F par semaine pendant 2 semaines, puis 1 000 F par semaine')
+            ->call('addTier')
+            ->assertCount('storageFeeTiers', 3)
+            ->call('removeTier', 1)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame([['periods' => 2, 'amount' => 500], ['periods' => null, 'amount' => 1000]], $this->pressing->fresh()->storageFeePolicy()['tiers']);
     }
 
     public function test_a_late_ready_order_is_not_charged_for_the_pressing_delay(): void
@@ -192,7 +246,8 @@ class StorageFeeAndTermsTest extends TestCase
 
         $pressing = $this->pressing->fresh();
         $this->assertSame("Règle 1\nRègle 2", $pressing->terms);
-        $this->assertSame(['grace_days' => 10, 'amount' => 150, 'unit' => 'piece', 'period' => 'day', 'cap' => null], $pressing->storageFeePolicy());
+        $policy = $pressing->storageFeePolicy();
+        $this->assertSame(['flat', 10, 150, 'piece', 'day', null], [$policy['mode'], $policy['grace_days'], $policy['amount'], $policy['unit'], $policy['period'], $policy['cap']]);
     }
 
     public function test_customers_see_terms_and_fee_in_the_app_and_on_the_receipt(): void

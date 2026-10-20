@@ -278,8 +278,17 @@ class Order extends Model
 
         $days = (int) $since->diffInDays($today) + 1;
         $periods = (int) ceil($days / Pressing::STORAGE_FEE_PERIODS[$policy['period']]);
-        $pieces = (int) $this->items()->where('name', 'not like', self::STORAGE_FEE_LINE.'%')->sum('quantity');
-        $amount = $periods * $policy['amount'] * ($policy['unit'] === 'piece' ? max(1, $pieces) : 1);
+
+        // Quantités par pièce du catalogue (0 = pièce hors catalogue), hors frais déjà facturés.
+        $piecesById = [];
+        foreach ($this->items()->where('name', 'not like', self::STORAGE_FEE_LINE.'%')->get(['service_id', 'quantity']) as $item) {
+            $piecesById[(int) $item->service_id] = ($piecesById[(int) $item->service_id] ?? 0) + (int) $item->quantity;
+        }
+
+        $amount = 0;
+        for ($period = 1; $period <= $periods; $period++) {
+            $amount += Pressing::storageFeeForPeriod($policy, $period, $piecesById);
+        }
 
         if ($policy['cap'] !== null) {
             $amount = min($amount, $policy['cap']);

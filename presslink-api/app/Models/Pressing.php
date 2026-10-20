@@ -227,30 +227,90 @@ class Pressing extends Model
     /** Unités de calcul du droit de magasinage. */
     public const STORAGE_FEE_PERIODS = ['day' => 1, 'week' => 7, 'month' => 30];
 
+    /** Façons de calculer le droit de magasinage, au choix de chaque pressing. */
+    public const STORAGE_FEE_MODES = ['flat', 'per_piece', 'tiers'];
+
     /**
-     * Droit de magasinage des commandes prêtes non retirées : au-delà de
+     * Droit de magasinage des commandes prêtes non retirées, au-delà de
      * `grace_days` jours après la date de retrait prévue (ou la date où la
-     * commande a été prête, si elle l'a été en retard), `amount` francs par
-     * période (`day`, `week`, `month`), par commande ou par pièce (`unit`),
-     * dans la limite de `cap` francs s'il est fixé. Null s'il n'est pas activé.
+     * commande a été prête, si elle l'a été en retard). Selon le `mode` :
+     *  - `flat` : `amount` francs par période, par commande ou par pièce (`unit`) ;
+     *  - `per_piece` : par période, le montant de chaque pièce (`piece_amounts`,
+     *    clé = id de la pièce), `default_amount` pour les autres ;
+     *  - `tiers` : paliers successifs `{periods, amount}` (le dernier sans
+     *    limite), par commande ou par pièce (`unit`).
+     * Dans la limite de `cap` francs s'il est fixé. Null s'il n'est pas activé.
      *
-     * @return array{grace_days: int, amount: int, unit: string, period: string, cap: ?int}|null
+     * @return array{mode: string, grace_days: int, period: string, unit: string, amount: int, piece_amounts: array<int, int>, default_amount: int, tiers: list<array{periods: ?int, amount: int}>, cap: ?int}|null
      */
     public function storageFeePolicy(): ?array
     {
         $fee = $this->storage_fee ?? [];
-
-        if (! ($fee['enabled'] ?? false) || (int) ($fee['amount'] ?? 0) <= 0) {
+        if (! ($fee['enabled'] ?? false)) {
             return null;
         }
 
-        return [
+        $mode = in_array($fee['mode'] ?? 'flat', self::STORAGE_FEE_MODES, true) ? ($fee['mode'] ?? 'flat') : 'flat';
+        $pieceAmounts = collect($fee['piece_amounts'] ?? [])
+            ->mapWithKeys(fn ($amount, $pieceId) => [(int) $pieceId => max(0, (int) $amount)])
+            ->filter()
+            ->all();
+        $tiers = collect($fee['tiers'] ?? [])
+            ->map(fn ($tier) => ['periods' => isset($tier['periods']) && (int) $tier['periods'] > 0 ? (int) $tier['periods'] : null, 'amount' => max(0, (int) ($tier['amount'] ?? 0))])
+            ->values()
+            ->all();
+
+        $policy = [
+            'mode' => $mode,
             'grace_days' => max(0, (int) ($fee['grace_days'] ?? 7)),
-            'amount' => (int) $fee['amount'],
-            'unit' => ($fee['unit'] ?? 'order') === 'piece' ? 'piece' : 'order',
             'period' => array_key_exists($fee['period'] ?? '', self::STORAGE_FEE_PERIODS) ? $fee['period'] : 'day',
+            'unit' => ($fee['unit'] ?? 'order') === 'piece' ? 'piece' : 'order',
+            'amount' => max(0, (int) ($fee['amount'] ?? 0)),
+            'piece_amounts' => $pieceAmounts,
+            'default_amount' => max(0, (int) ($fee['default_amount'] ?? 0)),
+            'tiers' => $tiers,
             'cap' => isset($fee['cap']) && (int) $fee['cap'] > 0 ? (int) $fee['cap'] : null,
         ];
+
+        $hasAmount = match ($mode) {
+            'flat' => $policy['amount'] > 0,
+            'per_piece' => $pieceAmounts !== [] || $policy['default_amount'] > 0,
+            'tiers' => collect($tiers)->contains(fn ($tier) => $tier['amount'] > 0),
+        };
+
+        return $hasAmount ? $policy : null;
+    }
+
+    /**
+     * Montant d'une période donnée (1re, 2e…) pour une commande, avant plafond.
+     *
+     * @param  array<string, mixed>  $policy
+     * @param  array<int, int>  $piecesById  quantités par pièce (0 = pièce hors catalogue)
+     */
+    public static function storageFeeForPeriod(array $policy, int $period, array $piecesById): int
+    {
+        $pieces = array_sum($piecesById);
+        $multiplier = $policy['unit'] === 'piece' ? max(1, $pieces) : 1;
+
+        return match ($policy['mode']) {
+            'per_piece' => (int) collect($piecesById)->sum(fn (int $quantity, int $pieceId) => $quantity * ($policy['piece_amounts'][$pieceId] ?? $policy['default_amount'])),
+            'tiers' => self::tierAmount($policy['tiers'], $period) * $multiplier,
+            default => $policy['amount'] * $multiplier,
+        };
+    }
+
+    /** @param  list<array{periods: ?int, amount: int}>  $tiers */
+    private static function tierAmount(array $tiers, int $period): int
+    {
+        $covered = 0;
+        foreach ($tiers as $tier) {
+            if ($tier['periods'] === null || $period <= $covered + $tier['periods']) {
+                return $tier['amount'];
+            }
+            $covered += $tier['periods'];
+        }
+
+        return $tiers === [] ? 0 : end($tiers)['amount'];
     }
 
     /** La règle en une phrase, pour les clients et les reçus. */
@@ -261,13 +321,29 @@ class Pressing extends Model
             return null;
         }
 
-        $period = ['day' => 'jour', 'week' => 'semaine', 'month' => 'mois'][$policy['period']];
+        $per = ['day' => 'jour', 'week' => 'semaine', 'month' => 'mois'][$policy['period']];
+        $perPlural = ['day' => 'jours', 'week' => 'semaines', 'month' => 'mois'][$policy['period']];
         $fcfa = fn (int $amount) => number_format($amount, 0, ',', ' ').' F';
+        $unit = $policy['unit'] === 'piece' ? ' et par pièce' : ' et par commande';
+
+        $rate = match ($policy['mode']) {
+            'per_piece' => 'par '.$per.', selon la pièce : '.collect($policy['piece_amounts'])
+                ->map(fn (int $amount, int $pieceId) => [$this->services()->whereKey($pieceId)->value('name'), $amount])
+                ->filter(fn ($row) => $row[0] !== null)
+                ->map(fn ($row) => $row[0].' '.$fcfa($row[1]))
+                ->push($policy['default_amount'] > 0 ? 'autres pièces '.$fcfa($policy['default_amount']) : null)
+                ->filter()
+                ->implode(', '),
+            'tiers' => collect($policy['tiers'])->map(fn (array $tier, int $i) => ($i === 0 ? '' : 'puis ').$fcfa($tier['amount']).' par '.$per
+                .($tier['periods'] !== null ? ' pendant '.$tier['periods'].' '.($tier['periods'] > 1 ? $perPlural : $per) : '')
+            )->implode(', ').$unit,
+            default => $fcfa($policy['amount']).' par '.$per.$unit,
+        };
 
         return 'Droit de magasinage : '.($policy['grace_days'] > 0
                 ? 'au-delà de '.$policy['grace_days'].' jour'.($policy['grace_days'] > 1 ? 's' : '').' après la date de retrait prévue'
                 : 'dès le lendemain de la date de retrait prévue')
-            .', '.$fcfa($policy['amount']).' par '.$period.($policy['unit'] === 'piece' ? ' et par pièce' : ' et par commande')
+            .', '.$rate
             .($policy['cap'] !== null ? ', dans la limite de '.$fcfa($policy['cap']) : '')
             .' pour une commande prête non retirée.';
     }

@@ -6,8 +6,8 @@
     $primaryButton = 'h-10 px-4 rounded-lg bg-(--color-primary) hover:bg-(--color-primary-600) text-white text-sm font-semibold disabled:opacity-60';
 @endphp
 <div class="max-w-3xl">
-    <h1 class="font-display text-2xl font-bold mb-1">Mon profil</h1>
-    <p class="text-sm text-(--color-text-muted) mb-6">Personnalisez votre profil : photo, coordonnées, apparence, identifiant de connexion et mot de passe.</p>
+    <h1 class="font-display text-2xl font-bold mb-1">Mon compte</h1>
+    <p class="text-sm text-(--color-text-muted) mb-6">Votre compte personnel : photo, coordonnées, apparence, identifiant de connexion et mot de passe.</p>
 
     {{-- ===== Photo et identité ===== --}}
     <section class="{{ $card }} mb-5 flex flex-col sm:flex-row sm:items-center gap-5" aria-label="Photo de profil">

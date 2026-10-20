@@ -7,44 +7,43 @@ use App\Enums\Permission;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\ActivityLog;
 use App\Models\Pressing;
-use App\Rules\IvorianPhone;
-use App\Support\ImageOptimizer;
-use App\Support\PhoneNumber;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use Livewire\WithFileUploads;
 
 /**
- * Paramètres du pressing — Phase 2 du dashboard (nom, logo, adresse,
- * téléphone, horaires d'ouverture).
+ * Paramètres du pressing : horaires d'ouverture, affichage des prix,
+ * conditions et règlement (visibles par les clients et sur les reçus) et
+ * droit de magasinage des commandes prêtes non retirées. Les informations
+ * affichées aux clients (logo, nom, adresse…) sont dans Pressing\Profile.
  */
 class Settings extends Component
 {
-    use ShowsToasts, WithFileUploads;
+    use ShowsToasts;
 
     private const DAYS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
 
     public Pressing $pressing;
-
-    public string $name = '';
-
-    public string $phone = '';
-
-    public string $email = '';
-
-    public string $address = '';
-
-    public string $city = '';
-
-    public string $description = '';
 
     /** @var array<string, array{closed: bool, open: string, close: string}> */
     public array $openingHours = [];
 
     public bool $showPricingToCustomers = false;
 
-    public $logo = null;
+    public string $terms = '';
+
+    // Droit de magasinage
+    public bool $storageFeeEnabled = false;
+
+    public string $storageFeeGraceDays = '7';
+
+    public string $storageFeeAmount = '';
+
+    public string $storageFeeUnit = 'order';
+
+    public string $storageFeePeriod = 'day';
+
+    public string $storageFeeCap = '';
 
     public function mount(): void
     {
@@ -52,75 +51,60 @@ class Settings extends Component
         abort_unless($pressing && auth()->user()->may(Permission::SettingsManage, $pressing), 403);
 
         $this->pressing = $pressing;
-        $this->name = $pressing->name;
-        $this->phone = $pressing->phone;
-        $this->email = $pressing->email ?? '';
-        $this->address = $pressing->address ?? '';
-        $this->city = $pressing->city ?? '';
-        $this->description = $pressing->description ?? '';
         $this->openingHours = $this->normalizeOpeningHours($pressing->opening_hours);
         $this->showPricingToCustomers = $pressing->show_pricing_to_customers;
+        $this->terms = $pressing->terms ?? '';
+
+        $fee = $pressing->storage_fee ?? [];
+        $this->storageFeeEnabled = (bool) ($fee['enabled'] ?? false);
+        $this->storageFeeGraceDays = (string) ($fee['grace_days'] ?? 7);
+        $this->storageFeeAmount = isset($fee['amount']) ? (string) $fee['amount'] : '';
+        $this->storageFeeUnit = $fee['unit'] ?? 'order';
+        $this->storageFeePeriod = $fee['period'] ?? 'day';
+        $this->storageFeeCap = isset($fee['cap']) ? (string) $fee['cap'] : '';
     }
 
     public function save(): void
     {
-        $this->phone = PhoneNumber::normalize($this->phone);
-
         $this->validate([
-            'name' => ['required', 'string', 'max:150'],
-            'phone' => ['required', 'string', new IvorianPhone(mobileOnly: false)],
-            'email' => ['nullable', 'email', 'max:255'],
-            'address' => ['nullable', 'string', 'max:255'],
-            'city' => ['nullable', 'string', 'max:100'],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096', 'dimensions:max_width='.ImageOptimizer::MAX_DIMENSION.',max_height='.ImageOptimizer::MAX_DIMENSION],
             'openingHours.*.closed' => ['boolean'],
             'openingHours.*.open' => ['nullable', 'date_format:H:i'],
             'openingHours.*.close' => ['nullable', 'date_format:H:i'],
+            'terms' => ['nullable', 'string', 'max:5000'],
+            'storageFeeGraceDays' => ['required_if:storageFeeEnabled,true', 'nullable', 'integer', 'min:0', 'max:365'],
+            'storageFeeAmount' => ['required_if:storageFeeEnabled,true', 'nullable', 'integer', 'min:1', 'max:1000000'],
+            'storageFeeUnit' => [Rule::in(['order', 'piece'])],
+            'storageFeePeriod' => [Rule::in(array_keys(Pressing::STORAGE_FEE_PERIODS))],
+            'storageFeeCap' => ['nullable', 'integer', 'min:1', 'max:100000000'],
         ], [
-            'logo.dimensions' => 'Ce logo est trop grand ('.ImageOptimizer::MAX_DIMENSION.' × '.ImageOptimizer::MAX_DIMENSION.' pixels maximum).',
+            'storageFeeAmount.required_if' => 'Indiquez le montant du droit de magasinage.',
+            'storageFeeAmount.min' => 'Le montant doit être d\'au moins 1 F.',
+            'storageFeeGraceDays.required_if' => 'Indiquez le délai avant facturation.',
         ]);
 
-        $data = [
-            'name' => $this->name,
-            'phone' => $this->phone,
-            'email' => $this->email ?: null,
-            'address' => $this->address ?: null,
-            'city' => $this->city ?: null,
-            'description' => $this->description ?: null,
+        $this->pressing->update([
             'opening_hours' => $this->openingHours,
             'show_pricing_to_customers' => $this->showPricingToCustomers,
-        ];
+            'terms' => trim($this->terms) ?: null,
+            'storage_fee' => [
+                'enabled' => $this->storageFeeEnabled,
+                'grace_days' => (int) ($this->storageFeeGraceDays ?: 0),
+                'amount' => (int) ($this->storageFeeAmount ?: 0),
+                'unit' => $this->storageFeeUnit,
+                'period' => $this->storageFeePeriod,
+                'cap' => $this->storageFeeCap !== '' ? (int) $this->storageFeeCap : null,
+            ],
+        ]);
 
-        if ($this->logo) {
-            if ($this->pressing->logo_path) {
-                Storage::disk('public')->delete($this->pressing->logo_path);
-            }
-
-            $data['logo_path'] = ImageOptimizer::store($this->logo, 'pressings');
-        }
-
-        $this->pressing->update($data);
-
-        $labels = ['name' => 'nom', 'phone' => 'téléphone', 'email' => 'e-mail', 'address' => 'adresse', 'city' => 'ville',
-            'description' => 'description', 'opening_hours' => 'horaires', 'show_pricing_to_customers' => 'affichage des prix', 'logo_path' => 'logo'];
-        $changed = array_values(array_intersect_key($labels, $this->pressing->getChanges()));
+        $labels = ['opening_hours' => 'horaires', 'show_pricing_to_customers' => 'affichage des prix',
+            'terms' => 'conditions et règlement', 'storage_fee' => 'droit de magasinage'];
+        $changed = array_intersect_key($labels, $this->pressing->getChanges());
         if ($changed !== []) {
             ActivityLog::record($this->pressing->id, ActivityAction::SettingsChanged, 'Paramètres modifiés : '.implode(', ', $changed),
-                null, ['fields' => array_keys(array_intersect_key($labels, $this->pressing->getChanges()))]);
+                null, ['fields' => array_keys($changed)]);
         }
 
-        $this->logo = null;
-        $this->toast('Paramètres du pressing enregistrés.');
-    }
-
-    public function removeLogo(): void
-    {
-        if ($this->pressing->logo_path) {
-            Storage::disk('public')->delete($this->pressing->logo_path);
-            $this->pressing->update(['logo_path' => null]);
-            $this->toast('Logo retiré.');
-        }
+        $this->toast('Paramètres enregistrés.');
     }
 
     /**
@@ -147,6 +131,23 @@ class Settings extends Component
     {
         return view('livewire.pressing.settings', [
             'days' => self::DAYS,
+            'storageFeePreview' => $this->previewClause(),
         ]);
+    }
+
+    /** La règle de magasinage telle que la lira le client, d'après le formulaire en cours. */
+    private function previewClause(): ?string
+    {
+        $preview = $this->pressing->replicate();
+        $preview->storage_fee = [
+            'enabled' => $this->storageFeeEnabled,
+            'grace_days' => (int) ($this->storageFeeGraceDays ?: 0),
+            'amount' => (int) ($this->storageFeeAmount ?: 0),
+            'unit' => $this->storageFeeUnit,
+            'period' => $this->storageFeePeriod,
+            'cap' => $this->storageFeeCap !== '' ? (int) $this->storageFeeCap : null,
+        ];
+
+        return $preview->storageFeeClause();
     }
 }

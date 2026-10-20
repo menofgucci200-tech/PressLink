@@ -12,7 +12,7 @@ use App\Livewire\Activity\Index as ActivityIndex;
 use App\Livewire\Auth\Login;
 use App\Livewire\Clients\Index as ClientsIndex;
 use App\Livewire\Orders\Show as OrdersShow;
-use App\Livewire\Pressing\Settings as PressingSettings;
+use App\Livewire\Pressing\Profile as PressingProfile;
 use App\Livewire\Services\Index as ServicesIndex;
 use App\Livewire\Team\Index as TeamIndex;
 use App\Models\ActivityLog;
@@ -121,8 +121,8 @@ class ActivityJournalTest extends TestCase
             ->call('saveRole');
         $this->assertSame('Rôle « Gérant » accès retirés : Services et prix', $this->logOf(ActivityAction::RolesChanged)->description);
 
-        Livewire::test(PressingSettings::class)->set('city', 'Yopougon')->call('save');
-        $this->assertStringStartsWith('Paramètres modifiés : ville', $this->logOf(ActivityAction::SettingsChanged)->description);
+        Livewire::test(PressingProfile::class)->set('city', 'Yopougon')->call('save');
+        $this->assertSame('Profil modifié : ville', $this->logOf(ActivityAction::SettingsChanged)->description);
     }
 
     public function test_staff_logins_are_traced(): void

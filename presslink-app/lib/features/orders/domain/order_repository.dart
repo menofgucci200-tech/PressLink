@@ -143,6 +143,9 @@ class OrderModel {
     this.payments = const [],
     this.cancellationReason,
     this.receipt,
+    this.storageFeeAmount,
+    this.storageFeeDays,
+    this.storageFeeClause,
   });
 
   final int id;
@@ -168,6 +171,11 @@ class OrderModel {
 
   /// Reçu de dépôt (PDF) à ouvrir, télécharger ou partager.
   final OrderReceipt? receipt;
+
+  /// Droit de magasinage dû à ce jour (commande prête non retirée à temps).
+  final int? storageFeeAmount;
+  final int? storageFeeDays;
+  final String? storageFeeClause;
 
   String get itemsLabel =>
       items.map((i) => '${i.quantity} ${i.name}').join(' · ');
@@ -204,6 +212,11 @@ class OrderModel {
     receipt: json['receipt'] is Map<String, dynamic>
         ? OrderReceipt.fromJson(json['receipt'] as Map<String, dynamic>)
         : null,
+    storageFeeAmount:
+        (json['storage_fee'] as Map<String, dynamic>?)?['amount'] as int?,
+    storageFeeDays:
+        (json['storage_fee'] as Map<String, dynamic>?)?['days'] as int?,
+    storageFeeClause: json['storage_fee_clause'] as String?,
   );
 }
 

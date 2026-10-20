@@ -22,6 +22,8 @@ class PressingController extends Controller
 
         $data = $pressings->map(function (Pressing $pressing) {
             $array = $pressing->toArray();
+            // Conditions et règlement, et la règle de magasinage en une phrase.
+            $array['storage_fee_clause'] = $pressing->storageFeeClause();
 
             // Services et prix (Repassage, Nettoyage…) : seulement si le pressing les montre à ses clients.
             if ($pressing->show_pricing_to_customers) {

@@ -69,7 +69,7 @@
                         <a href="{{ route('account.settings') }}" wire:navigate class="nav-item {{ ($active ?? null) === 'account' ? 'nav-item-active' : '' }}">
                             @if (($active ?? null) === 'account') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                            <span class="truncate">Mon profil</span>
+                            <span class="truncate">Mon compte</span>
                         </a>
                     </div>
                 </div>

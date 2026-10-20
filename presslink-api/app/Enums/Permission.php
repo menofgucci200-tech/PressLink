@@ -16,6 +16,7 @@ enum Permission: string
     case OrdersWorkshop = 'orders.workshop';
     case OrdersCancel = 'orders.cancel';
     case OrdersCancelInProgress = 'orders.cancel_in_progress';
+    case StorageFeeWaive = 'orders.waive_storage_fee';
     case IssuesManage = 'issues.manage';
     case OpenExceptionally = 'pressing.open_exceptionally';
 
@@ -44,6 +45,7 @@ enum Permission: string
             self::OrdersWorkshop => 'Atelier : passer « En traitement » ou « Prête »',
             self::OrdersCancel => 'Annuler une commande « Reçue » ou « En attente »',
             self::OrdersCancelInProgress => 'Annuler une commande « En traitement »',
+            self::StorageFeeWaive => 'Offrir le droit de magasinage à la remise',
             self::IssuesManage => 'Traiter les signalements des clients',
             self::OpenExceptionally => 'Ouvrir exceptionnellement hors horaires',
             self::CashOwnPayments => 'Voir ses propres encaissements du jour (sans total)',
@@ -55,7 +57,7 @@ enum Permission: string
             self::TeamManage => 'Équipe (membres sans accès Équipe)',
             self::RolesManage => 'Rôles et permissions',
             self::ActivityView => 'Journal d\'activité (qui a fait quoi, et quand)',
-            self::SettingsManage => 'Paramètres du pressing (infos, logo, horaires)',
+            self::SettingsManage => 'Profil et paramètres du pressing (logo, horaires, conditions, magasinage)',
             self::SubscriptionManage => 'Abonnement et facturation',
         };
     }
@@ -64,7 +66,7 @@ enum Permission: string
     {
         return match ($this) {
             self::OrdersCreate, self::PaymentsRecord, self::OrdersWorkshop, self::OrdersCancel,
-            self::OrdersCancelInProgress, self::IssuesManage, self::OpenExceptionally => 'Accueil et commandes',
+            self::OrdersCancelInProgress, self::StorageFeeWaive, self::IssuesManage, self::OpenExceptionally => 'Accueil et commandes',
             self::CashOwnPayments, self::CashClose, self::CashHistory => 'Caisse',
             self::RevenueView, self::ReportsExport => 'Revenus et pilotage',
             default => 'Gestion',

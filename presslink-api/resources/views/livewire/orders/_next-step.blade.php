@@ -6,7 +6,9 @@
 @use('App\Enums\OrderStatus')
 @php
     $status = $order->status;
-    $balance = $order->balance_due_fcfa;
+    // Droit de magasinage d'une commande prête non retirée : ajouté à la remise (sauf s'il est offert).
+    $storageFee = $status === OrderStatus::Prete ? $order->storageFee() : null;
+    $balance = $order->balance_due_fcfa + ($storageFee !== null && ! $waiveStorageFee ? $storageFee['amount'] : 0);
     $fcfa = fn (int $amount) => number_format($amount, 0, ',', ' ');
     $steps = [OrderStatus::Recue, OrderStatus::Traitement, OrderStatus::Prete, OrderStatus::Recuperee];
     $reached = match ($status) {
@@ -86,6 +88,17 @@
                 <div class="flex-1 min-w-0">
                     <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Prochaine étape</div>
                     <div class="text-sm text-(--color-text-secondary)">{{ $handOverClosed ? $order->pressing->closedMessage() : $primary['hint'] }}</div>
+                    @if ($storageFee !== null)
+                        <div class="mt-2 rounded-lg px-3 py-2 text-[13px] {{ $waiveStorageFee ? 'bg-(--color-bg) text-(--color-text-secondary)' : 'bg-(--color-warning-tint) text-(--color-warning-text)' }}">
+                            <span class="font-semibold">Droit de magasinage : {{ $fcfa($storageFee['amount']) }} F</span>
+                            ({{ $storageFee['days'] }} jour{{ $storageFee['days'] > 1 ? 's' : '' }} de retard){{ $waiveStorageFee ? ' — offert au client.' : ', ajouté à la remise.' }}
+                            @if ($canWaiveStorageFee)
+                                <label class="mt-1 flex items-center gap-2 text-(--color-text-secondary) font-medium cursor-pointer">
+                                    <input type="checkbox" wire:model.live="waiveStorageFee" class="w-4 h-4 accent-(--color-primary)"> Offrir le droit de magasinage
+                                </label>
+                            @endif
+                        </div>
+                    @endif
                     @if ($status === OrderStatus::Prete && $balance > 0 && ! $handOverClosed && $primaryAllowed)
                         <div class="flex flex-wrap gap-1.5 mt-2" role="radiogroup" aria-label="Payé en">
                             @foreach ($paymentMethods as $method)
@@ -107,10 +120,10 @@
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
                         Remise à l'ouverture
                     </span>
-                @elseif ($status === OrderStatus::Prete && $balance > 0)
+                @elseif ($status === OrderStatus::Prete && ($balance > 0 || $storageFee !== null))
                     <button type="button" wire:click="settleAndRecover"
                             data-confirm-title="Encaisser et remettre" data-confirm-label="Encaisser et remettre"
-                            wire:confirm="Encaisser {{ $fcfa($balance) }} F et marquer la commande {{ $order->order_number }} comme récupérée par {{ $order->customer->fullName() }} ?"
+                            wire:confirm="{{ $balance > 0 ? 'Encaisser '.$fcfa($balance).' F et marquer' : 'Marquer' }} la commande {{ $order->order_number }} comme récupérée par {{ $order->customer->fullName() }} ?"
                             wire:loading.attr="disabled" wire:target="settleAndRecover"
                             class="h-12 px-6 rounded-xl bg-(--color-primary) text-white text-[15px] font-semibold shadow-sm hover:bg-(--color-primary-600) disabled:opacity-60 flex items-center justify-center gap-2">
                         <span wire:loading.remove wire:target="settleAndRecover">{{ $primary['label'] }}</span>

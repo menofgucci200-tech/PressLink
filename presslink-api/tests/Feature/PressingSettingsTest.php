@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\PressingRole;
+use App\Livewire\Pressing\Profile as PressingProfile;
 use App\Livewire\Pressing\Settings as PressingSettings;
 use App\Models\Pressing;
 use App\Models\User;
@@ -41,11 +42,15 @@ class PressingSettingsTest extends TestCase
 
         $this->actingAs($admin);
 
-        Livewire::test(PressingSettings::class)
+        Livewire::test(PressingProfile::class)
             ->set('name', 'Pressing Nouveau Nom')
             ->set('phone', '+2250701020304')
             ->set('address', 'Rue des Jardins')
             ->set('city', 'Marcory')
+            ->call('save')
+            ->assertDispatched('toast');
+
+        Livewire::test(PressingSettings::class)
             ->set('openingHours.lundi.closed', true)
             ->call('save')
             ->assertDispatched('toast');
@@ -67,7 +72,7 @@ class PressingSettingsTest extends TestCase
 
         $this->actingAs($admin);
 
-        Livewire::test(PressingSettings::class)
+        Livewire::test(PressingProfile::class)
             ->set('logo', UploadedFile::fake()->image('logo.jpg'))
             ->call('save');
 
@@ -85,13 +90,13 @@ class PressingSettingsTest extends TestCase
 
         $this->actingAs($admin);
 
-        Livewire::test(PressingSettings::class)
+        Livewire::test(PressingProfile::class)
             ->set('logo', UploadedFile::fake()->image('logo.jpg'))
             ->call('save');
 
         $path = $pressing->refresh()->logo_path;
 
-        Livewire::test(PressingSettings::class)->call('removeLogo');
+        Livewire::test(PressingProfile::class)->call('removeLogo');
 
         Storage::disk('public')->assertMissing($path);
         $this->assertNull($pressing->refresh()->logo_path);

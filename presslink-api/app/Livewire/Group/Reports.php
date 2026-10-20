@@ -25,7 +25,7 @@ class Reports extends Component
         $user = auth()->user();
 
         if (! $user->email) {
-            $this->toast('Ajoutez d\'abord une adresse e-mail dans « Mon profil ».', 'warning');
+            $this->toast('Ajoutez d\'abord une adresse e-mail dans « Mon compte ».', 'warning');
 
             return;
         }

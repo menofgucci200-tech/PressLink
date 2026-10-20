@@ -230,8 +230,9 @@ class CommandPalette extends Component
             ['title' => 'Signalements', 'subtitle' => null, 'url' => route('issues.index'), 'icon' => 'flag', 'hint' => 'G S'],
             $can(Permission::CatalogManage) ? ['title' => 'Services et tarifs', 'subtitle' => null, 'url' => route('services.index'), 'icon' => 'tag'] : null,
             $can(Permission::TeamManage) || $can(Permission::RolesManage) ? ['title' => 'Équipe et rôles', 'subtitle' => null, 'url' => route('team.index'), 'icon' => 'team'] : null,
-            $can(Permission::SettingsManage) ? ['title' => 'Paramètres du pressing', 'subtitle' => null, 'url' => route('pressing.settings'), 'icon' => 'settings'] : null,
-            ['title' => 'Mon profil', 'subtitle' => null, 'url' => route('account.settings'), 'icon' => 'user'],
+            $can(Permission::SettingsManage) ? ['title' => 'Profil du pressing', 'subtitle' => 'Logo, nom, contacts, adresse', 'url' => route('pressing.profile'), 'icon' => 'settings'] : null,
+            $can(Permission::SettingsManage) ? ['title' => 'Paramètres', 'subtitle' => 'Horaires, conditions, magasinage', 'url' => route('pressing.settings'), 'icon' => 'settings'] : null,
+            ['title' => 'Mon compte', 'subtitle' => null, 'url' => route('account.settings'), 'icon' => 'user'],
             ['title' => 'Mode jour / nuit', 'subtitle' => null, 'url' => null, 'icon' => 'theme', 'action' => 'theme'],
             ['title' => 'Raccourcis clavier', 'subtitle' => null, 'url' => null, 'icon' => 'keyboard', 'action' => 'shortcuts', 'hint' => '?'],
         ]));
@@ -250,7 +251,7 @@ class CommandPalette extends Component
             ['title' => 'Clients', 'subtitle' => null, 'url' => route('admin.clients.index'), 'icon' => 'client', 'hint' => 'G L'],
             ['title' => 'Administrateurs', 'subtitle' => null, 'url' => route('admin.administrators.index'), 'icon' => 'team'],
             ['title' => 'Liste des utilisateurs', 'subtitle' => null, 'url' => route('admin.users.index'), 'icon' => 'user'],
-            ['title' => 'Mon profil', 'subtitle' => null, 'url' => route('account.settings'), 'icon' => 'user'],
+            ['title' => 'Mon compte', 'subtitle' => null, 'url' => route('account.settings'), 'icon' => 'user'],
             ['title' => 'Mode jour / nuit', 'subtitle' => null, 'url' => null, 'icon' => 'theme', 'action' => 'theme'],
             ['title' => 'Raccourcis clavier', 'subtitle' => null, 'url' => null, 'icon' => 'keyboard', 'action' => 'shortcuts', 'hint' => '?'],
         ];

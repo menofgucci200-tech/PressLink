@@ -2,9 +2,11 @@
 
 namespace App\Actions\Orders;
 
+use App\Enums\ActivityAction;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\Permission;
+use App\Models\ActivityLog;
 use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +31,7 @@ class ChangeOrderStatusAction
     /**
      * @throws RuntimeException transition interdite (voir OrderObserver)
      */
-    public function handle(Order $order, OrderStatus $target, ?PaymentMethod $settleBalanceWith = null): Order
+    public function handle(Order $order, OrderStatus $target, ?PaymentMethod $settleBalanceWith = null, bool $waiveStorageFee = false): Order
     {
         if ($target === OrderStatus::Annulee) {
             throw new RuntimeException('Pour annuler une commande, ouvrez sa fiche et indiquez le motif.');
@@ -52,8 +54,35 @@ class ChangeOrderStatusAction
             $order->pressing->ensureAcceptsCustomers();
         }
 
-        return DB::transaction(function () use ($order, $target, $settleBalanceWith) {
+        if ($waiveStorageFee && $user !== null && ! $user->may(Permission::StorageFeeWaive, $order->pressing)) {
+            throw new RuntimeException('Votre rôle ne permet pas d\'exonérer du droit de magasinage.');
+        }
+
+        return DB::transaction(function () use ($order, $target, $settleBalanceWith, $waiveStorageFee) {
             $locked = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
+
+            // Remise d'une commande restée trop longtemps : le droit de
+            // magasinage s'ajoute à la commande (sauf exonération, tracée).
+            if ($target === OrderStatus::Recuperee && ($fee = $locked->storageFee()) !== null) {
+                $daysLabel = $fee['days'].' jour'.($fee['days'] > 1 ? 's' : '').' de retard';
+                $amount = number_format($fee['amount'], 0, ',', ' ').' F';
+
+                if ($waiveStorageFee) {
+                    ActivityLog::record($locked->pressing_id, ActivityAction::StorageFeeWaived,
+                        "Droit de magasinage de {$amount} offert sur {$locked->order_number} ({$daysLabel})", $locked, ['amount_fcfa' => $fee['amount']]);
+                } else {
+                    $locked->items()->create([
+                        'service_id' => null,
+                        'name' => Order::STORAGE_FEE_LINE." ({$daysLabel})",
+                        'unit_price_fcfa' => $fee['amount'],
+                        'quantity' => 1,
+                    ]);
+                    $locked->recalculateTotal();
+                    $locked->refresh();
+                    ActivityLog::record($locked->pressing_id, ActivityAction::StorageFeeCharged,
+                        "Droit de magasinage de {$amount} ajouté à {$locked->order_number} ({$daysLabel})", $locked, ['amount_fcfa' => $fee['amount'], 'days' => $fee['days']]);
+                }
+            }
 
             if ($settleBalanceWith !== null && $locked->balance_due_fcfa > 0) {
                 $locked->recordPayment($locked->balance_due_fcfa, $settleBalanceWith, Auth::guard('web')->id(), 'Solde au retrait');

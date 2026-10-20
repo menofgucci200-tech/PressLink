@@ -61,6 +61,19 @@
             <div class="note small"><span class="bold">Note :</span> {{ $order->notes }}</div>
         @endif
 
+        @if ($pressing->terms || $pressing->storageFeeClause())
+            <hr class="rule">
+            <div class="small">
+                <div class="bold" style="margin-bottom: 3px;">Conditions</div>
+                @if ($pressing->terms)
+                    <div class="muted" style="white-space: pre-line;">{{ $pressing->terms }}</div>
+                @endif
+                @if ($pressing->storageFeeClause())
+                    <div class="muted" style="margin-top: 3px;">{{ $pressing->storageFeeClause() }}</div>
+                @endif
+            </div>
+        @endif
+
         <hr class="rule">
 
         <div class="footer">

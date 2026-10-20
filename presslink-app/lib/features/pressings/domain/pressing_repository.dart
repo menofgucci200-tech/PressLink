@@ -108,6 +108,8 @@ class PressingModel {
     this.description,
     this.openingHours,
     this.prestations,
+    this.terms,
+    this.storageFeeClause,
   });
 
   final int id;
@@ -122,6 +124,12 @@ class PressingModel {
   final String? description;
   final Map<String, OpeningHoursDay>? openingHours;
   final List<PrestationModel>? prestations;
+
+  /// Conditions et règlement du pressing (une règle par ligne).
+  final String? terms;
+
+  /// Droit de magasinage des commandes non retirées, en une phrase.
+  final String? storageFeeClause;
 
   String get initials {
     final words = name
@@ -155,6 +163,8 @@ class PressingModel {
     prestations: (json['prestations'] as List<dynamic>?)
         ?.map((e) => PrestationModel.fromJson(e as Map<String, dynamic>))
         .toList(),
+    terms: json['terms'] as String?,
+    storageFeeClause: json['storage_fee_clause'] as String?,
   );
 }
 

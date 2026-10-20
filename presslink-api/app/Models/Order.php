@@ -240,6 +240,59 @@ class Order extends Model
         return $this->hasMany(OrderPayment::class)->orderBy('paid_at')->orderBy('id');
     }
 
+    /** Nom de la ligne ajoutée à la remise quand un droit de magasinage est dû. */
+    public const STORAGE_FEE_LINE = 'Droit de magasinage';
+
+    /** Date à laquelle la commande a été prête (dernier passage « Prête »). */
+    public function readyAt(): ?Carbon
+    {
+        $readyAt = $this->statusHistory()->where('status', OrderStatus::Prete->value)->latest('created_at')->value('created_at');
+
+        return $readyAt !== null ? Carbon::parse($readyAt) : null;
+    }
+
+    /**
+     * Droit de magasinage dû à ce jour pour une commande prête non retirée
+     * (voir Pressing::storageFeePolicy). Null s'il n'y a rien à facturer.
+     *
+     * @return array{days: int, amount: int, since: Carbon}|null
+     */
+    public function storageFee(?Carbon $at = null): ?array
+    {
+        $policy = $this->pressing?->storageFeePolicy();
+        if ($policy === null || $this->status !== OrderStatus::Prete || $this->hasStorageFeeLine()) {
+            return null;
+        }
+
+        // Le client n'est pas en retard tant que la commande n'est pas prête.
+        $base = collect([$this->expected_at, $this->readyAt()])->filter()->max();
+        if ($base === null) {
+            return null;
+        }
+
+        $since = Carbon::parse($base)->startOfDay()->addDays($policy['grace_days'] + 1);
+        $today = ($at ?? now())->copy()->startOfDay();
+        if ($today->lt($since)) {
+            return null;
+        }
+
+        $days = (int) $since->diffInDays($today) + 1;
+        $periods = (int) ceil($days / Pressing::STORAGE_FEE_PERIODS[$policy['period']]);
+        $pieces = (int) $this->items()->where('name', 'not like', self::STORAGE_FEE_LINE.'%')->sum('quantity');
+        $amount = $periods * $policy['amount'] * ($policy['unit'] === 'piece' ? max(1, $pieces) : 1);
+
+        if ($policy['cap'] !== null) {
+            $amount = min($amount, $policy['cap']);
+        }
+
+        return ['days' => $days, 'amount' => $amount, 'since' => $since];
+    }
+
+    public function hasStorageFeeLine(): bool
+    {
+        return $this->items()->where('name', 'like', self::STORAGE_FEE_LINE.'%')->exists();
+    }
+
     /** Reste à payer (jamais négatif, même si le total a baissé après un paiement ; rien sur une commande annulée). */
     public function getBalanceDueFcfaAttribute(): int
     {

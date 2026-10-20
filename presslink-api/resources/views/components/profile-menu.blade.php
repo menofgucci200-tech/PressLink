@@ -1,12 +1,12 @@
 @props(['user', 'role', 'context' => null, 'active' => false])
 {{-- Menu de profil de l'en-tête des dashboards (pressing et Super Admin) :
-     photo / initiales, accès à « Mon profil », au mot de passe et à la
+     photo / initiales, accès à « Mon compte », au mot de passe et à la
      déconnexion. --}}
 @php
     $item = 'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-(--color-text-primary) hover:bg-(--color-bg)';
 @endphp
 <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false" @click.outside="open = false">
-    <button type="button" @click="open = ! open" :aria-expanded="open" aria-haspopup="menu" title="Mon profil"
+    <button type="button" @click="open = ! open" :aria-expanded="open" aria-haspopup="menu" title="Mon compte"
             class="flex items-center gap-3 rounded-xl p-1 sm:pl-3 hover:bg-(--color-bg) {{ $active ? 'bg-(--color-bg)' : '' }}"
             :class="open && 'bg-(--color-bg)'">
         <span class="hidden sm:block text-right min-w-0">
@@ -31,7 +31,7 @@
         <div class="p-1.5">
             <a href="{{ route('account.settings') }}" wire:navigate role="menuitem" class="{{ $item }}">
                 <svg class="w-4 h-4 flex-none text-(--color-text-muted)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                Mon profil
+                Mon compte
             </a>
             <a href="{{ route('account.settings') }}#securite" role="menuitem" class="{{ $item }}">
                 <svg class="w-4 h-4 flex-none text-(--color-text-muted)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>

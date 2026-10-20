@@ -32,6 +32,8 @@ class Pressing extends Model
         'address',
         'city',
         'description',
+        'terms',
+        'storage_fee',
         'opening_hours',
         'exceptional_open_until',
         'show_pricing_to_customers',
@@ -47,6 +49,7 @@ class Pressing extends Model
     {
         return [
             'opening_hours' => 'array',
+            'storage_fee' => 'array',
             'exceptional_open_until' => 'datetime',
             'show_pricing_to_customers' => 'boolean',
             'status' => PressingStatus::class,
@@ -219,6 +222,54 @@ class Pressing extends Model
         }
 
         return ['open' => $hours['open'], 'close' => $hours['close']];
+    }
+
+    /** Unités de calcul du droit de magasinage. */
+    public const STORAGE_FEE_PERIODS = ['day' => 1, 'week' => 7, 'month' => 30];
+
+    /**
+     * Droit de magasinage des commandes prêtes non retirées : au-delà de
+     * `grace_days` jours après la date de retrait prévue (ou la date où la
+     * commande a été prête, si elle l'a été en retard), `amount` francs par
+     * période (`day`, `week`, `month`), par commande ou par pièce (`unit`),
+     * dans la limite de `cap` francs s'il est fixé. Null s'il n'est pas activé.
+     *
+     * @return array{grace_days: int, amount: int, unit: string, period: string, cap: ?int}|null
+     */
+    public function storageFeePolicy(): ?array
+    {
+        $fee = $this->storage_fee ?? [];
+
+        if (! ($fee['enabled'] ?? false) || (int) ($fee['amount'] ?? 0) <= 0) {
+            return null;
+        }
+
+        return [
+            'grace_days' => max(0, (int) ($fee['grace_days'] ?? 7)),
+            'amount' => (int) $fee['amount'],
+            'unit' => ($fee['unit'] ?? 'order') === 'piece' ? 'piece' : 'order',
+            'period' => array_key_exists($fee['period'] ?? '', self::STORAGE_FEE_PERIODS) ? $fee['period'] : 'day',
+            'cap' => isset($fee['cap']) && (int) $fee['cap'] > 0 ? (int) $fee['cap'] : null,
+        ];
+    }
+
+    /** La règle en une phrase, pour les clients et les reçus. */
+    public function storageFeeClause(): ?string
+    {
+        $policy = $this->storageFeePolicy();
+        if ($policy === null) {
+            return null;
+        }
+
+        $period = ['day' => 'jour', 'week' => 'semaine', 'month' => 'mois'][$policy['period']];
+        $fcfa = fn (int $amount) => number_format($amount, 0, ',', ' ').' F';
+
+        return 'Droit de magasinage : '.($policy['grace_days'] > 0
+                ? 'au-delà de '.$policy['grace_days'].' jour'.($policy['grace_days'] > 1 ? 's' : '').' après la date de retrait prévue'
+                : 'dès le lendemain de la date de retrait prévue')
+            .', '.$fcfa($policy['amount']).' par '.$period.($policy['unit'] === 'piece' ? ' et par pièce' : ' et par commande')
+            .($policy['cap'] !== null ? ', dans la limite de '.$fcfa($policy['cap']) : '')
+            .' pour une commande prête non retirée.';
     }
 
     /** @return HasMany<Prestation, $this> */

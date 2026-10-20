@@ -10,13 +10,15 @@
     $previousId = $position !== false && $position > 0 ? $pageIds[$position - 1] : null;
     $nextId = $position !== false && $position < $pageIds->count() - 1 ? $pageIds[$position + 1] : null;
     $alert = $previewOrder->delayAlert();
-    $balance = $previewOrder->balance_due_fcfa;
+    // Reste à payer à la remise, droit de magasinage compris.
+    $storageFee = $previewOrder->status === \App\Enums\OrderStatus::Prete ? $previewOrder->storageFee() : null;
+    $balance = $previewOrder->balance_due_fcfa + ($storageFee['amount'] ?? 0);
+    $canRecover = in_array(\App\Enums\OrderStatus::Recuperee, $previewOrder->status->allowedTransitions(), true);
     // L'annulation demande un motif : elle se fait depuis la fiche (lien plus bas).
     // La remise n'est possible que soldée (bouton « Encaisser et remettre » sinon).
     $nextActions = array_values(array_filter($previewOrder->status->allowedTransitions(), fn ($action) => $action !== \App\Enums\OrderStatus::Annulee
-        && ! ($action === \App\Enums\OrderStatus::Recuperee && $previewOrder->balance_due_fcfa > 0)));
+        && ! ($action === \App\Enums\OrderStatus::Recuperee && $balance > 0)));
     $previewCanCancel = \App\Actions\Orders\CancelOrderAction::canCancel(auth()->user(), $previewOrder);
-    $canRecover = in_array(\App\Enums\OrderStatus::Recuperee, $nextActions, true);
 @endphp
 <div wire:key="preview-{{ $previewOrder->id }}"
      x-data
@@ -124,7 +126,7 @@
             </div>
 
             {{-- Actions --}}
-            @if ($nextActions !== [])
+            @if ($nextActions !== [] || ($canRecover && $balance > 0))
                 <div class="flex flex-col gap-2">
                     <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Actions</div>
                     @if ($canRecover && $balance > 0)

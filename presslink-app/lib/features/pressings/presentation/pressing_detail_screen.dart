@@ -156,6 +156,27 @@ class PressingDetailScreen extends StatelessWidget {
                 ],
               ),
             ],
+            if ((pressing.terms?.isNotEmpty ?? false) ||
+                pressing.storageFeeClause != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              _SectionCard(
+                title: 'Conditions et règlement',
+                children: [
+                  if (pressing.terms?.isNotEmpty ?? false)
+                    Text(pressing.terms!, style: theme.textTheme.bodyMedium),
+                  if (pressing.storageFeeClause != null) ...[
+                    if (pressing.terms?.isNotEmpty ?? false)
+                      const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      pressing.storageFeeClause!,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
             if (pressing.prestations != null &&
                 pressing.prestations!.isNotEmpty) ...[
               for (final prestation in pressing.prestations!) ...[

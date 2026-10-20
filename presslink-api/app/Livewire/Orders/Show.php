@@ -36,6 +36,9 @@ class Show extends Component
 
     public string $paymentMethod = 'especes';
 
+    /** Remise : offrir le droit de magasinage (rôles autorisés, tracé au journal). */
+    public bool $waiveStorageFee = false;
+
     /** Formulaire « Annuler la commande » : motif obligatoire, et sort de l'argent déjà versé. */
     public bool $showCancelForm = false;
 
@@ -206,7 +209,7 @@ class Show extends Component
         $this->errorMessage = null;
 
         try {
-            $changeStatus->handle($this->order, OrderStatus::Recuperee, PaymentMethod::tryFrom($this->paymentMethod) ?? PaymentMethod::Cash);
+            $changeStatus->handle($this->order, OrderStatus::Recuperee, PaymentMethod::tryFrom($this->paymentMethod) ?? PaymentMethod::Cash, $this->waiveStorageFee);
         } catch (RuntimeException $e) {
             $this->errorMessage = $e->getMessage();
 
@@ -258,6 +261,7 @@ class Show extends Component
             'canRecordPayments' => auth()->user()->may(Permission::PaymentsRecord, $this->order->pressing),
             'canWorkshop' => auth()->user()->may(Permission::OrdersWorkshop, $this->order->pressing),
             'canManageIssues' => auth()->user()->may(Permission::IssuesManage, $this->order->pressing),
+            'canWaiveStorageFee' => auth()->user()->may(Permission::StorageFeeWaive, $this->order->pressing),
             'orderActivity' => auth()->user()->may(Permission::ActivityView, $this->order->pressing)
                 ? ActivityLog::with('user:id,name')->where('order_id', $this->order->id)->latest('created_at')->latest('id')->take(30)->get()
                 : null,

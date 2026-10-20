@@ -337,6 +337,50 @@ class _OrderDetailBody extends ConsumerWidget {
           const SizedBox(height: AppSpacing.md),
         ],
 
+        // Commande prête restée trop longtemps : droit de magasinage en cours.
+        if (order.storageFeeAmount != null) ...[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: theme.brightness == Brightness.dark
+                  ? AppColors.warning.withValues(alpha: 0.16)
+                  : AppColors.warningTint,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Droit de magasinage : ${_formatFcfa(order.storageFeeAmount!)} F',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: theme.brightness == Brightness.dark
+                        ? const Color(0xFFFBBF24)
+                        : AppColors.warningText,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Votre commande attend depuis ${order.storageFeeDays} jour${(order.storageFeeDays ?? 0) > 1 ? 's' : ''} de plus que prévu. '
+                  'Ce montant s\'ajoute au retrait et augmente chaque jour : passez la récupérer dès que possible.',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                if (order.storageFeeClause != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    order.storageFeeClause!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: context.textMuted,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+        ],
+
         if (order.receipt != null) ...[
           _ReceiptActions(receipt: order.receipt!),
           const SizedBox(height: AppSpacing.md),

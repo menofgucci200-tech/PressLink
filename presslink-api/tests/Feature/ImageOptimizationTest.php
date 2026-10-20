@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\PressingRole;
-use App\Livewire\Pressing\Settings as PressingSettings;
+use App\Livewire\Pressing\Profile as PressingProfile;
 use App\Models\Customer;
 use App\Models\Pressing;
 use App\Models\User;
@@ -87,7 +87,7 @@ class ImageOptimizationTest extends TestCase
         imagepng($png, $file);
 
         $this->actingAs($admin);
-        Livewire::test(PressingSettings::class)
+        Livewire::test(PressingProfile::class)
             ->set('logo', UploadedFile::fake()->createWithContent('logo.png', file_get_contents($file)))
             ->call('save')
             ->assertHasNoErrors();

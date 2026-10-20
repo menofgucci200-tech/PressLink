@@ -173,7 +173,7 @@ class PasswordResetToDefaultTest extends TestCase
     {
         $this->actingAs($this->superAdmin());
 
-        $this->get(route('account.settings'))->assertOk()->assertSee('Super Admin')->assertSee('Mon profil');
+        $this->get(route('account.settings'))->assertOk()->assertSee('Super Admin')->assertSee('Mon compte');
     }
 
     public function test_the_app_is_told_to_ask_for_a_new_password_until_the_customer_changes_it(): void

@@ -64,9 +64,9 @@ class DashboardPowerToolsTest extends TestCase
 
         Livewire::test(CommandPalette::class)
             ->assertSee('Nouvelle commande')
-            ->assertSee('Paramètres du pressing')
+            ->assertSee('Profil du pressing')
             ->set('query', 'parametres')
-            ->assertSee('Paramètres du pressing')
+            ->assertSee('Horaires, conditions, magasinage')
             ->assertDontSee('Nouvelle commande');
     }
 

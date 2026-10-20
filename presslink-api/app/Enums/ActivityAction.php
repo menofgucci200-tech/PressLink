@@ -16,6 +16,8 @@ enum ActivityAction: string
     case OrderHandedOver = 'order_handed_over';
     case RecoveredUnpaid = 'recovered_unpaid';
     case OrderCancelled = 'order_cancelled';
+    case StorageFeeCharged = 'storage_fee_charged';
+    case StorageFeeWaived = 'storage_fee_waived';
     case IssueReported = 'issue_reported';
     case IssueResolved = 'issue_resolved';
 
@@ -51,6 +53,8 @@ enum ActivityAction: string
             self::OrderHandedOver => 'Commande remise',
             self::RecoveredUnpaid => 'Remise sans encaissement',
             self::OrderCancelled => 'Commande annulée',
+            self::StorageFeeCharged => 'Droit de magasinage facturé',
+            self::StorageFeeWaived => 'Droit de magasinage offert',
             self::IssueReported => 'Signalement reçu',
             self::IssueResolved => 'Signalement résolu',
             self::PaymentRecorded => 'Paiement encaissé',
@@ -76,6 +80,7 @@ enum ActivityAction: string
         return match ($this) {
             self::OrderCreated, self::OrderStatusChanged, self::OrderHandedOver, self::RecoveredUnpaid,
             self::OrderCancelled, self::IssueReported, self::IssueResolved => 'orders',
+            self::StorageFeeCharged, self::StorageFeeWaived => 'payments',
             self::PaymentRecorded, self::PaymentRefunded, self::PaymentRemoved => 'payments',
             self::CustomerAdded => 'customers',
             self::CashClosed, self::CashReopened => 'cash',
@@ -106,7 +111,7 @@ enum ActivityAction: string
     public function isSensitive(): bool
     {
         return in_array($this, [
-            self::OrderCancelled, self::RecoveredUnpaid, self::PaymentRefunded, self::PaymentRemoved,
+            self::OrderCancelled, self::RecoveredUnpaid, self::PaymentRefunded, self::PaymentRemoved, self::StorageFeeWaived,
             self::CashReopened, self::ExceptionalOpening, self::RolesChanged,
         ], true);
     }

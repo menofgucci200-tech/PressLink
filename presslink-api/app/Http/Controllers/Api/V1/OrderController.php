@@ -31,7 +31,13 @@ class OrderController extends Controller
         $order->load(['pressing', 'items', 'statusHistory', 'issues', 'payments:id,order_id,amount_fcfa,method,paid_at']);
 
         // Reçu de dépôt : à ouvrir, télécharger ou partager depuis l'appli.
-        return response()->json([...$order->toArray(), 'receipt' => [
+        $storageFee = $order->storageFee();
+
+        return response()->json([...$order->toArray(), 'storage_fee' => $storageFee === null ? null : [
+            'days' => $storageFee['days'],
+            'amount' => $storageFee['amount'],
+            'since' => $storageFee['since']->toDateString(),
+        ], 'storage_fee_clause' => $order->pressing->storageFeeClause(), 'receipt' => [
             'url' => ReceiptLinks::order($order),
             'download_url' => ReceiptLinks::order($order, download: true),
             'file_name' => ReceiptLinks::orderFileName($order),

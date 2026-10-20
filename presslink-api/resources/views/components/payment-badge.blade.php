@@ -3,7 +3,9 @@
 @php
     $state = $order->paymentStatus();
     $fcfa = fn (int $amount) => number_format($amount, 0, ',', ' ');
-    [$fg, $bg, $label] = match ($state) {
+    [$fg, $bg, $label] = $order->status === \App\Enums\OrderStatus::Annulee
+        ? ['var(--color-text-muted)', 'var(--color-bg)', 'Rien à payer']
+        : match ($state) {
         \App\Enums\PaymentStatus::Paid => ['var(--color-success-text)', 'var(--color-success-tint)', 'Payée'],
         \App\Enums\PaymentStatus::Partial => ['var(--color-warning-text)', 'var(--color-warning-tint)', 'Reste '.$fcfa($order->balance_due_fcfa).' F'],
         \App\Enums\PaymentStatus::Unpaid => ['var(--color-text-secondary)', 'var(--color-bg)', $compact ? 'À payer' : 'À payer au retrait'],

@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Orders;
 
+use App\Actions\Orders\CancelOrderAction;
 use App\Actions\Orders\ChangeOrderStatusAction;
+use App\Enums\CancellationReason;
 use App\Enums\OrderIssueStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
@@ -32,10 +34,78 @@ class Show extends Component
 
     public string $paymentMethod = 'especes';
 
+    /** Formulaire « Annuler la commande » : motif obligatoire, et sort de l'argent déjà versé. */
+    public bool $showCancelForm = false;
+
+    public string $cancelReason = '';
+
+    public string $cancelNote = '';
+
+    /** « refund » (rendu au client) ou « keep » (conservé), si le client a déjà payé. */
+    public string $cancelMoney = '';
+
+    public string $refundMethod = 'especes';
+
     public function mount(Order $order): void
     {
         abort_unless(auth()->user()->can('view', $order), 403);
         $this->order = $order;
+
+        // Lien « Annuler… » de l'aperçu de la liste : le formulaire s'ouvre directement.
+        if (request()->boolean('annuler') && CancelOrderAction::canCancel(auth()->user(), $order)) {
+            $this->showCancelForm = true;
+        }
+    }
+
+    public function openCancelForm(): void
+    {
+        abort_unless(CancelOrderAction::canCancel(auth()->user(), $this->order), 403);
+        $this->resetErrorBag();
+        $this->reset(['cancelReason', 'cancelNote', 'cancelMoney']);
+        $this->showCancelForm = true;
+    }
+
+    public function closeCancelForm(): void
+    {
+        $this->showCancelForm = false;
+        $this->resetErrorBag();
+    }
+
+    public function cancelOrder(CancelOrderAction $cancel): void
+    {
+        $this->errorMessage = null;
+        $reasons = implode(',', array_column(CancellationReason::cases(), 'value'));
+        $paid = $this->order->amount_paid_fcfa > 0;
+
+        $this->validate([
+            'cancelReason' => ['required', 'in:'.$reasons],
+            'cancelNote' => [$this->cancelReason === CancellationReason::Other->value ? 'required' : 'nullable', 'string', 'max:500'],
+            'cancelMoney' => [$paid ? 'required' : 'nullable', 'in:'.CancelOrderAction::REFUND.','.CancelOrderAction::KEEP],
+            'refundMethod' => ['required', 'in:'.implode(',', array_column(PaymentMethod::cases(), 'value'))],
+        ], [
+            'cancelReason.required' => 'Choisissez le motif de l\'annulation.',
+            'cancelNote.required' => 'Précisez le motif.',
+            'cancelMoney.required' => 'Indiquez si l\'argent déjà versé est rendu ou conservé.',
+        ]);
+
+        try {
+            $cancel->handle(
+                $this->order,
+                auth()->user(),
+                CancellationReason::from($this->cancelReason),
+                $this->cancelNote,
+                $paid ? $this->cancelMoney : null,
+                PaymentMethod::from($this->refundMethod),
+            );
+        } catch (RuntimeException $e) {
+            $this->errorMessage = $e->getMessage();
+
+            return;
+        }
+
+        $this->showCancelForm = false;
+        $this->order->refresh();
+        $this->toast('Commande annulée.', 'warning');
     }
 
     public function transitionTo(string $status, ChangeOrderStatusAction $changeStatus): void
@@ -184,6 +254,8 @@ class Show extends Component
             'nextActions' => $this->order->status->allowedTransitions(),
             'paymentMethods' => PaymentMethod::cases(),
             'canRemovePayments' => auth()->user()->can('delete', $this->order),
+            'canCancel' => CancelOrderAction::canCancel(auth()->user(), $this->order),
+            'cancellationReasons' => CancellationReason::cases(),
         ]);
     }
 }

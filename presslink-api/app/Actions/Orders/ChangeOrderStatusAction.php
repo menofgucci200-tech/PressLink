@@ -30,6 +30,10 @@ class ChangeOrderStatusAction
      */
     public function handle(Order $order, OrderStatus $target, ?PaymentMethod $settleBalanceWith = null): Order
     {
+        if ($target === OrderStatus::Annulee) {
+            throw new RuntimeException('Pour annuler une commande, ouvrez sa fiche et indiquez le motif.');
+        }
+
         return DB::transaction(function () use ($order, $target, $settleBalanceWith) {
             $locked = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
 

@@ -110,12 +110,20 @@
                 <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-3">Historique</div>
                 <div class="flex flex-col">
                     @foreach ($order->statusHistory as $entry)
-                        <div class="flex items-center justify-between text-sm py-2 border-b border-(--color-border) last:border-b-0">
-                            <span class="flex items-center gap-2">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
-                                {{ $entry->status->label() }}
-                            </span>
-                            <span class="text-(--color-text-muted) tabular-nums">{{ $entry->created_at->format('d/m H:i') }}</span>
+                        <div class="text-sm py-2 border-b border-(--color-border) last:border-b-0">
+                            <div class="flex items-center justify-between">
+                                <span class="flex items-center gap-2">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{ $entry->status === \App\Enums\OrderStatus::Annulee ? 'var(--color-error)' : 'var(--color-success)' }}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                                    {{ $entry->status->label() }}
+                                    @if ($entry->changedBy)
+                                        <span class="text-xs text-(--color-text-muted)">· {{ $entry->changedBy->name }}</span>
+                                    @endif
+                                </span>
+                                <span class="text-(--color-text-muted) tabular-nums">{{ $entry->created_at->format('d/m H:i') }}</span>
+                            </div>
+                            @if ($entry->note)
+                                <div class="text-xs text-(--color-text-secondary) mt-0.5 pl-[22px]">{{ $entry->note }}</div>
+                            @endif
                         </div>
                     @endforeach
                 </div>

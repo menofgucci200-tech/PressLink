@@ -20,7 +20,11 @@
     </div>
     <div class="flex justify-between items-baseline">
         <span class="text-sm font-semibold">Reste à payer</span>
-        <span class="font-display text-lg font-bold tabular-nums {{ $balance > 0 ? 'text-(--color-warning-text)' : 'text-(--color-success-text)' }}">{{ $balance > 0 ? $fcfa($balance).' F' : 'Soldée' }}</span>
+        @if ($isCancelled)
+            <span class="text-sm font-semibold text-(--color-text-muted)">Rien (commande annulée)</span>
+        @else
+            <span class="font-display text-lg font-bold tabular-nums {{ $balance > 0 ? 'text-(--color-warning-text)' : 'text-(--color-success-text)' }}">{{ $balance > 0 ? $fcfa($balance).' F' : 'Soldée' }}</span>
+        @endif
     </div>
 
     @if ($order->payments->isNotEmpty())
@@ -28,7 +32,7 @@
             @foreach ($order->payments as $payment)
                 <div wire:key="payment-{{ $payment->id }}" class="flex items-start gap-2 text-[13px]">
                     <div class="flex-1 min-w-0">
-                        <div class="font-medium">{{ $fcfa($payment->amount_fcfa) }} F · {{ $payment->method->label() }}</div>
+                        <div class="font-medium {{ $payment->isRefund() ? 'text-(--color-error)' : '' }}">{{ $payment->isRefund() ? 'Remboursement · ' : '' }}{{ $fcfa($payment->amount_fcfa) }} F · {{ $payment->method->label() }}</div>
                         <div class="text-xs text-(--color-text-muted)">
                             {{ $payment->paid_at->format('d/m/Y H:i') }}{{ $payment->recorder ? ' · '.$payment->recorder->name : '' }}{{ $payment->note ? ' · '.$payment->note : '' }}
                         </div>
@@ -86,6 +90,10 @@
     @endif
 
     @if ($isCancelled && $order->amount_paid_fcfa > 0)
-        <p class="mt-3 text-xs text-(--color-error)">Commande annulée : {{ $fcfa($order->amount_paid_fcfa) }} F avaient été payés, à rembourser au client.</p>
+        @if ($order->cancellation_reason)
+            <p class="mt-3 text-xs text-(--color-text-secondary)">Commande annulée : les {{ $fcfa($order->amount_paid_fcfa) }} F versés ont été conservés par le pressing.</p>
+        @else
+            <p class="mt-3 text-xs text-(--color-error)">Commande annulée : {{ $fcfa($order->amount_paid_fcfa) }} F avaient été payés, à rembourser au client.</p>
+        @endif
     @endif
 </div>

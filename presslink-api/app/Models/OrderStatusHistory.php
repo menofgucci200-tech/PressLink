@@ -10,7 +10,10 @@ class OrderStatusHistory extends Model
 {
     public $timestamps = false;
 
-    protected $fillable = ['order_id', 'status', 'changed_by', 'created_at'];
+    protected $fillable = ['order_id', 'status', 'changed_by', 'note', 'created_at'];
+
+    /** Note interne au pressing (motif d'annulation détaillé) : pas envoyée à l'appli du client. */
+    protected $hidden = ['note'];
 
     protected function casts(): array
     {

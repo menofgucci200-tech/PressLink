@@ -391,7 +391,10 @@ class _OrderDetailBody extends ConsumerWidget {
       'Cette commande a été récupérée. Merci de votre confiance !',
     OrderStatus.traitement => 'Vos vêtements sont en cours de traitement.',
     OrderStatus.attente => 'Votre commande est en attente.',
-    OrderStatus.annulee => 'Cette commande a été annulée.',
+    OrderStatus.annulee =>
+      order.cancellationReason != null
+          ? 'Cette commande a été annulée. Motif : ${order.cancellationReason}.'
+          : 'Cette commande a été annulée.',
     OrderStatus.recue => 'Votre commande a bien été enregistrée.',
   };
 

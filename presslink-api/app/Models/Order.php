@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CancellationReason;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
@@ -31,6 +32,8 @@ class Order extends Model
         'total_fcfa',
         'amount_paid_fcfa',
         'notes',
+        'cancellation_reason',
+        'cancellation_note',
         'dropped_off_at',
         'expected_at',
         'recovered_at',
@@ -43,12 +46,16 @@ class Order extends Model
      *
      * @var list<string>
      */
-    protected $appends = ['balance_due_fcfa', 'payment_status', 'payment_status_label'];
+    protected $appends = ['balance_due_fcfa', 'payment_status', 'payment_status_label', 'cancellation_reason_label'];
+
+    /** La note d'annulation est interne au pressing : elle ne part pas vers l'appli du client. */
+    protected $hidden = ['cancellation_note'];
 
     protected function casts(): array
     {
         return [
             'status' => OrderStatus::class,
+            'cancellation_reason' => CancellationReason::class,
             'total_fcfa' => 'integer',
             'amount_paid_fcfa' => 'integer',
             'dropped_off_at' => 'datetime',
@@ -233,10 +240,19 @@ class Order extends Model
         return $this->hasMany(OrderPayment::class)->orderBy('paid_at')->orderBy('id');
     }
 
-    /** Reste à payer (jamais négatif, même si le total a baissé après un paiement). */
+    /** Reste à payer (jamais négatif, même si le total a baissé après un paiement ; rien sur une commande annulée). */
     public function getBalanceDueFcfaAttribute(): int
     {
+        if ($this->status === OrderStatus::Annulee) {
+            return 0;
+        }
+
         return max(0, (int) $this->total_fcfa - (int) $this->amount_paid_fcfa);
+    }
+
+    public function getCancellationReasonLabelAttribute(): ?string
+    {
+        return $this->cancellation_reason?->label();
     }
 
     public function paymentStatus(): PaymentStatus

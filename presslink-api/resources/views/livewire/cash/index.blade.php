@@ -52,7 +52,7 @@
                         <a href="{{ route('orders.show', $payment->order_id) }}" wire:navigate class="font-semibold hover:text-(--color-primary)">{{ $payment->order?->order_number }}</a>
                         <span class="flex-1 min-w-0 truncate text-(--color-text-secondary)">{{ $payment->order?->customer?->fullName() }}{{ $payment->recorder ? ' · par '.$payment->recorder->name : '' }}</span>
                         <span class="text-xs text-(--color-text-muted)">{{ $payment->method->label() }}</span>
-                        <span class="font-semibold tabular-nums">{{ $fcfa($payment->amount_fcfa) }} F</span>
+                        <span class="font-semibold tabular-nums {{ $payment->isRefund() ? 'text-(--color-error)' : '' }}">{{ $payment->isRefund() ? 'Remboursement ' : '' }}{{ $fcfa($payment->amount_fcfa) }} F</span>
                     </div>
                 @empty
                     <x-empty-state icon="box" title="Aucun paiement ce jour">Les paiements encaissés (au dépôt, acomptes, soldes) apparaîtront ici.</x-empty-state>

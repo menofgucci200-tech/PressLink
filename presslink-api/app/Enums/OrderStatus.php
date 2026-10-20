@@ -28,7 +28,8 @@ enum OrderStatus: string
 
     /**
      * Transitions autorisées depuis ce statut (RB-07 : seule une commande
-     * PRÊTE peut normalement être marquée RÉCUPÉRÉE).
+     * PRÊTE peut normalement être marquée RÉCUPÉRÉE). Une commande prête ne
+     * s'annule plus : le travail est fait.
      *
      * @return list<self>
      */
@@ -38,7 +39,7 @@ enum OrderStatus: string
             self::Recue => [self::Traitement, self::Attente, self::Annulee],
             self::Traitement => [self::Prete, self::Attente, self::Annulee],
             self::Attente => [self::Traitement, self::Annulee],
-            self::Prete => [self::Recuperee, self::Annulee],
+            self::Prete => [self::Recuperee],
             self::Recuperee => [],
             self::Annulee => [],
         };

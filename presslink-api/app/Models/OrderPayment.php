@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Un règlement encaissé sur une commande (paiement complet, acompte ou
- * solde au retrait). La somme est reportée sur `orders.amount_paid_fcfa`.
+ * solde au retrait), ou un remboursement (montant négatif) quand une
+ * commande payée est annulée. La somme est reportée sur `orders.amount_paid_fcfa`.
  */
 class OrderPayment extends Model
 {
@@ -51,7 +52,7 @@ class OrderPayment extends Model
         // Journal d'activité : chaque encaissement et chaque suppression.
         static::created(fn (self $payment) => ActivityLog::record(
             $payment->order->pressing_id, ActivityAction::PaymentRecorded,
-            'Paiement de '.number_format($payment->amount_fcfa, 0, ',', ' ').' F ('.$payment->method->label().') sur '.$payment->order->order_number,
+            ($payment->isRefund() ? 'Remboursement de ' : 'Paiement de ').number_format(abs($payment->amount_fcfa), 0, ',', ' ').' F ('.$payment->method->label().') sur '.$payment->order->order_number,
             $payment->order, ['amount_fcfa' => $payment->amount_fcfa, 'method' => $payment->method->value],
         ));
         static::deleted(fn (self $payment) => ActivityLog::record(
@@ -59,6 +60,12 @@ class OrderPayment extends Model
             'Paiement de '.number_format($payment->amount_fcfa, 0, ',', ' ').' F ('.$payment->method->label().') supprimé sur '.$payment->order->order_number,
             $payment->order, ['amount_fcfa' => $payment->amount_fcfa, 'method' => $payment->method->value, 'paid_at' => $payment->paid_at?->toIso8601String()],
         ));
+    }
+
+    /** Remboursement (montant négatif), enregistré à l'annulation d'une commande déjà payée. */
+    public function isRefund(): bool
+    {
+        return $this->amount_fcfa < 0;
     }
 
     public function getMethodLabelAttribute(): string

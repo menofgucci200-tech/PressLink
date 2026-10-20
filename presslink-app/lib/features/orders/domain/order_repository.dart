@@ -141,6 +141,7 @@ class OrderModel {
     this.balanceDueFcfa = 0,
     this.paymentState = PaymentState.unpaid,
     this.payments = const [],
+    this.cancellationReason,
   });
 
   final int id;
@@ -160,6 +161,9 @@ class OrderModel {
   final int balanceDueFcfa;
   final PaymentState paymentState;
   final List<OrderPaymentModel> payments;
+
+  /// Motif d'annulation (« Erreur de saisie », « Le client a renoncé »…).
+  final String? cancellationReason;
 
   String get itemsLabel =>
       items.map((i) => '${i.quantity} ${i.name}').join(' · ');
@@ -192,6 +196,7 @@ class OrderModel {
     payments: (json['payments'] as List? ?? [])
         .map((e) => OrderPaymentModel.fromJson(e as Map<String, dynamic>))
         .toList(),
+    cancellationReason: json['cancellation_reason_label'] as String?,
   );
 }
 

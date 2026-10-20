@@ -57,9 +57,14 @@ class OrderObserver
             return;
         }
 
+        $cancellationNote = $order->status === OrderStatus::Annulee
+            ? collect([$order->cancellation_reason?->label(), $order->cancellation_note])->filter()->implode(' : ')
+            : null;
+
         $order->statusHistory()->create([
             'status' => $order->status,
             'changed_by' => Auth::guard('web')->id(),
+            'note' => $cancellationNote ?: null,
             'created_at' => now(),
         ]);
 
@@ -67,8 +72,8 @@ class OrderObserver
         // au client sans encaissement complet.
         if ($order->status === OrderStatus::Annulee) {
             ActivityLog::record($order->pressing_id, ActivityAction::OrderCancelled,
-                "Commande {$order->order_number} annulée".($order->amount_paid_fcfa > 0 ? ' ('.number_format($order->amount_paid_fcfa, 0, ',', ' ').' F déjà payés)' : ''),
-                $order, ['amount_paid_fcfa' => $order->amount_paid_fcfa, 'total_fcfa' => $order->total_fcfa]);
+                "Commande {$order->order_number} annulée".($cancellationNote ? " — {$cancellationNote}" : '').($order->amount_paid_fcfa > 0 ? ' ('.number_format($order->amount_paid_fcfa, 0, ',', ' ').' F payés et conservés)' : ''),
+                $order, ['amount_paid_fcfa' => $order->amount_paid_fcfa, 'total_fcfa' => $order->total_fcfa, 'reason' => $order->cancellation_reason?->value]);
         } elseif ($order->status === OrderStatus::Recuperee && $order->balance_due_fcfa > 0) {
             ActivityLog::record($order->pressing_id, ActivityAction::RecoveredUnpaid,
                 "Commande {$order->order_number} remise avec ".number_format($order->balance_due_fcfa, 0, ',', ' ').' F restant dus',

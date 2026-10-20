@@ -23,11 +23,28 @@
         OrderStatus::Prete => ['action' => OrderStatus::Recuperee, 'label' => $balance > 0 ? 'Encaisser '.$fcfa($balance).' F et remettre' : 'Remettre au client', 'hint' => $balance > 0 ? 'Le client règle le reste en récupérant ses pièces.' : 'La commande est déjà payée.'],
         default => null,
     };
-    $secondary = collect($nextActions)->reject(fn ($action) => $primary !== null && $action === $primary['action']);
+    $secondary = collect($nextActions)->reject(fn ($action) => ($primary !== null && $action === $primary['action']) || $action === OrderStatus::Annulee);
+    $cancellableByAdminOnly = in_array(OrderStatus::Annulee, $nextActions, true) && ! $canCancel;
 @endphp
 
 @if ($status === OrderStatus::Annulee)
-    <div class="mb-6 p-4 rounded-xl bg-(--color-error-tint) text-sm text-(--color-error) font-medium">Cette commande a été annulée.</div>
+    @php
+        $cancelledEntry = $order->statusHistory->where('status', OrderStatus::Annulee)->last();
+        $refunds = $order->payments->filter->isRefund();
+    @endphp
+    <div class="mb-6 p-4 rounded-xl bg-(--color-error-tint) border border-[color-mix(in_srgb,var(--color-error)_25%,transparent)] text-sm">
+        <div class="font-semibold text-(--color-error)">
+            Commande annulée{{ $cancelledEntry ? ' le '.$cancelledEntry->created_at->format('d/m/Y à H:i') : '' }}{{ $cancelledEntry?->changedBy ? ' par '.$cancelledEntry->changedBy->name : '' }}
+        </div>
+        @if ($order->cancellation_reason)
+            <div class="mt-1 text-(--color-text-primary)"><span class="text-(--color-text-secondary)">Motif :</span> {{ $order->cancellation_reason->label() }}{{ $order->cancellation_note ? ' — '.$order->cancellation_note : '' }}</div>
+        @endif
+        @if ($refunds->isNotEmpty())
+            <div class="mt-1 text-(--color-text-secondary)">Remboursé au client : {{ $fcfa(abs((int) $refunds->sum('amount_fcfa'))) }} F ({{ $refunds->map(fn ($r) => $r->method->label())->unique()->implode(', ') }}).</div>
+        @elseif ($order->amount_paid_fcfa > 0)
+            <div class="mt-1 text-(--color-text-secondary)">Montant versé conservé : {{ $fcfa($order->amount_paid_fcfa) }} F.</div>
+        @endif
+    </div>
 @else
     <div class="mb-6 bg-(--color-surface) border border-(--color-border) rounded-xl p-4 sm:p-5">
         {{-- Où en est la commande --}}
@@ -101,30 +118,35 @@
                 @endif
             </div>
 
-            @if ($secondary->isNotEmpty())
+            @if ($secondary->isNotEmpty() || $canCancel || $cancellableByAdminOnly)
                 <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 pt-3 border-t border-(--color-border) text-[13px]">
                     <span class="text-(--color-text-muted)">Autres actions :</span>
                     @foreach ($secondary as $action)
                         <button type="button" wire:click="transitionTo('{{ $action->value }}')"
-                                @if ($action === OrderStatus::Annulee)
-                                    data-confirm-title="Annuler la commande" data-confirm-label="Annuler la commande" data-confirm-cancel="Garder la commande" data-confirm-tone="danger"
-                                    wire:confirm="Annuler la commande {{ $order->order_number }} ? Cette action est définitive : la commande ne pourra plus changer de statut.{{ $order->amount_paid_fcfa > 0 ? ' Le client a déjà payé '.$fcfa($order->amount_paid_fcfa).' F : pensez à le rembourser.' : '' }}"
-                                @elseif ($action === OrderStatus::Recuperee && $balance > 0)
+                                @if ($action === OrderStatus::Recuperee && $balance > 0)
                                     data-confirm-title="Remettre sans encaisser" data-confirm-label="Remettre sans encaisser" data-confirm-tone="warning"
                                     wire:confirm="{{ $order->customer->fullName() }} récupère la commande {{ $order->order_number }} sans régler les {{ $fcfa($balance) }} F restants : ce montant restera dû (à encaisser plus tard dans Paiement)."
                                 @endif
                                 wire:loading.attr="disabled" wire:target="transitionTo('{{ $action->value }}')"
-                                class="font-medium hover:underline disabled:opacity-60 {{ $action === OrderStatus::Annulee ? 'text-(--color-error)' : 'text-(--color-text-secondary) hover:text-(--color-primary)' }}">
+                                class="font-medium hover:underline disabled:opacity-60 text-(--color-text-secondary) hover:text-(--color-primary)">
                             {{ match ($action) {
                                 OrderStatus::Attente => 'Mettre en attente',
-                                OrderStatus::Annulee => 'Annuler la commande',
                                 OrderStatus::Recuperee => 'Remettre sans encaisser',
                                 OrderStatus::Traitement => 'Démarrer le traitement',
                                 default => 'Marquer '.mb_strtolower($action->label()),
                             } }}
                         </button>
                     @endforeach
+                    @if ($canCancel && ! $showCancelForm)
+                        <button type="button" wire:click="openCancelForm" class="font-medium text-(--color-error) hover:underline">Annuler la commande…</button>
+                    @elseif ($cancellableByAdminOnly)
+                        <span class="text-(--color-text-muted)">Annulation : réservée à l'administrateur (le travail a commencé).</span>
+                    @endif
                 </div>
+            @endif
+
+            @if ($showCancelForm && $canCancel)
+                @include('livewire.orders._cancel-form')
             @endif
         @endif
     </div>

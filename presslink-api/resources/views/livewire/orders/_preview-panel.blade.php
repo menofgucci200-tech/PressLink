@@ -11,7 +11,9 @@
     $nextId = $position !== false && $position < $pageIds->count() - 1 ? $pageIds[$position + 1] : null;
     $alert = $previewOrder->delayAlert();
     $balance = $previewOrder->balance_due_fcfa;
-    $nextActions = $previewOrder->status->allowedTransitions();
+    // L'annulation demande un motif : elle se fait depuis la fiche (lien plus bas).
+    $nextActions = array_values(array_filter($previewOrder->status->allowedTransitions(), fn ($action) => $action !== \App\Enums\OrderStatus::Annulee));
+    $previewCanCancel = \App\Actions\Orders\CancelOrderAction::canCancel(auth()->user(), $previewOrder);
     $canRecover = in_array(\App\Enums\OrderStatus::Recuperee, $nextActions, true);
 @endphp
 <div wire:key="preview-{{ $previewOrder->id }}"
@@ -163,6 +165,9 @@
                             </button>
                         @endforeach
                     </div>
+                    @if ($previewCanCancel)
+                        <a href="{{ route('orders.show', ['order' => $previewOrder, 'annuler' => 1]) }}" wire:navigate class="mt-2 inline-block text-[13px] font-medium text-(--color-error) hover:underline">Annuler la commande…</a>
+                    @endif
                 </div>
             @endif
         </div>

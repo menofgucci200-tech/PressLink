@@ -45,6 +45,12 @@ class OrderObserver
             throw new RuntimeException("Transition de statut invalide : {$from->label()} → {$to->label()}.");
         }
 
+        // Une commande n'est remise au client que soldée (plus de « remise sans
+        // encaissement ») : le reste se règle au moment de la remise.
+        if ($to === OrderStatus::Recuperee && $order->balance_due_fcfa > 0) {
+            throw new RuntimeException('Encaissez le reste à payer ('.number_format($order->balance_due_fcfa, 0, ',', ' ').' F) avant de remettre la commande.');
+        }
+
         if ($to === OrderStatus::Recuperee) {
             $order->recovered_at ??= now();
             $order->recovered_by ??= Auth::guard('web')->id();
@@ -74,10 +80,6 @@ class OrderObserver
             ActivityLog::record($order->pressing_id, ActivityAction::OrderCancelled,
                 "Commande {$order->order_number} annulée".($cancellationNote ? " — {$cancellationNote}" : '').($order->amount_paid_fcfa > 0 ? ' ('.number_format($order->amount_paid_fcfa, 0, ',', ' ').' F payés et conservés)' : ''),
                 $order, ['amount_paid_fcfa' => $order->amount_paid_fcfa, 'total_fcfa' => $order->total_fcfa, 'reason' => $order->cancellation_reason?->value]);
-        } elseif ($order->status === OrderStatus::Recuperee && $order->balance_due_fcfa > 0) {
-            ActivityLog::record($order->pressing_id, ActivityAction::RecoveredUnpaid,
-                "Commande {$order->order_number} remise à {$order->customer->fullName()} avec ".number_format($order->balance_due_fcfa, 0, ',', ' ').' F restant dus',
-                $order, ['balance_due_fcfa' => $order->balance_due_fcfa]);
         } elseif ($order->status === OrderStatus::Recuperee) {
             ActivityLog::record($order->pressing_id, ActivityAction::OrderHandedOver,
                 "Commande {$order->order_number} remise à {$order->customer->fullName()}", $order);

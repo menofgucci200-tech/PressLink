@@ -12,7 +12,9 @@
     $alert = $previewOrder->delayAlert();
     $balance = $previewOrder->balance_due_fcfa;
     // L'annulation demande un motif : elle se fait depuis la fiche (lien plus bas).
-    $nextActions = array_values(array_filter($previewOrder->status->allowedTransitions(), fn ($action) => $action !== \App\Enums\OrderStatus::Annulee));
+    // La remise n'est possible que soldée (bouton « Encaisser et remettre » sinon).
+    $nextActions = array_values(array_filter($previewOrder->status->allowedTransitions(), fn ($action) => $action !== \App\Enums\OrderStatus::Annulee
+        && ! ($action === \App\Enums\OrderStatus::Recuperee && $previewOrder->balance_due_fcfa > 0)));
     $previewCanCancel = \App\Actions\Orders\CancelOrderAction::canCancel(auth()->user(), $previewOrder);
     $canRecover = in_array(\App\Enums\OrderStatus::Recuperee, $nextActions, true);
 @endphp
@@ -146,15 +148,12 @@
                         @foreach ($nextActions as $action)
                             @php
                                 $isMain = $action === \App\Enums\OrderStatus::Prete || ($action === \App\Enums\OrderStatus::Recuperee && $balance === 0);
-                                $label = $action === \App\Enums\OrderStatus::Recuperee && $balance > 0 ? 'Remettre sans encaisser' : 'Marquer '.mb_strtolower($action->label());
+                                $label = 'Marquer '.mb_strtolower($action->label());
                             @endphp
                             <button type="button" wire:click="previewTransition('{{ $action->value }}')"
                                     @if ($action === \App\Enums\OrderStatus::Annulee)
                                         data-confirm-title="Annuler la commande" data-confirm-label="Annuler la commande" data-confirm-cancel="Garder la commande" data-confirm-tone="danger"
                                         wire:confirm="Annuler la commande {{ $previewOrder->order_number }} ? Cette action est définitive.{{ $previewOrder->amount_paid_fcfa > 0 ? ' Le client a déjà payé '.$fcfa($previewOrder->amount_paid_fcfa).' F : pensez à le rembourser.' : '' }}"
-                                    @elseif ($action === \App\Enums\OrderStatus::Recuperee && $balance > 0)
-                                        data-confirm-title="Remettre sans encaisser" data-confirm-label="Remettre sans encaisser" data-confirm-tone="warning"
-                                        wire:confirm="Le client récupère la commande sans régler les {{ $fcfa($balance) }} F restants : ce montant restera dû."
                                     @elseif ($action === \App\Enums\OrderStatus::Recuperee)
                                         data-confirm-title="Remise au client" data-confirm-label="Confirmer la remise"
                                         wire:confirm="Confirmez-vous que {{ $previewOrder->customer->fullName() }} a récupéré la commande {{ $previewOrder->order_number }} ?"

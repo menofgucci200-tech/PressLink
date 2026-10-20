@@ -211,11 +211,16 @@ class CriticalFlowsTest extends TestCase
 
         // Le staff fait progresser la commande à travers tout le cycle. Seuls
         // Prête et Récupérée déclenchent une notification (pas Traitement).
-        foreach (['traitement', 'prete', 'recuperee'] as $status) {
+        foreach (['traitement', 'prete'] as $status) {
             Livewire::actingAs($admin)
                 ->test(OrdersShow::class, ['order' => $order])
                 ->call('transitionTo', $status);
         }
+
+        // Remise : seulement soldée — le reste est encaissé au moment de la remise.
+        Livewire::actingAs($admin)
+            ->test(OrdersShow::class, ['order' => $order->fresh()])
+            ->call('settleAndRecover');
 
         $this->forgetWebSession();
 

@@ -178,6 +178,24 @@ class OrderPaymentTest extends TestCase
         $this->assertDatabaseHas('order_payments', ['order_id' => $order->id, 'amount_fcfa' => 5000, 'note' => 'Solde au retrait']);
     }
 
+    public function test_an_order_is_only_handed_over_once_settled(): void
+    {
+        $order = $this->order(10000, 4000);
+        $order->update(['status' => OrderStatus::Traitement]);
+        $order->update(['status' => OrderStatus::Prete]);
+        $this->actingAs($this->staff(PressingRole::Admin));
+
+        Livewire::test(OrdersShow::class, ['order' => $order])
+            ->assertDontSee('Remettre sans encaisser')
+            ->call('transitionTo', OrderStatus::Recuperee->value)
+            ->assertSet('errorMessage', 'Encaissez le reste à payer (6 000 F) avant de remettre la commande.');
+        $this->assertSame(OrderStatus::Prete, $order->fresh()->status);
+
+        Livewire::test(OrdersShow::class, ['order' => $order->fresh()])->call('settleAndRecover');
+        $this->assertSame(OrderStatus::Recuperee, $order->fresh()->status);
+        $this->assertSame(0, $order->fresh()->balance_due_fcfa);
+    }
+
     public function test_a_recorded_payment_can_never_be_deleted(): void
     {
         $order = $this->order(6000, 6000);

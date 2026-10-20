@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\Orders\CreateOrderAction;
 use App\Enums\ActivityAction;
 use App\Enums\OrderStatus;
+use App\Enums\PaymentMethod;
 use App\Enums\PressingRole;
 use App\Livewire\Cash\Index as CashIndex;
 use App\Livewire\CommandPalette;
@@ -166,18 +167,16 @@ class PressingGroupTest extends TestCase
     {
         $cancelled = $this->order($this->north, 5000, 2000);
         $cancelled->update(['status' => OrderStatus::Annulee]);
-        $unpaid = $this->order($this->south, 3000, 1000);
-        foreach ([OrderStatus::Traitement, OrderStatus::Prete, OrderStatus::Recuperee] as $status) {
-            $unpaid->update(['status' => $status]);
-        }
+        $refunded = $this->order($this->south, 3000, 1000);
+        $refunded->recordPayment(-1000, PaymentMethod::Cash);
 
         $this->assertDatabaseHas('activity_logs', ['action' => ActivityAction::OrderCancelled->value, 'order_id' => $cancelled->id]);
-        $this->assertDatabaseHas('activity_logs', ['action' => ActivityAction::RecoveredUnpaid->value, 'order_id' => $unpaid->id]);
+        $this->assertDatabaseHas('activity_logs', ['action' => ActivityAction::PaymentRefunded->value, 'order_id' => $refunded->id]);
 
         Livewire::actingAs($this->owner)->test(Activity::class)
             ->set('sensitiveOnly', true)
             ->assertSee('Commande annulée')
-            ->assertSee('2 000 F restant dus')
+            ->assertSee('Remboursement de 1 000 F')
             ->assertViewHas('logs', fn ($logs) => $logs->count() === 2
                 && $logs->every(fn ($log) => $log->action->isSensitive()));
     }

@@ -171,7 +171,11 @@ class ResetDemoPressing
         ];
 
         foreach ($orders as [$customerIndex, $items, $statuses]) {
-            $order = $action->handle($pressing, $customers[$customerIndex], $items, now()->addDays(2)->toDateString());
+            // Une commande remise au client est soldée (payée au dépôt dans la démo).
+            $paid = in_array(OrderStatus::Recuperee, $statuses, true)
+                ? (int) array_sum(array_map(fn (array $line) => $line['unit_price_fcfa'] * $line['quantity'], $items))
+                : 0;
+            $order = $action->handle($pressing, $customers[$customerIndex], $items, now()->addDays(2)->toDateString(), amountPaidFcfa: $paid);
             foreach ($statuses as $status) {
                 $order->update(['status' => $status]);
             }

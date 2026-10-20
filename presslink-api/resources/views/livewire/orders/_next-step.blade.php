@@ -26,8 +26,9 @@
     // Accès du rôle : remise (et encaissement) d'un côté, atelier de l'autre.
     $allowedAction = fn (OrderStatus $action) => $action === OrderStatus::Recuperee ? $canRecordPayments : $canWorkshop;
     $primaryAllowed = $primary !== null && $allowedAction($primary['action']);
+    // La remise n'est possible que soldée : elle passe par le bouton principal.
     $secondary = collect($nextActions)->reject(fn ($action) => ($primary !== null && $action === $primary['action']) || $action === OrderStatus::Annulee
-        || ($action === OrderStatus::Recuperee && ! $acceptsCustomers) || ! $allowedAction($action));
+        || $action === OrderStatus::Recuperee || ! $allowedAction($action));
     $cancellableByAdminOnly = $acceptsCustomers && in_array(OrderStatus::Annulee, $nextActions, true) && ! $canCancel;
     // Pressing fermé : la remise au client attend l'ouverture (l'atelier continue).
     $handOverClosed = ! $acceptsCustomers && $status === OrderStatus::Prete;
@@ -138,15 +139,10 @@
                     <span class="text-(--color-text-muted)">Autres actions :</span>
                     @foreach ($secondary as $action)
                         <button type="button" wire:click="transitionTo('{{ $action->value }}')"
-                                @if ($action === OrderStatus::Recuperee && $balance > 0)
-                                    data-confirm-title="Remettre sans encaisser" data-confirm-label="Remettre sans encaisser" data-confirm-tone="warning"
-                                    wire:confirm="{{ $order->customer->fullName() }} récupère la commande {{ $order->order_number }} sans régler les {{ $fcfa($balance) }} F restants : ce montant restera dû (à encaisser plus tard dans Paiement)."
-                                @endif
                                 wire:loading.attr="disabled" wire:target="transitionTo('{{ $action->value }}')"
                                 class="font-medium hover:underline disabled:opacity-60 text-(--color-text-secondary) hover:text-(--color-primary)">
                             {{ match ($action) {
                                 OrderStatus::Attente => 'Mettre en attente',
-                                OrderStatus::Recuperee => 'Remettre sans encaisser',
                                 OrderStatus::Traitement => 'Démarrer le traitement',
                                 default => 'Marquer '.mb_strtolower($action->label()),
                             } }}

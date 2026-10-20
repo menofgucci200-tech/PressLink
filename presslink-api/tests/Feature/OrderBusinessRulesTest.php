@@ -102,7 +102,7 @@ class OrderBusinessRulesTest extends TestCase
     {
         $pressing = Pressing::factory()->create();
         $customer = $this->makeCustomerOf($pressing);
-        $order = (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
+        $order = (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()], amountPaidFcfa: 1000);
 
         $order->update(['status' => OrderStatus::Traitement]);
         $order->update(['status' => OrderStatus::Prete]);

@@ -72,11 +72,14 @@ class OrderItemDetailsTest extends TestCase
             ->assertCount('items', 2);
     }
 
-    public function test_nothing_is_added_before_a_service_is_chosen(): void
+    public function test_the_first_service_is_preselected_so_a_piece_can_be_tapped_right_away(): void
     {
         $shirt = $this->shirt();
 
-        Livewire::test(OrdersCreate::class)->call('addPiece', $shirt->id)->assertSet('items', []);
+        Livewire::test(OrdersCreate::class)
+            ->assertSet('prestationId', $this->repassage()->id)
+            ->call('addPiece', $shirt->id)
+            ->assertSet('items.0.name', 'Chemise · Repassage');
     }
 
     public function test_a_piece_without_a_price_for_the_service_is_refused(): void
@@ -95,7 +98,6 @@ class OrderItemDetailsTest extends TestCase
         Service::factory()->for($this->pressing)->create(['name' => 'Costume', 'price_fcfa' => 4000]);
 
         Livewire::test(OrdersCreate::class)
-            ->set('step', 2)
             ->call('selectPrestation', $this->repassage()->id)
             ->assertSee('Chemise')
             ->assertDontSee('Costume')

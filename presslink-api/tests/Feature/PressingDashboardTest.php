@@ -59,12 +59,9 @@ class PressingDashboardTest extends TestCase
 
         $component = Livewire::test(OrdersCreate::class)
             ->call('pickCustomer', $customer->id)
-            ->call('next')
             ->call('selectPrestation', $service->pressing->cleaningPrestation()->id)
             ->call('addPiece', $service->id)
             ->call('incrementItem', 0)
-            ->call('next')
-            ->call('next')
             ->call('create');
 
         $this->assertDatabaseHas('orders', [

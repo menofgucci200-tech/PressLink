@@ -64,21 +64,21 @@ class OrderPaymentTest extends TestCase
 
         return Livewire::test(OrdersCreate::class)
             ->call('pickCustomer', $this->customer->id)
-            ->call('next')
             ->call('selectPrestation', $service->pressing->cleaningPrestation()->id)
             ->call('addPiece', $service->id)
-            ->call('incrementItem', 0)
-            ->call('next');
+            ->call('incrementItem', 0);
     }
 
-    public function test_the_wizard_requires_a_payment_choice_before_confirmation(): void
+    public function test_payment_at_pickup_is_preselected(): void
     {
         $this->actingAs($this->staff());
 
         $this->wizardUpToPayment()
-            ->call('next')
-            ->assertHasErrors(['paymentChoice' => 'required'])
-            ->assertSet('step', 3);
+            ->assertSet('paymentChoice', 'later')
+            ->call('create')
+            ->assertHasNoErrors();
+
+        $this->assertSame(0, Order::firstOrFail()->amount_paid_fcfa);
     }
 
     public function test_an_order_paid_in_full_at_drop_off_is_settled(): void
@@ -88,8 +88,6 @@ class OrderPaymentTest extends TestCase
         $this->wizardUpToPayment()
             ->set('paymentChoice', 'full')
             ->set('paymentMethod', PaymentMethod::Wave->value)
-            ->call('next')
-            ->assertSet('step', 4)
             ->call('create');
 
         $order = Order::firstOrFail();
@@ -106,7 +104,6 @@ class OrderPaymentTest extends TestCase
         $this->wizardUpToPayment()
             ->set('paymentChoice', 'partial')
             ->set('depositAmount', '2000')
-            ->call('next')
             ->call('create');
 
         $order = Order::firstOrFail();
@@ -122,11 +119,13 @@ class OrderPaymentTest extends TestCase
         $this->wizardUpToPayment()
             ->set('paymentChoice', 'partial')
             ->set('depositAmount', '5000')
-            ->call('next')
+            ->call('create')
             ->assertHasErrors(['depositAmount' => 'max'])
             ->set('depositAmount', '0')
-            ->call('next')
+            ->call('create')
             ->assertHasErrors(['depositAmount' => 'min']);
+
+        $this->assertDatabaseCount('orders', 0);
     }
 
     public function test_paying_at_pickup_records_no_payment(): void
@@ -135,7 +134,6 @@ class OrderPaymentTest extends TestCase
 
         $this->wizardUpToPayment()
             ->set('paymentChoice', 'later')
-            ->call('next')
             ->call('create');
 
         $order = Order::firstOrFail();

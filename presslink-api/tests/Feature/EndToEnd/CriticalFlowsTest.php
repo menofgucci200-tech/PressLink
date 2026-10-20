@@ -182,12 +182,9 @@ class CriticalFlowsTest extends TestCase
         Livewire::actingAs($admin)
             ->test(OrdersCreate::class)
             ->call('pickCustomer', $customer->id)
-            ->call('next')
             ->call('selectPrestation', $service->pressing->cleaningPrestation()->id)
             ->call('addPiece', $service->id)
             ->call('incrementItem', 0)
-            ->call('next')
-            ->call('next')
             ->call('create');
 
         $this->forgetWebSession();
@@ -257,11 +254,8 @@ class CriticalFlowsTest extends TestCase
         Livewire::actingAs($admin)
             ->test(OrdersCreate::class)
             ->call('pickCustomer', $customer->id)
-            ->call('next')
             ->call('selectPrestation', $service->pressing->cleaningPrestation()->id)
             ->call('addPiece', $service->id)
-            ->call('next')
-            ->call('next')
             ->call('create');
 
         $this->forgetWebSession();
@@ -319,11 +313,8 @@ class CriticalFlowsTest extends TestCase
         Livewire::actingAs($admin)
             ->test(OrdersCreate::class)
             ->call('pickCustomer', $customer->id)
-            ->call('next')
             ->call('selectPrestation', $service->pressing->cleaningPrestation()->id)
             ->call('addPiece', $service->id)
-            ->call('next')
-            ->call('next')
             ->call('create')
             ->assertSet('errorMessage', fn ($message) => str_contains($message, 'abonnement'));
 

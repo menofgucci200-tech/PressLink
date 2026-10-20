@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\PressingRole;
 use App\Livewire\Auth\Login;
 use App\Livewire\Orders\Create as OrdersCreate;
-use App\Livewire\Pressing\Profile as PressingProfile;
+use App\Livewire\Pressing\Settings as PressingSettings;
 use App\Models\Customer;
 use App\Models\Pressing;
 use App\Models\User;
@@ -67,7 +67,7 @@ class IvorianPhoneFormatTest extends TestCase
         $pressing = Pressing::factory()->create();
         $this->actingAs($this->admin($pressing));
 
-        Livewire::test(PressingProfile::class)
+        Livewire::test(PressingSettings::class)
             ->set('phone', '27 22 44 55 66')
             ->call('save')
             ->assertHasNoErrors('phone');

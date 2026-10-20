@@ -119,7 +119,7 @@
                             </td>
                             <td class="px-5 py-3.5 text-right">
                                 @if (! $isCustomers && $account->is(auth()->user()))
-                                    <a href="{{ route('account.settings') }}" wire:navigate class="text-xs font-medium text-(--color-primary) hover:underline">Mon compte</a>
+                                    <a href="{{ route('account.settings') }}" wire:navigate class="text-xs font-medium text-(--color-primary) hover:underline">Mon profil</a>
                                 @else
                                     @php $name = $isCustomers ? ($account->fullName() ?: $account->phone) : $account->name; @endphp
                                     <button type="button"

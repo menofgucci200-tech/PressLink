@@ -15,7 +15,7 @@ use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
- * "Mon compte" — tout membre du staff (admin ou employé) gère lui-même
+ * "Mon profil" — tout membre du staff (admin ou employé) gère lui-même
  * son propre login/mot de passe, sans passer par le Super Admin.
  */
 class AccountSettingsTest extends TestCase
@@ -220,15 +220,15 @@ class AccountSettingsTest extends TestCase
         $this->actingAs($this->makeStaff(PressingRole::Admin))
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('Mon compte')
+            ->assertSee('Mon profil')
             ->assertSee('Mot de passe et connexion')
-            ->assertSee('Profil du pressing')
+            ->assertSee('Paramètres du pressing')
             ->assertSee('Se déconnecter');
 
         $this->actingAs(User::factory()->create(['is_super_admin' => true]))
             ->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee('Mon compte')
+            ->assertSee('Mon profil')
             ->assertSee('Se déconnecter');
     }
 }

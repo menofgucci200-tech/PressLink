@@ -4,6 +4,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/presslink_top_bar.dart';
 import '../domain/pressing_repository.dart';
+import 'pressing_contact.dart';
 
 const _dayLabels = {
   'lundi': 'Lundi',
@@ -107,6 +108,13 @@ class PressingDetailScreen extends StatelessWidget {
                       pressing.city,
                     ].where((e) => e != null && e.isNotEmpty).join(', '),
                   ),
+                if (pressing.contact != null) ...[
+                  const SizedBox(height: AppSpacing.sm + 4),
+                  PressingContactButtons(
+                    contact: pressing.contact!,
+                    pressingName: pressing.name,
+                  ),
+                ],
               ],
             ),
             if (pressing.description != null &&

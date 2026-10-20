@@ -34,6 +34,7 @@ class Pressing extends Model
         'description',
         'terms',
         'storage_fee',
+        'support_contact',
         'opening_hours',
         'exceptional_open_until',
         'show_pricing_to_customers',
@@ -50,6 +51,7 @@ class Pressing extends Model
         return [
             'opening_hours' => 'array',
             'storage_fee' => 'array',
+            'support_contact' => 'array',
             'exceptional_open_until' => 'datetime',
             'show_pricing_to_customers' => 'boolean',
             'status' => PressingStatus::class,
@@ -222,6 +224,24 @@ class Pressing extends Model
         }
 
         return ['open' => $hours['open'], 'close' => $hours['close']];
+    }
+
+    /**
+     * Contact du pressing pour ses clients : ce que le pressing a renseigné
+     * dans ses paramètres, à défaut son téléphone principal.
+     *
+     * @return array{phone: ?string, whatsapp: ?string, email: ?string, hours: ?string}
+     */
+    public function supportContact(): array
+    {
+        $contact = $this->support_contact ?? [];
+
+        return [
+            'phone' => ($contact['phone'] ?? null) ?: $this->phone,
+            'whatsapp' => ($contact['whatsapp'] ?? null) ?: null,
+            'email' => ($contact['email'] ?? null) ?: $this->email,
+            'hours' => ($contact['hours'] ?? null) ?: null,
+        ];
     }
 
     /** Unités de calcul du droit de magasinage. */

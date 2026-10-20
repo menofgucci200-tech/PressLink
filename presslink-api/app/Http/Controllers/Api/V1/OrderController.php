@@ -37,7 +37,7 @@ class OrderController extends Controller
             'days' => $storageFee['days'],
             'amount' => $storageFee['amount'],
             'since' => $storageFee['since']->toDateString(),
-        ], 'storage_fee_clause' => $order->pressing->storageFeeClause(), 'receipt' => [
+        ], 'storage_fee_clause' => $order->pressing->storageFeeClause(), 'pressing_contact' => $order->pressing->supportContact(), 'receipt' => [
             'url' => ReceiptLinks::order($order),
             'download_url' => ReceiptLinks::order($order, download: true),
             'file_name' => ReceiptLinks::orderFileName($order),

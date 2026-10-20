@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Livewire\Orders\Create;
-use App\Livewire\Pressing\Profile as PressingProfile;
+use App\Livewire\Pressing\Settings as PressingSettings;
 use App\Models\Pressing;
 use App\Models\Subscription;
 use App\Models\User;
@@ -32,7 +32,7 @@ class PhoneNumberTest extends TestCase
         $pressing->staff()->attach($user, ['role' => 'admin', 'is_active' => true]);
         $this->actingAs($user);
 
-        Livewire::test(PressingProfile::class)
+        Livewire::test(PressingSettings::class)
             ->set('phone', '27 22 41 18 35')
             ->call('save')
             ->assertHasNoErrors();
@@ -47,7 +47,7 @@ class PhoneNumberTest extends TestCase
         $pressing->staff()->attach($user, ['role' => 'admin', 'is_active' => true]);
         $this->actingAs($user);
 
-        Livewire::test(PressingProfile::class)
+        Livewire::test(PressingSettings::class)
             ->set('phone', '12345')
             ->call('save')
             ->assertHasErrors(['phone'])

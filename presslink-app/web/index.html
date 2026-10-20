@@ -85,6 +85,11 @@
   <style id="splash-screen-style">
     html, body { height: 100%; margin: 0; background: #FFFFFF; }
 
+    /* Pas de rectangle bleu/vert du navigateur au toucher (Chrome Android) ni
+       de cadre de focus autour des zones d'accessibilité de Flutter. */
+    html, body, * { -webkit-tap-highlight-color: transparent; }
+    flt-semantics, flt-semantics *, flt-semantics-host, flt-semantics-host * { outline: none !important; -webkit-tap-highlight-color: transparent; }
+
     /* Écran de démarrage, affiché dès le premier octet pendant le
        chargement du moteur Flutter : logo fixe (aucune animation coûteuse),
        barre de chargement seulement si le chargement dure. Flutter redessine

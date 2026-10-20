@@ -94,6 +94,40 @@ class OpeningHoursDay {
       );
 }
 
+/// Comment joindre le pressing (renseigné dans ses paramètres, à défaut son
+/// téléphone et son e-mail principaux).
+class PressingContact {
+  const PressingContact({this.phone, this.whatsapp, this.email, this.hours});
+
+  final String? phone;
+  final String? whatsapp;
+  final String? email;
+
+  /// Disponibilités, en texte libre (« Du lundi au samedi, 8 h – 19 h »).
+  final String? hours;
+
+  bool get isEmpty =>
+      (phone ?? '').isEmpty &&
+      (whatsapp ?? '').isEmpty &&
+      (email ?? '').isEmpty;
+
+  static PressingContact? fromJson(Object? json) {
+    if (json is! Map<String, dynamic>) return null;
+    String? text(String key) {
+      final value = json[key];
+      return value is String && value.trim().isNotEmpty ? value.trim() : null;
+    }
+
+    final contact = PressingContact(
+      phone: text('phone'),
+      whatsapp: text('whatsapp'),
+      email: text('email'),
+      hours: text('hours'),
+    );
+    return contact.isEmpty ? null : contact;
+  }
+}
+
 class PressingModel {
   const PressingModel({
     required this.id,
@@ -110,6 +144,7 @@ class PressingModel {
     this.prestations,
     this.terms,
     this.storageFeeClause,
+    this.contact,
   });
 
   final int id;
@@ -130,6 +165,9 @@ class PressingModel {
 
   /// Droit de magasinage des commandes non retirées, en une phrase.
   final String? storageFeeClause;
+
+  /// Comment joindre le pressing.
+  final PressingContact? contact;
 
   String get initials {
     final words = name
@@ -165,6 +203,7 @@ class PressingModel {
         .toList(),
     terms: json['terms'] as String?,
     storageFeeClause: json['storage_fee_clause'] as String?,
+    contact: PressingContact.fromJson(json['contact']),
   );
 }
 

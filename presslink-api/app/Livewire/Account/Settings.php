@@ -12,7 +12,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 
 /**
- * "Mon compte" — tout membre du staff (admin ou employé) et tout super
+ * "Mon profil" — tout membre du staff (admin ou employé) et tout super
  * admin y personnalise son propre profil (photo, nom, email, téléphone),
  * son login et son mot de passe, sans passer par quelqu'un d'autre.
  */
@@ -158,7 +158,7 @@ class Settings extends Component
             'memberships' => $user->is_super_admin ? collect() : $user->activePressings(),
         ])->layout(
             $user->is_super_admin ? 'layouts.admin' : 'layouts.dashboard',
-            ['active' => 'account', 'title' => 'Mon compte'],
+            ['active' => 'account', 'title' => 'Mon profil'],
         );
     }
 }

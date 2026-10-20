@@ -36,7 +36,6 @@ use App\Livewire\Issues\Index as IssuesIndex;
 use App\Livewire\Orders\Create as OrdersCreate;
 use App\Livewire\Orders\Index as OrdersIndex;
 use App\Livewire\Orders\Show as OrdersShow;
-use App\Livewire\Pressing\Profile as PressingProfile;
 use App\Livewire\Pressing\Settings as PressingSettings;
 use App\Livewire\Services\Index as ServicesIndex;
 use App\Livewire\Subscription\Show as SubscriptionShow;
@@ -160,7 +159,7 @@ Route::middleware('auth')->group(function () {
         Route::redirect('/tarifs', '/services', 301);
 
         Route::get('/equipe', TeamIndex::class)->name('team.index');
-        Route::get('/profil-pressing', PressingProfile::class)->name('pressing.profile');
+        Route::redirect('/profil-pressing', '/parametres', 301);
         Route::get('/parametres', PressingSettings::class)->name('pressing.settings');
         Route::get('/abonnement', SubscriptionShow::class)->name('subscription.show');
         Route::get('/support', SupportShow::class)->name('support');

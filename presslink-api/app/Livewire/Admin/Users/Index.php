@@ -57,7 +57,7 @@ class Index extends Component
         $user = User::findOrFail($userId);
 
         if ($user->is($this->currentUser())) {
-            $this->toast('Pour votre propre compte, changez votre mot de passe depuis « Mon compte ».', 'warning');
+            $this->toast('Pour votre propre compte, changez votre mot de passe depuis « Mon profil ».', 'warning');
 
             return;
         }

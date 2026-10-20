@@ -52,7 +52,7 @@
                 <span class="w-9 h-5 rounded-full relative transition-colors {{ $user->group_report_opt_in ? 'bg-(--color-success)' : 'bg-(--color-border)' }}"><span class="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all {{ $user->group_report_opt_in ? 'left-[18px]' : 'left-0.5' }}"></span></span>
             </button>
             @unless ($user->email)
-                <p class="text-xs text-(--color-warning-text)">Ajoutez une adresse e-mail dans <a href="{{ route('account.settings') }}" wire:navigate class="underline">Mon compte</a>.</p>
+                <p class="text-xs text-(--color-warning-text)">Ajoutez une adresse e-mail dans <a href="{{ route('account.settings') }}" wire:navigate class="underline">Mon profil</a>.</p>
             @endunless
         </div>
     </div>

@@ -7,23 +7,53 @@ use App\Enums\Permission;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\ActivityLog;
 use App\Models\Pressing;
+use App\Rules\IvorianPhone;
+use App\Support\ImageOptimizer;
+use App\Support\PhoneNumber;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 /**
- * Paramètres du pressing : horaires d'ouverture, affichage des prix,
- * conditions et règlement (visibles par les clients et sur les reçus) et
- * droit de magasinage des commandes prêtes non retirées. Les informations
- * affichées aux clients (logo, nom, adresse…) sont dans Pressing\Profile.
+ * Paramètres du pressing, sur une seule page : informations et logo vus par
+ * les clients, contact du pressing (fiche du pressing et bas de chaque
+ * commande dans l'appli), horaires, affichage des prix, conditions et
+ * règlement, droit de magasinage. Le profil de la personne connectée est
+ * dans Account\Settings (« Profil »).
  */
 class Settings extends Component
 {
-    use ShowsToasts;
+    use ShowsToasts, WithFileUploads;
 
     private const DAYS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
 
     public Pressing $pressing;
+
+    // Informations vues par les clients
+    public string $name = '';
+
+    public string $phone = '';
+
+    public string $email = '';
+
+    public string $address = '';
+
+    public string $city = '';
+
+    public string $description = '';
+
+    public $logo = null;
+
+    // Contact du pressing pour ses clients
+    public string $supportPhone = '';
+
+    public string $supportWhatsapp = '';
+
+    public string $supportEmail = '';
+
+    public string $supportHours = '';
 
     /** @var array<string, array{closed: bool, open: string, close: string}> */
     public array $openingHours = [];
@@ -62,6 +92,17 @@ class Settings extends Component
         abort_unless($pressing && auth()->user()->may(Permission::SettingsManage, $pressing), 403);
 
         $this->pressing = $pressing;
+        $this->name = $pressing->name;
+        $this->phone = $pressing->phone;
+        $this->email = $pressing->email ?? '';
+        $this->address = $pressing->address ?? '';
+        $this->city = $pressing->city ?? '';
+        $this->description = $pressing->description ?? '';
+        $contact = $pressing->support_contact ?? [];
+        $this->supportPhone = $contact['phone'] ?? '';
+        $this->supportWhatsapp = $contact['whatsapp'] ?? '';
+        $this->supportEmail = $contact['email'] ?? '';
+        $this->supportHours = $contact['hours'] ?? '';
         $this->openingHours = $this->normalizeOpeningHours($pressing->opening_hours);
         $this->showPricingToCustomers = $pressing->show_pricing_to_customers;
         $this->terms = $pressing->terms ?? '';
@@ -69,7 +110,7 @@ class Settings extends Component
         $fee = $pressing->storage_fee ?? [];
         $this->storageFeeEnabled = (bool) ($fee['enabled'] ?? false);
         $this->storageFeeGraceDays = (string) ($fee['grace_days'] ?? 7);
-        $this->storageFeeAmount = isset($fee['amount']) ? (string) $fee['amount'] : '';
+        $this->storageFeeAmount = (int) ($fee['amount'] ?? 0) > 0 ? (string) $fee['amount'] : '';
         $this->storageFeeUnit = $fee['unit'] ?? 'order';
         $this->storageFeePeriod = $fee['period'] ?? 'day';
         $this->storageFeeCap = isset($fee['cap']) ? (string) $fee['cap'] : '';
@@ -118,14 +159,31 @@ class Settings extends Component
 
     public function save(): void
     {
+        $this->phone = PhoneNumber::normalize($this->phone);
+        $this->supportPhone = filled($this->supportPhone) ? PhoneNumber::normalize($this->supportPhone) : '';
+        $this->supportWhatsapp = filled($this->supportWhatsapp) ? PhoneNumber::normalize($this->supportWhatsapp) : '';
+
         $this->validate([
+            'name' => ['required', 'string', 'max:150'],
+            'phone' => ['required', 'string', new IvorianPhone(mobileOnly: false)],
+            'email' => ['nullable', 'email', 'max:255'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096', 'dimensions:max_width='.ImageOptimizer::MAX_DIMENSION.',max_height='.ImageOptimizer::MAX_DIMENSION],
+            'supportPhone' => ['nullable', 'string', new IvorianPhone(mobileOnly: false)],
+            'supportWhatsapp' => ['nullable', 'string', new IvorianPhone],
+            'supportEmail' => ['nullable', 'email', 'max:255'],
+            'supportHours' => ['nullable', 'string', 'max:150'],
             'openingHours.*.closed' => ['boolean'],
             'openingHours.*.open' => ['nullable', 'date_format:H:i'],
             'openingHours.*.close' => ['nullable', 'date_format:H:i'],
             'terms' => ['nullable', 'string', 'max:5000'],
             'storageFeeMode' => [Rule::in(Pressing::STORAGE_FEE_MODES)],
             'storageFeeGraceDays' => ['required_if:storageFeeEnabled,true', 'nullable', 'integer', 'min:0', 'max:365'],
-            'storageFeeAmount' => [$this->storageFeeEnabled && $this->storageFeeMode === 'flat' ? 'required' : 'nullable', 'nullable', 'integer', 'min:1', 'max:1000000'],
+            'storageFeeAmount' => $this->storageFeeEnabled && $this->storageFeeMode === 'flat'
+                ? ['required', 'integer', 'min:1', 'max:1000000']
+                : ['nullable', 'integer', 'min:0', 'max:1000000'],
             'storageFeePieceAmounts.*' => ['nullable', 'integer', 'min:0', 'max:1000000'],
             'storageFeeDefaultAmount' => ['nullable', 'integer', 'min:0', 'max:1000000'],
             'storageFeeTiers.*.periods' => ['nullable', 'integer', 'min:1', 'max:365'],
@@ -136,18 +194,44 @@ class Settings extends Component
         ], [
             'storageFeeAmount.required' => 'Indiquez le montant du droit de magasinage.',
             'storageFeeTiers.*.amount.required' => 'Indiquez le montant de chaque palier.',
+            'logo.dimensions' => 'Ce logo est trop grand ('.ImageOptimizer::MAX_DIMENSION.' × '.ImageOptimizer::MAX_DIMENSION.' pixels maximum).',
             'storageFeeAmount.min' => 'Le montant doit être d\'au moins 1 F.',
             'storageFeeGraceDays.required_if' => 'Indiquez le délai avant facturation.',
         ]);
 
-        $this->pressing->update([
+        $data = [
+            'name' => $this->name,
+            'phone' => $this->phone,
+            'email' => $this->email ?: null,
+            'address' => $this->address ?: null,
+            'city' => $this->city ?: null,
+            'description' => $this->description ?: null,
+            'support_contact' => array_filter([
+                'phone' => $this->supportPhone ?: null,
+                'whatsapp' => $this->supportWhatsapp ?: null,
+                'email' => trim($this->supportEmail) ?: null,
+                'hours' => trim($this->supportHours) ?: null,
+            ]) ?: null,
             'opening_hours' => $this->openingHours,
             'show_pricing_to_customers' => $this->showPricingToCustomers,
             'terms' => trim($this->terms) ?: null,
             'storage_fee' => $this->storageFeeSettings(),
-        ]);
+        ];
 
-        $labels = ['opening_hours' => 'horaires', 'show_pricing_to_customers' => 'affichage des prix',
+        if ($this->logo) {
+            if ($this->pressing->logo_path) {
+                Storage::disk('public')->delete($this->pressing->logo_path);
+            }
+
+            $data['logo_path'] = ImageOptimizer::store($this->logo, 'pressings');
+        }
+
+        $this->pressing->update($data);
+        $this->logo = null;
+
+        $labels = ['name' => 'nom', 'phone' => 'téléphone', 'email' => 'e-mail', 'address' => 'adresse', 'city' => 'ville',
+            'description' => 'description', 'logo_path' => 'logo', 'support_contact' => 'contact du pressing',
+            'opening_hours' => 'horaires', 'show_pricing_to_customers' => 'affichage des prix',
             'terms' => 'conditions et règlement', 'storage_fee' => 'droit de magasinage'];
         $changed = array_intersect_key($labels, $this->pressing->getChanges());
         if ($changed !== []) {
@@ -156,6 +240,16 @@ class Settings extends Component
         }
 
         $this->toast('Paramètres enregistrés.');
+    }
+
+    public function removeLogo(): void
+    {
+        if ($this->pressing->logo_path) {
+            Storage::disk('public')->delete($this->pressing->logo_path);
+            $this->pressing->update(['logo_path' => null]);
+            ActivityLog::record($this->pressing->id, ActivityAction::SettingsChanged, 'Logo retiré');
+            $this->toast('Logo retiré.');
+        }
     }
 
     /**

@@ -1,4 +1,5 @@
 import '../../../core/network/api_client.dart';
+import '../../pressings/domain/pressing_repository.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -146,6 +147,7 @@ class OrderModel {
     this.storageFeeAmount,
     this.storageFeeDays,
     this.storageFeeClause,
+    this.pressingContact,
   });
 
   final int id;
@@ -176,6 +178,9 @@ class OrderModel {
   final int? storageFeeAmount;
   final int? storageFeeDays;
   final String? storageFeeClause;
+
+  /// Comment joindre le pressing (bouton « Contacter le pressing »).
+  final PressingContact? pressingContact;
 
   String get itemsLabel =>
       items.map((i) => '${i.quantity} ${i.name}').join(' · ');
@@ -217,6 +222,7 @@ class OrderModel {
     storageFeeDays:
         (json['storage_fee'] as Map<String, dynamic>?)?['days'] as int?,
     storageFeeClause: json['storage_fee_clause'] as String?,
+    pressingContact: PressingContact.fromJson(json['pressing_contact']),
   );
 }
 

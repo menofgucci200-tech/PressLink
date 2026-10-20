@@ -12,10 +12,102 @@
 <div class="max-w-3xl">
     <div class="mb-6">
         <h1 class="font-display text-2xl font-bold mb-1">Paramètres</h1>
-        <p class="text-sm text-(--color-text-muted)">Horaires, affichage des prix, conditions et règlement, droit de magasinage.</p>
+        <p class="text-sm text-(--color-text-muted)">
+            Tout le paramétrage de votre pressing. Code pressing : <span class="font-mono font-semibold">{{ $pressing->code }}</span>
+            <span class="text-(--color-text-muted)">— à transmettre aux clients pour rejoindre votre établissement.</span>
+        </p>
     </div>
 
     <form novalidate wire:submit="save" class="flex flex-col gap-6">
+        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
+            <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-4">Logo du pressing</div>
+            <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-lg bg-(--color-bg) border border-(--color-border) flex items-center justify-center overflow-hidden">
+                    @if ($logo)
+                        <img src="{{ $logo->temporaryUrl() }}" alt="Aperçu du logo" class="w-full h-full object-cover">
+                    @elseif ($pressing->logo_url)
+                        <img src="{{ $pressing->logo_url }}" alt="Logo actuel" class="w-full h-full object-cover">
+                    @else
+                        <span class="text-xs text-(--color-text-muted)">Aucun</span>
+                    @endif
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg border border-(--color-border) text-sm font-semibold cursor-pointer hover:border-(--color-primary) hover:text-(--color-primary)">
+                        <span wire:loading.remove wire:target="logo">{{ $pressing->logo_url ? 'Changer le logo' : 'Choisir un logo' }}</span>
+                        <span wire:loading wire:target="logo">Envoi…</span>
+                        <input type="file" wire:model="logo" accept="image/jpeg,image/png,image/webp" class="sr-only">
+                    </label>
+                    <span class="text-xs text-(--color-text-muted)">Affiché aux clients dans l'application et sur les reçus.</span>
+                    @error('logo') <p class="text-xs text-(--color-error)">{{ $message }}</p> @enderror
+                    @if ($pressing->logo_url)
+                        <button type="button" wire:click="removeLogo" data-confirm-title="Retirer le logo" data-confirm-label="Retirer" data-confirm-tone="danger" wire:confirm="Le logo ne sera plus affiché à vos clients dans l'application. Vous pourrez en envoyer un nouveau à tout moment." class="text-xs font-medium text-(--color-error) text-left">Retirer le logo actuel</button>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="sm:col-span-2 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Informations générales</div>
+            <div>
+                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom du pressing</label>
+                <input type="text" wire:model="name" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                @error('name') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone</label>
+                <x-phone-input wire:model="phone" placeholder="07 08 12 44 00 ou 27 22 44 55 66" />
+                @error('phone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Email</label>
+                <input type="email" wire:model="email" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                @error('email') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Ville</label>
+                <input type="text" wire:model="city" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                @error('city') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Adresse</label>
+                <input type="text" wire:model="address" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                @error('address') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Description</label>
+                <textarea wire:model="description" rows="3" class="w-full px-3 py-2 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)"></textarea>
+                @error('description') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+            </div>
+        </div>
+
+        {{-- Contact du pressing : affiché sur la fiche du pressing et sous chaque commande dans l'appli --}}
+        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
+            <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1">Contact du pressing</div>
+            <p class="text-xs text-(--color-text-muted) mb-4">Vos clients vous joignent avec ces informations : sur la fiche de votre pressing et avec le bouton « Contacter le pressing » de chaque commande. Sans téléphone ici, c'est le téléphone principal qui est utilisé.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone (appels)</label>
+                    <x-phone-input wire:model="supportPhone" placeholder="07 08 12 44 00 ou 27 22 44 55 66" />
+                    @error('supportPhone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">WhatsApp (mobile)</label>
+                    <x-phone-input wire:model="supportWhatsapp" />
+                    @error('supportWhatsapp') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="support-email" class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">E-mail</label>
+                    <input id="support-email" type="email" wire:model="supportEmail" placeholder="contact@monpressing.ci" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                    @error('supportEmail') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label for="support-hours" class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Disponibilités (facultatif)</label>
+                    <input id="support-hours" type="text" wire:model="supportHours" maxlength="150" placeholder="Ex. Du lundi au samedi, 8 h – 19 h" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                    @error('supportHours') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                </div>
+            </div>
+        </div>
+
         <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-4">Horaires d'ouverture</div>
             <div class="flex flex-col gap-2.5">

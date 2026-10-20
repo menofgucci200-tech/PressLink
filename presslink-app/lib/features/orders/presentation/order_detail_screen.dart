@@ -14,6 +14,7 @@ import '../../../core/widgets/app_feedback.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/presslink_top_bar.dart';
 import '../../pressings/domain/pressing_repository.dart';
+import '../../pressings/presentation/pressing_contact.dart';
 import '../../pressings/presentation/pressing_detail_screen.dart';
 import '../../pressings/presentation/pressings_controller.dart';
 import '../../../shared/models/order_summary.dart';
@@ -121,6 +122,7 @@ class _OrderDetailBody extends ConsumerWidget {
                 ],
               ),
             ),
+            if (order.receipt != null) _ReceiptActions(receipt: order.receipt!),
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
@@ -381,11 +383,6 @@ class _OrderDetailBody extends ConsumerWidget {
           const SizedBox(height: AppSpacing.md),
         ],
 
-        if (order.receipt != null) ...[
-          _ReceiptActions(receipt: order.receipt!),
-          const SizedBox(height: AppSpacing.md),
-        ],
-
         Row(
           children: [
             Expanded(
@@ -405,6 +402,24 @@ class _OrderDetailBody extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
+
+        if (order.pressingContact != null) ...[
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: FilledButton.icon(
+              onPressed: () => showPressingContactSheet(
+                context,
+                contact: order.pressingContact!,
+                pressingName: order.pressingName,
+                orderNumber: order.orderNumber,
+              ),
+              icon: const Icon(Icons.support_agent_rounded, size: 20),
+              label: const Text('Contacter le pressing'),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm + 2),
+        ],
 
         SizedBox(
           width: double.infinity,
@@ -601,40 +616,42 @@ class _ReceiptActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final download = Uri.parse(receipt.downloadUrl);
-    Widget downloadButton(VoidCallback? followLink) => OutlinedButton.icon(
-      onPressed:
-          followLink ??
-          () => launchUrl(download, mode: LaunchMode.externalApplication),
-      icon: const Icon(Icons.download_rounded, size: 20),
-      label: const Text('Télécharger le reçu'),
+    Widget iconButton({
+      required IconData icon,
+      required String tooltip,
+      required VoidCallback? onPressed,
+    }) => IconButton.filledTonal(
+      tooltip: tooltip,
+      onPressed: onPressed,
+      icon: Icon(icon, size: 22),
+      style: IconButton.styleFrom(minimumSize: const Size(44, 44)),
     );
 
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: SizedBox(
-            height: 48,
-            // Vrai lien dans la PWA : le navigateur télécharge sans bloquer.
-            child: kIsWeb
-                ? Link(
-                    uri: download,
-                    target: LinkTarget.blank,
-                    builder: (context, followLink) =>
-                        downloadButton(followLink),
-                  )
-                : downloadButton(null),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm + 2),
-        Expanded(
-          child: SizedBox(
-            height: 48,
-            child: OutlinedButton.icon(
-              onPressed: () => _share(context),
-              icon: const Icon(Icons.share_rounded, size: 20),
-              label: const Text('Partager'),
-            ),
-          ),
+        // Vrai lien dans la PWA : le navigateur télécharge sans bloquer.
+        kIsWeb
+            ? Link(
+                uri: download,
+                target: LinkTarget.blank,
+                builder: (context, followLink) => iconButton(
+                  icon: Icons.download_rounded,
+                  tooltip: 'Télécharger le reçu',
+                  onPressed: followLink,
+                ),
+              )
+            : iconButton(
+                icon: Icons.download_rounded,
+                tooltip: 'Télécharger le reçu',
+                onPressed: () =>
+                    launchUrl(download, mode: LaunchMode.externalApplication),
+              ),
+        const SizedBox(width: AppSpacing.sm),
+        iconButton(
+          icon: Icons.share_rounded,
+          tooltip: 'Partager le reçu',
+          onPressed: () => _share(context),
         ),
       ],
     );

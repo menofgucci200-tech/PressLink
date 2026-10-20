@@ -71,7 +71,7 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-right whitespace-nowrap align-top">
-                                    @if ($issue->status->value !== 'resolved' && $resolvingIssueId !== $issue->id)
+                                    @if ($issue->status->value !== 'resolved' && $resolvingIssueId !== $issue->id && auth()->user()->may(\App\Enums\Permission::IssuesManage))
                                         <button wire:click="startResolving({{ $issue->id }})"
                                             class="text-xs font-medium text-(--color-primary) hover:underline">
                                             Marquer résolu

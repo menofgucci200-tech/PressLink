@@ -60,7 +60,7 @@
                                             <div class="text-sm text-(--color-text-secondary) mt-2 italic">« {{ $issue->resolution_note }} »</div>
                                         @endif
                                     </div>
-                                    @if ($issue->status->value === 'open' && $resolvingIssueId !== $issue->id)
+                                    @if ($issue->status->value === 'open' && $resolvingIssueId !== $issue->id && $canManageIssues)
                                         <button wire:click="startResolving({{ $issue->id }})"
                                                 class="flex-none h-8 px-3 rounded-lg border border-(--color-border) text-xs font-medium hover:border-(--color-primary)">
                                             Marquer résolu

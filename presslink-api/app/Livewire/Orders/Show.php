@@ -8,6 +8,7 @@ use App\Enums\CancellationReason;
 use App\Enums\OrderIssueStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
+use App\Enums\Permission;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Order;
 use Illuminate\Support\Facades\DB;
@@ -152,7 +153,7 @@ class Show extends Component
      */
     public function recordPayment(): void
     {
-        abort_unless(auth()->user()->can('update', $this->order), 403);
+        abort_unless(auth()->user()->can('update', $this->order) && auth()->user()->may(Permission::PaymentsRecord, $this->order->pressing), 403);
 
         if (! $this->order->pressing->acceptsCustomers()) {
             $this->addError('paymentAmount', $this->order->pressing->closedMessage());
@@ -229,6 +230,8 @@ class Show extends Component
 
     public function confirmResolve(): void
     {
+        abort_unless(auth()->user()->may(Permission::IssuesManage, $this->order->pressing), 403);
+
         $issue = $this->order->issues()->findOrFail($this->resolvingIssueId);
         $issue->update([
             'status' => OrderIssueStatus::Resolved,
@@ -251,6 +254,9 @@ class Show extends Component
             'paymentMethods' => PaymentMethod::cases(),
             'canCancel' => CancelOrderAction::canCancel(auth()->user(), $this->order) && $this->order->pressing->acceptsCustomers(),
             'acceptsCustomers' => $this->order->pressing->acceptsCustomers(),
+            'canRecordPayments' => auth()->user()->may(Permission::PaymentsRecord, $this->order->pressing),
+            'canWorkshop' => auth()->user()->may(Permission::OrdersWorkshop, $this->order->pressing),
+            'canManageIssues' => auth()->user()->may(Permission::IssuesManage, $this->order->pressing),
             'cancellationReasons' => CancellationReason::cases(),
         ]);
     }

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Pressing;
 
+use App\Enums\Permission;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Pressing;
 use App\Rules\IvorianPhone;
@@ -46,7 +47,7 @@ class Settings extends Component
     public function mount(): void
     {
         $pressing = auth()->user()->currentPressing();
-        abort_unless($pressing && auth()->user()->isAdminOf($pressing), 403);
+        abort_unless($pressing && auth()->user()->may(Permission::SettingsManage, $pressing), 403);
 
         $this->pressing = $pressing;
         $this->name = $pressing->name;

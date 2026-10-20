@@ -3,6 +3,7 @@
 namespace App\Livewire\Pressing;
 
 use App\Enums\ActivityAction;
+use App\Enums\Permission;
 use App\Models\ActivityLog;
 use App\Models\Pressing;
 use Livewire\Attributes\On;
@@ -23,7 +24,7 @@ class OpenStatus extends Component
     public function openExceptionally(string $duration = 'hour'): void
     {
         $pressing = $this->pressing();
-        abort_unless($pressing !== null && auth()->user()->isAdminOf($pressing), 403);
+        abort_unless($pressing !== null && auth()->user()->may(Permission::OpenExceptionally, $pressing), 403);
 
         $until = $duration === 'day' ? now()->endOfDay() : now()->addHour();
         $pressing->update(['exceptional_open_until' => $until]);
@@ -37,7 +38,7 @@ class OpenStatus extends Component
     public function closeNow(): void
     {
         $pressing = $this->pressing();
-        abort_unless($pressing !== null && auth()->user()->isAdminOf($pressing), 403);
+        abort_unless($pressing !== null && auth()->user()->may(Permission::OpenExceptionally, $pressing), 403);
 
         $pressing->update(['exceptional_open_until' => null]);
 
@@ -55,7 +56,7 @@ class OpenStatus extends Component
 
         return view('livewire.pressing.open-status', [
             'pressing' => $pressing,
-            'isAdmin' => $pressing !== null && auth()->user()->isAdminOf($pressing),
+            'isAdmin' => $pressing !== null && auth()->user()->may(Permission::OpenExceptionally, $pressing),
         ]);
     }
 }

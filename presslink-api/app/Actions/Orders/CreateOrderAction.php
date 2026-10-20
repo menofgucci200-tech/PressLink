@@ -4,6 +4,7 @@ namespace App\Actions\Orders;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
+use App\Enums\Permission;
 use App\Enums\PressingStatus;
 use App\Models\Customer;
 use App\Models\Order;
@@ -54,6 +55,11 @@ class CreateOrderAction
         }
 
         $pressing->ensureAcceptsCustomers();
+
+        $staff = Auth::guard('web')->user();
+        if ($staff !== null && ! $staff->is_super_admin && ! $staff->may(Permission::OrdersCreate, $pressing)) {
+            throw new RuntimeException('Votre rôle ne permet pas de créer une commande.');
+        }
 
         if ($customer->is_active === false) {
             throw new RuntimeException(self::INACTIVE_CUSTOMER_MESSAGE);

@@ -4,6 +4,7 @@ namespace App\Livewire\Orders;
 
 use App\Actions\Orders\CreateOrderAction;
 use App\Enums\PaymentMethod;
+use App\Enums\Permission;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Pressing;
@@ -99,6 +100,8 @@ class Create extends Component
 
     public function mount(): void
     {
+        abort_unless(auth()->user()->may(Permission::OrdersCreate), 403);
+
         $this->expectedAt = $this->defaultExpectedAt();
 
         $draft = session($this->draftKey());

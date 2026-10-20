@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Clients;
 
+use App\Enums\Permission;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Customer;
 use App\Rules\IvorianPhone;
@@ -69,6 +70,7 @@ class Index extends Component
         $this->errorMessage = null;
         $this->reset(['knownCustomerId', 'knownCustomerName']);
         $pressing = auth()->user()->currentPressing();
+        abort_unless(auth()->user()->may(Permission::OrdersCreate, $pressing), 403);
 
         if (! $pressing->acceptsCustomers()) {
             $this->errorMessage = $pressing->closedMessage();
@@ -120,6 +122,7 @@ class Index extends Component
     {
         $customer = Customer::findOrFail($this->knownCustomerId);
         $pressing = auth()->user()->currentPressing();
+        abort_unless(auth()->user()->may(Permission::OrdersCreate, $pressing), 403);
 
         if (! $pressing->acceptsCustomers()) {
             $this->errorMessage = $pressing->closedMessage();

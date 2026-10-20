@@ -3,6 +3,7 @@
 namespace App\Livewire\Issues;
 
 use App\Enums\OrderIssueStatus;
+use App\Enums\Permission;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\OrderIssue;
 use Livewire\Attributes\Layout;
@@ -42,6 +43,8 @@ class Index extends Component
 
     public function confirmResolve(): void
     {
+        abort_unless(auth()->user()->may(Permission::IssuesManage), 403);
+
         $pressing = auth()->user()->currentPressing();
 
         $issue = OrderIssue::whereHas('order', fn ($q) => $q->where('pressing_id', $pressing?->id))

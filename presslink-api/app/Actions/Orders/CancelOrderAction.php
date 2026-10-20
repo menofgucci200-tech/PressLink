@@ -5,6 +5,7 @@ namespace App\Actions\Orders;
 use App\Enums\CancellationReason;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
+use App\Enums\Permission;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -12,8 +13,8 @@ use RuntimeException;
 
 /**
  * Annulation d'une commande, toujours avec un motif :
- *  - « Reçue » ou « En attente » : tout le personnel du pressing ;
- *  - « En traitement » (le travail a commencé) : l'administrateur seulement ;
+ *  - « Reçue » ou « En attente » : accès « Annuler une commande reçue » (tous par défaut) ;
+ *  - « En traitement » (le travail a commencé) : accès dédié (propriétaire et gérant par défaut) ;
  *  - « Prête », « Récupérée » : plus d'annulation possible.
  * Si le client a déjà payé, on indique ce que devient l'argent : rendu
  * (remboursement enregistré comme une sortie de caisse) ou conservé.
@@ -29,9 +30,13 @@ class CancelOrderAction
 
     public static function canCancel(User $user, Order $order): bool
     {
-        return $order->status->canTransitionTo(OrderStatus::Annulee)
-            && $user->belongsToPressing($order->pressing)
-            && (in_array($order->status, self::EMPLOYEE_CANCELLABLE, true) || $user->isAdminOf($order->pressing));
+        if (! $order->status->canTransitionTo(OrderStatus::Annulee) || ! $user->belongsToPressing($order->pressing)) {
+            return false;
+        }
+
+        return in_array($order->status, self::EMPLOYEE_CANCELLABLE, true)
+            ? $user->may(Permission::OrdersCancel, $order->pressing)
+            : $user->may(Permission::OrdersCancelInProgress, $order->pressing);
     }
 
     /**
@@ -57,7 +62,9 @@ class CancelOrderAction
             }
 
             if (! self::canCancel($user, $locked)) {
-                throw new RuntimeException('Le travail a commencé : seul l\'administrateur du pressing peut annuler cette commande.');
+                throw new RuntimeException(in_array($locked->status, self::EMPLOYEE_CANCELLABLE, true)
+                    ? 'Votre rôle ne permet pas d\'annuler une commande.'
+                    : 'Le travail a commencé : seuls le propriétaire ou le gérant peuvent annuler cette commande.');
             }
 
             $paid = (int) $locked->amount_paid_fcfa;

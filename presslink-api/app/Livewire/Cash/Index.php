@@ -4,6 +4,7 @@ namespace App\Livewire\Cash;
 
 use App\Actions\Cash\CashDaySummary;
 use App\Enums\ActivityAction;
+use App\Enums\Permission;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\ActivityLog;
 use App\Models\CashClosing;
@@ -15,8 +16,11 @@ use Livewire\Component;
 
 /**
  * Caisse du jour d'un pressing : encaissements enregistrés par moyen de
- * paiement, puis clôture avec les espèces comptées et l'écart. Les gérants
- * peuvent rouvrir une journée clôturée par erreur.
+ * paiement, puis clôture avec les espèces comptées et l'écart. Selon le rôle :
+ *  - historique (propriétaire) : tous les jours, totaux, clôtures et écarts ;
+ *  - clôture (gérant) : la journée en cours seulement, espèces attendues ;
+ *  - ses encaissements (employé) : ses paiements du jour, sans total.
+ * Le propriétaire peut rouvrir une journée clôturée par erreur.
  */
 class Index extends Component
 {
@@ -29,6 +33,12 @@ class Index extends Component
 
     public string $note = '';
 
+    public function mount(): void
+    {
+        $user = auth()->user();
+        abort_unless($user->may(Permission::CashHistory) || $user->may(Permission::CashClose) || $user->may(Permission::CashOwnPayments), 403);
+    }
+
     private function pressing(): Pressing
     {
         $pressing = auth()->user()->currentPressing();
@@ -39,6 +49,11 @@ class Index extends Component
 
     private function selectedDay(): Carbon
     {
+        // Sans l'historique, seule la journée en cours est visible.
+        if (! auth()->user()->may(Permission::CashHistory)) {
+            return today();
+        }
+
         try {
             $day = $this->day !== '' ? Carbon::parse($this->day)->startOfDay() : today();
         } catch (\Exception) {
@@ -56,6 +71,7 @@ class Index extends Component
 
     public function close(): void
     {
+        abort_unless(auth()->user()->may(Permission::CashClose), 403);
         $pressing = $this->pressing();
         $day = $this->selectedDay();
 
@@ -118,14 +134,26 @@ class Index extends Component
     {
         $pressing = $this->pressing();
         $day = $this->selectedDay();
+        $user = auth()->user();
+        $canHistory = $user->may(Permission::CashHistory);
+        $canClose = $user->may(Permission::CashClose);
+        $summary = CashDaySummary::for($pressing, $day);
+
+        // Employé : uniquement ses propres encaissements du jour.
+        if (! $canHistory && ! $canClose) {
+            $summary['payments'] = $summary['payments']->where('recorded_by', $user->id)->values();
+            $summary['count'] = $summary['payments']->count();
+        }
 
         return view('livewire.cash.index', [
             'pressing' => $pressing,
             'selectedDay' => $day,
-            'summary' => CashDaySummary::for($pressing, $day),
+            'summary' => $summary,
             'closing' => CashClosing::with('closer:id,name')->where('pressing_id', $pressing->id)->whereDate('business_date', $day)->first(),
-            'history' => CashClosing::with('closer:id,name')->where('pressing_id', $pressing->id)->orderByDesc('business_date')->take(14)->get(),
-            'canReopen' => auth()->user()->isAdminOf($pressing),
+            'history' => $canHistory ? CashClosing::with('closer:id,name')->where('pressing_id', $pressing->id)->orderByDesc('business_date')->take(14)->get() : collect(),
+            'canReopen' => $user->isAdminOf($pressing),
+            'canHistory' => $canHistory,
+            'canClose' => $canClose,
         ]);
     }
 }

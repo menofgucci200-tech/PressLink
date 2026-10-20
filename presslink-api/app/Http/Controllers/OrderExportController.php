@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
+use App\Enums\Permission;
 use App\Exports\OrdersExport;
 use App\Models\Pressing;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -24,7 +25,7 @@ class OrderExportController extends Controller
     public function __invoke(Request $request, string $format): Response
     {
         $pressing = $request->user()->currentPressing();
-        abort_unless($pressing !== null, 403);
+        abort_unless($pressing !== null && $request->user()->may(Permission::ReportsExport, $pressing), 403);
 
         $filters = [
             'status' => $request->string('status')->toString() ?: null,

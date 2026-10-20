@@ -74,6 +74,8 @@
                     <button type="button" wire:click="cancelPayment" class="h-10 px-3.5 rounded-lg border border-(--color-border) text-sm font-medium hover:border-(--color-text-muted)">Annuler</button>
                 </div>
             </form>
+        @elseif (! ($canRecordPayments ?? true))
+            {{-- Le rôle ne permet pas d'encaisser : rien à proposer ici. --}}
         @elseif (! ($acceptsCustomers ?? true))
             <p class="mt-4 text-xs text-(--color-text-muted)">Pressing fermé : l'encaissement reprendra à l'ouverture.</p>
         @else

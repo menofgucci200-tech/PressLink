@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Subscription;
 
+use App\Enums\Permission;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -16,7 +17,7 @@ class Show extends Component
     public function mount(): void
     {
         $pressing = auth()->user()->currentPressing();
-        abort_unless($pressing && auth()->user()->isAdminOf($pressing), 403);
+        abort_unless($pressing && auth()->user()->may(Permission::SubscriptionManage, $pressing), 403);
     }
 
     #[Layout('layouts.dashboard', ['active' => 'subscription', 'title' => 'Abonnement'])]

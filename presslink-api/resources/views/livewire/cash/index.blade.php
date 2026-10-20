@@ -8,6 +8,7 @@
             <h1 class="font-display text-2xl font-bold mb-1">Caisse</h1>
             <p class="text-sm text-(--color-text-muted)">{{ $pressing->name }} · {{ ucfirst($selectedDay->translatedFormat('l j F Y')) }}</p>
         </div>
+        @if ($canHistory)
         <div class="flex items-center gap-2">
             <button type="button" wire:click="$set('day', '{{ $selectedDay->copy()->subDay()->toDateString() }}')" aria-label="Jour précédent" data-tooltip="Jour précédent"
                     class="w-10 h-10 rounded-lg border border-(--color-border) bg-(--color-surface) flex items-center justify-center hover:border-(--color-primary)">‹</button>
@@ -19,11 +20,13 @@
                 <button type="button" wire:click="$set('day', '')" class="h-10 px-3 rounded-lg text-sm font-medium text-(--color-primary) hover:underline">Aujourd'hui</button>
             @endunless
         </div>
+        @endif
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-5 items-start">
         <div class="flex flex-col gap-5">
-            {{-- Totaux par moyen de paiement --}}
+            {{-- Totaux par moyen de paiement (propriétaire) --}}
+            @if ($canHistory)
             <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
                 <div class="flex items-baseline justify-between mb-4">
                     <h2 class="font-semibold text-sm">Encaissé ce jour</h2>
@@ -42,10 +45,11 @@
                     </div>
                 @endif
             </div>
+            @endif
 
             {{-- Détail des paiements --}}
             <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden">
-                <div class="px-5 py-4 border-b border-(--color-border)"><h2 class="font-semibold text-sm">Paiements ({{ $summary['count'] }})</h2></div>
+                <div class="px-5 py-4 border-b border-(--color-border)"><h2 class="font-semibold text-sm">{{ $canHistory || $canClose ? 'Paiements' : 'Mes encaissements du jour' }} ({{ $summary['count'] }})</h2></div>
                 @forelse ($summary['payments'] as $payment)
                     <div wire:key="cp-{{ $payment->id }}" class="flex items-center gap-3 px-5 py-3 border-b border-(--color-border) last:border-b-0 text-sm">
                         <span class="w-12 text-(--color-text-muted) tabular-nums">{{ $payment->paid_at->format('H:i') }}</span>
@@ -61,7 +65,8 @@
         </div>
 
         <div class="flex flex-col gap-5">
-            {{-- Clôture --}}
+            {{-- Clôture (propriétaire et gérant) --}}
+            @if ($canClose)
             <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
                 <h2 class="font-semibold text-sm mb-3">Clôture de caisse</h2>
                 @if ($closing)
@@ -110,7 +115,10 @@
                 @endif
             </div>
 
-            {{-- Historique --}}
+            @endif
+
+            {{-- Historique (propriétaire) --}}
+            @if ($canHistory)
             <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden">
                 <div class="px-5 py-4 border-b border-(--color-border)"><h2 class="font-semibold text-sm">Dernières clôtures</h2></div>
                 @forelse ($history as $past)
@@ -124,6 +132,11 @@
                     <p class="px-5 py-6 text-sm text-(--color-text-muted)">Aucune clôture pour le moment.</p>
                 @endforelse
             </div>
+            @endif
+
+            @unless ($canClose || $canHistory)
+                <p class="text-xs text-(--color-text-muted) px-1">La clôture de la caisse est faite par le gérant ou le propriétaire.</p>
+            @endunless
         </div>
     </div>
 </div>

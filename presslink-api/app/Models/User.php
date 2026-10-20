@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\Permission;
 use App\Enums\PressingRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -68,8 +69,64 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Pressing::class, 'pressing_users')
             ->using(PressingUser::class)
-            ->withPivot(['role', 'is_active'])
+            ->withPivot(['role', 'role_id', 'is_active'])
             ->withTimestamps();
+    }
+
+    /** @var array<int, Role|null> rôle par pressing, pour la durée de la requête */
+    private array $rolesByPressing = [];
+
+    /**
+     * Rôle détaillé du membre dans ce pressing (Propriétaire, Gérant…). Un
+     * membre rattaché sans rôle détaillé prend celui de son ancien rôle :
+     * administrateur → Propriétaire, employé → Employé.
+     */
+    public function roleIn(Pressing $pressing): ?Role
+    {
+        if (array_key_exists($pressing->id, $this->rolesByPressing)) {
+            return $this->rolesByPressing[$pressing->id];
+        }
+
+        $pivot = PressingUser::query()
+            ->where('pressing_id', $pressing->id)
+            ->where('user_id', $this->id)
+            ->where('is_active', true)
+            ->first();
+
+        $role = null;
+        if ($pivot !== null) {
+            $role = $pivot->role_id !== null ? Role::find($pivot->role_id) : null;
+            $role ??= $pressing->defaultRole($pivot->role === PressingRole::Admin ? Role::OWNER : Role::EMPLOYEE);
+        }
+
+        return $this->rolesByPressing[$pressing->id] = $role;
+    }
+
+    /**
+     * Le membre a-t-il cet accès dans ce pressing (par défaut, le pressing
+     * actif) ? Le propriétaire a tous les accès.
+     */
+    public function may(Permission $permission, ?Pressing $pressing = null): bool
+    {
+        $pressing ??= $this->currentPressing();
+
+        if ($pressing === null) {
+            return false;
+        }
+
+        return $this->roleIn($pressing)?->allows($permission) ?? false;
+    }
+
+    /** « Propriétaire », « Gérant », « Caissière »… */
+    public function roleLabelIn(Pressing $pressing): string
+    {
+        return $this->roleIn($pressing)?->name ?? 'Membre';
+    }
+
+    /** Oublie les rôles mémorisés (après un changement de rôle). */
+    public function forgetRoles(): void
+    {
+        $this->rolesByPressing = [];
     }
 
     /** RB-08 : un employé n'accède qu'aux pressings auxquels il est affecté. */

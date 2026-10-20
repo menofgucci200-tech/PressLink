@@ -23,8 +23,11 @@
         OrderStatus::Prete => ['action' => OrderStatus::Recuperee, 'label' => $balance > 0 ? 'Encaisser '.$fcfa($balance).' F et remettre' : 'Remettre au client', 'hint' => $balance > 0 ? 'Le client règle le reste en récupérant ses pièces.' : 'La commande est déjà payée.'],
         default => null,
     };
+    // Accès du rôle : remise (et encaissement) d'un côté, atelier de l'autre.
+    $allowedAction = fn (OrderStatus $action) => $action === OrderStatus::Recuperee ? $canRecordPayments : $canWorkshop;
+    $primaryAllowed = $primary !== null && $allowedAction($primary['action']);
     $secondary = collect($nextActions)->reject(fn ($action) => ($primary !== null && $action === $primary['action']) || $action === OrderStatus::Annulee
-        || ($action === OrderStatus::Recuperee && ! $acceptsCustomers));
+        || ($action === OrderStatus::Recuperee && ! $acceptsCustomers) || ! $allowedAction($action));
     $cancellableByAdminOnly = $acceptsCustomers && in_array(OrderStatus::Annulee, $nextActions, true) && ! $canCancel;
     // Pressing fermé : la remise au client attend l'ouverture (l'atelier continue).
     $handOverClosed = ! $acceptsCustomers && $status === OrderStatus::Prete;
@@ -82,7 +85,7 @@
                 <div class="flex-1 min-w-0">
                     <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Prochaine étape</div>
                     <div class="text-sm text-(--color-text-secondary)">{{ $handOverClosed ? $order->pressing->closedMessage() : $primary['hint'] }}</div>
-                    @if ($status === OrderStatus::Prete && $balance > 0 && ! $handOverClosed)
+                    @if ($status === OrderStatus::Prete && $balance > 0 && ! $handOverClosed && $primaryAllowed)
                         <div class="flex flex-wrap gap-1.5 mt-2" role="radiogroup" aria-label="Payé en">
                             @foreach ($paymentMethods as $method)
                                 <button type="button" wire:key="settle-{{ $method->value }}" wire:click="$set('paymentMethod', '{{ $method->value }}')" role="radio" aria-checked="{{ $paymentMethod === $method->value ? 'true' : 'false' }}"
@@ -94,7 +97,11 @@
                     @endif
                 </div>
 
-                @if ($handOverClosed)
+                @if (! $primaryAllowed)
+                    <span class="h-12 px-5 rounded-xl bg-(--color-bg) text-(--color-text-muted) text-sm font-semibold flex items-center justify-center text-center">
+                        {{ $primary['action'] === OrderStatus::Recuperee ? 'Remise faite par un collègue habilité' : 'Statut changé par l\'atelier' }}
+                    </span>
+                @elseif ($handOverClosed)
                     <span class="h-12 px-6 rounded-xl bg-(--color-bg) text-(--color-text-muted) text-[15px] font-semibold flex items-center justify-center gap-2 cursor-not-allowed" title="{{ $order->pressing->closedMessage() }}">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
                         Remise à l'ouverture
@@ -148,7 +155,7 @@
                     @if ($canCancel && ! $showCancelForm)
                         <button type="button" wire:click="openCancelForm" class="font-medium text-(--color-error) hover:underline">Annuler la commande…</button>
                     @elseif ($cancellableByAdminOnly)
-                        <span class="text-(--color-text-muted)">Annulation : réservée à l'administrateur (le travail a commencé).</span>
+                        <span class="text-(--color-text-muted)">Annulation : réservée au propriétaire et au gérant (le travail a commencé).</span>
                     @endif
                 </div>
             @endif

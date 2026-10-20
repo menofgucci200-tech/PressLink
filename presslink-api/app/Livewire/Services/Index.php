@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Services;
 
+use App\Enums\Permission;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\OrderItem;
 use App\Models\Pressing;
@@ -56,7 +57,7 @@ class Index extends Component
     public function mount(): void
     {
         $pressing = auth()->user()->currentPressing();
-        abort_unless($pressing && auth()->user()->isAdminOf($pressing), 403);
+        abort_unless($pressing && auth()->user()->may(Permission::CatalogManage, $pressing), 403);
     }
 
     private function pressing(): Pressing

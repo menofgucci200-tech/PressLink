@@ -66,8 +66,12 @@ class Pressing extends Model
             $pressing->code ??= self::generateUniqueCode();
         });
 
-        // Tout pressing démarre avec deux services : Repassage et Nettoyage.
-        static::created(fn (self $pressing) => Prestation::createDefaultsFor($pressing));
+        // Tout pressing démarre avec deux services (Repassage et Nettoyage) et
+        // trois rôles (Propriétaire, Gérant, Employé).
+        static::created(function (self $pressing): void {
+            Prestation::createDefaultsFor($pressing);
+            Role::createDefaultsFor($pressing);
+        });
     }
 
     /**
@@ -311,8 +315,26 @@ class Pressing extends Model
     {
         return $this->belongsToMany(User::class, 'pressing_users')
             ->using(PressingUser::class)
-            ->withPivot(['role', 'is_active'])
+            ->withPivot(['role', 'role_id', 'is_active'])
             ->withTimestamps();
+    }
+
+    /** @return HasMany<Role, $this> */
+    public function roles(): HasMany
+    {
+        return $this->hasMany(Role::class)->orderByRaw("CASE `key` WHEN 'owner' THEN 0 WHEN 'manager' THEN 1 WHEN 'employee' THEN 2 ELSE 3 END")->orderBy('name');
+    }
+
+    /** Rôle par défaut du pressing (« owner », « manager », « employee »), créé au besoin. */
+    public function defaultRole(string $key): Role
+    {
+        $role = $this->roles()->where('key', $key)->first();
+        if ($role === null) {
+            Role::createDefaultsFor($this);
+            $role = $this->roles()->where('key', $key)->firstOrFail();
+        }
+
+        return $role;
     }
 
     public function admins(): BelongsToMany

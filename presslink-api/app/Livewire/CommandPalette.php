@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\OrderStatus;
+use App\Enums\Permission;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Pressing;
@@ -202,7 +203,8 @@ class CommandPalette extends Component
     {
         $user = auth()->user();
         $pressing = $user->currentPressing();
-        $isAdmin = $pressing !== null && $user->isAdminOf($pressing);
+        $can = fn (Permission $permission) => $pressing !== null && $user->may($permission, $pressing);
+        $canCash = $can(Permission::CashOwnPayments) || $can(Permission::CashClose) || $can(Permission::CashHistory);
 
         $group = $user->managesGroup() ? [
             ['title' => 'Vue du groupe', 'subtitle' => 'Totaux, comparatif et alertes', 'url' => route('pressings.overview'), 'icon' => 'home'],
@@ -217,17 +219,17 @@ class CommandPalette extends Component
 
         return array_values(array_filter([
             ...$group,
-            ['title' => 'Caisse du jour', 'subtitle' => 'Encaissements et clôture', 'url' => route('cash.index'), 'icon' => 'money'],
-            ['title' => 'Nouvelle commande', 'subtitle' => 'Enregistrer un dépôt', 'url' => route('orders.create'), 'icon' => 'plus', 'hint' => 'N'],
+            $canCash ? ['title' => 'Caisse du jour', 'subtitle' => 'Encaissements et clôture', 'url' => route('cash.index'), 'icon' => 'money'] : null,
+            $can(Permission::OrdersCreate) ? ['title' => 'Nouvelle commande', 'subtitle' => 'Enregistrer un dépôt', 'url' => route('orders.create'), 'icon' => 'plus', 'hint' => 'N'] : null,
             ['title' => 'Tableau de bord', 'subtitle' => null, 'url' => route('dashboard'), 'icon' => 'home', 'hint' => 'G D'],
             ['title' => 'Toutes les commandes', 'subtitle' => null, 'url' => route('orders.index'), 'icon' => 'order', 'hint' => 'G C'],
             ['title' => 'Commandes prêtes à retirer', 'subtitle' => null, 'url' => route('orders.index', ['status' => OrderStatus::Prete->value]), 'icon' => 'check', 'hint' => 'G P'],
             ['title' => 'Commandes non soldées', 'subtitle' => 'Acompte ou rien payé', 'url' => route('orders.index', ['paiement' => Pressing::UNSETTLED_FILTER]), 'icon' => 'money'],
             ['title' => 'Clients', 'subtitle' => null, 'url' => route('clients.index'), 'icon' => 'client', 'hint' => 'G L'],
             ['title' => 'Signalements', 'subtitle' => null, 'url' => route('issues.index'), 'icon' => 'flag', 'hint' => 'G S'],
-            $isAdmin ? ['title' => 'Services et tarifs', 'subtitle' => null, 'url' => route('services.index'), 'icon' => 'tag'] : null,
-            $isAdmin ? ['title' => 'Équipe', 'subtitle' => null, 'url' => route('team.index'), 'icon' => 'team'] : null,
-            $isAdmin ? ['title' => 'Paramètres du pressing', 'subtitle' => null, 'url' => route('pressing.settings'), 'icon' => 'settings'] : null,
+            $can(Permission::CatalogManage) ? ['title' => 'Services et tarifs', 'subtitle' => null, 'url' => route('services.index'), 'icon' => 'tag'] : null,
+            $can(Permission::TeamManage) || $can(Permission::RolesManage) ? ['title' => 'Équipe et rôles', 'subtitle' => null, 'url' => route('team.index'), 'icon' => 'team'] : null,
+            $can(Permission::SettingsManage) ? ['title' => 'Paramètres du pressing', 'subtitle' => null, 'url' => route('pressing.settings'), 'icon' => 'settings'] : null,
             ['title' => 'Mon profil', 'subtitle' => null, 'url' => route('account.settings'), 'icon' => 'user'],
             ['title' => 'Mode jour / nuit', 'subtitle' => null, 'url' => null, 'icon' => 'theme', 'action' => 'theme'],
             ['title' => 'Raccourcis clavier', 'subtitle' => null, 'url' => null, 'icon' => 'keyboard', 'action' => 'shortcuts', 'hint' => '?'],

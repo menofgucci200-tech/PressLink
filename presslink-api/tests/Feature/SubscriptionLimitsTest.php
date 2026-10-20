@@ -9,6 +9,7 @@ use App\Livewire\Services\Index as ServicesIndex;
 use App\Livewire\Team\Index as TeamIndex;
 use App\Models\Customer;
 use App\Models\Pressing;
+use App\Models\Role;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -67,9 +68,9 @@ class SubscriptionLimitsTest extends TestCase
             ->set('name', 'Quatrième Employé')
             ->set('login', 'quatrieme.employe')
             ->set('password', 'mot-de-passe-solide')
-            ->set('role', PressingRole::Employee->value)
+            ->set('roleId', $pressing->defaultRole(Role::EMPLOYEE)->id)
             ->call('inviteEmployee')
-            ->assertHasErrors(['role']);
+            ->assertHasErrors(['roleId']);
 
         $this->assertFalse(User::where('login', 'quatrieme.employe')->exists());
     }
@@ -86,9 +87,9 @@ class SubscriptionLimitsTest extends TestCase
             ->set('name', 'Deuxième Admin')
             ->set('login', 'deuxieme.admin')
             ->set('password', 'mot-de-passe-solide')
-            ->set('role', PressingRole::Admin->value)
+            ->set('roleId', $pressing->defaultRole(Role::OWNER)->id)
             ->call('inviteEmployee')
-            ->assertHasErrors(['role']);
+            ->assertHasErrors(['roleId']);
 
         $this->assertFalse(User::where('login', 'deuxieme.admin')->exists());
     }
@@ -109,9 +110,9 @@ class SubscriptionLimitsTest extends TestCase
             ->set('name', 'Quatrième Employé')
             ->set('login', 'quatrieme.employe.business')
             ->set('password', 'mot-de-passe-solide')
-            ->set('role', PressingRole::Employee->value)
+            ->set('roleId', $pressing->defaultRole(Role::EMPLOYEE)->id)
             ->call('inviteEmployee')
-            ->assertHasNoErrors(['role']);
+            ->assertHasNoErrors(['roleId']);
 
         $this->assertTrue(User::where('login', 'quatrieme.employe.business')->exists());
     }

@@ -6,6 +6,7 @@
             <p class="text-sm text-(--color-text-muted)">{{ is_countable($orders) ? $orders->total() : 0 }} commande(s)</p>
         </div>
         <div class="flex items-center gap-2">
+            @if (auth()->user()->may(\App\Enums\Permission::ReportsExport))
             <div class="relative">
                 <button type="button" wire:click="$toggle('showExportMenu')"
                         class="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary)">
@@ -36,10 +37,13 @@
                     </div>
                 @endif
             </div>
+            @endif
+            @if (auth()->user()->may(\App\Enums\Permission::OrdersCreate))
             <a href="{{ route('orders.create') }}" wire:navigate class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Nouvelle commande
             </a>
+            @endif
         </div>
     </div>
 

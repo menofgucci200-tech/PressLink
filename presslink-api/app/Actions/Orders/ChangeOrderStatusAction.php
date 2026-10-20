@@ -4,6 +4,7 @@ namespace App\Actions\Orders;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
+use App\Enums\Permission;
 use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +33,17 @@ class ChangeOrderStatusAction
     {
         if ($target === OrderStatus::Annulee) {
             throw new RuntimeException('Pour annuler une commande, ouvrez sa fiche et indiquez le motif.');
+        }
+
+        // Accès du rôle : remise et encaissement d'un côté, atelier de l'autre.
+        $user = Auth::guard('web')->user();
+        if ($user !== null && ! $user->is_super_admin) {
+            $needed = $target === OrderStatus::Recuperee ? Permission::PaymentsRecord : Permission::OrdersWorkshop;
+            if (! $user->may($needed, $order->pressing)) {
+                throw new RuntimeException($target === OrderStatus::Recuperee
+                    ? 'Votre rôle ne permet pas de remettre une commande au client.'
+                    : 'Votre rôle ne permet pas de changer le statut d\'une commande.');
+            }
         }
 
         // Remise au client : seulement pendant les heures d'ouverture. Le

@@ -99,7 +99,7 @@ class OrderCancellationTest extends TestCase
             (new CancelOrderAction)->handle($order, $employee, CancellationReason::CustomerWithdrew);
             $this->fail('Un employé ne doit pas annuler une commande en traitement.');
         } catch (RuntimeException $e) {
-            $this->assertStringContainsString('administrateur', $e->getMessage());
+            $this->assertStringContainsString('gérant', $e->getMessage());
         }
 
         $this->actingAs($admin);
@@ -205,7 +205,7 @@ class OrderCancellationTest extends TestCase
         $order = $this->order(status: OrderStatus::Traitement);
 
         Livewire::test(OrdersShow::class, ['order' => $order])
-            ->assertSee('réservée à l\'administrateur', false)
+            ->assertSee('réservée au propriétaire et au gérant', false)
             ->call('openCancelForm')
             ->assertForbidden();
     }

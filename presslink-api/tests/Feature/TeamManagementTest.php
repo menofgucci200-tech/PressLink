@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\PressingRole;
 use App\Livewire\Team\Index as TeamIndex;
 use App\Models\Pressing;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -44,7 +45,7 @@ class TeamManagementTest extends TestCase
             ->set('login', 'marc.koffi')
             ->set('phone', '+2250700000099')
             ->set('password', 'mot-de-passe-solide')
-            ->set('role', PressingRole::Employee->value)
+            ->set('roleId', $pressing->defaultRole(Role::EMPLOYEE)->id)
             ->call('inviteEmployee')
             ->assertSet('createdMember', fn ($member) => $member !== null);
 
@@ -67,7 +68,7 @@ class TeamManagementTest extends TestCase
             ->set('name', 'Aya N\'Guessan')
             ->set('login', 'aya.nguessan')
             ->set('password', 'mot-de-passe-solide')
-            ->set('role', PressingRole::Admin->value)
+            ->set('roleId', $pressing->defaultRole(Role::OWNER)->id)
             ->call('inviteEmployee')
             ->assertSet('createdMember', fn ($member) => $member !== null);
 
@@ -91,7 +92,7 @@ class TeamManagementTest extends TestCase
             ->set('login', 'taken-login')
             ->set('phone', '+2250700000099')
             ->set('password', 'mot-de-passe-solide')
-            ->set('role', PressingRole::Employee->value)
+            ->set('roleId', $pressing->defaultRole(Role::EMPLOYEE)->id)
             ->call('inviteEmployee')
             ->assertHasErrors(['login']);
     }

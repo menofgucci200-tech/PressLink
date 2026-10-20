@@ -19,6 +19,9 @@
             $isOverviewMode = $user->hasMultiplePressings() && ! session()->has('active_pressing_id');
             $pressing = $user->currentPressing();
             $isAdmin = $pressing && $user->isAdminOf($pressing);
+            // Accès du rôle dans le pressing actif (voir App\Enums\Permission).
+            $can = fn (\App\Enums\Permission $permission) => $pressing !== null && $user->may($permission, $pressing);
+            $canCash = $can(\App\Enums\Permission::CashOwnPayments) || $can(\App\Enums\Permission::CashClose) || $can(\App\Enums\Permission::CashHistory);
             $navItem = fn (string $key, string $route, string $label, string $icon) => [
                 'key' => $key, 'route' => $route, 'label' => $label, 'icon' => $icon,
                 'active' => ($active ?? null) === $key,
@@ -28,8 +31,9 @@
                 $navItem('orders', 'orders.index', 'Commandes', 'M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z|m3.3 7 8.7 5 8.7-5|M12 22V12'),
                 $navItem('clients', 'clients.index', 'Clients', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M9 11A4 4 0 1 0 9 3a4 4 0 0 0 0 8Z'),
                 $navItem('issues', 'issues.index', 'Signalements', 'M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z|M12 9v4|M12 17h.01'),
-                $navItem('cash', 'cash.index', 'Caisse', 'M2 7h20v12H2Z|M16 13h.01|M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2'),
+                $canCash ? $navItem('cash', 'cash.index', 'Caisse', 'M2 7h20v12H2Z|M16 13h.01|M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2') : null,
             ];
+            $navItems = array_values(array_filter($navItems));
             // Groupe : qui administre plusieurs pressings. En vue d'ensemble, le
             // menu ne montre que les pages du groupe ; dans un pressing, un lien
             // ramène à la vue du groupe.
@@ -126,23 +130,29 @@
                         </a>
                     @endforeach
 
-                    @if ($isAdmin && ! $groupMode)
+                    @if (! $groupMode)
                         @php $active = $active ?? null; @endphp
+                        @if ($can(\App\Enums\Permission::CatalogManage))
                         <a href="{{ route('services.index') }}" wire:navigate style="--nav-i:4" class="nav-item {{ $active === 'services' ? 'nav-item-active' : '' }}">
                             @if ($active === 'services') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><circle cx="8" cy="8" r="6"></circle><path d="M18.09 10.37A6 6 0 1 1 10.34 18"></path></svg>
                             <span class="truncate">Services</span>
                         </a>
+                        @endif
+                        @if ($can(\App\Enums\Permission::TeamManage) || $can(\App\Enums\Permission::RolesManage))
                         <a href="{{ route('team.index') }}" wire:navigate style="--nav-i:5" class="nav-item {{ $active === 'team' ? 'nav-item-active' : '' }}">
                             @if ($active === 'team') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                             <span class="truncate">Équipe</span>
                         </a>
+                        @endif
+                        @if ($can(\App\Enums\Permission::SettingsManage))
                         <a href="{{ route('pressing.settings') }}" wire:navigate style="--nav-i:6" class="nav-item {{ $active === 'settings' ? 'nav-item-active' : '' }}">
                             @if ($active === 'settings') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg>
                             <span class="truncate">Paramètres</span>
                         </a>
+                        @endif
                     @endif
                 </nav>
 
@@ -152,7 +162,7 @@
                     {{-- Carte « Formule » masquée pour le moment, en attendant de décider
                          de l'offre à mettre en avant (passer à true pour la réafficher). --}}
                     @php $showPlanCard = false; @endphp
-                    @if ($showPlanCard && $isAdmin && $subscription)
+                    @if ($showPlanCard && $can(\App\Enums\Permission::SubscriptionManage) && $subscription)
                         @php
                             $periodEnd = $subscription->current_period_ends_at ?? $subscription->trial_ends_at;
                             $daysLeft = $periodEnd ? max(0, (int) ceil(now()->diffInDays($periodEnd, false))) : null;
@@ -173,7 +183,7 @@
                         </div>
                     @endif
                     <div class="border-t border-white/20 pt-3.5 flex flex-col gap-1.5">
-                        @if ($isAdmin)
+                        @if ($can(\App\Enums\Permission::SubscriptionManage))
                             <a href="{{ route('subscription.show') }}" wire:navigate class="nav-item {{ ($active ?? null) === 'subscription' ? 'nav-item-active' : '' }}">
                                 @if (($active ?? null) === 'subscription') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" class="flex-none"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
@@ -218,10 +228,10 @@
 
                     <x-theme-toggle />
                     <x-profile-menu :user="$user"
-                                    :role="$isAdmin ? 'Administrateur' : 'Employé'"
+                                    :role="$pressing ? $user->roleLabelIn($pressing) : 'Membre'"
                                     :context="$contextLabel"
                                     :active="($active ?? null) === 'account'">
-                        @if ($isAdmin)
+                        @if ($can(\App\Enums\Permission::SettingsManage))
                             <a href="{{ route('pressing.settings') }}" wire:navigate role="menuitem" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-(--color-text-primary) hover:bg-(--color-bg)">
                                 <svg class="w-4 h-4 flex-none text-(--color-text-muted)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
                                 Paramètres du pressing
@@ -242,7 +252,7 @@
                                 Pressing fermé{{ $pressing->nextOpeningLabel() ? ' · réouverture '.$pressing->nextOpeningLabel() : '' }}
                             </span>
                             <span class="flex-1 min-w-0 text-(--color-text-secondary)">Lecture seule pour l'accueil : pas de commande, de paiement, de remise ni d'annulation. Le travail d'atelier et la clôture de caisse restent possibles.</span>
-                            @if ($isAdmin)
+                            @if ($can(\App\Enums\Permission::OpenExceptionally))
                                 <button type="button" onclick="Livewire.dispatch('open-exceptionally', { duration: 'hour' })"
                                         class="h-8 px-3 rounded-lg border border-(--color-border) bg-(--color-surface) text-[13px] font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">Ouvrir exceptionnellement</button>
                             @endif
@@ -265,7 +275,7 @@
         </div>
 
         <x-feedback />
-        @if ($pressing && request()->routeIs('dashboard', 'orders.index', 'orders.show', 'clients.index', 'clients.show'))
+        @if ($pressing && $can(\App\Enums\Permission::OrdersCreate) && request()->routeIs('dashboard', 'orders.index', 'orders.show', 'clients.index', 'clients.show'))
             {{-- Téléphone : l'action la plus fréquente reste sous le pouce, même après avoir défilé --}}
             <a href="{{ route('orders.create') }}" wire:navigate aria-label="Nouvelle commande"
                class="lg:hidden fixed right-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 inline-flex items-center gap-2 h-14 pl-4 pr-5 rounded-full bg-(--color-primary) text-white text-[15px] font-semibold shadow-[0_8px_24px_rgba(37,99,235,.35)] active:scale-95 transition-transform">

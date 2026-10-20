@@ -16,6 +16,7 @@ enum ActivityAction: string
     case CatalogSynced = 'catalog_synced';
     case SettingsSynced = 'settings_synced';
     case TeamChanged = 'team_changed';
+    case ExceptionalOpening = 'exceptional_opening';
 
     public function label(): string
     {
@@ -28,11 +29,12 @@ enum ActivityAction: string
             self::CatalogSynced => 'Tarifs harmonisés',
             self::SettingsSynced => 'Paramètres harmonisés',
             self::TeamChanged => 'Équipe modifiée',
+            self::ExceptionalOpening => 'Ouverture exceptionnelle',
         };
     }
 
     public function isSensitive(): bool
     {
-        return in_array($this, [self::OrderCancelled, self::RecoveredUnpaid, self::PaymentRemoved], true);
+        return in_array($this, [self::OrderCancelled, self::RecoveredUnpaid, self::PaymentRemoved, self::ExceptionalOpening], true);
     }
 }

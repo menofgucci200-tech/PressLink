@@ -170,6 +170,12 @@ class Index extends Component
             return;
         }
 
+        if ($target === OrderStatus::Recuperee && ! $pressing->acceptsCustomers()) {
+            $this->toast($pressing->closedMessage(), 'warning');
+
+            return;
+        }
+
         if (count($this->selected) > self::MAX_SELECTION) {
             $this->toast('Sélectionnez au plus '.self::MAX_SELECTION.' commandes à la fois.', 'warning');
 

@@ -212,18 +212,7 @@
                     <div class="flex-1"></div>
 
                     @if ($pressing)
-                        @php
-                            $isSuspended = $pressing->status === \App\Enums\PressingStatus::Suspended;
-                            $isOpen = ! $isSuspended && $pressing->isOpenNow();
-                            $statusLabel = $isSuspended ? 'Suspendu' : ($isOpen ? 'Ouvert' : 'Fermé');
-                            $statusBg = $isSuspended ? 'bg-(--color-error-tint)' : ($isOpen ? 'bg-(--color-success-tint)' : 'bg-(--color-bg)');
-                            $statusDot = $isSuspended ? 'bg-(--color-error)' : ($isOpen ? 'bg-(--color-success) animate-pulse-dot' : 'bg-(--color-text-muted)');
-                            $statusText = $isSuspended ? 'text-(--color-error)' : ($isOpen ? 'text-(--color-success-text)' : 'text-(--color-text-muted)');
-                        @endphp
-                        <div class="flex items-center gap-1.5 rounded-full pl-2.5 pr-3 py-1.5 {{ $statusBg }}" title="D'après les horaires définis dans Paramètres">
-                            <span class="w-1.5 h-1.5 rounded-full {{ $statusDot }}"></span>
-                            <span class="text-xs font-semibold {{ $statusText }}">{{ $statusLabel }}</span>
-                        </div>
+                        <livewire:pressing.open-status />
                         <div class="w-px h-6 bg-(--color-border)"></div>
                     @endif
 
@@ -240,6 +229,34 @@
                         @endif
                     </x-profile-menu>
                 </header>
+
+                {{-- Horaires : en dehors de l'ouverture, l'accueil des clients est en lecture seule --}}
+                @if ($pressing && $pressing->status !== \App\Enums\PressingStatus::Suspended)
+                    @php
+                        $closesAt = $pressing->acceptsCustomers() ? $pressing->closesAt() : null;
+                    @endphp
+                    @if (! $pressing->acceptsCustomers())
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 sm:px-6 lg:px-8 py-2.5 bg-(--color-bg) border-b border-(--color-border) text-[13px]" role="status">
+                            <span class="flex items-center gap-2 font-semibold text-(--color-text-primary)">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                                Pressing fermé{{ $pressing->nextOpeningLabel() ? ' · réouverture '.$pressing->nextOpeningLabel() : '' }}
+                            </span>
+                            <span class="flex-1 min-w-0 text-(--color-text-secondary)">Lecture seule pour l'accueil : pas de commande, de paiement, de remise ni d'annulation. Le travail d'atelier et la clôture de caisse restent possibles.</span>
+                            @if ($isAdmin)
+                                <button type="button" onclick="Livewire.dispatch('open-exceptionally', { duration: 'hour' })"
+                                        class="h-8 px-3 rounded-lg border border-(--color-border) bg-(--color-surface) text-[13px] font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">Ouvrir exceptionnellement</button>
+                            @endif
+                        </div>
+                    @elseif ($pressing->isExceptionallyOpen())
+                        <div class="px-4 sm:px-6 lg:px-8 py-2 bg-(--color-warning-tint) text-[13px] text-(--color-warning-text) font-medium" role="status">
+                            Ouverture exceptionnelle jusqu'à {{ $pressing->exceptional_open_until->format('H:i') }} (inscrite au journal).
+                        </div>
+                    @elseif ($closesAt && now()->diffInMinutes($closesAt, false) <= 15)
+                        <div class="px-4 sm:px-6 lg:px-8 py-2 bg-(--color-warning-tint) text-[13px] text-(--color-warning-text) font-medium" role="status">
+                            Fermeture à {{ $closesAt->format('H:i') }} : terminez les commandes et les encaissements en cours.
+                        </div>
+                    @endif
+                @endif
 
                 <main id="contenu" tabindex="-1" class="flex-1 min-w-0 overflow-x-clip p-4 sm:p-6 lg:p-8 max-lg:pb-24 outline-none">
                     {{ $slot }}

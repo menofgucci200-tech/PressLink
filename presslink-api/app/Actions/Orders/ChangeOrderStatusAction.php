@@ -34,6 +34,12 @@ class ChangeOrderStatusAction
             throw new RuntimeException('Pour annuler une commande, ouvrez sa fiche et indiquez le motif.');
         }
 
+        // Remise au client : seulement pendant les heures d'ouverture. Le
+        // travail d'atelier (en traitement, prête, en attente) reste possible.
+        if ($target === OrderStatus::Recuperee) {
+            $order->pressing->ensureAcceptsCustomers();
+        }
+
         return DB::transaction(function () use ($order, $target, $settleBalanceWith) {
             $locked = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
 

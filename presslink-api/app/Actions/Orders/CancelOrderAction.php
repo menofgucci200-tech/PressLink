@@ -45,6 +45,8 @@ class CancelOrderAction
             throw new RuntimeException('Précisez le motif de l\'annulation.');
         }
 
+        $order->pressing->ensureAcceptsCustomers();
+
         return DB::transaction(function () use ($order, $user, $reason, $note, $moneyChoice, $refundMethod) {
             $locked = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
 

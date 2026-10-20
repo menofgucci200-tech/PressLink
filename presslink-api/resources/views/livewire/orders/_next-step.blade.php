@@ -23,8 +23,11 @@
         OrderStatus::Prete => ['action' => OrderStatus::Recuperee, 'label' => $balance > 0 ? 'Encaisser '.$fcfa($balance).' F et remettre' : 'Remettre au client', 'hint' => $balance > 0 ? 'Le client règle le reste en récupérant ses pièces.' : 'La commande est déjà payée.'],
         default => null,
     };
-    $secondary = collect($nextActions)->reject(fn ($action) => ($primary !== null && $action === $primary['action']) || $action === OrderStatus::Annulee);
-    $cancellableByAdminOnly = in_array(OrderStatus::Annulee, $nextActions, true) && ! $canCancel;
+    $secondary = collect($nextActions)->reject(fn ($action) => ($primary !== null && $action === $primary['action']) || $action === OrderStatus::Annulee
+        || ($action === OrderStatus::Recuperee && ! $acceptsCustomers));
+    $cancellableByAdminOnly = $acceptsCustomers && in_array(OrderStatus::Annulee, $nextActions, true) && ! $canCancel;
+    // Pressing fermé : la remise au client attend l'ouverture (l'atelier continue).
+    $handOverClosed = ! $acceptsCustomers && $status === OrderStatus::Prete;
 @endphp
 
 @if ($status === OrderStatus::Annulee)
@@ -78,8 +81,8 @@
             <div class="flex flex-col sm:flex-row sm:items-center gap-3">
                 <div class="flex-1 min-w-0">
                     <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Prochaine étape</div>
-                    <div class="text-sm text-(--color-text-secondary)">{{ $primary['hint'] }}</div>
-                    @if ($status === OrderStatus::Prete && $balance > 0)
+                    <div class="text-sm text-(--color-text-secondary)">{{ $handOverClosed ? $order->pressing->closedMessage() : $primary['hint'] }}</div>
+                    @if ($status === OrderStatus::Prete && $balance > 0 && ! $handOverClosed)
                         <div class="flex flex-wrap gap-1.5 mt-2" role="radiogroup" aria-label="Payé en">
                             @foreach ($paymentMethods as $method)
                                 <button type="button" wire:key="settle-{{ $method->value }}" wire:click="$set('paymentMethod', '{{ $method->value }}')" role="radio" aria-checked="{{ $paymentMethod === $method->value ? 'true' : 'false' }}"
@@ -91,7 +94,12 @@
                     @endif
                 </div>
 
-                @if ($status === OrderStatus::Prete && $balance > 0)
+                @if ($handOverClosed)
+                    <span class="h-12 px-6 rounded-xl bg-(--color-bg) text-(--color-text-muted) text-[15px] font-semibold flex items-center justify-center gap-2 cursor-not-allowed" title="{{ $order->pressing->closedMessage() }}">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+                        Remise à l'ouverture
+                    </span>
+                @elseif ($status === OrderStatus::Prete && $balance > 0)
                     <button type="button" wire:click="settleAndRecover"
                             data-confirm-title="Encaisser et remettre" data-confirm-label="Encaisser et remettre"
                             wire:confirm="Encaisser {{ $fcfa($balance) }} F et marquer la commande {{ $order->order_number }} comme récupérée par {{ $order->customer->fullName() }} ?"

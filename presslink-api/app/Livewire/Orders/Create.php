@@ -196,6 +196,13 @@ class Create extends Component
     public function createAndPickCustomer(): void
     {
         $pressing = $this->pressing();
+
+        if (! $pressing->acceptsCustomers()) {
+            $this->addError('newPhone', $pressing->closedMessage());
+
+            return;
+        }
+
         $this->newPhone = PhoneNumber::normalize($this->newPhone);
         $this->reset(['knownCustomerId', 'knownCustomerName']);
 
@@ -239,6 +246,12 @@ class Create extends Component
     /** « Oui, c'est mon client » : rattaché au pressing avec le nom déjà connu. */
     public function confirmKnownCustomer(): void
     {
+        if (! $this->pressing()->acceptsCustomers()) {
+            $this->addError('newPhone', $this->pressing()->closedMessage());
+
+            return;
+        }
+
         $customer = Customer::findOrFail($this->knownCustomerId);
         $this->pressing()->customers()->syncWithoutDetaching([$customer->id => ['joined_at' => now()]]);
 
@@ -675,6 +688,12 @@ class Create extends Component
     {
         $this->errorMessage = null;
 
+        if (! $this->pressing()->acceptsCustomers()) {
+            $this->errorMessage = $this->pressing()->closedMessage();
+
+            return;
+        }
+
         if ($this->selectedCustomerId === null) {
             $this->dispatch('toast', type: 'error', message: 'Choisissez d\'abord le client.');
             $this->dispatch('comptoir-focus', target: 'client');
@@ -858,6 +877,7 @@ class Create extends Component
             'selectedPrestation' => $selectedPrestation,
             'pieces' => $pieces,
             'lastOrder' => $lastOrder,
+            'acceptsCustomers' => $pressing->acceptsCustomers(),
             'paymentMethods' => PaymentMethod::cases(),
         ]);
     }

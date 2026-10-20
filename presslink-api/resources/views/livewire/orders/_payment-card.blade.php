@@ -74,6 +74,8 @@
                     <button type="button" wire:click="cancelPayment" class="h-10 px-3.5 rounded-lg border border-(--color-border) text-sm font-medium hover:border-(--color-text-muted)">Annuler</button>
                 </div>
             </form>
+        @elseif (! ($acceptsCustomers ?? true))
+            <p class="mt-4 text-xs text-(--color-text-muted)">Pressing fermé : l'encaissement reprendra à l'ouverture.</p>
         @else
             <button type="button" wire:click="openPaymentForm"
                     class="mt-4 w-full h-10 rounded-lg border border-(--color-border) text-sm font-semibold inline-flex items-center justify-center gap-2 hover:border-(--color-primary) hover:text-(--color-primary)">

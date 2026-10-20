@@ -1,7 +1,8 @@
 @php
     $fcfa = fn (int $amount) => number_format($amount, 0, ',', ' ');
-    $ready = $selectedCustomer !== null && $items !== [];
+    $ready = $acceptsCustomers && $selectedCustomer !== null && $items !== [];
     $validateLabel = match (true) {
+        ! $acceptsCustomers => 'Pressing fermé',
         $selectedCustomer === null => 'Choisir le client',
         $items === [] => 'Ajouter des pièces',
         default => 'Valider · '.$fcfa($this->total).' F',

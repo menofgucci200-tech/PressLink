@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Actions\Demo\ResetDemoPressing;
 use App\Enums\PressingRole;
 use App\Enums\PressingStatus;
+use App\Exceptions\PressingClosedException;
+use Carbon\Carbon;
 use Database\Factories\PressingFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -31,6 +33,7 @@ class Pressing extends Model
         'city',
         'description',
         'opening_hours',
+        'exceptional_open_until',
         'show_pricing_to_customers',
         'status',
     ];
@@ -44,6 +47,7 @@ class Pressing extends Model
     {
         return [
             'opening_hours' => 'array',
+            'exceptional_open_until' => 'datetime',
             'show_pricing_to_customers' => 'boolean',
             'status' => PressingStatus::class,
         ];
@@ -87,25 +91,130 @@ class Pressing extends Model
 
     /**
      * Le pressing est-il ouvert à l'instant, d'après ses horaires
-     * (Pressing\Settings) ? Indépendant du statut de compte/abonnement
-     * (`status`), qui ne dit rien sur les horaires du jour.
+     * (Pressing\Settings) ou une ouverture exceptionnelle de l'administrateur ?
+     * Indépendant du statut de compte/abonnement (`status`). Sans horaires
+     * renseignés, le pressing est considéré comme toujours ouvert.
      */
     public function isOpenNow(): bool
+    {
+        return $this->isExceptionallyOpen() || $this->isOnSchedule(now());
+    }
+
+    /** Ouverture exceptionnelle en cours (décidée par l'administrateur). */
+    public function isExceptionallyOpen(): bool
+    {
+        return $this->exceptional_open_until !== null && $this->exceptional_open_until->isFuture();
+    }
+
+    /** Le moment donné tombe-t-il dans les horaires du jour ? (fermeture à l'heure pile) */
+    public function isOnSchedule(Carbon $at): bool
     {
         if (empty($this->opening_hours)) {
             return true;
         }
 
-        $day = mb_strtolower(now()->locale('fr')->dayName);
-        $today = $this->opening_hours[$day] ?? null;
-
-        if ($today === null || ($today['closed'] ?? false)) {
+        $hours = $this->hoursOn($at);
+        if ($hours === null) {
             return false;
         }
 
-        $now = now()->format('H:i');
+        $time = $at->format('H:i');
 
-        return $now >= ($today['open'] ?? '00:00') && $now <= ($today['close'] ?? '23:59');
+        return $time >= $hours['open'] && $time < $hours['close'];
+    }
+
+    /**
+     * Le pressing accueille-t-il des clients en ce moment (commandes,
+     * paiements, remises, annulations, nouveaux clients) ? Le pressing de
+     * démonstration reste toujours ouvert, pour être essayé à toute heure.
+     */
+    public function acceptsCustomers(): bool
+    {
+        return $this->code === ResetDemoPressing::PRESSING_CODE || $this->isOpenNow();
+    }
+
+    /**
+     * @throws PressingClosedException le pressing est fermé
+     */
+    public function ensureAcceptsCustomers(): void
+    {
+        if (! $this->acceptsCustomers()) {
+            throw new PressingClosedException($this->closedMessage());
+        }
+    }
+
+    /** « Pressing fermé : réouverture demain à 08:00. » */
+    public function closedMessage(): string
+    {
+        $next = $this->nextOpeningLabel();
+
+        return 'Pressing fermé'.($next ? " : réouverture {$next}" : '').'. Les commandes, paiements et remises reprendront à l\'ouverture.';
+    }
+
+    /** Prochaine ouverture d'après les horaires (dans les 7 jours), ou null. */
+    public function nextOpeningAt(): ?Carbon
+    {
+        if (empty($this->opening_hours)) {
+            return null;
+        }
+
+        $now = now();
+        for ($offset = 0; $offset <= 7; $offset++) {
+            $day = $now->copy()->addDays($offset);
+            $hours = $this->hoursOn($day);
+            if ($hours === null) {
+                continue;
+            }
+
+            $opening = $day->copy()->setTimeFromTimeString($hours['open']);
+            if ($opening->greaterThan($now)) {
+                return $opening;
+            }
+        }
+
+        return null;
+    }
+
+    /** « aujourd'hui à 14:00 », « demain à 08:00 », « lundi à 07:30 ». */
+    public function nextOpeningLabel(): ?string
+    {
+        $next = $this->nextOpeningAt();
+        if ($next === null) {
+            return null;
+        }
+
+        $day = match (true) {
+            $next->isToday() => 'aujourd\'hui',
+            $next->isTomorrow() => 'demain',
+            default => mb_strtolower($next->locale('fr')->dayName),
+        };
+
+        return $day.' à '.$next->format('H:i');
+    }
+
+    /** Heure de fermeture du jour (ou de fin d'ouverture exceptionnelle), si le pressing est ouvert. */
+    public function closesAt(): ?Carbon
+    {
+        if ($this->isExceptionallyOpen()) {
+            return $this->exceptional_open_until;
+        }
+
+        $hours = empty($this->opening_hours) ? null : $this->hoursOn(now());
+
+        return $hours !== null && $this->isOnSchedule(now()) ? now()->setTimeFromTimeString($hours['close']) : null;
+    }
+
+    /** @return array{open: string, close: string}|null Horaires d'un jour, null s'il est fermé. */
+    private function hoursOn(Carbon $at): ?array
+    {
+        $day = mb_strtolower($at->copy()->locale('fr')->dayName);
+        $hours = $this->opening_hours[$day] ?? null;
+
+        if ($hours === null || ($hours['closed'] ?? false) || empty($hours['open']) || empty($hours['close'])) {
+            return null;
+        }
+
+        return ['open' => $hours['open'], 'close' => $hours['close']];
     }
 
     /** @return HasMany<Prestation, $this> */

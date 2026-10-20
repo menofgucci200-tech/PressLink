@@ -154,6 +154,12 @@ class Show extends Component
     {
         abort_unless(auth()->user()->can('update', $this->order), 403);
 
+        if (! $this->order->pressing->acceptsCustomers()) {
+            $this->addError('paymentAmount', $this->order->pressing->closedMessage());
+
+            return;
+        }
+
         $this->validate([
             'paymentAmount' => ['required', 'integer', 'min:1', 'max:'.max(1, $this->order->balance_due_fcfa)],
             'paymentMethod' => ['required', 'in:'.implode(',', array_column(PaymentMethod::cases(), 'value'))],
@@ -243,7 +249,8 @@ class Show extends Component
         return view('livewire.orders.show', [
             'nextActions' => $this->order->status->allowedTransitions(),
             'paymentMethods' => PaymentMethod::cases(),
-            'canCancel' => CancelOrderAction::canCancel(auth()->user(), $this->order),
+            'canCancel' => CancelOrderAction::canCancel(auth()->user(), $this->order) && $this->order->pressing->acceptsCustomers(),
+            'acceptsCustomers' => $this->order->pressing->acceptsCustomers(),
             'cancellationReasons' => CancellationReason::cases(),
         ]);
     }

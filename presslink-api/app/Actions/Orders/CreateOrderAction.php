@@ -53,6 +53,8 @@ class CreateOrderAction
             throw new RuntimeException('Ce pressing est suspendu : impossible de créer une commande.');
         }
 
+        $pressing->ensureAcceptsCustomers();
+
         if ($customer->is_active === false) {
             throw new RuntimeException(self::INACTIVE_CUSTOMER_MESSAGE);
         }

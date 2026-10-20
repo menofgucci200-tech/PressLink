@@ -69,6 +69,13 @@ class Index extends Component
         $this->errorMessage = null;
         $this->reset(['knownCustomerId', 'knownCustomerName']);
         $pressing = auth()->user()->currentPressing();
+
+        if (! $pressing->acceptsCustomers()) {
+            $this->errorMessage = $pressing->closedMessage();
+
+            return;
+        }
+
         $this->phone = PhoneNumber::normalize($this->phone);
 
         $this->validate(['phone' => ['required', 'string', new IvorianPhone]]);
@@ -112,6 +119,13 @@ class Index extends Component
     public function confirmKnownCustomer(): void
     {
         $customer = Customer::findOrFail($this->knownCustomerId);
+        $pressing = auth()->user()->currentPressing();
+
+        if (! $pressing->acceptsCustomers()) {
+            $this->errorMessage = $pressing->closedMessage();
+
+            return;
+        }
 
         if (! $this->allowsAnotherClient()) {
             return;

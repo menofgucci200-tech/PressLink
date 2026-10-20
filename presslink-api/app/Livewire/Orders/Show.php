@@ -209,16 +209,6 @@ class Show extends Component
         $this->toast('Solde encaissé et commande remise au client.');
     }
 
-    /** Correction d'une erreur de saisie : réservé aux gérants du pressing. */
-    public function removePayment(int $paymentId): void
-    {
-        abort_unless(auth()->user()->can('delete', $this->order), 403);
-
-        $this->order->payments()->findOrFail($paymentId)->delete();
-        $this->order->refresh();
-        $this->toast('Paiement supprimé. Reste à payer : '.number_format($this->order->balance_due_fcfa, 0, ',', ' ').' F.', 'warning');
-    }
-
     public function startResolving(int $issueId): void
     {
         $this->resolvingIssueId = $issueId;
@@ -253,7 +243,6 @@ class Show extends Component
         return view('livewire.orders.show', [
             'nextActions' => $this->order->status->allowedTransitions(),
             'paymentMethods' => PaymentMethod::cases(),
-            'canRemovePayments' => auth()->user()->can('delete', $this->order),
             'canCancel' => CancelOrderAction::canCancel(auth()->user(), $this->order),
             'cancellationReasons' => CancellationReason::cases(),
         ]);

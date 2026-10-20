@@ -37,15 +37,9 @@
                             {{ $payment->paid_at->format('d/m/Y H:i') }}{{ $payment->recorder ? ' · '.$payment->recorder->name : '' }}{{ $payment->note ? ' · '.$payment->note : '' }}
                         </div>
                     </div>
-                    @if ($canRemovePayments)
-                        <button type="button" wire:click="removePayment({{ $payment->id }})"
-                                data-confirm-title="Supprimer ce paiement" data-confirm-label="Supprimer" data-confirm-tone="danger"
-                                wire:confirm="Supprimer le paiement de {{ $fcfa($payment->amount_fcfa) }} F du {{ $payment->paid_at->format('d/m/Y') }} ? À utiliser uniquement pour corriger une erreur de saisie."
-                                data-tooltip="Supprimer (erreur de saisie)" aria-label="Supprimer ce paiement"
-                                class="flex-none w-7 h-7 rounded-md flex items-center justify-center text-(--color-text-muted) hover:text-(--color-error) hover:bg-(--color-error-tint)">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
-                        </button>
-                    @endif
+                    <x-receipt-actions size="sm" label="ce reçu de paiement"
+                                       :download="route('orders.payment-receipt', ['order' => $order, 'payment' => $payment, 'format' => 'pdf'])"
+                                       :share="['url' => \App\Support\ReceiptLinks::payment($payment), 'text' => \App\Support\ReceiptLinks::paymentShareText($payment), 'file' => \App\Support\ReceiptLinks::paymentFileName($payment), 'phone' => $order->customer->phone]" />
                 </div>
             @endforeach
         </div>

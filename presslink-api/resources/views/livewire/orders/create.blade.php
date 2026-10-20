@@ -67,6 +67,7 @@
                 <span class="text-(--color-text-secondary)">{{ $lastCreated['customer'] }} · {{ $fcfa($lastCreated['total']) }} F. L'écran est prêt pour le client suivant.</span>
             </div>
             <a href="{{ route('orders.show', $lastCreated['id']) }}" wire:navigate class="text-sm font-medium text-(--color-text-secondary) hover:underline">Voir la commande</a>
+            <x-receipt-actions label="le reçu" :download="$lastCreated['pdf']" :share="$lastCreated['share']" />
             <a href="{{ route('orders.receipt', ['order' => $lastCreated['id'], 'imprimer' => 1]) }}" target="_blank" rel="noopener"
                class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-(--color-success) text-white text-sm font-semibold hover:opacity-90">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><path d="M6 14h12v8H6z"></path></svg>

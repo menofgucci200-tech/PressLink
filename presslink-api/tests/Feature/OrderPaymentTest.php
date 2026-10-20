@@ -178,21 +178,23 @@ class OrderPaymentTest extends TestCase
         $this->assertDatabaseHas('order_payments', ['order_id' => $order->id, 'amount_fcfa' => 5000, 'note' => 'Solde au retrait']);
     }
 
-    public function test_only_pressing_admins_can_remove_a_payment(): void
+    public function test_a_recorded_payment_can_never_be_deleted(): void
     {
         $order = $this->order(6000, 6000);
         $payment = $order->payments()->firstOrFail();
-
-        $this->actingAs($this->staff(PressingRole::Employee));
-        Livewire::test(OrdersShow::class, ['order' => $order])
-            ->call('removePayment', $payment->id)
-            ->assertForbidden();
-
         $this->actingAs($this->staff(PressingRole::Admin));
-        Livewire::test(OrdersShow::class, ['order' => $order])
-            ->call('removePayment', $payment->id);
 
-        $this->assertSame(0, $order->fresh()->amount_paid_fcfa);
+        Livewire::test(OrdersShow::class, ['order' => $order])
+            ->assertDontSee('Supprimer ce paiement')
+            ->assertSee('Télécharger ce reçu de paiement');
+
+        try {
+            $payment->delete();
+            $this->fail('Un paiement ne doit pas pouvoir être supprimé.');
+        } catch (\RuntimeException) {
+            $this->assertDatabaseHas('order_payments', ['id' => $payment->id]);
+            $this->assertSame(6000, $order->fresh()->amount_paid_fcfa);
+        }
     }
 
     public function test_the_receipt_shows_the_payment_and_the_remaining_balance(): void

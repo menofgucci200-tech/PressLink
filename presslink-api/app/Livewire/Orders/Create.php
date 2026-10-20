@@ -13,6 +13,7 @@ use App\Models\ServiceVariant;
 use App\Rules\IvorianPhone;
 use App\Support\ColorPalette;
 use App\Support\PhoneNumber;
+use App\Support\ReceiptLinks;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -90,7 +91,7 @@ class Create extends Component
     /** Brouillon repris à l'ouverture de l'écran. */
     public bool $draftRestored = false;
 
-    /** @var array{id: int, number: string, customer: string, total: int}|null Dernière commande validée (bandeau « Imprimer le reçu »). */
+    /** @var array{id: int, number: string, customer: string, total: int, pdf: string, share: array{url: string, text: string, file: string, phone: string}}|null Dernière commande validée (bandeau « Imprimer le reçu »). */
     public ?array $lastCreated = null;
 
     /** Champs gardés en brouillon. */
@@ -718,6 +719,8 @@ class Create extends Component
             'number' => $order->order_number,
             'customer' => $customer->fullName(),
             'total' => (int) $order->total_fcfa,
+            'pdf' => route('orders.receipt', ['order' => $order, 'format' => 'pdf']),
+            'share' => ['url' => ReceiptLinks::order($order), 'text' => ReceiptLinks::orderShareText($order), 'file' => ReceiptLinks::orderFileName($order), 'phone' => $customer->phone],
         ];
         $this->dispatch('comptoir-focus', target: 'client');
     }

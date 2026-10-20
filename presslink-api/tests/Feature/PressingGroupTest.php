@@ -166,16 +166,18 @@ class PressingGroupTest extends TestCase
     {
         $cancelled = $this->order($this->north, 5000, 2000);
         $cancelled->update(['status' => OrderStatus::Annulee]);
-        $paid = $this->order($this->south, 3000, 3000);
-        $paid->payments()->firstOrFail()->delete();
+        $unpaid = $this->order($this->south, 3000, 1000);
+        foreach ([OrderStatus::Traitement, OrderStatus::Prete, OrderStatus::Recuperee] as $status) {
+            $unpaid->update(['status' => $status]);
+        }
 
         $this->assertDatabaseHas('activity_logs', ['action' => ActivityAction::OrderCancelled->value, 'order_id' => $cancelled->id]);
-        $this->assertDatabaseHas('activity_logs', ['action' => ActivityAction::PaymentRemoved->value, 'order_id' => $paid->id]);
+        $this->assertDatabaseHas('activity_logs', ['action' => ActivityAction::RecoveredUnpaid->value, 'order_id' => $unpaid->id]);
 
         Livewire::actingAs($this->owner)->test(Activity::class)
             ->set('sensitiveOnly', true)
             ->assertSee('Commande annulée')
-            ->assertSee('Paiement supprimé')
+            ->assertSee('2 000 F restant dus')
             ->assertViewHas('logs', fn ($logs) => $logs->count() === 2
                 && $logs->every(fn ($log) => $log->action->isSensitive()));
     }

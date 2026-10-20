@@ -8,6 +8,7 @@ use Database\Factories\OrderPaymentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use RuntimeException;
 
 /**
  * Un règlement encaissé sur une commande (paiement complet, acompte ou
@@ -46,19 +47,20 @@ class OrderPayment extends Model
             $payment->paid_at ??= now();
         });
 
-        static::saved(fn (self $payment) => $payment->order->refreshAmountPaid());
-        static::deleted(fn (self $payment) => $payment->order->refreshAmountPaid());
+        // Un paiement encaissé ne se supprime pas : la caisse et les reçus
+        // remis au client doivent rester vrais. (Un remboursement s'enregistre
+        // à part, comme un montant négatif.)
+        static::deleting(function (): void {
+            throw new RuntimeException('Un paiement enregistré ne peut pas être supprimé.');
+        });
 
-        // Journal d'activité : chaque encaissement et chaque suppression.
+        static::saved(fn (self $payment) => $payment->order->refreshAmountPaid());
+
+        // Journal d'activité : chaque encaissement (et remboursement).
         static::created(fn (self $payment) => ActivityLog::record(
             $payment->order->pressing_id, ActivityAction::PaymentRecorded,
             ($payment->isRefund() ? 'Remboursement de ' : 'Paiement de ').number_format(abs($payment->amount_fcfa), 0, ',', ' ').' F ('.$payment->method->label().') sur '.$payment->order->order_number,
             $payment->order, ['amount_fcfa' => $payment->amount_fcfa, 'method' => $payment->method->value],
-        ));
-        static::deleted(fn (self $payment) => ActivityLog::record(
-            $payment->order->pressing_id, ActivityAction::PaymentRemoved,
-            'Paiement de '.number_format($payment->amount_fcfa, 0, ',', ' ').' F ('.$payment->method->label().') supprimé sur '.$payment->order->order_number,
-            $payment->order, ['amount_fcfa' => $payment->amount_fcfa, 'method' => $payment->method->value, 'paid_at' => $payment->paid_at?->toIso8601String()],
         ));
     }
 

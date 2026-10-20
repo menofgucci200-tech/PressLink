@@ -1,11 +1,16 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/link.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/widgets/app_page_route.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/network/api_error.dart';
+import '../../../core/web/web_share.dart';
+import '../../../core/widgets/app_feedback.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/presslink_top_bar.dart';
 import '../../pressings/domain/pressing_repository.dart';
@@ -332,6 +337,11 @@ class _OrderDetailBody extends ConsumerWidget {
           const SizedBox(height: AppSpacing.md),
         ],
 
+        if (order.receipt != null) ...[
+          _ReceiptActions(receipt: order.receipt!),
+          const SizedBox(height: AppSpacing.md),
+        ],
+
         Row(
           children: [
             Expanded(
@@ -511,6 +521,78 @@ class _TimelineRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Reçu de dépôt : le télécharger (PDF) ou le partager (WhatsApp, SMS…).
+class _ReceiptActions extends StatelessWidget {
+  const _ReceiptActions({required this.receipt});
+
+  final OrderReceipt receipt;
+
+  Future<void> _share(BuildContext context) async {
+    // Feuille de partage du téléphone, appelée sans attente préalable.
+    if (await shareNatively(
+      title: receipt.shareText,
+      text: receipt.shareText,
+      url: receipt.url,
+    )) {
+      return;
+    }
+    // Ordinateur, ou navigateur sans partage : WhatsApp avec le lien.
+    final whatsApp = Uri.https('wa.me', '/', {
+      'text': '${receipt.shareText} : ${receipt.url}',
+    });
+    final opened = await launchUrl(whatsApp, webOnlyWindowName: '_blank');
+    if (!opened && context.mounted) {
+      showAppToast(
+        context,
+        'Impossible de partager le reçu pour le moment.',
+        type: AppToastType.error,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final download = Uri.parse(receipt.downloadUrl);
+    Widget downloadButton(VoidCallback? followLink) => OutlinedButton.icon(
+      onPressed:
+          followLink ??
+          () => launchUrl(download, mode: LaunchMode.externalApplication),
+      icon: const Icon(Icons.download_rounded, size: 20),
+      label: const Text('Télécharger le reçu'),
+    );
+
+    return Row(
+      children: [
+        Expanded(
+          child: SizedBox(
+            height: 48,
+            // Vrai lien dans la PWA : le navigateur télécharge sans bloquer.
+            child: kIsWeb
+                ? Link(
+                    uri: download,
+                    target: LinkTarget.blank,
+                    builder: (context, followLink) =>
+                        downloadButton(followLink),
+                  )
+                : downloadButton(null),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm + 2),
+        Expanded(
+          child: SizedBox(
+            height: 48,
+            child: OutlinedButton.icon(
+              onPressed: () => _share(context),
+              icon: const Icon(Icons.share_rounded, size: 20),
+              label: const Text('Partager'),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

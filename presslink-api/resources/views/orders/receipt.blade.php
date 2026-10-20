@@ -1,6 +1,8 @@
 @php
     $fcfa = fn (int $amount) => number_format($amount, 0, ',', ' ');
     $isBatch = $orders->count() > 1;
+    $payment ??= null;
+    $share ??= null;
     $sizeUrl = fn (?string $size) => request()->fullUrlWithQuery(['taille' => $size, 'imprimer' => null]);
 @endphp
 <!DOCTYPE html>
@@ -8,7 +10,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $isBatch ? $orders->count().' reçus' : 'Reçu '.$orders->first()->order_number }} · {{ $orders->first()->pressing->name }}</title>
+    <title>{{ $isBatch ? $orders->count().' reçus' : ($payment ? ($payment->isRefund() ? 'Reçu de remboursement ' : 'Reçu de paiement ') : 'Reçu ').$orders->first()->order_number }} · {{ $orders->first()->pressing->name }}</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -87,15 +89,31 @@
         <div class="toolbar">
             <button type="button" class="primary" onclick="window.print()">Imprimer{{ $isBatch ? ' les '.$orders->count().' reçus' : '' }}</button>
             <a href="{{ $pdfUrl }}">Télécharger le PDF</a>
+            @if ($share)
+                <button type="button" id="share-receipt">Partager</button>
+            @endif
             <span class="sep"></span>
             <a href="{{ $sizeUrl(null) }}" class="{{ $size === 'ticket' ? 'on' : '' }}">Ticket 80 mm</a>
             <a href="{{ $sizeUrl('a5') }}" class="{{ $size === 'a5' ? 'on' : '' }}">Feuille A5</a>
         </div>
     @endunless
 
-    @foreach ($orders as $order)
-        @include('orders._receipt-sheet', ['order' => $order, 'pressing' => $order->pressing])
-    @endforeach
+    @if ($payment)
+        @include('orders._payment-receipt-sheet', ['order' => $orders->first(), 'pressing' => $orders->first()->pressing, 'payment' => $payment])
+    @else
+        @foreach ($orders as $order)
+            @include('orders._receipt-sheet', ['order' => $order, 'pressing' => $order->pressing])
+        @endforeach
+    @endif
+
+    @if ($share && ! $isPdf)
+        @include('orders._share-script')
+        <script>
+            const receiptShare = @json([...$share, 'phone' => $orders->first()->customer->phone]);
+            presslinkShare.prefetch(receiptShare);
+            document.getElementById('share-receipt').addEventListener('click', () => presslinkShare(receiptShare));
+        </script>
+    @endif
 
     @if ($autoPrint && ! $isPdf)
         <script>window.addEventListener('load', () => setTimeout(() => window.print(), 300));</script>

@@ -2,35 +2,15 @@
 @php
     $paymentState = $order->paymentStatus();
     $balance = $order->balance_due_fcfa;
-    $logo = null;
-    if ($pressing->logo_path) {
-        // dompdf lit les images sur le disque ; le navigateur, par l'URL.
-        $logo = $isPdf
-            ? (\Illuminate\Support\Facades\Storage::disk('public')->exists($pressing->logo_path) ? \Illuminate\Support\Facades\Storage::disk('public')->path($pressing->logo_path) : null)
-            : $pressing->logo_url;
-    }
 @endphp
     <div class="sheet">
-        <div class="center">
-            @if ($logo)
-                <img src="{{ $logo }}" alt="" class="logo">
-            @endif
-            <p class="pressing-name">{{ $pressing->name }}</p>
-            @if ($pressing->address || $pressing->city)
-                <div class="muted small">{{ collect([$pressing->address, $pressing->city])->filter()->implode(', ') }}</div>
-            @endif
-            @if ($pressing->phone)
-                <div class="muted small">Tél. {{ $pressing->phone }}</div>
-            @endif
-            <p class="title">Reçu de dépôt</p>
-            <p class="number">{{ $order->order_number }}</p>
-        </div>
+        @include('orders._receipt-header', ['title' => 'Reçu de dépôt', 'number' => $order->order_number])
 
         <hr class="rule">
 
         <table>
             <tr><td class="muted">Client</td><td class="r bold">{{ $order->customer->fullName() }}</td></tr>
-            <tr><td class="muted">Téléphone</td><td class="r">{{ $order->customer->phone }}</td></tr>
+            <tr><td class="muted">Téléphone</td><td class="r">{{ \App\Support\PhoneNumber::format($order->customer->phone) }}</td></tr>
             <tr><td class="muted">Déposé le</td><td class="r">{{ $order->dropped_off_at->format('d/m/Y à H:i') }}</td></tr>
             @if ($order->expected_at)
                 <tr><td class="muted">Retrait prévu</td><td class="r bold">{{ $order->expected_at->translatedFormat('D j M Y') }}</td></tr>
@@ -66,7 +46,7 @@
         <table>
             @foreach ($order->payments as $payment)
                 <tr>
-                    <td class="muted small">{{ $payment->paid_at->format('d/m/Y') }} · {{ $payment->method->label() }}</td>
+                    <td class="muted small">{{ $payment->paid_at->format('d/m/Y') }} · {{ $payment->isRefund() ? 'Remboursement · ' : '' }}{{ $payment->method->label() }}</td>
                     <td class="r small">{{ $fcfa($payment->amount_fcfa) }} F</td>
                 </tr>
             @endforeach

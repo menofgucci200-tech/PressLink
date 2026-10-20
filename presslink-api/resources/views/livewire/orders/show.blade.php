@@ -9,6 +9,9 @@
         </div>
         <div class="flex-1"></div>
         <x-status-badge :status="$order->status" />
+        <x-receipt-actions label="le reçu de dépôt"
+                           :download="route('orders.receipt', ['order' => $order, 'format' => 'pdf'])"
+                           :share="['url' => \App\Support\ReceiptLinks::order($order), 'text' => \App\Support\ReceiptLinks::orderShareText($order), 'file' => \App\Support\ReceiptLinks::orderFileName($order), 'phone' => $order->customer->phone]" />
         <a href="{{ route('orders.receipt', $order) }}" target="_blank" rel="noopener"
            class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><path d="M6 14h12v8H6z"></path></svg>

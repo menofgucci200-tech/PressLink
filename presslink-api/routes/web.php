@@ -5,6 +5,7 @@ use App\Http\Controllers\GroupExportController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OrderExportController;
 use App\Http\Controllers\OrderReceiptController;
+use App\Http\Controllers\PublicReceiptController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SitePageController;
 use App\Http\Middleware\EnsureUserHasPressing;
@@ -62,6 +63,12 @@ Route::controller(SitePageController::class)->name('site.')->group(function () {
 });
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
+// Reçus partagés au client (WhatsApp…) ou ouverts depuis son appli : lien signé, sans connexion.
+Route::middleware(['signed', 'throttle:60,1'])->group(function () {
+    Route::get('/recus/commande/{order}', [PublicReceiptController::class, 'order'])->name('receipts.order');
+    Route::get('/recus/paiement/{payment}', [PublicReceiptController::class, 'payment'])->name('receipts.payment');
+});
+
 // Lien « Ne plus recevoir ces emails » (signé : impossible à forger).
 Route::get('/emails/desabonnement/{customer}', function (Customer $customer) {
     $customer->update(['email_notifications' => false]);
@@ -110,6 +117,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/commandes/{order}', OrdersShow::class)->name('orders.show');
         Route::get('/commandes/{order}/recu/{format?}', [OrderReceiptController::class, 'show'])
             ->name('orders.receipt')
+            ->where('format', 'pdf');
+        Route::get('/commandes/{order}/paiements/{payment}/recu/{format?}', [OrderReceiptController::class, 'payment'])
+            ->name('orders.payment-receipt')
             ->where('format', 'pdf');
 
         Route::get('/caisse', CashIndex::class)->name('cash.index');

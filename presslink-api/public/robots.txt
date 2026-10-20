@@ -10,6 +10,7 @@ Disallow: /tableau-de-bord
 Disallow: /vue-ensemble
 Disallow: /pressings/
 Disallow: /commandes
+Disallow: /recus/
 Disallow: /clients
 Disallow: /signalements
 Disallow: /tarifs

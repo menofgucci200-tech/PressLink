@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\OrderPayment;
+use App\Support\ReceiptLinks;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
@@ -27,6 +29,14 @@ class OrderReceiptController extends Controller
         return $this->respond($request, new Collection([$order]), $format, "recu-{$order->order_number}.pdf");
     }
 
+    /** Reçu d'un paiement (ou d'un remboursement) de la commande. */
+    public function payment(Request $request, Order $order, OrderPayment $payment, ?string $format = null): Response
+    {
+        abort_unless($request->user()->can('view', $order) && $payment->order_id === $order->id, 403);
+
+        return $this->respond($request, new Collection([$order]), $format, ReceiptLinks::paymentFileName($payment), $payment);
+    }
+
     public function batch(Request $request, ?string $format = null): Response
     {
         $pressing = $request->user()->currentPressing();
@@ -46,12 +56,14 @@ class OrderReceiptController extends Controller
     }
 
     /** @param  Collection<int, Order>  $orders */
-    private function respond(Request $request, Collection $orders, ?string $format, string $filename): Response
+    private function respond(Request $request, Collection $orders, ?string $format, string $filename, ?OrderPayment $payment = null): Response
     {
         $orders->load(['pressing', 'customer', 'items', 'payments', 'creator']);
+        $payment?->load('recorder');
 
         $data = [
             'orders' => $orders,
+            'payment' => $payment,
             'size' => $request->query('taille') === 'a5' ? 'a5' : 'ticket',
             'autoPrint' => $request->boolean('imprimer'),
         ];
@@ -62,10 +74,19 @@ class OrderReceiptController extends Controller
                 ->download($filename);
         }
 
-        $pdfUrl = $orders->count() === 1
-            ? route('orders.receipt', ['order' => $orders->first(), 'format' => 'pdf'])
-            : route('orders.receipts', ['format' => 'pdf', 'ids' => $orders->pluck('id')->implode(',')]);
+        $pdfUrl = match (true) {
+            $payment !== null => route('orders.payment-receipt', ['order' => $orders->first(), 'payment' => $payment, 'format' => 'pdf']),
+            $orders->count() === 1 => route('orders.receipt', ['order' => $orders->first(), 'format' => 'pdf']),
+            default => route('orders.receipts', ['format' => 'pdf', 'ids' => $orders->pluck('id')->implode(',')]),
+        };
 
-        return response()->view('orders.receipt', [...$data, 'isPdf' => false, 'pdfUrl' => $pdfUrl]);
+        // Partage (WhatsApp…) : un lien signé vers le PDF, ouvrable sans connexion.
+        $share = match (true) {
+            $payment !== null => ['url' => ReceiptLinks::payment($payment), 'text' => ReceiptLinks::paymentShareText($payment), 'file' => ReceiptLinks::paymentFileName($payment)],
+            $orders->count() === 1 => ['url' => ReceiptLinks::order($orders->first()), 'text' => ReceiptLinks::orderShareText($orders->first()), 'file' => ReceiptLinks::orderFileName($orders->first())],
+            default => null,
+        };
+
+        return response()->view('orders.receipt', [...$data, 'isPdf' => false, 'pdfUrl' => $pdfUrl, 'share' => $share]);
     }
 }

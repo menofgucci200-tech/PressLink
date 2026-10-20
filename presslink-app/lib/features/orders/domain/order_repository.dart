@@ -142,6 +142,7 @@ class OrderModel {
     this.paymentState = PaymentState.unpaid,
     this.payments = const [],
     this.cancellationReason,
+    this.receipt,
   });
 
   final int id;
@@ -164,6 +165,9 @@ class OrderModel {
 
   /// Motif d'annulation (« Erreur de saisie », « Le client a renoncé »…).
   final String? cancellationReason;
+
+  /// Reçu de dépôt (PDF) à ouvrir, télécharger ou partager.
+  final OrderReceipt? receipt;
 
   String get itemsLabel =>
       items.map((i) => '${i.quantity} ${i.name}').join(' · ');
@@ -197,6 +201,32 @@ class OrderModel {
         .map((e) => OrderPaymentModel.fromJson(e as Map<String, dynamic>))
         .toList(),
     cancellationReason: json['cancellation_reason_label'] as String?,
+    receipt: json['receipt'] is Map<String, dynamic>
+        ? OrderReceipt.fromJson(json['receipt'] as Map<String, dynamic>)
+        : null,
+  );
+}
+
+/// Liens du reçu de dépôt : valables quelques semaines, ils s'ouvrent sans
+/// connexion (on peut donc les envoyer à quelqu'un d'autre).
+class OrderReceipt {
+  const OrderReceipt({
+    required this.url,
+    required this.downloadUrl,
+    required this.fileName,
+    required this.shareText,
+  });
+
+  final String url;
+  final String downloadUrl;
+  final String fileName;
+  final String shareText;
+
+  factory OrderReceipt.fromJson(Map<String, dynamic> json) => OrderReceipt(
+    url: json['url'] as String,
+    downloadUrl: json['download_url'] as String,
+    fileName: json['file_name'] as String? ?? 'recu.pdf',
+    shareText: json['share_text'] as String? ?? 'Reçu PressLink',
   );
 }
 

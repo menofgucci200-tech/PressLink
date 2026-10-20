@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Support\ReceiptLinks;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -29,6 +30,12 @@ class OrderController extends Controller
 
         $order->load(['pressing', 'items', 'statusHistory', 'issues', 'payments:id,order_id,amount_fcfa,method,paid_at']);
 
-        return response()->json($order);
+        // Reçu de dépôt : à ouvrir, télécharger ou partager depuis l'appli.
+        return response()->json([...$order->toArray(), 'receipt' => [
+            'url' => ReceiptLinks::order($order),
+            'download_url' => ReceiptLinks::order($order, download: true),
+            'file_name' => ReceiptLinks::orderFileName($order),
+            'share_text' => ReceiptLinks::orderShareText($order),
+        ]]);
     }
 }

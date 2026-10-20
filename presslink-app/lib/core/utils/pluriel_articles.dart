@@ -9,8 +9,9 @@ String libelleArticle(int quantite, String nom) {
   final piece = separateur == -1 ? nom : nom.substring(0, separateur);
   final reste = separateur == -1 ? '' : nom.substring(separateur);
   if (quantite <= 1) return '$quantite $nom';
-  if (piece.trim().contains(' ') || piece.contains('/'))
+  if (piece.trim().contains(' ') || piece.contains('/')) {
     return '$nom × $quantite';
+  }
   return '$quantite ${pluriel(piece)}$reste';
 }
 
@@ -18,8 +19,9 @@ String libelleArticle(int quantite, String nom) {
 String pluriel(String mot) {
   final m = mot.toLowerCase();
   if (m.endsWith('s') || m.endsWith('x') || m.endsWith('z')) return mot;
-  if (m.endsWith('eau') || m.endsWith('au') || m.endsWith('eu'))
+  if (m.endsWith('eau') || m.endsWith('au') || m.endsWith('eu')) {
     return '${mot}x';
+  }
   if (m.endsWith('al') && !const ['bal', 'carnaval', 'festival'].contains(m)) {
     return '${mot.substring(0, mot.length - 2)}aux';
   }

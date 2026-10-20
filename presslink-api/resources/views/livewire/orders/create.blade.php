@@ -24,7 +24,7 @@
             });
         },
         addFirstPiece() {
-            const tile = [...this.$root.querySelectorAll('[data-piece-tile]')].find(t => t.offsetParent !== null);
+            const tile = Array.from(this.$root.querySelectorAll('[data-piece-tile]')).find(t => t.offsetParent !== null);
             if (tile) { tile.querySelector('[data-add]').click(); this.q = ''; }
         },
         openQty(id, name, value) {
@@ -132,7 +132,7 @@
                                     <span class="block text-[11.5px] text-(--color-text-secondary) tabular-nums leading-tight">{{ $client->phone }}</span>
                                 </span>
                                 @if ($client->is_active === false)
-                                    <span class="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-(--color-error-tint) text-(--color-error)">Désactivé</span>
+                                    <span class="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-(--color-error-tint) text-(--color-error)">Compte désactivé</span>
                                 @endif
                             </button>
                         @endforeach

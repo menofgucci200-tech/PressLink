@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Administrators;
 use App\Enums\PressingRole;
 use App\Models\Pressing;
 use App\Models\User;
+use App\Rules\IvorianPhone;
 use App\Support\PhoneNumber;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -60,11 +61,12 @@ class Index extends Component
 
     public function createAdministrator(): void
     {
-        $this->phone = PhoneNumber::normalize($this->phone);
+        $this->phone = filled($this->phone) ? PhoneNumber::normalize($this->phone) : '';
+
         $this->validate([
             'name' => ['required', 'string', 'max:100'],
             'login' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9._-]+$/', 'unique:users,login'],
-            'phone' => ['nullable', 'string', PhoneNumber::RULE, 'unique:users,phone'],
+            'phone' => ['nullable', 'string', new IvorianPhone, 'unique:users,phone'],
             'password' => ['required', 'string', 'min:8'],
             'pressingId' => ['required', 'exists:pressings,id'],
         ]);

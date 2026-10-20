@@ -50,9 +50,9 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   /// Retourne true si un compte existe déjà pour ce numéro, null en cas d'erreur réseau.
-  Future<bool?> checkPhoneExists(String phone) async {
+  Future<PhoneCheck?> checkPhone(String phone) async {
     try {
-      return await _repository.checkPhoneExists(phone);
+      return await _repository.checkPhone(phone);
     } catch (e) {
       state = state.copyWith(error: AuthRepository.errorMessage(e));
       return null;

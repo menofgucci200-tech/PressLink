@@ -7,6 +7,7 @@ use App\Enums\OrderStatus;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Customer;
 use App\Models\Pressing;
+use App\Rules\IvorianPhone;
 use App\Support\PhoneNumber;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -86,7 +87,7 @@ class Index extends Component
     public function openCreateForm(): void
     {
         $this->selectedCustomerId = null;
-        $this->form = ['first_name' => '', 'last_name' => '', 'phone' => '+2250', 'email' => '', 'pressing_id' => $this->pressingId];
+        $this->form = ['first_name' => '', 'last_name' => '', 'phone' => '', 'email' => '', 'pressing_id' => $this->pressingId];
         $this->resetErrorBag();
         $this->formMode = 'create';
     }
@@ -117,14 +118,14 @@ class Index extends Component
 
         $editing = $this->formMode === 'edit' ? Customer::findOrFail($this->selectedCustomerId) : null;
         $this->form['phone'] = PhoneNumber::normalize($this->form['phone']);
+
         $this->validate([
             'form.first_name' => ['required', 'string', 'max:100'],
             'form.last_name' => ['required', 'string', 'max:100'],
-            'form.phone' => ['required', 'string', PhoneNumber::RULE, Rule::unique('customers', 'phone')->ignore($editing?->id)],
+            'form.phone' => ['required', 'string', new IvorianPhone, Rule::unique('customers', 'phone')->ignore($editing?->id)],
             'form.email' => ['nullable', 'email', 'max:255'],
             'form.pressing_id' => ['nullable', 'integer', 'exists:pressings,id'],
         ], [
-            'form.phone.regex' => 'Le téléphone doit être au format +2250XXXXXXXXX.',
             'form.phone.unique' => 'Un client existe déjà avec ce numéro.',
         ], [
             'form.first_name' => 'prénom', 'form.last_name' => 'nom', 'form.phone' => 'téléphone',
@@ -143,12 +144,8 @@ class Index extends Component
             $this->toast('Client mis à jour.');
         } else {
             $customer = DB::transaction(function () use ($data) {
-                $customer = Customer::create([
-                    ...$data,
-                    'password' => Customer::DEFAULT_WALK_IN_PASSWORD,
-                    'must_change_password' => true,
-                    'phone_verified_at' => now(),
-                ]);
+                // Sans mot de passe : le client crée son compte dans l'appli avec ce numéro.
+                $customer = Customer::create($data);
 
                 if ($this->form['pressing_id'] !== '') {
                     $customer->pressings()->attach((int) $this->form['pressing_id'], ['joined_at' => now()]);

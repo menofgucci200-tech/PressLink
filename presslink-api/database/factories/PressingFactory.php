@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\PressingStatus;
 use App\Models\Pressing;
+use App\Support\PhoneNumber;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +19,7 @@ class PressingFactory extends Factory
         return [
             'name' => 'Pressing '.fake()->company(),
             'code' => Pressing::generateUniqueCode(),
-            'phone' => '+225'.fake()->numerify('0#########'),
+            'phone' => '+225'.fake()->randomElement(PhoneNumber::MOBILE_PREFIXES).fake()->numerify('########'),
             'email' => fake()->companyEmail(),
             'address' => fake()->streetAddress(),
             'city' => $city,

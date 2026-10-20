@@ -17,6 +17,11 @@ use Laravel\Sanctum\HasApiTokens;
 /**
  * Le client final de l'app mobile — authentifié par téléphone + mot de
  * passe (RB : un numéro de téléphone correspond à un compte client unique).
+ *
+ * Un client enregistré par un pressing n'a pas encore de mot de passe : son
+ * compte l'attend. Quand il installe l'appli et saisit son numéro, il
+ * confirme ses informations, choisit son mot de passe et retrouve toutes ses
+ * commandes, quel que soit le pressing.
  */
 class Customer extends Authenticatable
 {
@@ -24,10 +29,8 @@ class Customer extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
-     * Mot de passe attribué par défaut à un client créé directement par le
-     * staff (walk-in, sans passer par l'inscription dans l'app) — à
-     * transmettre au client pour qu'il se connecte puis le change dans
-     * son profil.
+     * Mot de passe de dépannage donné par le support PressLink (Super Admin)
+     * à un client qui l'a oublié ; il doit ensuite le changer.
      */
     public const DEFAULT_WALK_IN_PASSWORD = ResetPasswordToDefault::DEFAULT_PASSWORD;
 
@@ -77,6 +80,15 @@ class Customer extends Authenticatable
         return Attribute::make(
             get: fn () => $this->photo_path ? Storage::disk('public')->url($this->photo_path) : null,
         );
+    }
+
+    /**
+     * Le client a-t-il créé son compte dans l'appli ? Sinon, son compte a été
+     * ouvert par un pressing et attend qu'il s'inscrive avec son numéro.
+     */
+    public function hasAppAccount(): bool
+    {
+        return $this->password !== null;
     }
 
     /** @return BelongsToMany<Pressing, $this> */

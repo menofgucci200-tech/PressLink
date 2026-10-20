@@ -12,14 +12,17 @@
             </div>
             <div class="text-xs text-(--color-text-muted) tabular-nums flex items-center gap-0.5">{{ $customer->phone }} <x-copy-button :value="$customer->phone" label="Copier le téléphone" /></div>
         </div>
-        @if ($canResetPassword)
-            <div class="flex-1"></div>
-            <button type="button" wire:click="resetPassword" wire:loading.attr="disabled" wire:target="resetPassword"
-                    data-confirm-title="Réinitialiser le mot de passe" data-confirm-label="Réinitialiser" data-confirm-tone="warning"
-                    wire:confirm="Le mot de passe de {{ $customer->fullName() }} sera réinitialisé à {{ \App\Actions\Auth\ResetPasswordToDefault::DEFAULT_PASSWORD }} et le client sera déconnecté de l'application. Après la réinitialisation, il doit changer son mot de passe pour sécuriser son compte."
-                    class="h-9 px-3.5 rounded-lg border border-(--color-border) text-sm font-medium hover:border-(--color-primary) hover:text-(--color-primary) disabled:opacity-60">
-                Réinitialiser le mot de passe
-            </button>
+        <div class="flex-1"></div>
+        @if ($customer->hasAppAccount())
+            <span class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold bg-(--color-success-tint) text-(--color-success-text)"
+                  data-tooltip="Le client suit ses commandes dans l'application PressLink.">
+                <span class="w-1.5 h-1.5 rounded-full bg-current"></span>Utilise l'application
+            </span>
+        @else
+            <span class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold bg-(--color-bg) border border-(--color-border) text-(--color-text-secondary)"
+                  data-tooltip="En installant PressLink avec ce numéro, il retrouvera toutes ses commandes.">
+                <span class="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>Pas encore sur l'application
+            </span>
         @endif
     </div>
 

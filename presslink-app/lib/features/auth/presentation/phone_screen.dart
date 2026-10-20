@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/app_page_route.dart';
-import '../../../core/data/countries.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
-import '../../../core/widgets/app_text_field.dart';
-import '../../../core/widgets/country_code_picker.dart';
+import '../../../core/utils/ivorian_phone.dart';
+import '../../../core/widgets/ivorian_phone_field.dart';
 import '../../../core/widgets/pwa_install_banner.dart';
 import '../../../core/widgets/staggered_fade_in.dart';
 import '../../support/presentation/support_screen.dart';
@@ -24,37 +23,55 @@ class PhoneScreen extends ConsumerStatefulWidget {
 }
 
 class _PhoneScreenState extends ConsumerState<PhoneScreen> {
-  Country _country = kCountries.first; // Tanzanie (+255) par défaut
   final _phoneController = TextEditingController();
   bool _loading = false;
   String? _error;
 
-  String get _fullPhone =>
-      '${_country.dialCode}${_phoneController.text.replaceAll(' ', '')}';
+  /// Les 10 chiffres du numéro national, sans les espaces d'affichage.
+  String get _digits => IvorianPhone.digitsOf(_phoneController.text);
+
+  String get _fullPhone => IvorianPhone.toStored(_digits);
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    super.dispose();
+  }
 
   Future<void> _submit() async {
+    // Moins de 10 chiffres (ou un préfixe qui n'est pas un mobile) : on
+    // n'avance pas, on demande un numéro valide.
+    final invalid = IvorianPhone.validate(_digits);
+    if (invalid != null) {
+      setState(() => _error = invalid);
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
     });
 
-    final exists = await ref
+    final check = await ref
         .read(authControllerProvider.notifier)
-        .checkPhoneExists(_fullPhone);
+        .checkPhone(_fullPhone);
 
     if (!mounted) return;
     setState(() => _loading = false);
 
-    if (exists == null) {
+    if (check == null) {
       setState(() => _error = ref.read(authControllerProvider).error);
       return;
     }
 
     Navigator.of(context).push(
       AppPageRoute(
-        builder: (_) => exists
+        builder: (_) => check.exists
             ? LoginPasswordScreen(phone: _fullPhone)
-            : RegisterScreen(phone: _fullPhone),
+            : RegisterScreen(
+                phone: _fullPhone,
+                knownBy: check.pending ? check : null,
+              ),
       ),
     );
   }
@@ -117,24 +134,13 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CountryCodePicker(
-                          selected: _country,
-                          onChanged: (country) =>
-                              setState(() => _country = country),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: AppTextField(
-                            controller: _phoneController,
-                            keyboardType: TextInputType.phone,
-                            autofocus: true,
-                            hintText: '01 XX XX XX XX',
-                          ),
-                        ),
-                      ],
+                    IvorianPhoneField(
+                      controller: _phoneController,
+                      autofocus: true,
+                      onChanged: (_) {
+                        if (_error != null) setState(() => _error = null);
+                      },
+                      onSubmitted: (_) => _loading ? null : _submit(),
                     ),
                   ],
                 ),

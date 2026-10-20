@@ -84,7 +84,7 @@ class SuperAdminListsAndCrudTest extends TestCase
 
         Livewire::test(AdminPressingsShow::class, ['pressing' => $pressing])
             ->call('editInfo')
-            ->set('info.phone', '12345')
+            ->set('info.phone', '070102030')
             ->call('saveInfo')
             ->assertHasErrors('info.phone');
     }
@@ -189,7 +189,8 @@ class SuperAdminListsAndCrudTest extends TestCase
 
         $customer = Customer::where('phone', '+2250701020304')->firstOrFail();
         $this->assertSame('Awa', $customer->first_name);
-        $this->assertTrue(Hash::check(Customer::DEFAULT_WALK_IN_PASSWORD, $customer->password));
+        // Le compte attend le client, qui choisira son mot de passe en s'inscrivant.
+        $this->assertFalse($customer->hasAppAccount());
         $this->assertTrue($customer->pressings->contains($pressing));
     }
 

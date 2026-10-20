@@ -2,10 +2,14 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Http\Requests\Concerns\NormalizesPhone;
+use App\Rules\IvorianPhone;
 use Illuminate\Foundation\Http\FormRequest;
 
 class LoginCustomerRequest extends FormRequest
 {
+    use NormalizesPhone;
+
     public function authorize(): bool
     {
         return true;
@@ -17,7 +21,7 @@ class LoginCustomerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'string', 'regex:/^\+[1-9]\d{6,14}$/'],
+            'phone' => ['required', 'string', new IvorianPhone],
             'password' => ['required', 'string'],
         ];
     }

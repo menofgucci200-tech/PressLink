@@ -119,7 +119,7 @@ class SeedCommand extends Command
             $admin = User::factory()->create([
                 'name' => "LT Admin {$index}",
                 'email' => "admin{$index}@loadtest.presslink.local",
-                'phone' => '+225020000'.str_pad((string) $index, 4, '0', STR_PAD_LEFT),
+                'phone' => '+225050000'.str_pad((string) $index, 4, '0', STR_PAD_LEFT),
                 'password' => Hash::make(self::PASSWORD),
             ]);
             $pressing->staff()->attach($admin, ['role' => PressingRole::Admin->value, 'is_active' => true]);
@@ -129,7 +129,7 @@ class SeedCommand extends Command
                 $employee = User::factory()->create([
                     'name' => "LT Employee {$employeeNumber}",
                     'email' => "employee{$employeeNumber}@loadtest.presslink.local",
-                    'phone' => '+225030'.str_pad((string) $employeeNumber, 6, '0', STR_PAD_LEFT),
+                    'phone' => '+22507'.str_pad((string) $employeeNumber, 8, '0', STR_PAD_LEFT),
                     'password' => Hash::make(self::PASSWORD),
                 ]);
                 $pressing->staff()->attach($employee, ['role' => PressingRole::Employee->value, 'is_active' => true]);
@@ -177,7 +177,7 @@ class SeedCommand extends Command
         $customers = Customer::factory()
             ->count($count)
             ->sequence(fn ($sequence) => [
-                'phone' => sprintf('+22501%02d%04d', $pressingIndex, $sequence->index + 1),
+                'phone' => sprintf('+22501%04d%04d', $pressingIndex, $sequence->index + 1),
             ])
             ->create(['password' => Hash::make(self::PASSWORD)]);
 

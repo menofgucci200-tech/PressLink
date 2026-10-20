@@ -4,6 +4,7 @@ namespace App\Livewire\Pressing;
 
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Pressing;
+use App\Rules\IvorianPhone;
 use App\Support\ImageOptimizer;
 use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\Storage;
@@ -61,9 +62,10 @@ class Settings extends Component
     public function save(): void
     {
         $this->phone = PhoneNumber::normalize($this->phone);
+
         $this->validate([
             'name' => ['required', 'string', 'max:150'],
-            'phone' => ['required', 'string', PhoneNumber::RULE],
+            'phone' => ['required', 'string', new IvorianPhone(mobileOnly: false)],
             'email' => ['nullable', 'email', 'max:255'],
             'address' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:100'],

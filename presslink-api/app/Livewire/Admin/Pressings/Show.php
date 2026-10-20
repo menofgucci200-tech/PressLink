@@ -9,6 +9,7 @@ use App\Enums\SubscriptionStatus;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Pressing;
 use App\Models\Subscription;
+use App\Rules\IvorianPhone;
 use App\Support\PhoneNumber;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -91,18 +92,17 @@ class Show extends Component
     public function saveInfo(): void
     {
         abort_unless(auth()->user()->is_super_admin, 403);
+        $this->info['phone'] = PhoneNumber::normalize($this->info['phone'] ?? '');
 
         $this->info['phone'] = PhoneNumber::normalize($this->info['phone']);
         $this->validate([
             'info.name' => ['required', 'string', 'max:150'],
-            'info.phone' => ['required', 'string', PhoneNumber::RULE],
+            'info.phone' => ['required', 'string', new IvorianPhone(mobileOnly: false)],
             'info.email' => ['nullable', 'email', 'max:255'],
             'info.city' => ['nullable', 'string', 'max:100'],
             'info.address' => ['nullable', 'string', 'max:255'],
             'info.description' => ['nullable', 'string', 'max:1000'],
-        ], [
-            'info.phone.regex' => 'Le téléphone doit être au format +2250XXXXXXXXX.',
-        ], [
+        ], [], [
             'info.name' => 'nom', 'info.phone' => 'téléphone', 'info.email' => 'email',
             'info.city' => 'ville', 'info.address' => 'adresse', 'info.description' => 'description',
         ]);

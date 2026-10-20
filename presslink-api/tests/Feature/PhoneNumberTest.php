@@ -51,7 +51,7 @@ class PhoneNumberTest extends TestCase
             ->set('phone', '12345')
             ->call('save')
             ->assertHasErrors(['phone'])
-            ->assertSee('Saisissez un numéro ivoirien à 10 chiffres');
+            ->assertSee('Entrez un numéro ivoirien de 10 chiffres');
     }
 
     public function test_new_customer_from_the_order_form_accepts_spaces(): void

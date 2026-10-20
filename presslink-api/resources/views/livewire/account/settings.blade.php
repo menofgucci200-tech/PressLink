@@ -73,7 +73,7 @@
             </div>
             <div>
                 <label for="profile-phone" class="{{ $label }}">Téléphone</label>
-                <input id="profile-phone" type="tel" wire:model="phone" autocomplete="tel" placeholder="07 08 12 44 00" class="{{ $input }}">
+                <x-phone-input id="profile-phone" wire:model="phone" />
                 @error('phone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
         </div>

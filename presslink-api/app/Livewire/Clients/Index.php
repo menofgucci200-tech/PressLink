@@ -4,6 +4,7 @@ namespace App\Livewire\Clients;
 
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Customer;
+use App\Rules\IvorianPhone;
 use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -39,6 +40,11 @@ class Index extends Component
 
     public ?string $errorMessage = null;
 
+    /** Numéro déjà enregistré ailleurs : nom connu, à confirmer par le staff. */
+    public ?int $knownCustomerId = null;
+
+    public string $knownCustomerName = '';
+
     public function updatingSearch(): void
     {
         $this->resetPage();
@@ -61,41 +67,79 @@ class Index extends Component
     public function createClient(): void
     {
         $this->errorMessage = null;
+        $this->reset(['knownCustomerId', 'knownCustomerName']);
         $pressing = auth()->user()->currentPressing();
-
         $this->phone = PhoneNumber::normalize($this->phone);
-        $this->validate([
-            'firstName' => ['required', 'string', 'max:100'],
-            'lastName' => ['required', 'string', 'max:100'],
-            'phone' => ['required', 'string', PhoneNumber::RULE],
-        ]);
 
-        $subscription = $pressing->subscription;
-        $alreadyLinked = $pressing->customers()->where('phone', $this->phone)->exists();
+        $this->validate(['phone' => ['required', 'string', new IvorianPhone]]);
 
-        if (! $alreadyLinked && $subscription !== null && ! $subscription->allowsNewClient()) {
-            $this->errorMessage = "Limite atteinte : votre formule {$subscription->plan->label()} autorise jusqu'à {$subscription->plan->clientsLimit()} client(s).";
+        $known = Customer::where('phone', $this->phone)->first();
+
+        if ($known !== null && $pressing->customers()->whereKey($known->id)->exists()) {
+            $this->errorMessage = $known->fullName().' fait déjà partie de vos clients.';
 
             return;
         }
 
-        DB::transaction(function () use ($pressing) {
-            $customer = Customer::firstOrCreate(
-                ['phone' => $this->phone],
-                [
-                    'first_name' => $this->firstName,
-                    'last_name' => $this->lastName,
-                    'password' => Customer::DEFAULT_WALK_IN_PASSWORD,
-                    'must_change_password' => true,
-                    'phone_verified_at' => now(),
-                ],
-            );
+        // Numéro déjà enregistré (par un autre pressing ou par le client) :
+        // le staff confirme qu'il s'agit bien de son client.
+        if ($known !== null) {
+            $this->knownCustomerId = $known->id;
+            $this->knownCustomerName = $known->fullName();
 
-            $pressing->customers()->syncWithoutDetaching([$customer->id => ['joined_at' => now()]]);
+            return;
+        }
+
+        $this->validate([
+            'firstName' => ['required', 'string', 'max:100'],
+            'lastName' => ['required', 'string', 'max:100'],
+        ]);
+
+        if (! $this->allowsAnotherClient()) {
+            return;
+        }
+
+        DB::transaction(function () use ($pressing) {
+            $customer = Customer::create(['phone' => $this->phone, 'first_name' => $this->firstName, 'last_name' => $this->lastName]);
+            $pressing->customers()->attach($customer->id, ['joined_at' => now()]);
         });
 
-        $this->toast("{$this->firstName} {$this->lastName} a été ajouté à vos clients. Mot de passe par défaut : ".Customer::DEFAULT_WALK_IN_PASSWORD.'.');
+        $this->toast("{$this->firstName} {$this->lastName} a été ajouté à vos clients. Il retrouvera ses commandes en créant son compte PressLink avec ce numéro.");
         $this->reset(['firstName', 'lastName', 'phone', 'showCreateForm']);
+    }
+
+    /** « Oui, c'est mon client » : ajouté au fichier avec le nom déjà connu. */
+    public function confirmKnownCustomer(): void
+    {
+        $customer = Customer::findOrFail($this->knownCustomerId);
+
+        if (! $this->allowsAnotherClient()) {
+            return;
+        }
+
+        auth()->user()->currentPressing()->customers()->syncWithoutDetaching([$customer->id => ['joined_at' => now()]]);
+
+        $this->toast($customer->fullName().' a été ajouté à vos clients.');
+        $this->reset(['firstName', 'lastName', 'phone', 'showCreateForm', 'knownCustomerId', 'knownCustomerName']);
+    }
+
+    /** « Corriger le numéro » : on revient au formulaire. */
+    public function dismissKnownCustomer(): void
+    {
+        $this->reset(['knownCustomerId', 'knownCustomerName']);
+    }
+
+    private function allowsAnotherClient(): bool
+    {
+        $subscription = auth()->user()->currentPressing()->subscription;
+
+        if ($subscription !== null && ! $subscription->allowsNewClient()) {
+            $this->errorMessage = "Limite atteinte : votre formule {$subscription->plan->label()} autorise jusqu'à {$subscription->plan->clientsLimit()} client(s).";
+
+            return false;
+        }
+
+        return true;
     }
 
     #[Layout('layouts.dashboard', ['active' => 'clients', 'title' => 'Clients'])]

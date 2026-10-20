@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Http\Requests\Concerns\NormalizesPhone;
+use App\Rules\IvorianPhone;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -10,6 +12,8 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class CheckPhoneRequest extends FormRequest
 {
+    use NormalizesPhone;
+
     public function authorize(): bool
     {
         return true;
@@ -21,14 +25,7 @@ class CheckPhoneRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'string', 'regex:/^\+[1-9]\d{6,14}$/'],
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'phone.regex' => 'Le numéro doit être au format international, ex. +255712345678.',
+            'phone' => ['required', 'string', new IvorianPhone],
         ];
     }
 }

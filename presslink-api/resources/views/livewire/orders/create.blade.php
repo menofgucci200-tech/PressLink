@@ -150,7 +150,7 @@
                     @if ($showNewClientForm)
                         <form wire:submit="createAndPickCustomer" class="mt-4 border border-(--color-border) rounded-xl p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 animate-step">
                             <div>
-                                <input type="tel" wire:model="newPhone" placeholder="Téléphone : 07 08 12 44 00" inputmode="tel" class="w-full h-11 px-3 rounded-lg border border-(--color-border) text-sm">
+                                <x-phone-input wire:model="newPhone" />
                                 @error('newPhone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                             </div>
                             <div>
@@ -161,8 +161,11 @@
                                 <input type="text" wire:model="newLastName" placeholder="Nom" class="w-full h-11 px-3 rounded-lg border border-(--color-border) text-sm">
                                 @error('newLastName') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                             </div>
+                            @if ($knownCustomerId)
+                                @include('livewire.clients._known-number', ['name' => $knownCustomerName])
+                            @endif
                             <p class="sm:col-span-3 text-xs text-(--color-text-muted)">
-                                Mot de passe de l'application : <span class="font-mono font-semibold">{{ \App\Models\Customer::DEFAULT_WALK_IN_PASSWORD }}</span> (le client le change ensuite).
+                                En installant l'application PressLink avec ce numéro, le client retrouvera toutes ses commandes.
                             </p>
                             <div class="sm:col-span-3 flex justify-end gap-2">
                                 <button type="button" wire:click="$set('showNewClientForm', false)" class="h-10 px-4 rounded-lg text-sm font-medium text-(--color-text-secondary) hover:underline">Annuler</button>

@@ -50,7 +50,7 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone</label>
-                <input type="text" wire:model="phone" placeholder="+2250708124400" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                <x-phone-input wire:model="phone" placeholder="07 08 12 44 00 ou 27 22 44 55 66" />
                 @error('phone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
             <div>

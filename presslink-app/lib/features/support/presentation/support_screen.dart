@@ -32,14 +32,18 @@ class SupportScreen extends ConsumerWidget {
     final who = (customerName != null && customerName.isNotEmpty)
         ? 'Bonjour, je suis $customerName et j\'ai besoin d\'aide avec PressLink.'
         : 'Bonjour, j\'ai besoin d\'aide avec PressLink.';
-    return Uri.https(
-      'wa.me',
-      AppConfig.supportPhoneE164.replaceFirst('+', ''),
-      {'text': who},
-    );
+    return whatsAppUri(who);
   }
 
-  Future<void> _open(BuildContext context, Uri uri) async {
+  /// Discussion WhatsApp avec le support, message déjà rédigé.
+  static Uri whatsAppUri(String message) => Uri.https(
+    'wa.me',
+    AppConfig.supportPhoneE164.replaceFirst('+', ''),
+    {'text': message},
+  );
+
+  /// Ouvre WhatsApp (ou l'appel) ; un message s'affiche si c'est impossible.
+  static Future<void> open(BuildContext context, Uri uri) async {
     var opened = false;
     try {
       // Dans un navigateur (PWA), `externalApplication` n'est pas supporté
@@ -175,7 +179,7 @@ class SupportScreen extends ConsumerWidget {
             _ContactLink(
               uri: _callUri,
               builder: (followLink) => ElevatedButton.icon(
-                onPressed: followLink ?? () => _open(context, _callUri),
+                onPressed: followLink ?? () => open(context, _callUri),
                 icon: const _ContactIcon('assets/icons/phone.png'),
                 label: const Text('Appeler le support'),
               ),
@@ -186,7 +190,7 @@ class SupportScreen extends ConsumerWidget {
               builder: (followLink) => ElevatedButton.icon(
                 onPressed:
                     followLink ??
-                    () => _open(context, _whatsAppUri(customer?.fullName)),
+                    () => open(context, _whatsAppUri(customer?.fullName)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _whatsAppGreen,
                   foregroundColor: Colors.white,
@@ -199,7 +203,7 @@ class SupportScreen extends ConsumerWidget {
             _ContactLink(
               uri: _mailUri,
               builder: (followLink) => OutlinedButton.icon(
-                onPressed: followLink ?? () => _open(context, _mailUri),
+                onPressed: followLink ?? () => open(context, _mailUri),
                 icon: const Icon(Icons.mail_outline, size: 22),
                 label: const Text(AppConfig.supportEmail),
               ),
@@ -259,7 +263,7 @@ class _ContactIcon extends StatelessWidget {
 /// Bouton de contact rendu comme un vrai lien `<a href>` dans la PWA : le
 /// navigateur l'ouvre directement au clic. Un `window.open` lancé après une
 /// attente (launchUrl) est pris pour une fenêtre surgissante et bloqué
-/// (Safari iOS, PWA installée). Hors web, le bouton passe par [_open].
+/// (Safari iOS, PWA installée). Hors web, le bouton passe par [open].
 class _ContactLink extends StatelessWidget {
   const _ContactLink({required this.uri, required this.builder});
 

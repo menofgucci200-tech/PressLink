@@ -8,6 +8,7 @@ use App\Enums\SubscriptionStatus;
 use App\Models\Pressing;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Rules\IvorianPhone;
 use App\Support\PhoneNumber;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -81,10 +82,11 @@ class Create extends Component
     public function create(): void
     {
         $this->phone = PhoneNumber::normalize($this->phone);
+
         $this->validate([
             'name' => ['required', 'string', 'max:150'],
             'code' => ['nullable', 'string', 'max:20', 'alpha_dash', 'unique:pressings,code'],
-            'phone' => ['required', 'string', PhoneNumber::RULE],
+            'phone' => ['required', 'string', new IvorianPhone(mobileOnly: false)],
             'email' => ['nullable', 'email', 'max:255'],
             'city' => ['nullable', 'string', 'max:100'],
             'address' => ['nullable', 'string', 'max:255'],
@@ -116,10 +118,10 @@ class Create extends Component
         // celle réellement enregistrée (les codes sont stockés en majuscules).
         foreach ($this->pressingRows as $index => $row) {
             $this->pressingRows[$index]['code'] = mb_strtoupper(trim($row['code']));
+            $this->pressingRows[$index]['phone'] = PhoneNumber::normalize($row['phone']);
         }
 
-        $this->ownerPhone = $this->ownerPhone ? PhoneNumber::normalize($this->ownerPhone) : $this->ownerPhone;
-        $this->pressingRows = array_map(fn (array $row) => [...$row, 'phone' => PhoneNumber::normalize($row['phone'])], $this->pressingRows);
+        $this->ownerPhone = filled($this->ownerPhone) ? PhoneNumber::normalize($this->ownerPhone) : '';
 
         $validator = Validator::make(
             [
@@ -132,12 +134,12 @@ class Create extends Component
             [
                 'ownerName' => ['required', 'string', 'max:100'],
                 'ownerLogin' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9._-]+$/', 'unique:users,login'],
-                'ownerPhone' => ['nullable', 'string', PhoneNumber::RULE, 'unique:users,phone'],
+                'ownerPhone' => ['nullable', 'string', new IvorianPhone, 'unique:users,phone'],
                 'ownerPassword' => ['required', 'string', 'min:8'],
                 'pressingRows' => ['array', 'min:2'],
                 'pressingRows.*.name' => ['required', 'string', 'max:150'],
                 'pressingRows.*.code' => ['nullable', 'string', 'max:20', 'alpha_dash', 'unique:pressings,code'],
-                'pressingRows.*.phone' => ['required', 'string', PhoneNumber::RULE],
+                'pressingRows.*.phone' => ['required', 'string', new IvorianPhone(mobileOnly: false)],
                 'pressingRows.*.city' => ['nullable', 'string', 'max:100'],
             ],
             [

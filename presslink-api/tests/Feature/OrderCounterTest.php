@@ -177,7 +177,7 @@ class OrderCounterTest extends TestCase
             ->set('clientSearch', '0102030405')
             ->call('pickFirstCustomer')
             ->assertSet('showNewClientForm', true)
-            ->assertSet('newPhone', '0102030405');
+            ->assertSet('newPhone', '+2250102030405');
     }
 
     public function test_the_order_in_progress_is_kept_as_a_draft(): void

@@ -192,7 +192,7 @@ class SubscriptionLimitsTest extends TestCase
             ->set('lastName', $existing->last_name)
             ->set('phone', $existing->phone)
             ->call('createClient')
-            ->assertSet('errorMessage', null);
+            ->assertSet('errorMessage', $existing->fullName().' fait déjà partie de vos clients.');
     }
 
     public function test_customer_cannot_join_a_pressing_that_reached_its_client_limit(): void

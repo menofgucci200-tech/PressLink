@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/link.dart';
 
+import '../../../core/utils/ivorian_phone.dart';
 import '../../../core/config/app_config.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -11,12 +12,17 @@ import '../../../core/widgets/app_text_field.dart';
 import '../domain/auth_repository.dart';
 import 'auth_controller.dart';
 
-/// Formulaire d'inscription — affiché quand le numéro ne correspond à
-/// aucun compte existant. Cahier §3.1 (revu le 26/08).
+/// Formulaire d'inscription — affiché quand le client n'a pas encore créé
+/// son compte. Cahier §3.1 (revu le 26/08, puis le 19/10).
+///
+/// Si un pressing l'a déjà enregistré ([knownBy]), le formulaire est
+/// pré-rempli avec ce que le pressing a saisi : le client vérifie, corrige au
+/// besoin, choisit son mot de passe et retrouve aussitôt ses commandes.
 class RegisterScreen extends ConsumerStatefulWidget {
-  const RegisterScreen({required this.phone, super.key});
+  const RegisterScreen({required this.phone, this.knownBy, super.key});
 
   final String phone;
+  final PhoneCheck? knownBy;
 
   @override
   ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
@@ -34,7 +40,33 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _obscure = true;
   String? _error;
 
+  @override
+  void initState() {
+    super.initState();
+    final known = widget.knownBy;
+    if (known != null) {
+      _firstNameController.text = known.firstName ?? '';
+      _lastNameController.text = known.lastName ?? '';
+      _gender = known.gender;
+    }
+  }
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
   Future<void> _submit() async {
+    if (_firstNameController.text.trim().isEmpty ||
+        _lastNameController.text.trim().isEmpty) {
+      setState(() => _error = 'Indiquez votre prénom et votre nom.');
+      return;
+    }
     if (_gender == null) {
       setState(() => _error = 'Merci de sélectionner votre genre.');
       return;
@@ -87,6 +119,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final known = widget.knownBy;
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -96,14 +129,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             children: [
               AppBackButton(onPressed: () => Navigator.of(context).pop()),
               const SizedBox(height: AppSpacing.lg),
-              Text('Créer votre compte', style: theme.textTheme.headlineSmall),
+              Text(
+                known == null
+                    ? 'Créer votre compte'
+                    : 'Bienvenue sur PressLink',
+                style: theme.textTheme.headlineSmall,
+              ),
               const SizedBox(height: 6),
               Text(
-                widget.phone,
+                IvorianPhone.format(widget.phone),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
+              if (known != null) ...[
+                const SizedBox(height: AppSpacing.md),
+                _KnownByPressingNotice(ordersCount: known.ordersCount),
+              ],
               const SizedBox(height: AppSpacing.lg),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,7 +155,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       controller: _firstNameController,
                       label: 'Prénom',
                       textCapitalization: TextCapitalization.words,
-                      autofocus: true,
+                      autofocus: known == null,
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
@@ -209,9 +251,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text(
-                            'Créer mon compte',
-                            key: ValueKey('label'),
+                        : Text(
+                            known == null
+                                ? 'Créer mon compte'
+                                : 'Accéder à mes commandes',
+                            key: const ValueKey('label'),
                           ),
                   ),
                 ),
@@ -222,6 +266,57 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// « Votre pressing vous a déjà enregistré » : le client n'a qu'à vérifier
+/// ses informations et choisir son mot de passe.
+class _KnownByPressingNotice extends StatelessWidget {
+  const _KnownByPressingNotice({required this.ordersCount});
+
+  final int ordersCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final waiting = switch (ordersCount) {
+      0 => 'Votre pressing vous a déjà enregistré.',
+      1 => 'Votre pressing vous a déjà enregistré : 1 commande vous attend.',
+      _ =>
+        'Votre pressing vous a déjà enregistré : $ordersCount commandes vous attendent.',
+    };
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.sm + 6),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppColors.primary.withValues(alpha: 0.16)
+            : AppColors.primaryTint,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.waving_hand_outlined,
+            size: 20,
+            color: isDark ? const Color(0xFF93C5FD) : AppColors.primary,
+          ),
+          const SizedBox(width: AppSpacing.sm + 2),
+          Expanded(
+            child: Text(
+              '$waiting Vérifiez vos informations, corrigez-les si besoin, '
+              'puis choisissez votre mot de passe.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontSize: 13.5,
+                height: 1.35,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

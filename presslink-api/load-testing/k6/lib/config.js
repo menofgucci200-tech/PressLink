@@ -34,7 +34,7 @@ export const SUPER_ADMIN_EMAIL = 'superadmin@loadtest.presslink.local';
 export function customerPhoneForVu(vuId) {
   const pressingIndex = pressingIndexForVu(vuId);
   const customerNumber = ((vuId - 1) % CUSTOMERS_PER_PRESSING) + 1;
-  return `+22501${String(pressingIndex).padStart(2, '0')}${String(customerNumber).padStart(4, '0')}`;
+  return `+22501${String(pressingIndex).padStart(4, '0')}${String(customerNumber).padStart(4, '0')}`;
 }
 
 export const COMMON_THRESHOLDS = {

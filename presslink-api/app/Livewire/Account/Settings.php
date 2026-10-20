@@ -3,6 +3,7 @@
 namespace App\Livewire\Account;
 
 use App\Livewire\Concerns\ShowsToasts;
+use App\Rules\IvorianPhone;
 use App\Support\ImageOptimizer;
 use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\Storage;
@@ -50,13 +51,13 @@ class Settings extends Component
         $user = auth()->user();
         $this->name = trim($this->name);
         $this->email = mb_strtolower(trim($this->email));
-        $this->phone = PhoneNumber::normalize($this->phone);
+        $this->phone = filled($this->phone) ? PhoneNumber::normalize($this->phone) : '';
 
         // Sans login, l'email ou le téléphone est le seul moyen de se connecter.
         $this->validate([
             'name' => ['required', 'string', 'max:100'],
             'email' => [Rule::requiredIf(blank($user->login) && blank($this->phone)), 'nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-            'phone' => ['nullable', 'string', PhoneNumber::RULE, Rule::unique('users', 'phone')->ignore($user->id)],
+            'phone' => ['nullable', 'string', new IvorianPhone, Rule::unique('users', 'phone')->ignore($user->id)],
         ], [
             'name.required' => 'Indiquez votre nom.',
             'email.required' => 'Gardez une adresse e-mail ou un téléphone : sans identifiant de connexion, c\'est ce qui vous permet de vous connecter.',
@@ -147,7 +148,6 @@ class Settings extends Component
         $this->toast('Mot de passe mis à jour.');
     }
 
-    /** « 07 08 12 44 00 » ou « 0708124400 » → « +2250708124400 ». */
     public function render()
     {
         $user = auth()->user();

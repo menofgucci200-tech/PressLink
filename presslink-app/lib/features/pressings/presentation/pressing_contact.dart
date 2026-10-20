@@ -102,16 +102,32 @@ class PressingContactButtons extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Icône au-dessus du libellé : les trois boutons tiennent sur une
+        // ligne même sur un petit téléphone, sans couper « WhatsApp ».
         Row(
           children: [
             for (final action in actions) ...[
               Expanded(
                 child: SizedBox(
-                  height: 46,
-                  child: OutlinedButton.icon(
+                  height: 64,
+                  child: OutlinedButton(
                     onPressed: () => _open(context, action.uri),
-                    icon: Icon(action.icon, size: 18, color: action.color),
-                    label: Text(action.label),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(action.icon, size: 20, color: action.color),
+                        const SizedBox(height: 4),
+                        Text(
+                          action.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelMedium,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

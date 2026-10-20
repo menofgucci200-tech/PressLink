@@ -79,7 +79,7 @@
         </ol>
         <div class="lg:sticky lg:top-24">
             <div class="phone-mock phone-mock--hands">
-                <div class="phone-mock__screen"><x-site.app-screen /></div>
+                <div class="phone-mock__screen"><x-site.app-screen ecran="commande-contact" /></div>
                 <img src="{{ asset('images/hands-phone.webp') }}" width="736" height="648" alt="Notification de commande prête dans PressLink" loading="lazy">
             </div>
             <a href="{{ $appUrl }}" class="mt-6 flex items-center justify-center h-12 rounded-xl bg-(--color-primary) text-white font-semibold hover:bg-(--color-primary-600)">Commencer maintenant</a>

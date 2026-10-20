@@ -77,18 +77,14 @@ function accueil(hero) {
     const motsH1 = decouper(h1);
     const autres = [...texte.children].filter((e) => e !== h1);
     const telephone = $('[data-motion="hero-phone"]', hero);
-    const cartes = $$('.mock-card', telephone);
-    const barres = $$('.mock-card span[style*="flex:1"]', telephone);
-    const pastilles = $$('.mock-pill', telephone);
-    const notif = $('.float-y', telephone);
+    const capture = $('.app-shot > img', telephone);
+    const notif = $('[data-push]', telephone);
 
     gsap.set(motsH1, { yPercent: 110 });
     gsap.set(autres, { y: 24, opacity: 0 });
     gsap.set(telephone, { y: 140, rotation: 4, opacity: 0 });
-    gsap.set(cartes, { y: 16, opacity: 0 });
-    gsap.set(barres, { scaleX: 0, transformOrigin: '0 50%' });
-    gsap.set(pastilles, { scale: 0 });
-    if (notif) { notif.classList.remove('float-y'); gsap.set(notif, { yPercent: 160, opacity: 0 }); gsap.to(notif, { y: -8, duration: 3, yoyo: true, repeat: -1, ease: 'sine.inOut' }); }
+    if (capture) gsap.set(capture, { yPercent: 6, opacity: 0 });
+    if (notif) gsap.set(notif, { yPercent: -170, opacity: 0 });
     gsap.set('body > header', { y: -70, opacity: 0 });
     montrer();
 
@@ -111,19 +107,17 @@ function accueil(hero) {
     tl.to('body > header', { y: 0, opacity: 1, duration: 0.9 }, t0)
         .to(motsH1, { yPercent: 0, duration: 1.1, stagger: 0.045 }, t0 + 0.1)
         .to(autres, { y: 0, opacity: 1, duration: 0.9, stagger: 0.08 }, t0 + 0.05)
-        .to(telephone, { y: 0, rotation: 0, opacity: 1, duration: 1.4 }, t0 + 0.2)
-        .to(cartes, { y: 0, opacity: 1, duration: 0.7, stagger: 0.15 }, t0 + 0.9)
-        .to(barres, { scaleX: 1, duration: 0.5, stagger: 0.08, ease: 'power2.out' }, t0 + 1.1)
-        .to(pastilles, { scale: 1, duration: 0.6, stagger: 0.15, ease: 'back.out(3)' }, t0 + 1.3);
+        .to(telephone, { y: 0, rotation: 0, opacity: 1, duration: 1.4 }, t0 + 0.2);
+    if (capture) tl.to(capture, { yPercent: 0, opacity: 1, duration: 1, ease: 'power3.out' }, t0 + 0.8);
     if (notif) {
-        tl.to(notif, { yPercent: 0, opacity: 1, duration: 0.9, ease: 'back.out(1.6)' }, t0 + 1.7);
+        tl.to(notif, { yPercent: 0, opacity: 1, duration: 0.8, ease: 'back.out(1.5)' }, t0 + 1.9);
         // la notification repart puis revient, comme une nouvelle commande prête
         gsap.timeline({ repeat: -1, delay: t0 + 7, repeatDelay: 5 })
-            .to(notif, { yPercent: 160, opacity: 0, duration: 0.5, ease: 'power2.in' })
-            .to(notif, { yPercent: 0, opacity: 1, duration: 0.9, ease: 'back.out(1.6)' }, 1.2);
+            .to(notif, { yPercent: -170, opacity: 0, duration: 0.5, ease: 'power2.in' })
+            .to(notif, { yPercent: 0, opacity: 1, duration: 0.8, ease: 'back.out(1.5)' }, 1.4);
     }
     gsap.to(texte, { y: -70, opacity: 0.2, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
-    gsap.to(telephone, { y: 90, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
+    gsap.to(telephone, { y: -50, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
 }
 
 /* ---------------------------------------------------------------- titres de toutes les pages */

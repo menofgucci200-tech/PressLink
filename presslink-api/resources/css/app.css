@@ -380,6 +380,8 @@ main.is-navigating {
  */
 .phone-mock { position: relative; isolation: isolate; }
 .phone-mock > img { position: relative; z-index: 1; width: 100%; height: auto; pointer-events: none; user-select: none; }
+/* Les manches se fondent dans la page au lieu d'être coupées net par le bord de la photo. */
+.phone-mock--hands > img { -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent 99%); mask-image: linear-gradient(to bottom, #000 78%, transparent 99%); }
 .phone-mock__screen {
     position: absolute; z-index: 0; overflow: hidden; background: #fff;
     container-type: inline-size; border-radius: 9% / 4.5%;
@@ -389,6 +391,29 @@ main.is-navigating {
 .mock { font-size: 6.4cqw; font-family: var(--font-sans); color: var(--color-text-primary); height: 100%; padding: 2.6em .9em 1em; background: var(--color-bg); }
 .mock-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: .8em; padding: .8em; }
 .mock-pill { display: inline-flex; align-items: center; gap: .35em; border-radius: 99em; padding: .2em .65em; font-size: .72em; font-weight: 600; }
+
+/* Vraies captures de l'application dans les téléphones (x-site.app-screen) :
+   barre d'état, capture, notification « commande prête ». */
+.app-shot { position: absolute; inset: 0; display: flex; flex-direction: column; background: #f8fafc; }
+.app-shot__etat { flex: none; height: 12cqw; display: flex; align-items: center; justify-content: space-between; padding: 0 7cqw 0 10cqw; font: 600 4.1cqw/1 var(--font-sans); color: #0f172a; background: #f8fafc; }
+.app-shot__etat.is-bleu { color: #fff; background: linear-gradient(90deg, #1e3a8b, #2562ea); }
+.app-shot__etat svg { width: 15cqw; height: auto; }
+.app-shot > img { display: block; width: 100%; flex: 1; min-height: 0; object-fit: cover; object-position: top; }
+.app-push { position: absolute; left: 3cqw; right: 3cqw; top: 13.5cqw; z-index: 2; display: flex; gap: 3cqw; align-items: center; padding: 3cqw 3.4cqw; border-radius: 5.5cqw;
+    background: rgb(255 255 255 / .92); backdrop-filter: blur(10px); box-shadow: 0 2cqw 6cqw rgb(15 23 42 / .22), 0 0 0 1px rgb(15 23 42 / .05); color: #0f172a; font: 400 3.5cqw/1.32 var(--font-sans); }
+.app-push > img { flex: none; width: 10cqw; height: 10cqw; border-radius: 2.4cqw; }
+.app-push span { flex: 1; min-width: 0; color: #475569; }
+.app-push small { display: flex; justify-content: space-between; font-size: 2.9cqw; color: #64748b; letter-spacing: .05em; margin-bottom: .6cqw; }
+.app-push small i { font-style: normal; letter-spacing: 0; }
+.app-push span > b { display: block; font-size: 3.9cqw; color: #0f172a; }
+
+/* Téléphone dessiné (démos d'installation) : aucune photo, il se fond dans la page. */
+.phone-mock--appareil { padding: 3.4%; border-radius: 15% / 7.2%; background: linear-gradient(150deg, #3a4256, #0b0f19 38%, #161c2b 70%, #2e3548);
+    box-shadow: inset 0 0 0 1.5px #4a5368, inset 0 0 0 4px #0b0f19, 0 40px 70px -30px rgb(15 23 42 / .55), 0 14px 26px -14px rgb(15 23 42 / .4); }
+.phone-mock--appareil .phone-mock__screen { position: relative; inset: auto; width: 100%; aspect-ratio: 390 / 835; border-radius: 11.5% / 5.4%; }
+.phone-mock--appareil::before { content: ""; position: absolute; z-index: 3; top: 2.6%; left: 50%; width: 27%; height: 3.1%; transform: translateX(-50%); border-radius: 99px; background: #05070d; }
+.phone-mock--appareil::after { content: ""; position: absolute; right: -1.1%; top: 25%; width: 1.3%; height: 11%; border-radius: 0 3px 3px 0; background: #3a4256; }
+.install-demo .barre-url { flex: none; margin: 0 3cqw 2cqw; padding: 2cqw 4cqw; border-radius: 99em; background: #eef2f7; font: 500 3.6cqw/1 var(--font-sans); color: #475569; }
 
 /* Les écrans de téléphone reproduisent l'application et les navigateurs
    tels qu'on les voit en journée : ils gardent la palette claire, même en

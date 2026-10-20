@@ -11,7 +11,7 @@
                 <a href="{{ $appUrl }}" class="inline-flex items-center justify-center h-12 px-6 rounded-xl bg-(--color-primary) text-white font-semibold hover:bg-(--color-primary-600)">Ouvrir l'application</a>
             </div>
             <div class="phone-mock phone-mock--hands max-w-md mx-auto w-full self-end">
-                <div class="phone-mock__screen"><x-site.app-screen /></div>
+                <div class="phone-mock__screen"><x-site.app-screen ecran="commande-prete" /></div>
                 <img src="{{ asset('images/hands-phone.webp') }}" width="736" height="648" alt="Suivi d'une commande de pressing dans l'application PressLink" fetchpriority="high">
             </div>
         </div>

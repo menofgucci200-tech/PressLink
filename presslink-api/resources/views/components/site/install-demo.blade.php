@@ -5,36 +5,40 @@
         ? ['Ouvrez presslink.org/app dans Chrome et appuyez sur « Installer ».', 'Confirmez avec « Installer » dans la fenêtre de Chrome.', 'PressLink apparaît sur votre écran d\'accueil, comme une application.']
         : ['Ouvrez presslink.org/app dans Safari et touchez Partager.', 'Choisissez « Sur l\'écran d\'accueil », puis « Ajouter ».', 'Ouvrez PressLink depuis son icône et connectez-vous.'];
     $icon = asset('apple-touch-icon.png');
+    $ecran = asset('images/ecrans/connexion.webp');
 @endphp
 {{-- Démonstration animée de l'installation de la PWA (3 écrans en boucle),
      synchronisée avec la liste d'étapes. Tailles en em : cf. .mock. --}}
-<div class="grid sm:grid-cols-[minmax(0,15rem)_1fr] gap-8 items-center">
-    <div class="phone-mock phone-mock--hand max-w-60 w-full mx-auto">
+<div class="grid sm:grid-cols-[minmax(0,14rem)_1fr] gap-8 items-center">
+    <div class="phone-mock phone-mock--appareil max-w-56 w-full mx-auto">
         <div class="phone-mock__screen install-demo">
-            {{-- Écran 1 : le navigateur --}}
-            <div class="scene mock" style="padding-top:2.4em">
-                <div style="background:#eef2f7;border-radius:2em;padding:.35em .8em;font-size:.65em;color:var(--color-text-secondary);margin-bottom:1.2em">🔒 presslink.org/app</div>
-                <div style="font-weight:800;font-size:1.1em">Press<span style="color:var(--color-primary)">Link</span></div>
-                <div style="font-weight:700;font-size:.8em;margin:.8em 0 .5em">Votre numéro de téléphone</div>
-                <div class="mock-card" style="font-size:.7em;color:var(--color-text-muted)">+225 · 07 00 00 00 00</div>
+            {{-- Écran 1 : l'application ouverte dans le navigateur (vraie capture) --}}
+            <div class="scene app-shot">
+                <div class="app-shot__etat"><span>9:41</span></div>
+                <div class="barre-url">🔒 presslink.org/app</div>
+                <img src="{{ $ecran }}" alt="L'écran de connexion de PressLink ouvert dans le navigateur" loading="lazy" decoding="async">
                 @if ($android)
-                    <div class="mock-card" style="margin-top:1em;background:var(--color-primary-tint);border-color:#bfd3fb">
-                        <div style="font-weight:700;font-size:.72em">Installer PressLink</div>
-                        <div style="margin-top:.5em;background:var(--color-primary);color:#fff;text-align:center;border-radius:.5em;padding:.45em;font-size:.7em;font-weight:700">Installer</div>
+                    <div class="mock" style="position:absolute;left:0;right:0;bottom:0;height:auto;padding:.8em;background:transparent">
+                        <div class="mock-card" style="display:flex;align-items:center;gap:.6em;box-shadow:0 .5em 1.4em rgb(15 23 42 / .18)">
+                            <img src="{{ $icon }}" alt="" style="width:2em;height:2em;border-radius:.45em">
+                            <span style="flex:1;font-size:.66em;line-height:1.3"><b>Installer PressLink</b><br><span style="color:var(--color-text-muted)">presslink.org</span></span>
+                            <span style="background:var(--color-primary);color:#fff;border-radius:.5em;padding:.4em .7em;font-size:.66em;font-weight:700">Installer</span>
+                            <span class="tap-dot" style="right:1.6em;left:auto;top:50%;animation-delay:0s"></span>
+                        </div>
                     </div>
-                    <span class="tap-dot" style="left:50%;top:15.2em;animation-delay:0s"></span>
                 @else
-                    <div style="position:absolute;left:0;right:0;bottom:0;height:3em;background:#f2f2f7;border-top:1px solid #ddd;display:flex;justify-content:space-around;align-items:center;font-size:1em;color:#0a84ff">
+                    <div class="mock" style="position:absolute;left:0;right:0;bottom:0;height:3em;padding:0;background:#f2f2f7;border-top:1px solid #ddd;display:flex;justify-content:space-around;align-items:center;color:#0a84ff">
                         <span>‹</span><span>›</span>
                         <svg style="width:1.1em;height:1.1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
                         <span>⧉</span>
+                        <span class="tap-dot" style="left:50%;top:50%"></span>
                     </div>
-                    <span class="tap-dot" style="left:50%;bottom:.4em;top:auto;margin-bottom:0"></span>
                 @endif
             </div>
 
             {{-- Écran 2 : confirmation --}}
-            <div class="scene mock" style="background:rgb(15 23 42 / .45)">
+            <div class="scene mock" style="padding:0;background:#0f172a">
+                <img src="{{ $ecran }}" alt="" loading="lazy" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;opacity:.55">
                 @if ($android)
                     <div style="position:absolute;left:.8em;right:.8em;top:38%;background:#fff;border-radius:1em;padding:1em">
                         <div style="font-weight:700;font-size:.85em;margin-bottom:.7em">Installer l'application ?</div>
@@ -64,7 +68,7 @@
             </div>
 
             {{-- Écran 3 : écran d'accueil --}}
-            <div class="scene" style="background:linear-gradient(160deg,#1e3a8a,#0ea5e9);padding:3em 1em 1em;display:grid;grid-template-columns:repeat(4,1fr);gap:1.2em .6em;align-content:start;font-size:6.4cqw">
+            <div class="scene" style="background:linear-gradient(160deg,#1e3a8a,#0ea5e9);padding:4em 1em 1em;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1.2em .6em;align-content:start;font-size:6.4cqw">
                 @for ($i = 0; $i < 11; $i++)
                     <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
                 @endfor
@@ -74,7 +78,6 @@
                 </span>
             </div>
         </div>
-        <img src="{{ asset('images/hand-phone.webp') }}" width="641" height="874" alt="" loading="lazy">
     </div>
 
     <ol class="install-steps space-y-3">

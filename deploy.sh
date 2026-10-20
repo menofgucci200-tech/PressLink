@@ -244,6 +244,18 @@ deploy_pwa() {
     put '$APP_DIR/deploy/pwa.htaccess' -o $REMOTE_PWA_DIR/.htaccess;
   "
 
+  # --ignore-time ne compare que les tailles : la page d'entrée et le chargeur
+  # ne changent souvent que par le nom du dossier de version (même longueur),
+  # et n'étaient alors pas renvoyés (ancienne page + nouveau main.dart.js).
+  # Ces petits fichiers sont donc toujours renvoyés.
+  lftp_run "
+    put '$APP_DIR/build/web/index.html' -o $REMOTE_PWA_DIR/index.html;
+    put '$APP_DIR/build/web/flutter_bootstrap.js' -o $REMOTE_PWA_DIR/flutter_bootstrap.js;
+    put '$APP_DIR/build/web/flutter_service_worker.js' -o $REMOTE_PWA_DIR/flutter_service_worker.js;
+    put '$APP_DIR/build/web/version.json' -o $REMOTE_PWA_DIR/version.json;
+    put '$APP_DIR/build/web/manifest.json' -o $REMOTE_PWA_DIR/manifest.json;
+  "
+
   log "PWA — préchauffage de la compression (Brotli/gzip) de main.dart.js"
   # Observé au premier déploiement : la toute première requête d'un navigateur
   # sur main.dart.js (3 Mo) a échoué une fois (net::ERR_HTTP2_PROTOCOL_ERROR)

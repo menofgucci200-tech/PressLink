@@ -34,6 +34,8 @@
         <div class="mb-5 p-3 rounded-lg bg-(--color-error-tint) text-(--color-error) text-sm">{{ $errorMessage }}</div>
     @endif
 
+    @include('livewire.orders._next-step')
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 flex flex-col gap-6">
             @if ($order->issues->isNotEmpty())
@@ -146,51 +148,6 @@
                 @endif
             </div>
 
-            @if ($nextActions !== [])
-                <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 flex flex-col gap-2">
-                    <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1">Actions</div>
-                    @php $balance = $order->balance_due_fcfa; @endphp
-                    @if ($balance > 0 && in_array(\App\Enums\OrderStatus::Recuperee, $nextActions, true))
-                        {{-- Remise avec un solde : encaisser et remettre en un geste --}}
-                        <div class="rounded-lg bg-(--color-warning-tint) p-3 mb-1">
-                            <div class="text-xs font-semibold text-(--color-warning-text)">Reste à payer au retrait</div>
-                            <div class="font-display text-xl font-bold tabular-nums text-(--color-warning-text)">{{ number_format($balance, 0, ',', ' ') }} F</div>
-                            <label for="settle-method" class="block text-[11px] font-medium text-(--color-text-secondary) mt-2 mb-1">Payé en</label>
-                            <select id="settle-method" wire:model="paymentMethod" class="w-full h-9 px-2.5 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm">
-                                @foreach ($paymentMethods as $method)
-                                    <option value="{{ $method->value }}">{{ $method->label() }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <button wire:click="settleAndRecover"
-                                data-confirm-title="Encaisser et remettre" data-confirm-label="Encaisser et remettre"
-                                wire:confirm="Encaisser {{ number_format($balance, 0, ',', ' ') }} F et marquer la commande {{ $order->order_number }} comme récupérée par {{ $order->customer->fullName() }} ?"
-                                wire:loading.attr="disabled" wire:target="settleAndRecover"
-                                class="h-10 rounded-lg text-sm font-semibold bg-(--color-primary) text-white hover:bg-(--color-primary-600) disabled:opacity-60">
-                            <span wire:loading.remove wire:target="settleAndRecover">Encaisser {{ number_format($balance, 0, ',', ' ') }} F et remettre</span>
-                            <span wire:loading wire:target="settleAndRecover">Mise à jour…</span>
-                        </button>
-                    @endif
-                    @foreach ($nextActions as $action)
-                        <button wire:click="transitionTo('{{ $action->value }}')"
-                                @if ($action->value === 'annulee')
-                                    data-confirm-title="Annuler la commande" data-confirm-label="Annuler la commande" data-confirm-cancel="Garder la commande" data-confirm-tone="danger"
-                                    wire:confirm="Annuler la commande {{ $order->order_number }} ? Cette action est définitive : la commande ne pourra plus changer de statut.{{ $order->amount_paid_fcfa > 0 ? ' Le client a déjà payé '.number_format($order->amount_paid_fcfa, 0, ',', ' ').' F : pensez à le rembourser.' : '' }}"
-                                @elseif ($action->value === 'recuperee' && $balance > 0)
-                                    data-confirm-title="Remettre sans encaisser" data-confirm-label="Remettre sans encaisser" data-confirm-tone="warning"
-                                    wire:confirm="{{ $order->customer->fullName() }} récupère la commande {{ $order->order_number }} sans régler les {{ number_format($balance, 0, ',', ' ') }} F restants : ce montant restera dû (à encaisser plus tard dans Paiement)."
-                                @elseif ($action->value === 'recuperee')
-                                    data-confirm-title="Remise au client" data-confirm-label="Confirmer la remise"
-                                    wire:confirm="Confirmez-vous que {{ $order->customer->fullName() }} a récupéré la commande {{ $order->order_number }} ({{ number_format($order->total_fcfa, 0, ',', ' ') }} F, déjà payée) ?"
-                                @endif
-                                wire:loading.attr="disabled" wire:target="transitionTo('{{ $action->value }}')"
-                                class="h-10 rounded-lg text-sm font-semibold disabled:opacity-60 {{ ($action->value === 'recuperee' && $balance === 0) || $action->value === 'prete' ? 'bg-(--color-primary) text-white hover:bg-(--color-primary-600)' : 'border border-(--color-border) hover:border-(--color-primary)' }}">
-                            <span wire:loading.remove wire:target="transitionTo('{{ $action->value }}')">{{ $action->value === 'recuperee' && $balance > 0 ? 'Remettre sans encaisser' : 'Marquer '.mb_strtolower($action->label()) }}</span>
-                            <span wire:loading wire:target="transitionTo('{{ $action->value }}')">Mise à jour…</span>
-                        </button>
-                    @endforeach
-                </div>
-            @endif
         </div>
     </div>
 </div>

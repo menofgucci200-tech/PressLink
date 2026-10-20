@@ -241,13 +241,21 @@
                     </x-profile-menu>
                 </header>
 
-                <main id="contenu" tabindex="-1" class="flex-1 min-w-0 overflow-x-clip p-4 sm:p-6 lg:p-8 outline-none">
+                <main id="contenu" tabindex="-1" class="flex-1 min-w-0 overflow-x-clip p-4 sm:p-6 lg:p-8 max-lg:pb-24 outline-none">
                     {{ $slot }}
                 </main>
             </div>
         </div>
 
         <x-feedback />
+        @if ($pressing && request()->routeIs('dashboard', 'orders.index', 'orders.show', 'clients.index', 'clients.show'))
+            {{-- Téléphone : l'action la plus fréquente reste sous le pouce, même après avoir défilé --}}
+            <a href="{{ route('orders.create') }}" wire:navigate aria-label="Nouvelle commande"
+               class="lg:hidden fixed right-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 inline-flex items-center gap-2 h-14 pl-4 pr-5 rounded-full bg-(--color-primary) text-white text-[15px] font-semibold shadow-[0_8px_24px_rgba(37,99,235,.35)] active:scale-95 transition-transform">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                Commande
+            </a>
+        @endif
         @if ($pressing)
             @php
                 $shortcuts = [

@@ -127,7 +127,7 @@
                 <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-3">Client</div>
                 <div class="text-sm font-medium mb-1">{{ $order->customer->fullName() }}</div>
                 <div class="text-sm text-(--color-text-secondary) tabular-nums flex items-center gap-1">
-                    <a href="tel:{{ $order->customer->phone }}" class="hover:text-(--color-primary)">{{ $order->customer->phone }}</a>
+                    <a href="tel:{{ $order->customer->phone }}" class="hover:text-(--color-primary)">{{ \App\Support\PhoneNumber::format($order->customer->phone) }}</a>
                     <x-copy-button :value="$order->customer->phone" label="Copier le téléphone" />
                 </div>
             </div>

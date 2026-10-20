@@ -96,7 +96,7 @@
                         </span>
                         <div class="min-w-0 flex-1">
                             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Client</div>
-                            <div class="text-sm font-semibold truncate">{{ $selectedCustomer->fullName() }} <span class="font-normal text-(--color-text-secondary) tabular-nums">· {{ $selectedCustomer->phone }}</span></div>
+                            <div class="text-sm font-semibold truncate">{{ $selectedCustomer->fullName() }} <span class="font-normal text-(--color-text-secondary) tabular-nums">· {{ \App\Support\PhoneNumber::format($selectedCustomer->phone) }}</span></div>
                         </div>
                         @if ($lastOrder && $lastOrder->items->isNotEmpty())
                             <button type="button" wire:click="repeatLastOrder" wire:loading.attr="disabled" wire:target="repeatLastOrder"
@@ -129,7 +129,7 @@
                                 </span>
                                 <span class="min-w-0">
                                     <span class="block text-[13px] font-semibold leading-tight">{{ $client->fullName() }}</span>
-                                    <span class="block text-[11.5px] text-(--color-text-secondary) tabular-nums leading-tight">{{ $client->phone }}</span>
+                                    <span class="block text-[11.5px] text-(--color-text-secondary) tabular-nums leading-tight">{{ \App\Support\PhoneNumber::format($client->phone) }}</span>
                                 </span>
                                 @if ($client->is_active === false)
                                     <span class="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-(--color-error-tint) text-(--color-error)">Compte désactivé</span>

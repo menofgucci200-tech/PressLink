@@ -42,7 +42,7 @@ class PressingController extends Controller
     {
         $request->validate(['code' => ['required', 'string']]);
 
-        $pressing = Pressing::where('code', mb_strtoupper($request->string('code')->toString()))->first();
+        $pressing = Pressing::findByPublicCode($request->string('code')->toString());
 
         if ($pressing === null) {
             return response()->json([

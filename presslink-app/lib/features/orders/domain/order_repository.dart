@@ -2,6 +2,7 @@ import '../../../core/network/api_client.dart';
 import '../../pressings/domain/pressing_repository.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/pluriel_articles.dart';
 
 class OrderItemModel {
   const OrderItemModel({
@@ -183,7 +184,7 @@ class OrderModel {
   final PressingContact? pressingContact;
 
   String get itemsLabel =>
-      items.map((i) => '${i.quantity} ${i.name}').join(' · ');
+      items.map((i) => libelleArticle(i.quantity, i.name)).join(' · ');
 
   factory OrderModel.fromJson(Map<String, dynamic> json) => OrderModel(
     id: json['id'] as int,

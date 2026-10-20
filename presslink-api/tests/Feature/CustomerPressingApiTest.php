@@ -26,6 +26,24 @@ class CustomerPressingApiTest extends TestCase
         $this->assertTrue($customer->pressings()->where('pressings.id', $pressing->id)->exists());
     }
 
+    public function test_the_code_is_found_without_hyphen_spaces_or_capitals(): void
+    {
+        $pressing = Pressing::factory()->create(['code' => 'ZN-8533']);
+        $customer = Customer::factory()->create();
+        $token = $customer->createToken('test')->plainTextToken;
+
+        foreach (['ZN8533', 'zn 8533', ' Zn-8533 '] as $saisie) {
+            $this->withHeader('Authorization', "Bearer {$token}")
+                ->postJson('/api/v1/pressings/join', ['code' => $saisie])
+                ->assertOk()
+                ->assertJson(['id' => $pressing->id]);
+        }
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/v1/pressings/join', ['code' => 'ZN8534'])
+            ->assertNotFound();
+    }
+
     public function test_joining_with_an_unknown_code_returns_not_found(): void
     {
         $customer = Customer::factory()->create();

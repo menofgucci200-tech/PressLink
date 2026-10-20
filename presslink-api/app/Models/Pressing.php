@@ -89,6 +89,26 @@ class Pressing extends Model
         $query->where('code', '!=', ResetDemoPressing::PRESSING_CODE);
     }
 
+    /**
+     * Retrouve un pressing par son code public, tel que le client le tape :
+     * sans tenir compte des minuscules, des espaces ni du tiret (« zn 8533 »,
+     * « ZN8533 » et « ZN-8533 » désignent le même pressing).
+     */
+    public static function findByPublicCode(string $saisie): ?self
+    {
+        $exact = self::where('code', mb_strtoupper(trim($saisie)))->first();
+        if ($exact !== null) {
+            return $exact;
+        }
+
+        $compact = preg_replace('/[^A-Z0-9]/', '', mb_strtoupper($saisie));
+        if ($compact === '') {
+            return null;
+        }
+
+        return self::whereRaw("REPLACE(REPLACE(UPPER(code), '-', ''), ' ', '') = ?", [$compact])->first();
+    }
+
     public static function generateUniqueCode(): string
     {
         do {

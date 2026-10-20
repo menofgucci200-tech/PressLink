@@ -69,388 +69,395 @@ class _OrderDetailBody extends ConsumerWidget {
     final dateFormat = DateFormat('d MMMM', 'fr_FR');
     final currentIndex = canonicalSteps.indexOf(order.status);
 
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Commande ${order.orderNumber}',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: order.pressingId == null
-                        ? null
-                        : () {
-                            final pressings =
-                                ref.read(myPressingsProvider).valueOrNull ?? [];
-                            PressingModel? pressing;
-                            for (final p in pressings) {
-                              if (p.id == order.pressingId) {
-                                pressing = p;
-                                break;
-                              }
-                            }
-                            final found = pressing;
-                            if (found != null) {
-                              Navigator.of(context).push(
-                                AppPageRoute(
-                                  builder: (_) =>
-                                      PressingDetailScreen(pressing: found),
-                                ),
-                              );
-                            }
-                          },
-                    child: Text(
-                      order.pressingName,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        decoration: order.pressingId != null
-                            ? TextDecoration.underline
-                            : null,
+    // Tirer vers le bas recharge la commande (son statut a pu changer au comptoir).
+    return RefreshIndicator(
+      onRefresh: () => ref.refresh(orderDetailProvider(order.id).future),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(AppSpacing.md),
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Commande ${order.orderNumber}',
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            if (order.receipt != null) _ReceiptActions(receipt: order.receipt!),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.lg),
-
-        // Hero de statut
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(
-            vertical: 26,
-            horizontal: AppSpacing.md,
-          ),
-          decoration: BoxDecoration(
-            color: order.status.tintFor(context),
-            border: Border.all(
-              color: order.status.colorFor(context).withValues(alpha: 0.3),
-            ),
-            borderRadius: BorderRadius.circular(AppRadius.xl),
-          ),
-          child: Column(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: order.status.colorFor(context),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.check, color: Colors.white, size: 24),
-              ),
-              const SizedBox(height: AppSpacing.sm + 6),
-              Text(
-                order.status.label.toUpperCase(),
-                style: TextStyle(
-                  fontSize: 19,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.5,
-                  color: order.status.colorFor(context),
+                    GestureDetector(
+                      onTap: order.pressingId == null
+                          ? null
+                          : () {
+                              final pressings =
+                                  ref.read(myPressingsProvider).valueOrNull ??
+                                  [];
+                              PressingModel? pressing;
+                              for (final p in pressings) {
+                                if (p.id == order.pressingId) {
+                                  pressing = p;
+                                  break;
+                                }
+                              }
+                              final found = pressing;
+                              if (found != null) {
+                                Navigator.of(context).push(
+                                  AppPageRoute(
+                                    builder: (_) =>
+                                        PressingDetailScreen(pressing: found),
+                                  ),
+                                );
+                              }
+                            },
+                      child: Text(
+                        order.pressingName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          decoration: order.pressingId != null
+                              ? TextDecoration.underline
+                              : null,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                _heroMessage(order),
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium,
-              ),
+              if (order.receipt != null)
+                _ReceiptActions(receipt: order.receipt!),
             ],
           ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.lg),
 
-        if (order.issues.isNotEmpty) ...[
-          Text(
-            'SIGNALEMENTS',
-            style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6),
-          ),
-          const SizedBox(height: AppSpacing.sm + 4),
-          for (final issue in order.issues) ...[
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.sm + 6),
-              margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-              decoration: BoxDecoration(
-                color: issue.isResolved
-                    ? context.border.withValues(alpha: 0.2)
-                    : context.errorTint,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    issue.isResolved
-                        ? Icons.check_circle_outline
-                        : Icons.error_outline,
-                    size: 18,
-                    color: issue.isResolved
-                        ? context.textSecondary
-                        : AppColors.error,
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          issue.category.label,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: issue.isResolved
-                                ? context.textSecondary
-                                : AppColors.error,
-                          ),
-                        ),
-                        if (issue.description != null) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            issue.description!,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontSize: 12.5,
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 2),
-                        Text(
-                          issue.isResolved
-                              ? 'Résolu'
-                              : 'En attente de traitement',
-                          style: theme.textTheme.labelSmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+          // Hero de statut
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(
+              vertical: 26,
+              horizontal: AppSpacing.md,
             ),
-          ],
-          const SizedBox(height: AppSpacing.sm),
-        ],
-
-        // Progression
-        Text(
-          'PROGRESSION',
-          style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6),
-        ),
-        const SizedBox(height: AppSpacing.sm + 4),
-        for (var i = 0; i < canonicalSteps.length; i++)
-          _TimelineRow(
-            status: canonicalSteps[i],
-            isDone: currentIndex >= 0 && i <= currentIndex,
-            isLast: i == canonicalSteps.length - 1,
-            time: _timeFor(canonicalSteps[i]),
-          ),
-
-        const SizedBox(height: AppSpacing.lg),
-
-        // Articles
-        Text(
-          'ARTICLES',
-          style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6),
-        ),
-        const SizedBox(height: AppSpacing.sm + 4),
-        Container(
-          decoration: BoxDecoration(
-            color: theme.cardTheme.color,
-            border: Border.all(color: theme.dividerTheme.color!),
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          child: Column(
-            children: [
-              for (final item in order.items)
+            decoration: BoxDecoration(
+              color: order.status.tintFor(context),
+              border: Border.all(
+                color: order.status.colorFor(context).withValues(alpha: 0.3),
+              ),
+              borderRadius: BorderRadius.circular(AppRadius.xl),
+            ),
+            child: Column(
+              children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: theme.dividerTheme.color!),
-                    ),
+                    color: order.status.colorFor(context),
+                    shape: BoxShape.circle,
                   ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${item.name} × ${item.quantity}',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Text(
-                        '${_formatFcfa(item.subtotalFcfa)} F',
-                        style: const TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                    ],
+                  child: const Icon(Icons.check, color: Colors.white, size: 24),
+                ),
+                const SizedBox(height: AppSpacing.sm + 6),
+                Text(
+                  order.status.label.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                    color: order.status.colorFor(context),
                   ),
                 ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 15),
+                const SizedBox(height: 8),
+                Text(
+                  _heroMessage(order),
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+
+          if (order.issues.isNotEmpty) ...[
+            Text(
+              'SIGNALEMENTS',
+              style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6),
+            ),
+            const SizedBox(height: AppSpacing.sm + 4),
+            for (final issue in order.issues) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(AppSpacing.sm + 6),
+                margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: issue.isResolved
+                      ? context.border.withValues(alpha: 0.2)
+                      : context.errorTint,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Total',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                      ),
+                    Icon(
+                      issue.isResolved
+                          ? Icons.check_circle_outline
+                          : Icons.error_outline,
+                      size: 18,
+                      color: issue.isResolved
+                          ? context.textSecondary
+                          : AppColors.error,
                     ),
-                    Text(
-                      '${_formatFcfa(order.totalFcfa)} FCFA',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontSize: 18,
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            issue.category.label,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: issue.isResolved
+                                  ? context.textSecondary
+                                  : AppColors.error,
+                            ),
+                          ),
+                          if (issue.description != null) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              issue.description!,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontSize: 12.5,
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 2),
+                          Text(
+                            issue.isResolved
+                                ? 'Résolu'
+                                : 'En attente de traitement',
+                            style: theme.textTheme.labelSmall,
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
             ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.sm),
+          ],
 
-        // Paiement : ce qui a été payé au pressing et ce qu'il reste à régler.
-        if (order.status != OrderStatus.annulee && order.totalFcfa > 0) ...[
+          // Progression
           Text(
-            'PAIEMENT',
+            'PROGRESSION',
             style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6),
           ),
           const SizedBox(height: AppSpacing.sm + 4),
-          _PaymentCard(order: order),
-          const SizedBox(height: AppSpacing.md),
-        ],
-
-        // Commande prête restée trop longtemps : droit de magasinage en cours.
-        if (order.storageFeeAmount != null) ...[
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: theme.brightness == Brightness.dark
-                  ? AppColors.warning.withValues(alpha: 0.16)
-                  : AppColors.warningTint,
-              borderRadius: BorderRadius.circular(12),
+          for (var i = 0; i < canonicalSteps.length; i++)
+            _TimelineRow(
+              status: canonicalSteps[i],
+              isDone: currentIndex >= 0 && i <= currentIndex,
+              isLast: i == canonicalSteps.length - 1,
+              time: _timeFor(canonicalSteps[i]),
             ),
+
+          const SizedBox(height: AppSpacing.lg),
+
+          // Articles
+          Text(
+            'ARTICLES',
+            style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6),
+          ),
+          const SizedBox(height: AppSpacing.sm + 4),
+          Container(
+            decoration: BoxDecoration(
+              color: theme.cardTheme.color,
+              border: Border.all(color: theme.dividerTheme.color!),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Droit de magasinage : ${_formatFcfa(order.storageFeeAmount!)} F',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: theme.brightness == Brightness.dark
-                        ? const Color(0xFFFBBF24)
-                        : AppColors.warningText,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Votre commande attend depuis ${order.storageFeeDays} jour${(order.storageFeeDays ?? 0) > 1 ? 's' : ''} de plus que prévu. '
-                  'Ce montant s\'ajoute au retrait et augmente chaque jour : passez la récupérer dès que possible.',
-                  style: theme.textTheme.bodyMedium,
-                ),
-                if (order.storageFeeClause != null) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    order.storageFeeClause!,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: context.textMuted,
+                for (final item in order.items)
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: theme.dividerTheme.color!),
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${item.name} × ${item.quantity}',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Text(
+                          '${_formatFcfa(item.subtotalFcfa)} F',
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Total',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Text(
+                        '${_formatFcfa(order.totalFcfa)} FCFA',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontSize: 18,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-        ],
+          const SizedBox(height: AppSpacing.lg),
 
-        Row(
-          children: [
-            Expanded(
-              child: _DateCard(
-                label: 'Déposée le',
-                date: dateFormat.format(order.droppedOffAt),
+          // Paiement : ce qui a été payé au pressing et ce qu'il reste à régler.
+          if (order.status != OrderStatus.annulee && order.totalFcfa > 0) ...[
+            Text(
+              'PAIEMENT',
+              style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6),
+            ),
+            const SizedBox(height: AppSpacing.sm + 4),
+            _PaymentCard(order: order),
+            const SizedBox(height: AppSpacing.md),
+          ],
+
+          // Commande prête restée trop longtemps : droit de magasinage en cours.
+          if (order.storageFeeAmount != null) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: theme.brightness == Brightness.dark
+                    ? AppColors.warning.withValues(alpha: 0.16)
+                    : AppColors.warningTint,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Droit de magasinage : ${_formatFcfa(order.storageFeeAmount!)} F',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: theme.brightness == Brightness.dark
+                          ? const Color(0xFFFBBF24)
+                          : AppColors.warningText,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Votre commande attend depuis ${order.storageFeeDays} jour${(order.storageFeeDays ?? 0) > 1 ? 's' : ''} de plus que prévu. '
+                    'Ce montant s\'ajoute au retrait et augmente chaque jour : passez la récupérer dès que possible.',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  if (order.storageFeeClause != null) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      order.storageFeeClause!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: context.textMuted,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-            const SizedBox(width: AppSpacing.sm + 2),
-            if (order.expectedAt != null)
+            const SizedBox(height: AppSpacing.md),
+          ],
+
+          Row(
+            children: [
               Expanded(
                 child: _DateCard(
-                  label: 'Retrait prévu',
-                  date: dateFormat.format(order.expectedAt!),
+                  label: 'Déposée le',
+                  date: dateFormat.format(order.droppedOffAt),
                 ),
               ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.lg),
+              const SizedBox(width: AppSpacing.sm + 2),
+              if (order.expectedAt != null)
+                Expanded(
+                  child: _DateCard(
+                    label: 'Retrait prévu',
+                    date: dateFormat.format(order.expectedAt!),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
 
-        if (order.pressingContact != null) ...[
+          if (order.pressingContact != null) ...[
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: FilledButton.icon(
+                onPressed: () => showPressingContactSheet(
+                  context,
+                  contact: order.pressingContact!,
+                  pressingName: order.pressingName,
+                  orderNumber: order.orderNumber,
+                ),
+                icon: const Icon(Icons.support_agent_rounded, size: 20),
+                label: const Text('Contacter le pressing'),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm + 2),
+          ],
+
           SizedBox(
             width: double.infinity,
             height: 48,
-            child: FilledButton.icon(
-              onPressed: () => showPressingContactSheet(
-                context,
-                contact: order.pressingContact!,
-                pressingName: order.pressingName,
-                orderNumber: order.orderNumber,
-              ),
-              icon: const Icon(Icons.support_agent_rounded, size: 20),
-              label: const Text('Contacter le pressing'),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm + 2),
-        ],
-
-        SizedBox(
-          width: double.infinity,
-          height: 48,
-          child: OutlinedButton.icon(
-            onPressed: () => Navigator.of(context).push(
-              AppPageRoute(
-                builder: (_) => ReportIssueScreen(
-                  orderId: order.id,
-                  orderNumber: order.orderNumber,
+            child: OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                AppPageRoute(
+                  builder: (_) => ReportIssueScreen(
+                    orderId: order.id,
+                    orderNumber: order.orderNumber,
+                  ),
                 ),
               ),
-            ),
-            icon: const Icon(
-              Icons.flag_outlined,
-              size: 18,
-              color: AppColors.error,
-            ),
-            label: const Text(
-              'Signaler un problème',
-              style: TextStyle(
+              icon: const Icon(
+                Icons.flag_outlined,
+                size: 18,
                 color: AppColors.error,
-                fontWeight: FontWeight.w600,
+              ),
+              label: const Text(
+                'Signaler un problème',
+                style: TextStyle(
+                  color: AppColors.error,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFFFECACA)),
               ),
             ),
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Color(0xFFFECACA)),
-            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

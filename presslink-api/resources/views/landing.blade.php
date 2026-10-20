@@ -90,15 +90,16 @@
     {{-- ===== Vidéos du parcours ===== --}}
     <section class="max-w-6xl mx-auto px-5 py-16 md:py-20">
         <div class="max-w-2xl mb-8">
-            <h2 class="font-display text-3xl font-bold tracking-tight mb-3">Le vrai parcours, en vidéo</h2>
+            <h2 class="font-display text-3xl font-bold tracking-tight mb-3">PressLink, en vidéo</h2>
             <p class="text-(--color-text-secondary) text-lg">Filmé dans l'application et le tableau de bord, commenté pas à pas.</p>
         </div>
         <div class="grid md:grid-cols-2 gap-8" data-motion="videos">
             @foreach ([
-                ['presslink-inscription', 'Inscription, ajout du pressing et connexion', '1 min 44'],
-                ['presslink-suivi-commande', 'Le suivi d\'une commande, du dépôt au retrait', '2 min 18'],
+                ['presslink-presentation', 'Découvrir PressLink : l\'application et le logiciel de gestion', '1 min 22'],
+                ['presslink-inscription', 'Inscription, ajout du pressing et connexion', '1 min 07'],
+                ['presslink-suivi-commande', 'Le suivi d\'une commande, du dépôt au retrait', '1 min 22'],
             ] as [$video, $label, $duration])
-                <figure>
+                <figure @class(['md:col-span-2' => $loop->first])>
                     <video class="w-full rounded-3xl border border-(--color-border) shadow-sm bg-(--color-bg)" controls playsinline preload="none"
                            poster="{{ asset('video/'.$video.'.jpg') }}" width="1280" height="720">
                         <source src="{{ asset('video/'.$video.'.mp4') }}" type="video/mp4">

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<style>
+@font-face { font-family: Inter; font-weight: 500; src: url(fonts/inter-500-normal.woff2); }
+@font-face { font-family: Inter; font-weight: 600; src: url(fonts/inter-600-normal.woff2); }
+@font-face { font-family: Inter; font-weight: 700; src: url(fonts/inter-700-normal.woff2); }
+@font-face { font-family: "Inter Tight"; font-weight: 700; src: url(fonts/inter-tight-700-normal.woff2); }
+@font-face { font-family: "Inter Tight"; font-weight: 800; src: url(fonts/inter-tight-800-normal.woff2); }
+:root { --bleu: #2563eb; --encre: #0f172a; --gris: #475569; --pale: #94a3b8; --fond: #f4f7fe; --bord: #e2e8f0; --vert: #10b981; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: transparent; font-family: Inter, sans-serif; color: var(--encre); -webkit-font-smoothing: antialiased; }
+.abs { position: absolute; }
+#fond { position: absolute; inset: 0; }
+.logo { font: 700 30px "Inter Tight"; letter-spacing: -.02em; }
+.logo b { color: var(--bleu); font-weight: 700; }
+#chapitres { position: absolute; top: 34px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; }
+.chap { display: flex; align-items: center; gap: 10px; padding: 9px 18px 9px 10px; border-radius: 999px; font: 600 17px Inter; color: var(--pale); background: rgba(255,255,255,.7); border: 1px solid var(--bord); }
+.chap i { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font: 700 14px Inter; font-style: normal; background: var(--bord); color: var(--gris); }
+.chap.on { color: #fff; background: var(--bleu); border-color: var(--bleu); box-shadow: 0 8px 24px rgba(37,99,235,.3); }
+.chap.on i { background: #fff; color: var(--bleu); }
+.chap.fait { color: var(--gris); }
+.chap.fait i { background: var(--vert); color: #fff; }
+.chap-trait { width: 34px; height: 2px; background: var(--bord); }
+#progression { position: absolute; left: 0; top: 0; height: 4px; background: var(--bleu); }
+#etape { position: absolute; left: 900px; top: 300px; width: 860px; }
+#etape .kicker { font: 700 18px Inter; letter-spacing: .16em; text-transform: uppercase; color: var(--bleu); }
+#etape h2 { font: 800 76px/1.02 "Inter Tight"; letter-spacing: -.035em; margin-top: 16px; }
+#etape h2 b { color: var(--bleu); font-weight: 800; }
+#puces { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; margin-top: 34px; }
+.puce { display: inline-flex; align-items: center; gap: 12px; padding: 14px 22px 14px 16px; border-radius: 18px; background: #fff; font: 600 23px Inter; box-shadow: 0 14px 34px rgba(15,23,42,.08), 0 0 0 1px var(--bord); }
+.puce i { font-style: normal; font-size: 24px; }
+#legende { position: absolute; left: 50%; bottom: 34px; transform: translateX(-50%); max-width: 1500px; padding: 12px 26px; border-radius: 14px; background: rgba(15,23,42,.86); color: #fff; font: 600 26px/1.35 Inter; text-align: center; text-wrap: balance; }
+.toucher { position: absolute; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; background: rgba(37,99,235,.28); border: 4px solid rgba(37,99,235,.85); }
+#barre { position: absolute; display: flex; align-items: center; justify-content: space-between; padding: 0 26px 0 34px; font: 600 15px Inter; }
+#ilot { position: absolute; width: 104px; height: 30px; border-radius: 20px; background: #05070d; }
+.carte { position: absolute; inset: 0; background: #fff; display: flex; align-items: center; justify-content: center; }
+#intro .bloc { text-align: center; }
+#intro .icone { width: 150px; height: 150px; margin: 0 auto 34px; border-radius: 36px; box-shadow: 0 30px 60px rgba(37,99,235,.18), 0 0 0 1px var(--bord); background: #fff; display: grid; place-items: center; }
+#intro .icone img { width: 110px; }
+#intro .nom { font: 700 120px/1 "Inter Tight"; letter-spacing: -.035em; }
+#intro .nom b { color: var(--bleu); font-weight: 700; }
+#intro .slogan { font: 600 22px Inter; color: var(--gris); margin-top: 10px; }
+#intro h1 { font: 800 56px/1.1 "Inter Tight"; letter-spacing: -.03em; margin-top: 54px; }
+#intro h1 b { color: var(--bleu); font-weight: 800; }
+#intro .sous { font: 500 28px Inter; color: var(--gris); margin-top: 12px; }
+#fin .bloc { display: flex; align-items: center; gap: 120px; }
+#fin .nom { font: 700 110px/1 "Inter Tight"; letter-spacing: -.035em; }
+#fin .nom b { color: var(--bleu); font-weight: 700; }
+#fin .slogan { font: 600 21px Inter; color: var(--gris); margin-top: 8px; }
+#fin .message { font: 800 44px/1.15 "Inter Tight"; margin-top: 46px; letter-spacing: -.02em; }
+#fin .message b { color: var(--bleu); font-weight: 800; }
+#fin .qr { width: 470px; padding: 36px; border-radius: 34px; background: linear-gradient(160deg, #2563eb, #1d4ed8); color: #fff; text-align: center; box-shadow: 0 40px 80px rgba(37,99,235,.35); }
+#fin .qr .img { width: 230px; height: 230px; margin: 0 auto; padding: 14px; border-radius: 22px; background: #fff; }
+#fin .qr .img img { width: 100%; }
+#fin .qr .url { font: 800 46px "Inter Tight"; margin-top: 26px; letter-spacing: -.02em; }
+#fin .qr .petit { font: 500 19px Inter; opacity: .9; margin-top: 8px; }
+#fin .qr .tel { display: inline-flex; gap: 8px; align-items: center; margin-top: 14px; font: 700 20px Inter; }
+#fin .qr .tel i { width: 12px; height: 12px; border-radius: 50%; background: #22c55e; }
+</style>
+</head>
+<body>
+<svg id="fond" width="1920" height="1080">
+    <defs>
+        <radialGradient id="tache" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#bfd3fb" stop-opacity=".75"/><stop offset="1" stop-color="#bfd3fb" stop-opacity="0"/></radialGradient>
+        <mask id="trou"><rect width="1920" height="1080" fill="#fff"/><path id="trou-forme" fill="#000"/></mask>
+    </defs>
+    <g mask="url(#trou)">
+        <rect width="1920" height="1080" fill="#f4f7fe"/>
+        <circle id="tache1" r="520" fill="url(#tache)"/>
+        <circle id="tache2" r="420" fill="url(#tache)"/>
+        <path id="appareil" fill="#0b0f19" fill-rule="evenodd"/>
+        <path id="appareil-reflet" fill="none" stroke="#3a4256" stroke-width="2"/>
+    </g>
+</svg>
+<div id="barre" class="abs"><span>9:41</span><svg width="60" height="18" viewBox="0 0 64 20"><path d="M2 14h3v4H2zM8 11h3v7H8zM14 8h3v10h-3zM20 5h3v13h-3z" fill="currentColor"/><path d="M33 9a10 10 0 0 1 13 0M35.5 12a6 6 0 0 1 8 0" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="39.5" cy="15.5" r="1.8" fill="currentColor"/><rect x="50" y="5" width="12" height="11" rx="2.5" stroke="currentColor" stroke-width="1.6" fill="none"/><rect x="52" y="7" width="7" height="7" rx="1" fill="currentColor"/></svg></div>
+<div id="ilot" class="abs"></div>
+<div id="touchers"></div>
+<div class="logo abs" style="left:64px; top:38px">Press<b>Link</b></div>
+<div id="chapitres"></div>
+<div id="progression"></div>
+<div id="etape"><div class="kicker" id="kicker"></div><h2 id="titre"></h2><div id="puces"></div></div>
+<div id="legende"></div>
+<div id="intro" class="carte"><div class="bloc">
+    <div class="icone"><img src="apple-touch-icon.png"></div>
+    <div class="nom">Press<b>Link</b></div>
+    <div class="slogan">Le lien entre votre pressing et vos clients</div>
+    <h1 id="intro-titre"></h1>
+    <div class="sous" id="intro-sous"></div>
+</div></div>
+<div id="fin" class="carte"><div class="bloc">
+    <div><div class="nom">Press<b>Link</b></div><div class="slogan">Le lien entre votre pressing et vos clients</div><div class="message" id="fin-message"></div></div>
+    <div class="qr"><div class="img"><img src="qr-presslink-app.png"></div><div class="url">presslink.org/app</div><div class="petit">Scannez ou ouvrez le lien sur votre téléphone</div><div class="tel"><i></i>07 18 00 22 93</div></div>
+</div></div>
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const p = (t, a, b) => clamp((t - a) / (b - a));
+const sortie = (x) => 1 - Math.pow(1 - x, 3);
+const retour = (x) => { const c = 1.7; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+let D = null;
+
+window.ready = document.fonts.ready.then(() => Promise.all([...document.images].map((i) => (i.complete ? 0 : new Promise((r) => { i.onload = i.onerror = r; })))));
+window.setup = (donnees) => {
+    D = donnees;
+    const { trou, appareil } = D.cadre;
+    // téléphone : corps arrondi percé de l'écran (barre d'état comprise), et l'écran de l'application
+    const r = (x, y, w, h, rt, rb = rt) => `M${x + rt} ${y} H${x + w - rt} Q${x + w} ${y} ${x + w} ${y + rt} V${y + h - rb} Q${x + w} ${y + h} ${x + w - rb} ${y + h} H${x + rb} Q${x} ${y + h} ${x} ${y + h - rb} V${y + rt} Q${x} ${y} ${x + rt} ${y} Z`;
+    $('appareil').setAttribute('d', r(appareil.x, appareil.y, appareil.w, appareil.h, appareil.r) + ' ' + r(trou.x, trou.y - D.cadre.barre, trou.w, trou.h + D.cadre.barre, trou.r));
+    $('appareil-reflet').setAttribute('d', r(appareil.x + 1, appareil.y + 1, appareil.w - 2, appareil.h - 2, appareil.r - 1));
+    $('trou-forme').setAttribute('d', r(trou.x, trou.y, trou.w, trou.h, 2, trou.r));
+    Object.assign($('barre').style, { left: trou.x + 'px', top: trou.y - D.cadre.barre + 'px', width: trou.w + 'px', height: D.cadre.barre + 'px', borderRadius: `${trou.r}px ${trou.r}px 0 0` });
+    Object.assign($('ilot').style, { left: trou.x + trou.w / 2 - 52 + 'px', top: trou.y - D.cadre.barre + 8 + 'px' });
+    $('chapitres').innerHTML = D.chapitres.map((c, i) => `${i ? '<span class="chap-trait"></span>' : ''}<span class="chap" data-i="${i}"><i>${i + 1}</i>${c}</span>`).join('');
+    $('intro-titre').innerHTML = D.titre; $('intro-sous').textContent = D.sousTitre; $('fin-message').innerHTML = D.fin;
+};
+
+window.renderAt = (t) => {
+    const T = D.temps;
+    // fond vivant
+    $('tache1').setAttribute('cx', 300 + Math.sin(t * 0.25) * 120); $('tache1').setAttribute('cy', 700 + Math.cos(t * 0.2) * 80);
+    $('tache2').setAttribute('cx', 1600 + Math.cos(t * 0.22) * 100); $('tache2').setAttribute('cy', 250 + Math.sin(t * 0.3) * 70);
+    // cartes d'ouverture et de fin
+    const ki = p(t, T.intro - 0.7, T.intro);
+    $('intro').style.opacity = 1 - ki; $('intro').style.transform = `scale(${1 + ki * 0.06})`;
+    $('intro').querySelectorAll('.bloc > *').forEach((el, i) => { const k = sortie(p(t, 0.15 + i * 0.12, 0.85 + i * 0.12)); el.style.opacity = k; el.style.transform = `translateY(${(1 - k) * 30}px)`; });
+    const kf = p(t, T.fin, T.fin + 0.7);
+    $('fin').style.opacity = kf; $('fin').style.transform = `scale(${1.04 - kf * 0.04})`;
+    // étape courante (titre, puces)
+    const etapes = D.etapes;
+    let cur = null;
+    for (const e of etapes) if (t >= e.debut - 0.05) cur = e;
+    if (cur) {
+        const k = sortie(p(t, cur.debut, cur.debut + 0.5));
+        $('kicker').textContent = `Étape ${cur.chap + 1} · ${D.chapitres[cur.chap]}`;
+        if ($('titre').dataset.cle !== cur.cle) { $('titre').innerHTML = cur.titre; $('titre').dataset.cle = cur.cle; $('puces').innerHTML = cur.puces.map((x) => `<span class="puce"><i>${x[0]}</i>${x[1]}</span>`).join(''); }
+        $('titre').style.opacity = k; $('titre').style.transform = `translateY(${(1 - k) * 26}px)`;
+        $('kicker').style.opacity = k;
+        [...$('puces').children].forEach((el, i) => { const kp = retour(p(t, cur.debut + 0.35 + i * 0.25, cur.debut + 0.85 + i * 0.25)); el.style.opacity = clamp(kp); el.style.transform = `translateX(${(1 - clamp(kp)) * -24}px) scale(${0.9 + 0.1 * kp})`; });
+        document.querySelectorAll('.chap').forEach((c) => { const i = +c.dataset.i; c.className = 'chap' + (i === cur.chap ? ' on' : i < cur.chap ? ' fait' : ''); });
+    }
+    $('progression').style.width = clamp((t - T.intro) / (T.fin - T.intro)) * 1920 + 'px';
+    // barre d'état assortie à l'écran de l'application
+    const tr = t - T.intro;
+    let c = D.barre[0].c; for (const b of D.barre) if (b.t <= tr) c = b.c;
+    $('barre').style.background = `rgb(${c.join(',')})`;
+    $('barre').style.color = (c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11) < 150 ? '#fff' : '#0f172a';
+    // touchers
+    const { trou } = D.cadre;
+    $('touchers').innerHTML = D.touchers.filter((x) => tr >= x.t - 0.05 && tr < x.t + 0.55).map((x) => {
+        const k = p(tr, x.t - 0.05, x.t + 0.55);
+        return `<div class="toucher" style="left:${trou.x + x.x * trou.w}px; top:${trou.y + x.y * trou.h}px; transform:scale(${0.5 + k * 0.8}); opacity:${1 - k}"></div>`;
+    }).join('');
+    // légendes de la voix off
+    const v = D.voix.find((x) => t >= x.debut - 0.05 && t <= x.debut + x.duree + 0.3);
+    if (v) { $('legende').textContent = v.texte; $('legende').style.opacity = clamp(Math.min((t - v.debut + 0.05) / 0.15, (v.debut + v.duree + 0.3 - t) / 0.15)); }
+    else $('legende').style.opacity = 0;
+};
+</script>
+</body>
+</html>

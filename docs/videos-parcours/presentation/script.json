@@ -1,0 +1,14 @@
+{"repliques": [
+ {"cle": "intro", "texte": "Carnets, tickets perdus, clients qui appellent pour savoir si c'est prêt… Avec PressLink, tout devient simple.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "site", "texte": "Tout commence sur presslink point org : l'application s'installe en un geste, sans passer par un store.", "voix": "ff_siwis", "vitesse": 0.96},
+ {"cle": "client_accueil", "texte": "Les clients voient toutes leurs commandes d'un coup d'œil : reçue, en traitement, ou prête.", "voix": "ff_siwis", "vitesse": 0.96},
+ {"cle": "client_detail", "texte": "Chaque commande est détaillée : où elle en est, et ce qu'il reste à payer.", "voix": "ff_siwis", "vitesse": 0.96},
+ {"cle": "client_contact", "texte": "Une question ? Le pressing se contacte en un geste : appel, WhatsApp ou e-mail.", "voix": "ff_siwis", "vitesse": 0.96},
+ {"cle": "depot", "texte": "Côté pressing, une commande s'enregistre en quelques secondes : la cliente, les pièces, et c'est validé.", "voix": "ff_siwis", "vitesse": 0.97},
+ {"cle": "tableau", "texte": "Le tableau de bord montre l'essentiel du jour : les commandes à traiter, celles qui sont prêtes, et ce qui reste à encaisser.", "voix": "ff_siwis", "vitesse": 0.98},
+ {"cle": "caisse", "texte": "Le soir, la caisse se clôture : les dépenses du jour sont déduites, et l'écart se calcule tout seul.", "voix": "ff_siwis", "vitesse": 0.97},
+ {"cle": "equipe", "texte": "Chaque membre de l'équipe a son rôle, et seulement les accès dont il a besoin.", "voix": "ff_siwis", "vitesse": 0.96},
+ {"cle": "journal", "texte": "Et chaque action importante est inscrite au journal : le propriétaire garde la main, même à distance.", "voix": "ff_siwis", "vitesse": 0.97},
+ {"cle": "support", "texte": "À chaque étape, l'équipe PressLink vous accompagne, par téléphone ou sur WhatsApp.", "voix": "ff_siwis", "vitesse": 0.96},
+ {"cle": "fin", "texte": "PressLink. Moins d'attente, moins d'appels, des clients toujours informés.", "voix": "ff_siwis", "vitesse": 0.92}
+]}

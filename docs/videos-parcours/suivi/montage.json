@@ -1,0 +1,17 @@
+{
+    "titre": "Le <b>suivi</b> des commandes",
+    "sousTitre": "Du dépôt jusqu'au retrait, côté pressing et côté client.",
+    "fin": "Vos clients <b>toujours informés</b>.",
+    "chapitres": ["Reçue", "En traitement", "Prête", "Récupérée"],
+    "etapes": {
+        "creer": { "chap": 0, "kicker": "Côté pressing", "titre": "Créer la <b>commande</b>", "puces": [["👤", "La cliente"], ["👕", "Les pièces, en quelques touches"]] },
+        "valider": { "chap": 0, "kicker": "Côté pressing", "titre": "Commande <b>enregistrée</b>", "puces": [["🧾", "Reçu à imprimer ou partager"]] },
+        "client_recue": { "chap": 0, "kicker": "Côté cliente · Awa", "titre": "Awa la <b>retrouve</b>", "puces": [["📱", "Articles et total"], ["💳", "Reste à payer"]] },
+        "traitement": { "chap": 1, "kicker": "Côté pressing", "titre": "Lancer le <b>traitement</b>", "puces": [["🧺", "En atelier"]] },
+        "client_traitement": { "chap": 1, "kicker": "Côté cliente · Awa", "titre": "Suivi en <b>direct</b>", "puces": [["⏳", "En traitement"]] },
+        "prete": { "chap": 2, "kicker": "Côté pressing", "titre": "Commande <b>prête</b>", "puces": [["🔔", "La cliente est prévenue"]] },
+        "client_prete": { "chap": 2, "kicker": "Côté cliente · Awa", "titre": "Votre commande est <b>prête</b> !", "notification": true, "puces": [["🔔", "Notification"], ["💳", "Reste à payer : 2 900 F"]] },
+        "remise": { "chap": 3, "kicker": "Côté pressing", "titre": "Encaisser et <b>remettre</b>", "puces": [["🟠", "Orange Money"], ["🔒", "Remise seulement si payée"]] },
+        "client_recuperee": { "chap": 3, "kicker": "Côté cliente · Awa", "titre": "Récupérée et <b>payée</b>", "puces": [["✅", "Tout est à jour"]] }
+    }
+}

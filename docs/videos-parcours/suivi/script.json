@@ -1,0 +1,13 @@
+{"repliques": [
+ {"cle": "intro", "texte": "Du dépôt jusqu'au retrait, suivons la commande d'Awa, côté pressing et côté cliente.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "creer", "texte": "Au comptoir, l'employé crée la commande : la cliente, puis les pièces, en quelques touches.", "voix": "ff_siwis", "vitesse": 0.97},
+ {"cle": "valider", "texte": "Un clic sur Valider : la commande est enregistrée, et le reçu est prêt à imprimer ou à partager.", "voix": "ff_siwis", "vitesse": 0.97},
+ {"cle": "client_recue", "texte": "De son côté, Awa retrouve aussitôt sa commande dans l'application : les articles, et le total.", "voix": "ff_siwis", "vitesse": 0.97},
+ {"cle": "traitement", "texte": "À l'atelier, le traitement commence.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "client_traitement", "texte": "Dans l'application d'Awa, la commande passe en traitement.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "prete", "texte": "La commande est prête : un clic, et Awa est prévenue automatiquement.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "client_prete", "texte": "Votre commande est prête ! Elle sait même ce qu'il lui reste à payer.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "remise", "texte": "Au retrait, l'employé encaisse le solde par Orange Money, puis remet la commande.", "voix": "ff_siwis", "vitesse": 0.97},
+ {"cle": "client_recuperee", "texte": "Commande récupérée et payée : tout est à jour, des deux côtés.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "fin", "texte": "PressLink. Le suivi de vos commandes, du dépôt jusqu'au retrait.", "voix": "ff_siwis", "vitesse": 0.92}
+]}

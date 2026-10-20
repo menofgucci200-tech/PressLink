@@ -1,0 +1,14 @@
+{"repliques": [
+ {"cle": "intro", "texte": "Voici comment créer son compte PressLink, ajouter son pressing, puis se reconnecter.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "ouvrir", "texte": "Awa ouvre l'application PressLink sur son téléphone.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "numero", "texte": "Elle saisit son numéro de téléphone : c'est son identifiant.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "compte", "texte": "Nouveau numéro : PressLink lui propose de créer son compte. Son prénom, son nom, et un mot de passe.", "voix": "ff_siwis", "vitesse": 0.97},
+ {"cle": "bienvenue", "texte": "Son compte est créé !", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "pressing", "texte": "Pour suivre ses vêtements, elle ajoute son pressing, avec le code affiché au comptoir.", "voix": "ff_siwis", "vitesse": 0.97},
+ {"cle": "trouve", "texte": "Pressing Élégance, à Cocody : c'est bien le sien.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "ajoute", "texte": "Son pressing apparaît maintenant sur son accueil.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "deco", "texte": "Elle peut se déconnecter à tout moment, depuis son profil.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "reco", "texte": "Pour revenir, rien de plus simple : son numéro, puis son mot de passe.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "aide", "texte": "Et en cas de besoin, le support PressLink répond sur WhatsApp, à chaque étape.", "voix": "ff_siwis", "vitesse": 0.97},
+ {"cle": "fin", "texte": "PressLink. Gratuit pour les clients, sur presslink point org.", "voix": "ff_siwis", "vitesse": 0.92}
+]}

@@ -1,0 +1,19 @@
+{
+    "titre": "Inscription, ajout du <b>pressing</b> et <b>connexion</b>",
+    "sousTitre": "Le vrai parcours, dans l'application.",
+    "fin": "<b>Gratuit</b> pour les clients.",
+    "chapitres": ["Inscription", "Pressing", "Connexion"],
+    "etapes": {
+        "ouvrir": { "chap": 0, "titre": "Ouvrir <b>l'application</b>", "puces": [["📲", "Sans store, depuis le navigateur"]] },
+        "numero": { "chap": 0, "titre": "Le numéro de <b>téléphone</b>", "puces": [["🔑", "Votre numéro = votre identifiant"]] },
+        "compte": { "chap": 0, "titre": "Créer son <b>compte</b>", "puces": [["👤", "Prénom et nom"], ["✉️", "Email (facultatif)"], ["🔒", "Mot de passe"]] },
+        "bienvenue": { "chap": 0, "titre": "Bienvenue <b>Awa</b> !", "puces": [["✅", "Compte créé"]] },
+        "pressing": { "chap": 1, "titre": "Ajouter son <b>pressing</b>", "puces": [["🏷️", "Le code affiché au comptoir"]] },
+        "trouve": { "chap": 1, "titre": "Pressing <b>trouvé</b>", "puces": [["✅", "Pressing Élégance · Cocody"]] },
+        "ajoute": { "chap": 1, "titre": "Pressing <b>ajouté</b>", "puces": [["🏪", "Il apparaît sur l'accueil"]] },
+        "deco": { "chap": 2, "titre": "Se <b>déconnecter</b>", "puces": [["👤", "Depuis son profil"]] },
+        "reco": { "chap": 2, "titre": "Se <b>reconnecter</b>", "puces": [["📱", "Son numéro"]] },
+        "aide": { "chap": 2, "titre": "Besoin <b>d'aide</b> ?", "puces": [["💬", "Le support PressLink, sur WhatsApp"]] },
+        "connecte": { "chap": 2, "titre": "<b>Connectée</b> !", "puces": [["🔒", "Son mot de passe"], ["✅", "Retour à l'accueil"]] }
+    }
+}

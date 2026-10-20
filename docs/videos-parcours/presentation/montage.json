@@ -1,0 +1,18 @@
+{
+    "titre": "Le lien entre votre <b>pressing</b> et vos <b>clients</b>",
+    "sousTitre": "Présentation de l'application et du logiciel de gestion.",
+    "fin": "Moins d'attente. Moins d'appels.<br>Des clients toujours <b>informés</b>.",
+    "chapitres": ["Les clients", "Le pressing", "L'accompagnement"],
+    "etapes": {
+        "site": { "chap": 0, "kicker": "presslink.org", "titre": "Tout commence sur <b>presslink.org</b>", "puces": [["📲", "Sans store, en un geste"], ["🆓", "Gratuit pour les clients"]] },
+        "client_accueil": { "chap": 0, "kicker": "Côté client", "titre": "Toutes ses <b>commandes</b>", "puces": [["🟢", "Reçue, en traitement, prête"]] },
+        "client_detail": { "chap": 0, "kicker": "Côté client", "titre": "Chaque commande, en <b>détail</b>", "puces": [["📍", "Où elle en est"], ["💳", "Ce qu'il reste à payer"]] },
+        "client_contact": { "chap": 0, "kicker": "Côté client", "titre": "Contacter le <b>pressing</b>", "puces": [["📞", "Appel"], ["💬", "WhatsApp"], ["✉️", "E-mail"]] },
+        "depot": { "chap": 1, "kicker": "Côté pressing", "titre": "Un dépôt en <b>quelques secondes</b>", "puces": [["👤", "La cliente"], ["👕", "Les pièces"], ["🧾", "Le reçu"]] },
+        "tableau": { "chap": 1, "kicker": "Côté pressing", "titre": "L'essentiel du <b>jour</b>", "puces": [["📋", "À traiter, prêtes"], ["💰", "À encaisser"]] },
+        "caisse": { "chap": 1, "kicker": "Côté pressing", "titre": "Une caisse qui tombe <b>juste</b>", "puces": [["🧴", "Dépenses du jour"], ["✅", "Clôture et écart"]] },
+        "equipe": { "chap": 1, "kicker": "Côté pressing", "titre": "Chacun son <b>rôle</b>", "puces": [["👑", "Propriétaire"], ["🧑‍💼", "Gérant"], ["🧺", "Employé"]] },
+        "journal": { "chap": 1, "kicker": "Côté pressing", "titre": "Tout est <b>tracé</b>", "puces": [["📒", "Le journal d'activité"]] },
+        "support": { "chap": 2, "kicker": "L'équipe PressLink", "titre": "Toujours <b>accompagné</b>", "puces": [["📞", "Téléphone"], ["💬", "WhatsApp"]] }
+    }
+}

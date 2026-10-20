@@ -19,17 +19,17 @@
                 'description' => 'Le vrai parcours dans l\'application PressLink : création du compte, ajout du pressing avec son code, puis connexion.',
                 'thumbnailUrl' => asset('video/presslink-inscription.jpg'),
                 'contentUrl' => asset('video/presslink-inscription.mp4'),
-                'uploadDate' => '2026-10-15T09:00:00+00:00',
-                'duration' => 'PT1M44S',
+                'uploadDate' => '2026-10-20T21:00:00+00:00',
+                'duration' => 'PT1M7S',
             ],
             [
                 '@type' => 'VideoObject',
                 'name' => 'PressLink : le suivi d\'une commande, du dépôt au retrait',
-                'description' => 'Une commande suivie côté pressing et côté client : dépôt avec acompte, traitement, notification « prête », encaissement et reçu.',
+                'description' => 'Une commande suivie côté pressing et côté client : dépôt en quelques secondes, traitement, notification « prête », encaissement au retrait et remise.',
                 'thumbnailUrl' => asset('video/presslink-suivi-commande.jpg'),
                 'contentUrl' => asset('video/presslink-suivi-commande.mp4'),
-                'uploadDate' => '2026-10-15T09:00:00+00:00',
-                'duration' => 'PT2M18S',
+                'uploadDate' => '2026-10-20T21:00:00+00:00',
+                'duration' => 'PT1M22S',
             ],
         ],
         'step' => collect($steps)->map(fn ($step, $i) => [
@@ -51,8 +51,8 @@
             <p class="text-(--color-text-secondary) text-lg mb-10 max-w-2xl">De l'inscription à la récupération de vos vêtements, voici tout le parcours PressLink.</p>
             <div class="grid md:grid-cols-2 gap-8" data-motion="videos">
                 @foreach ([
-                    ['presslink-inscription', '1. Inscription, ajout du pressing et connexion', '1 min 44'],
-                    ['presslink-suivi-commande', '2. Le suivi d\'une commande, du dépôt au retrait', '2 min 18'],
+                    ['presslink-inscription', '1. Inscription, ajout du pressing et connexion', '1 min 07'],
+                    ['presslink-suivi-commande', '2. Le suivi d\'une commande, du dépôt au retrait', '1 min 22'],
                 ] as [$video, $label, $duration])
                     <figure>
                         <video class="w-full rounded-3xl border border-(--color-border) shadow-lg bg-(--color-surface)" controls playsinline preload="metadata"

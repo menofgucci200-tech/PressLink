@@ -11,7 +11,7 @@
             <p class="text-(--color-text-secondary) text-lg">L'équipe PressLink vous répond par appel, sur WhatsApp ou par email.</p>
         </div>
 
-        <div class="grid lg:grid-cols-[1fr_1.2fr] gap-8 items-start">
+        <div class="grid lg:grid-cols-[1fr_1.2fr] gap-8 items-start" data-motion="cascade">
             {{-- Moyens de contact --}}
             <div class="space-y-4">
                 <div class="bg-(--color-primary-tint) border border-(--color-primary)/15 rounded-3xl p-6">

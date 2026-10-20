@@ -49,7 +49,8 @@
         @endif
 
         <x-theme-script />
-        @vite(['resources/css/app.css'])
+        <script>document.documentElement.classList.add('js-motion');</script>
+        @vite(['resources/css/app.css', 'resources/js/site.js'])
     </head>
     <body class="bg-(--color-surface) text-(--color-text-primary) antialiased">
         {{ $slot }}

@@ -21,7 +21,7 @@
                     </a>
                 </div>
             </div>
-            <ul class="grid sm:grid-cols-2 gap-3">
+            <ul class="grid sm:grid-cols-2 gap-3" data-motion="cascade">
                 @foreach ([
                     'Création et suivi des commandes',
                     'Fiches clients et historique',
@@ -43,7 +43,7 @@
 
     <section class="max-w-6xl mx-auto px-5 py-16 md:py-20">
         <h2 class="font-display text-3xl font-bold tracking-tight mb-8">Comment ça se passe au comptoir</h2>
-        <ol class="grid md:grid-cols-4 gap-5">
+        <ol class="grid md:grid-cols-4 gap-5" data-motion="cascade">
             @foreach ([
                 ['Le client dépose', 'Vous créez la commande en quelques secondes : client, service (repassage, nettoyage…), pièces, total.'],
                 ['Vous traitez', 'Passez la commande « en traitement » : le client suit l\'avancement depuis son téléphone.'],

@@ -9,7 +9,7 @@
                 <p class="text-(--color-text-secondary) text-lg">Pas de store, pas de téléchargement lourd : ouvrez <a href="{{ $appUrl }}" class="font-semibold text-(--color-primary) hover:underline">presslink.org/app</a> et ajoutez l'application à votre écran d'accueil.</p>
             </div>
 
-            <div class="grid lg:grid-cols-2 gap-8">
+            <div class="grid lg:grid-cols-2 gap-8" data-motion="install">
                 <section class="bg-(--color-surface) border border-(--color-border) rounded-3xl p-6 md:p-8" aria-labelledby="android">
                     <h2 id="android" class="font-display text-2xl font-bold mb-6">Sur Android <span class="text-(--color-text-muted) font-semibold text-base">· Chrome</span></h2>
                     <x-site.install-demo os="android" />

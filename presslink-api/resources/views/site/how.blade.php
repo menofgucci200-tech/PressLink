@@ -49,7 +49,7 @@
         <div class="max-w-5xl mx-auto px-5 py-14 md:py-20">
             <h1 class="font-display text-4xl md:text-5xl font-extrabold tracking-tight mb-4 max-w-2xl">Comment ça marche</h1>
             <p class="text-(--color-text-secondary) text-lg mb-10 max-w-2xl">De l'inscription à la récupération de vos vêtements, voici tout le parcours PressLink.</p>
-            <div class="grid md:grid-cols-2 gap-8">
+            <div class="grid md:grid-cols-2 gap-8" data-motion="videos">
                 @foreach ([
                     ['presslink-inscription', '1. Inscription, ajout du pressing et connexion', '1 min 44'],
                     ['presslink-suivi-commande', '2. Le suivi d\'une commande, du dépôt au retrait', '2 min 18'],
@@ -68,7 +68,7 @@
     </section>
 
     <section class="max-w-6xl mx-auto px-5 py-16 md:py-20 grid lg:grid-cols-[1fr_22rem] gap-12 items-start">
-        <ol class="relative border-l-2 border-(--color-border) ml-4 space-y-8">
+        <ol class="relative border-l-2 border-(--color-border) ml-4 space-y-8" data-motion="cascade">
             @foreach ($steps as [$heading, $text])
                 <li class="pl-8 relative">
                     <span class="absolute -left-[1.15rem] top-0 w-9 h-9 rounded-full bg-(--color-primary) text-white font-bold flex items-center justify-center ring-4 ring-white">{{ $loop->iteration }}</span>

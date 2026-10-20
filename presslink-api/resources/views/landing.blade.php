@@ -59,9 +59,9 @@
 
 <x-site.page :title="$title" :description="$description" :keywords="$keywords" :json-ld="$jsonLd">
     {{-- ===== Hero ===== --}}
-    <section class="bg-(--color-bg) overflow-hidden">
+    <section class="bg-(--color-bg) overflow-hidden" data-motion="hero">
         <div class="max-w-6xl mx-auto px-5 pt-12 md:pt-16 grid md:grid-cols-[1.1fr_1fr] gap-10 items-center">
-            <div class="pb-4 md:pb-16">
+            <div class="pb-4 md:pb-16" data-motion="hero-text">
                 <p class="text-xs font-semibold uppercase tracking-widest text-(--color-primary) mb-4">Application de suivi de pressing</p>
                 <h1 class="font-display text-4xl md:text-5xl font-extrabold leading-[1.08] tracking-tight mb-5">
                     Suivez vos vêtements au pressing et soyez prévenu dès qu'ils sont prêts
@@ -80,7 +80,7 @@
                 </div>
                 <p class="mt-5 text-sm text-(--color-text-muted)">Aucun téléchargement depuis un store : l'application s'installe en un geste depuis votre navigateur (<a href="{{ $appUrl }}" class="text-(--color-primary) font-semibold">presslink.org/app</a>).</p>
             </div>
-            <div class="phone-mock phone-mock--hands max-w-md mx-auto w-full self-end">
+            <div class="phone-mock phone-mock--hands max-w-md mx-auto w-full self-end" data-motion="hero-phone">
                 <div class="phone-mock__screen"><x-site.app-screen /></div>
                 <img src="{{ asset('images/hands-phone.webp') }}" width="736" height="648" alt="Une cliente consulte sa commande prête dans l'application PressLink" fetchpriority="high">
             </div>
@@ -93,7 +93,7 @@
             <h2 class="font-display text-3xl font-bold tracking-tight mb-3">Le vrai parcours, en vidéo</h2>
             <p class="text-(--color-text-secondary) text-lg">Filmé dans l'application et le tableau de bord, commenté pas à pas.</p>
         </div>
-        <div class="grid md:grid-cols-2 gap-8">
+        <div class="grid md:grid-cols-2 gap-8" data-motion="videos">
             @foreach ([
                 ['presslink-inscription', 'Inscription, ajout du pressing et connexion', '1 min 44'],
                 ['presslink-suivi-commande', 'Le suivi d\'une commande, du dépôt au retrait', '2 min 18'],
@@ -117,7 +117,7 @@
                 <h2 class="font-display text-3xl font-bold tracking-tight mb-3">Installez PressLink en 3 étapes</h2>
                 <p class="text-(--color-text-secondary) text-lg">Pas de store : ouvrez <a href="{{ $appUrl }}" class="font-semibold text-(--color-primary) hover:underline">presslink.org/app</a> et ajoutez l'application à votre écran d'accueil.</p>
             </div>
-            <div class="grid lg:grid-cols-2 gap-8">
+            <div class="grid lg:grid-cols-2 gap-8" data-motion="install">
                 <div class="bg-(--color-surface) border border-(--color-border) rounded-3xl p-6 md:p-8">
                     <h3 class="font-display text-2xl font-bold mb-6">Sur Android <span class="text-(--color-text-muted) font-semibold text-base">· Chrome</span></h3>
                     <x-site.install-demo os="android" />
@@ -132,7 +132,7 @@
 
     {{-- ===== Accès aux pages ===== --}}
     <section>
-        <div class="max-w-6xl mx-auto px-5 py-16 md:py-20 grid gap-5 md:grid-cols-3">
+        <div class="max-w-6xl mx-auto px-5 py-16 md:py-20 grid gap-5 md:grid-cols-3" data-motion="cascade">
             @foreach ([
                 ['site.clients', 'Pour les clients', 'Suivi en temps réel, notifications, historique et tarifs de votre pressing.'],
                 ['site.pressings', 'Pour les pressings', 'Un logiciel de gestion simple : commandes, clients, équipe, exports.'],
@@ -149,15 +149,15 @@
 
     {{-- ===== QR + contact ===== --}}
     <section class="max-w-6xl mx-auto px-5 py-16 md:py-20 grid gap-10 md:grid-cols-2 items-center">
-        <div class="bg-(--color-surface) border border-(--color-border) rounded-3xl shadow-sm p-6 text-center max-w-sm mx-auto w-full">
+        <div class="bg-(--color-surface) border border-(--color-border) rounded-3xl shadow-sm p-6 text-center max-w-sm mx-auto w-full" data-motion="qr">
             <img src="{{ asset('qr-presslink-app.png') }}" width="280" height="280" alt="Code QR pour ouvrir l'application PressLink : presslink.org/app" class="mx-auto rounded-xl" loading="lazy">
             <p class="mt-4 font-display text-lg font-bold">Scannez pour installer l'application</p>
             <a href="{{ $appUrl }}" class="mt-1 inline-block text-sm font-semibold text-(--color-primary) hover:underline">presslink.org/app</a>
         </div>
-        <div>
+        <div data-motion="contact">
             <h2 class="font-display text-3xl font-bold tracking-tight mb-3">Une question ? Parlons-en.</h2>
             <p class="text-(--color-text-secondary) text-lg mb-2">L'équipe PressLink vous répond par appel ou sur WhatsApp.</p>
-            <p class="font-display text-2xl font-extrabold text-(--color-primary-600) dark:text-(--color-primary) mb-6">{{ $supportPhoneDisplay }}</p>
+            <p class="font-display text-2xl font-extrabold text-(--color-primary-600) dark:text-(--color-primary) mb-6" data-motion="numero">{{ $supportPhoneDisplay }}</p>
             <x-site.contact-buttons />
         </div>
     </section>

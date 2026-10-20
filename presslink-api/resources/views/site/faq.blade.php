@@ -17,7 +17,7 @@
     <section class="bg-(--color-bg)">
         <div class="max-w-3xl mx-auto px-5 py-16 md:py-20">
             <h1 class="font-display text-4xl font-extrabold tracking-tight mb-8">Questions fréquentes</h1>
-            <div class="space-y-3">
+            <div class="space-y-3" data-motion="cascade">
                 @foreach ($faqs as $faq)
                     <details class="group bg-(--color-surface) border border-(--color-border) rounded-xl" @if ($loop->first) open @endif>
                         <summary class="flex items-center justify-between gap-4 cursor-pointer list-none px-5 py-4 font-semibold">

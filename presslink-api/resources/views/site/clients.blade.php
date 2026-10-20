@@ -19,7 +19,7 @@
 
     <section class="max-w-6xl mx-auto px-5 py-16 md:py-20">
         <h2 class="font-display text-3xl font-bold tracking-tight mb-8">En trois étapes</h2>
-        <ol class="grid md:grid-cols-3 gap-5">
+        <ol class="grid md:grid-cols-3 gap-5" data-motion="cascade">
             @foreach ([
                 ['1', 'Rejoignez votre pressing', 'Saisissez le code de votre pressing (par exemple PE-4821) dans l\'application. Vous le faites une seule fois.'],
                 ['2', 'Déposez vos vêtements', 'Le pressing enregistre votre commande : vous la retrouvez aussitôt dans l\'application, avec le détail des articles et le total.'],
@@ -34,7 +34,7 @@
         </ol>
 
         <h2 class="font-display text-3xl font-bold tracking-tight mt-16 mb-8">Tout ce que vous pouvez faire</h2>
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5" data-motion="cascade">
             @foreach ([
                 ['Suivi en temps réel', 'Reçue, en traitement, prête, récupérée : l\'état de chaque commande est toujours à jour.'],
                 ['Notifications', 'Un message sur votre téléphone quand votre commande est prête à être récupérée.'],

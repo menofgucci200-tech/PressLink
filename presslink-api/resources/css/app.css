@@ -690,3 +690,24 @@ label:has(> input.sr-only:focus-visible) {
     --series-7: #9085e9;
     --series-8: #e66767;
 }
+
+/* ---------------------------------------------------------------- Mouvement du site vitrine (resources/js/site.js) */
+.js-motion:not(.motion-pret) [data-motion="hero"] { opacity: 0; animation: motion-secours 0s 2.5s forwards; }
+@keyframes motion-secours { to { opacity: 1; } }
+.motion-marque { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: var(--color-bg); }
+.motion-marque .nom { font-family: var(--font-display); font-weight: 700; letter-spacing: -.02em; font-size: clamp(44px, 7vw, 88px); line-height: 1; overflow: hidden; padding-bottom: .08em; }
+.motion-marque .nom span { display: inline-block; }
+.motion-marque .nom .lien { color: var(--color-primary); }
+.motion-marque .trait { height: 3px; margin-top: 18px; border-radius: 3px; background: var(--color-primary); transform-origin: 0 50%; }
+.motion-marque .slogan { margin-top: 14px; overflow: hidden; text-align: center; font-size: 15px; color: var(--color-text-muted); }
+.motion-marque .slogan span { display: inline-block; }
+.motion-progression { position: fixed; inset: 0 0 auto 0; z-index: 40; height: 3px; background: var(--color-primary); transform-origin: 0 50%; transform: scaleX(0); pointer-events: none; }
+.motion-mot { display: inline-block; overflow: hidden; vertical-align: bottom; padding-bottom: .08em; margin-bottom: -.08em; }
+.motion-mot > span { display: inline-block; }
+.motion-balayage { position: absolute; left: 6%; right: 6%; height: 3px; border-radius: 3px; background: var(--color-primary); box-shadow: 0 0 18px var(--color-primary); opacity: 0; pointer-events: none; }
+[data-motion="qr"] { position: relative; }
+.motion-pulse { animation: motion-pulse 2.4s ease-out infinite; }
+@keyframes motion-pulse { 0% { box-shadow: 0 0 0 0 rgb(37 211 102 / .45); } 70% { box-shadow: 0 0 0 16px rgb(37 211 102 / 0); } 100% { box-shadow: 0 0 0 0 rgb(37 211 102 / 0); } }
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }

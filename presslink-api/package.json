@@ -15,5 +15,9 @@
     },
     "optionalDependencies": {
         "@laravel/multiplex": "^0.4.1"
+    },
+    "dependencies": {
+        "gsap": "^3.12.5",
+        "lenis": "^1.1.13"
     }
 }

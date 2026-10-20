@@ -21,7 +21,7 @@
             $isAdmin = $pressing && $user->isAdminOf($pressing);
             // Accès du rôle dans le pressing actif (voir App\Enums\Permission).
             $can = fn (\App\Enums\Permission $permission) => $pressing !== null && $user->may($permission, $pressing);
-            $canCash = $can(\App\Enums\Permission::CashOwnPayments) || $can(\App\Enums\Permission::CashClose) || $can(\App\Enums\Permission::CashHistory);
+            $canCash = $can(\App\Enums\Permission::CashExpenses) || $can(\App\Enums\Permission::CashClose) || $can(\App\Enums\Permission::CashHistory);
             $navItem = fn (string $key, string $route, string $label, string $icon) => [
                 'key' => $key, 'route' => $route, 'label' => $label, 'icon' => $icon,
                 'active' => ($active ?? null) === $key,

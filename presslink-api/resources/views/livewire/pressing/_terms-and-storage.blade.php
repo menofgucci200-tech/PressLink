@@ -77,7 +77,7 @@
                 <div>
                     <label for="storage-amount" class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Montant par {{ $perLabel }}</label>
                     <div class="relative w-40">
-                        <input id="storage-amount" type="number" inputmode="numeric" min="1" step="25" wire:model.live.debounce.400ms="storageFeeAmount" placeholder="Ex. 200" class="{{ $input }} w-40 pr-8 tabular-nums">
+                        <input id="storage-amount" type="number" inputmode="numeric" min="1" wire:model.live.debounce.400ms="storageFeeAmount" placeholder="Ex. 200" class="{{ $input }} w-40 pr-8 tabular-nums">
                         <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-(--color-text-muted)">F</span>
                     </div>
                     @error('storageFeeAmount') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
@@ -153,7 +153,7 @@
             <div>
                 <label for="storage-cap" class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Plafond par commande (facultatif)</label>
                 <div class="relative w-40">
-                    <input id="storage-cap" type="number" inputmode="numeric" min="1" step="100" wire:model.live.debounce.400ms="storageFeeCap" placeholder="Aucun" class="{{ $input }} w-40 pr-8 tabular-nums">
+                    <input id="storage-cap" type="number" inputmode="numeric" min="1" wire:model.live.debounce.400ms="storageFeeCap" placeholder="Aucun" class="{{ $input }} w-40 pr-8 tabular-nums">
                     <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-(--color-text-muted)">F</span>
                 </div>
                 @error('storageFeeCap') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror

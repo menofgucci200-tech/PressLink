@@ -51,7 +51,7 @@
                 <div>
                     <label for="payment-amount" class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Montant encaissé</label>
                     <div class="relative">
-                        <input id="payment-amount" type="number" inputmode="numeric" min="1" max="{{ $balance }}" step="50" wire:model="paymentAmount" autofocus
+                        <input id="payment-amount" type="number" inputmode="numeric" min="1" max="{{ $balance }}" wire:model="paymentAmount" autofocus
                                class="w-full h-10 pl-3 pr-12 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm tabular-nums">
                         <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-(--color-text-muted)">FCFA</span>
                     </div>

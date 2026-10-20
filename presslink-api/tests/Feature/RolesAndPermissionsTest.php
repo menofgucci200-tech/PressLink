@@ -102,13 +102,8 @@ class RolesAndPermissionsTest extends TestCase
         $this->get(route('dashboard'))->assertOk()->assertDontSee('Encaissé ·')->assertDontSee('Exporter')->assertSee('Awa Employée');
         $this->get(route('orders.export', ['format' => 'csv']))->assertForbidden();
 
-        Livewire::test(CashIndex::class, ['day' => now()->subDay()->toDateString()])
-            ->assertSee('Mes encaissements du jour (1)')
-            ->assertDontSee('Encaissé ce jour')
-            ->assertDontSee('Dernières clôtures')
-            ->assertDontSee('Clôturer la caisse')
-            ->call('close')
-            ->assertForbidden();
+        // La caisse (dépenses, clôture, historique) n'est pas ouverte aux employés par défaut.
+        $this->get(route('cash.index'))->assertForbidden();
     }
 
     public function test_the_manager_closes_today_but_sees_no_history_nor_revenue(): void
@@ -123,7 +118,8 @@ class RolesAndPermissionsTest extends TestCase
 
         Livewire::test(CashIndex::class, ['day' => now()->subDays(3)->toDateString()])
             ->assertSet('day', now()->subDays(3)->toDateString())
-            ->assertSee('Espèces attendues')
+            ->assertSee('Doit être dans la caisse')
+            ->assertSee('Dépenses de la journée')
             ->assertDontSee('Dernières clôtures')
             ->assertDontSee('Encaissé ce jour')
             ->set('declaredCash', '3000')
@@ -172,7 +168,7 @@ class RolesAndPermissionsTest extends TestCase
         Livewire::test(TeamIndex::class)
             ->call('newRole')
             ->set('roleName', 'Caissière')
-            ->set('rolePermissions', [Permission::PaymentsRecord->value, Permission::CashOwnPayments->value])
+            ->set('rolePermissions', [Permission::PaymentsRecord->value, Permission::CashExpenses->value])
             ->call('saveRole')
             ->assertHasNoErrors();
 

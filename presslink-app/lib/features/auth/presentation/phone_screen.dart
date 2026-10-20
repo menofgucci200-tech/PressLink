@@ -8,8 +8,8 @@ import '../../../core/utils/ivorian_phone.dart';
 import '../../../core/widgets/ivorian_phone_field.dart';
 import '../../../core/widgets/pwa_install_banner.dart';
 import '../../../core/widgets/staggered_fade_in.dart';
-import '../../support/presentation/support_screen.dart';
 import 'auth_controller.dart';
+import 'auth_support_link.dart';
 import 'login_password_screen.dart';
 import 'register_screen.dart';
 
@@ -182,25 +182,7 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
               ),
               const SizedBox(height: AppSpacing.lg),
               const _Entrance(index: 5, child: PwaInstallBanner()),
-              _Entrance(
-                index: 6,
-                child: Center(
-                  child: TextButton.icon(
-                    onPressed: () => Navigator.of(
-                      context,
-                    ).push(AppPageRoute(builder: (_) => const SupportScreen())),
-                    icon: Image.asset(
-                      'assets/icons/whatsapp.png',
-                      width: 24,
-                      height: 24,
-                    ),
-                    label: const Text(
-                      'Contacter le support',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ),
-              ),
+              const _Entrance(index: 6, child: AuthSupportLink()),
             ],
           ),
         ),

@@ -11,6 +11,7 @@ import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../domain/auth_repository.dart';
 import 'auth_controller.dart';
+import 'auth_support_link.dart';
 
 /// Formulaire d'inscription — affiché quand le client n'a pas encore créé
 /// son compte. Cahier §3.1 (revu le 26/08, puis le 19/10).
@@ -262,6 +263,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
               const SizedBox(height: AppSpacing.sm + 4),
               const _LegalNotice(),
+              const SizedBox(height: AppSpacing.md),
+              const AuthSupportLink(),
               const SizedBox(height: AppSpacing.lg),
             ],
           ),

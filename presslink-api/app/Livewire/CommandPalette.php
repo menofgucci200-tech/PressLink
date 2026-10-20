@@ -204,7 +204,7 @@ class CommandPalette extends Component
         $user = auth()->user();
         $pressing = $user->currentPressing();
         $can = fn (Permission $permission) => $pressing !== null && $user->may($permission, $pressing);
-        $canCash = $can(Permission::CashOwnPayments) || $can(Permission::CashClose) || $can(Permission::CashHistory);
+        $canCash = $can(Permission::CashExpenses) || $can(Permission::CashClose) || $can(Permission::CashHistory);
 
         $group = $user->managesGroup() ? [
             ['title' => 'Vue du groupe', 'subtitle' => 'Totaux, comparatif et alertes', 'url' => route('pressings.overview'), 'icon' => 'home'],

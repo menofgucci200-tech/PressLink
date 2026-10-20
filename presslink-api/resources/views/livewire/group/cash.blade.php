@@ -53,10 +53,10 @@
                 Chaque soir, le gérant compte les espèces et clôture la journée depuis le menu Caisse du pressing.
             </x-empty-state>
         @else
-            <div class="overflow-x-auto"><table class="w-full min-w-[820px] whitespace-nowrap text-sm">
+            <div class="overflow-x-auto"><table class="w-full min-w-[900px] whitespace-nowrap text-sm">
                 <thead><tr class="text-left">
                     <th class="{{ $th }}">Jour</th><th class="{{ $th }}">Pressing</th><th class="{{ $th }} text-right">Encaissé</th>
-                    <th class="{{ $th }} text-right">Espèces attendues</th><th class="{{ $th }} text-right">Comptées</th><th class="{{ $th }} text-right">Écart</th><th class="{{ $th }}">Par</th>
+                    <th class="{{ $th }} text-right">Dépenses</th><th class="{{ $th }} text-right">Espèces attendues</th><th class="{{ $th }} text-right">Comptées</th><th class="{{ $th }} text-right">Écart</th><th class="{{ $th }}">Par</th>
                 </tr></thead>
                 <tbody>
                     @foreach ($closings as $c)
@@ -64,6 +64,7 @@
                             <td class="px-5 py-3">{{ $c->business_date->translatedFormat('D j M Y') }}</td>
                             <td class="px-5 py-3">{{ $c->pressing->name }}</td>
                             <td class="px-5 py-3 text-right tabular-nums">{{ $fcfa($c->total_fcfa) }} F</td>
+                            <td class="px-5 py-3 text-right tabular-nums text-(--color-text-secondary)">{{ $c->expenses_fcfa > 0 ? '− '.$fcfa($c->expenses_fcfa).' F' : '—' }}</td>
                             <td class="px-5 py-3 text-right tabular-nums">{{ $fcfa($c->expected_cash_fcfa) }} F</td>
                             <td class="px-5 py-3 text-right tabular-nums">{{ $fcfa($c->declared_cash_fcfa) }} F</td>
                             <td class="px-5 py-3 text-right tabular-nums font-semibold {{ $c->difference_fcfa === 0 ? 'text-(--color-success-text)' : 'text-(--color-warning-text)' }}">{{ $c->difference_fcfa === 0 ? '—' : ($c->difference_fcfa > 0 ? '+' : '').$fcfa($c->difference_fcfa).' F' }}</td>

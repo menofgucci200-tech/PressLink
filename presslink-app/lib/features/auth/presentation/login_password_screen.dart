@@ -7,6 +7,7 @@ import '../../../core/widgets/app_back_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../support/presentation/support_screen.dart';
 import 'auth_controller.dart';
+import 'auth_support_link.dart';
 
 /// Écran mot de passe — affiché quand le numéro correspond à un compte existant.
 ///
@@ -144,6 +145,8 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: AppSpacing.xl),
+              const AuthSupportLink(),
             ],
           ),
         ),

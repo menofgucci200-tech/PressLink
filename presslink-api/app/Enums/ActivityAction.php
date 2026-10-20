@@ -32,6 +32,8 @@ enum ActivityAction: string
     // Caisse
     case CashClosed = 'cash_closed';
     case CashReopened = 'cash_reopened';
+    case CashExpenseRecorded = 'cash_expense_recorded';
+    case CashExpenseRemoved = 'cash_expense_removed';
 
     // Catalogue et paramètres
     case CatalogChanged = 'catalog_changed';
@@ -63,6 +65,8 @@ enum ActivityAction: string
             self::CustomerAdded => 'Client ajouté',
             self::CashClosed => 'Caisse clôturée',
             self::CashReopened => 'Caisse rouverte',
+            self::CashExpenseRecorded => 'Dépense de caisse',
+            self::CashExpenseRemoved => 'Dépense supprimée',
             self::CatalogChanged => 'Services et prix modifiés',
             self::CatalogSynced => 'Tarifs harmonisés',
             self::SettingsChanged => 'Paramètres modifiés',
@@ -83,7 +87,7 @@ enum ActivityAction: string
             self::StorageFeeCharged, self::StorageFeeWaived => 'payments',
             self::PaymentRecorded, self::PaymentRefunded, self::PaymentRemoved => 'payments',
             self::CustomerAdded => 'customers',
-            self::CashClosed, self::CashReopened => 'cash',
+            self::CashClosed, self::CashReopened, self::CashExpenseRecorded, self::CashExpenseRemoved => 'cash',
             self::CatalogChanged, self::CatalogSynced, self::SettingsChanged, self::SettingsSynced, self::ExceptionalOpening => 'settings',
             self::TeamChanged, self::RolesChanged, self::StaffLogin => 'team',
         };
@@ -112,7 +116,7 @@ enum ActivityAction: string
     {
         return in_array($this, [
             self::OrderCancelled, self::RecoveredUnpaid, self::PaymentRefunded, self::PaymentRemoved, self::StorageFeeWaived,
-            self::CashReopened, self::ExceptionalOpening, self::RolesChanged,
+            self::CashReopened, self::CashExpenseRemoved, self::ExceptionalOpening, self::RolesChanged,
         ], true);
     }
 }

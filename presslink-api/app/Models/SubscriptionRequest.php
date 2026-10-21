@@ -36,8 +36,8 @@ class SubscriptionRequest extends Model
 
     public const DECLINED = 'declined';
 
-    /** Commandes en plus proposées par défaut pour le mois en cours. */
-    public const DEFAULT_ORDER_PACKS = [250, 500, 1000];
+    /** Commandes en plus proposées par défaut pour le mois en cours : [nombre, prix]. */
+    public const DEFAULT_ORDER_PACKS = [[50, 1_000], [100, 1_500], [500, 3_500]];
 
     protected $fillable = ['pressing_id', 'requested_by', 'kind', 'feature', 'plan', 'extra_orders', 'cycle', 'amount_fcfa', 'payment_link', 'status', 'handled_at'];
 
@@ -63,7 +63,7 @@ class SubscriptionRequest extends Model
         $packs = Setting::read('order_packs');
 
         if (! is_array($packs) || $packs === []) {
-            return array_map(fn (int $count) => ['count' => $count, 'price' => null], self::DEFAULT_ORDER_PACKS);
+            return array_map(fn (array $pack) => ['count' => $pack[0], 'price' => $pack[1]], self::DEFAULT_ORDER_PACKS);
         }
 
         return array_values(array_map(fn (array $pack) => ['count' => (int) $pack['count'], 'price' => isset($pack['price']) ? (int) $pack['price'] : null], $packs));

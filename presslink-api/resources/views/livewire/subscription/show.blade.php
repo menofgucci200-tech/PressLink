@@ -124,9 +124,6 @@
                     <button type="button" wire:click="requestRenewal('annual')" wire:loading.attr="disabled"
                             class="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">
                         Un an @if ($annual !== null)<span class="font-normal text-(--color-text-secondary) tabular-nums">· {{ number_format($annual, 0, ',', ' ') }} F</span>@endif
-                        @if ($monthly && $annual && $annual < 12 * $monthly)
-                            <span class="text-xs font-semibold text-(--color-success-text)">{{ (int) round((12 * $monthly - $annual) / $monthly) }} mois offerts</span>
-                        @endif
                     </button>
                 </div>
             @endif

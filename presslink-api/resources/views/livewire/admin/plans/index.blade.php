@@ -51,11 +51,16 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
             <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
-                <h2 class="font-display text-base font-bold mb-1">Essai gratuit</h2>
+                <h2 class="font-display text-base font-bold mb-1">Essai et offre</h2>
                 <p class="text-sm text-(--color-text-muted) mb-3">Toutes les fonctions sont ouvertes pendant l'essai. S'applique aux pressings créés ensuite.</p>
                 <label class="{{ $label }}" for="trial-days">Durée (jours)</label>
                 <input id="trial-days" type="number" min="0" max="365" wire:model="trialDays" class="{{ $input }}">
                 @error('trialDays') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+
+                <label class="{{ $label }} mt-4" for="launch-offer">Offre de lancement (vide = aucune)</label>
+                <textarea id="launch-offer" rows="3" wire:model="launchOffer" class="w-full px-3 py-2 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm focus:outline-none focus:border-(--color-primary)"></textarea>
+                <p class="text-[11px] text-(--color-text-muted) mt-1">Affichée sur la page Tarifs du site et la page Formules des pressings.</p>
+                @error('launchOffer') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
 
             <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">

@@ -180,13 +180,13 @@ class SubscriptionFeaturesTest extends TestCase
 
         Livewire::actingAs($owner)->test(SubscriptionShow::class)
             ->assertSee('Les 2 commandes de ce mois sont utilisées')
-            ->assertSee('+ 250 commandes');
+            ->assertSee('+ 50 commandes')->assertSee('1 000 F');
 
-        Livewire::actingAs($owner)->test(SubscriptionShow::class)->call('requestOrders', 250);
+        Livewire::actingAs($owner)->test(SubscriptionShow::class)->call('requestOrders', 50);
         SubscriptionRequest::sole()->apply();
 
         $subscription->refresh();
-        $this->assertSame(252, $subscription->ordersLimitThisMonth());
+        $this->assertSame(52, $subscription->ordersLimitThisMonth());
         (new CreateOrderAction)->handle($pressing->fresh(), $customer, [['service_id' => null, 'name' => 'Chemise', 'unit_price_fcfa' => 1000, 'quantity' => 1]]);
 
         // Le mois suivant, les commandes ajoutées ne comptent plus.

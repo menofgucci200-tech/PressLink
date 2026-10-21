@@ -21,6 +21,12 @@
             <p class="text-slate-300 text-lg leading-relaxed max-w-2xl mx-auto">
                 Essai gratuit de {{ $trialDays }} jours, toutes les fonctions ouvertes. Ensuite, payez au mois ou à l'année par Wave.
             </p>
+            @if ($launchOffer)
+                <p class="mt-6 inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-[#1DC8FF]" aria-hidden="true"></span>
+                    Offre de lancement : {{ $launchOffer }}
+                </p>
+            @endif
         </div>
     </section>
 

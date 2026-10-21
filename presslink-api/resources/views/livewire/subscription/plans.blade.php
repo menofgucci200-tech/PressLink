@@ -15,6 +15,12 @@
         @endif
     </div>
 
+    @if ($launchOffer = \App\Support\PlanCatalog::launchOffer())
+        <div class="mb-6 rounded-xl border border-(--color-primary)/30 bg-(--color-primary-tint) text-(--color-primary) px-4 py-3 text-sm font-medium">
+            Offre de lancement : {{ $launchOffer }}
+        </div>
+    @endif
+
     @if ($subscription?->isInTrial())
         <div class="mb-6 rounded-xl bg-(--color-info-tint) text-(--color-info) px-4 py-3 text-sm">
             Essai gratuit en cours{{ $subscription->trial_ends_at ? ' jusqu\'au '.$subscription->trial_ends_at->format('d/m/Y') : '' }} : toutes les fonctions sont ouvertes. Choisissez la formule à garder ensuite.

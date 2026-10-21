@@ -88,7 +88,7 @@ class Subscription extends Model
     /** Durée de l'essai gratuit (jours), réglée depuis le Super Admin. */
     public static function trialDays(): int
     {
-        return max(0, (int) Setting::read('trial_days', 14));
+        return max(0, (int) Setting::read('trial_days', 7));
     }
 
     public function hasAddon(Feature $feature): bool

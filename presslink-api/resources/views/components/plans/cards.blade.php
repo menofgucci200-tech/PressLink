@@ -36,12 +36,7 @@
                         <span class="text-sm text-(--color-text-secondary)">F / mois</span>
                     </div>
                     @if ($item['annual'] !== null)
-                        <p class="text-xs text-(--color-text-secondary) mt-1">
-                            ou {{ $fcfa($item['annual']) }} F par an
-                            @if ($item['monthsOffered'] > 0)
-                                <span class="font-semibold text-(--color-success-text)">· {{ $item['monthsOffered'] }} mois offert{{ $item['monthsOffered'] > 1 ? 's' : '' }}</span>
-                            @endif
-                        </p>
+                        <p class="text-xs text-(--color-text-secondary) mt-1">ou {{ $fcfa($item['annual']) }} F par an</p>
                     @endif
                 @else
                     <span class="font-display text-3xl font-extrabold tracking-tight">Sur devis</span>

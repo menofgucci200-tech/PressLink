@@ -8,6 +8,7 @@ use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Setting;
 use App\Models\Subscription;
 use App\Models\SubscriptionRequest;
+use App\Support\PlanCatalog;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -25,6 +26,9 @@ class Index extends Component
     public array $plans = [];
 
     public string $trialDays = '';
+
+    /** Offre de lancement affichée avec les formules (vide = aucune). */
+    public string $launchOffer = '';
 
     /** @var array<string, string> fonction => prix mensuel de l'option */
     public array $optionPrices = [];
@@ -53,6 +57,7 @@ class Index extends Component
         }
 
         $this->trialDays = (string) Subscription::trialDays();
+        $this->launchOffer = (string) PlanCatalog::launchOffer();
         foreach (Feature::cases() as $feature) {
             $this->optionPrices[$feature->value] = $text($feature->priceFcfa());
         }
@@ -81,6 +86,7 @@ class Index extends Component
             'plans.*.features' => ['array'],
             'plans.*.features.*' => [Rule::enum(Feature::class)],
             'trialDays' => ['required', 'integer', 'min:0', 'max:365'],
+            'launchOffer' => ['nullable', 'string', 'max:200'],
             'optionPrices.*' => ['nullable', 'integer', 'min:0'],
             'orderPacks' => ['array'],
             'orderPacks.*.count' => ['required', 'integer', 'min:1', 'distinct'],
@@ -100,6 +106,7 @@ class Index extends Component
             'features' => array_values(array_intersect(array_column(Feature::cases(), 'value'), $this->plans[$plan->value]['features'] ?? [])),
         ]])->all());
         Setting::write('trial_days', (int) $this->trialDays);
+        Setting::write('launch_offer', trim($this->launchOffer));
         Setting::write('option_prices', array_map($number, $this->optionPrices));
         Setting::write('order_packs', collect($this->orderPacks)
             ->map(fn (array $pack) => ['count' => (int) $pack['count'], 'price' => $number($pack['price'])])

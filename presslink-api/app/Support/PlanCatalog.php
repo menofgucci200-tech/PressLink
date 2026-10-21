@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Enums\Feature;
 use App\Enums\SubscriptionPlan;
+use App\Models\Setting;
 use App\Models\Subscription;
 
 /**
@@ -38,7 +39,7 @@ final class PlanCatalog
     }
 
     /**
-     * @return list<array{plan: SubscriptionPlan, label: string, tagline: string, audience: string, monthly: ?int, annual: ?int, monthsOffered: int, ordersLimit: ?int, features: list<Feature>, added: list<Feature>, previous: ?SubscriptionPlan, recommended: bool}>
+     * @return list<array{plan: SubscriptionPlan, label: string, tagline: string, audience: string, monthly: ?int, annual: ?int, ordersLimit: ?int, features: list<Feature>, added: list<Feature>, previous: ?SubscriptionPlan, recommended: bool}>
      */
     public static function plans(): array
     {
@@ -56,7 +57,6 @@ final class PlanCatalog
                 ...self::pitch($plan),
                 'monthly' => $monthly,
                 'annual' => $annual,
-                'monthsOffered' => ($monthly && $annual && $annual < 12 * $monthly) ? (int) round((12 * $monthly - $annual) / $monthly) : 0,
                 'ordersLimit' => $plan->ordersLimit(),
                 'features' => $features,
                 // Ce que la formule ajoute à la précédente.
@@ -87,6 +87,16 @@ final class PlanCatalog
         }
 
         return ['features' => $features, 'orders' => $orders];
+    }
+
+    /** Offre de lancement affichée avec les formules (vide = aucune), réglée par le Super Admin. */
+    public const DEFAULT_LAUNCH_OFFER = '1 mois offert pour nos 10 premiers pressings, quelle que soit la formule.';
+
+    public static function launchOffer(): ?string
+    {
+        $offer = trim((string) Setting::read('launch_offer', self::DEFAULT_LAUNCH_OFFER));
+
+        return $offer === '' ? null : $offer;
     }
 
     public static function trialDays(): int

@@ -44,10 +44,11 @@ class PlansPageTest extends TestCase
             ->assertSee('Starter')
             ->assertSee('Premium')
             ->assertSee('35 000')
-            ->assertSee('2 mois offerts')
+            ->assertDontSee('mois offerts')
+            ->assertSee('1 mois offert pour nos 10 premiers pressings')
             ->assertSee('Tout Starter, plus :')
             ->assertSee('Caisse complète')
-            ->assertSee('Essai gratuit de 14 jours');
+            ->assertSee('Essai gratuit de 7 jours');
     }
 
     public function test_the_plans_page_shows_the_current_plan_and_what_the_next_one_adds(): void
@@ -57,7 +58,7 @@ class PlansPageTest extends TestCase
         Livewire::actingAs($owner)->test(Plans::class)
             ->assertSee('Votre formule actuelle')
             ->assertSee('En passant de Starter à Business')
-            ->assertSee('5 000 commandes par mois au lieu de 1 500')
+            ->assertSee('200 commandes par mois au lieu de 100')
             ->assertSee('Exports Excel et PDF')
             ->assertSee('Passer à Business');
     }

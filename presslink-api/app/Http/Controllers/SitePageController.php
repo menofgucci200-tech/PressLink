@@ -39,6 +39,7 @@ class SitePageController extends Controller
         return view('site.pricing', [
             'plans' => PlanCatalog::plans(),
             'trialDays' => PlanCatalog::trialDays(),
+            'launchOffer' => PlanCatalog::launchOffer(),
             'options' => collect(Feature::cases())->filter(fn ($f) => $f->priceFcfa() !== null)->values(),
         ]);
     }

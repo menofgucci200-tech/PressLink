@@ -58,7 +58,20 @@ enum Feature: string
     /** Prix de l'option seule, par mois (FCFA) ; null = communiqué par PressLink. */
     public function priceFcfa(): ?int
     {
-        return Setting::read('option_prices', [])[$this->value] ?? null;
+        $prices = Setting::read('option_prices');
+
+        return is_array($prices) ? ($prices[$this->value] ?? null) : $this->defaultPriceFcfa();
+    }
+
+    /** Prix d'origine, tant que le Super Admin ne les a pas réglés. */
+    public function defaultPriceFcfa(): ?int
+    {
+        return match ($this) {
+            self::Cash, self::CustomRoles, self::ActivityLog => 2_000,
+            self::Exports => 1_000,
+            self::Group => 3_000,
+            self::Offline => null,
+        };
     }
 
     /** Fonction dont dépend un accès de rôle (null = ouvert à toutes les formules). */

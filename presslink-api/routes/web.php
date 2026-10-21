@@ -58,7 +58,7 @@ Route::get('/', LandingController::class)->name('home');
 Route::controller(SitePageController::class)->name('site.')->group(function () {
     Route::get('/pour-les-clients', 'clients')->name('clients');
     Route::get('/pour-les-pressings', 'pressings')->name('pressings');
-    Route::get('/formules', 'pricing')->name('pricing');
+    Route::get('/offres', 'pricing')->name('pricing');
     Route::get('/comment-ca-marche', 'how')->name('how');
     Route::get('/installer', 'install')->name('install');
     Route::get('/questions-frequentes', 'faq')->name('faq');
@@ -68,6 +68,7 @@ Route::controller(SitePageController::class)->name('site.')->group(function () {
     Route::get('/conditions-generales', 'terms')->name('terms');
     Route::get('/confidentialite', 'privacy')->name('privacy');
 });
+Route::redirect('/formules', '/offres', 301);
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
 // Reçus partagés au client (WhatsApp…) ou ouverts depuis son appli : lien signé, sans connexion.

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\PlanCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -62,6 +63,8 @@ class LandingController extends Controller
             'appUrl' => $baseUrl.'/app/',
             'supportPhoneDisplay' => config('presslink.support.phone_display'),
             'supportPhoneE164' => config('presslink.support.phone_e164'),
+            'plans' => PlanCatalog::plans(),
+            'launchOffer' => PlanCatalog::launchOffer(),
         ]);
     }
 }

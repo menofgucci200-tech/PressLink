@@ -16,8 +16,8 @@
                         <img src="{{ asset('images/whatsapp.png') }}" alt="" class="w-8 h-8 rounded-full ring-2 ring-white" width="32" height="32">
                         Nous écrire sur WhatsApp
                     </a>
-                    <a href="{{ route('login') }}" class="inline-flex items-center justify-center h-12 px-6 rounded-xl border border-white/30 font-semibold hover:bg-white/10">
-                        Accéder à l'espace pressing
+                    <a href="{{ route('site.pricing') }}" class="inline-flex items-center justify-center h-12 px-6 rounded-xl border border-white/30 font-semibold hover:bg-white/10">
+                        Consulter nos offres
                     </a>
                 </div>
             </div>
@@ -61,7 +61,7 @@
         <div class="mt-14 bg-(--color-primary-tint) border border-(--color-primary)/15 rounded-3xl px-6 py-10 md:px-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
                 <h2 class="font-display text-2xl font-bold mb-1">Équipez votre pressing</h2>
-                <p class="text-(--color-text-secondary)">Démonstration et mise en place avec l'équipe PressLink.</p>
+                <p class="text-(--color-text-secondary)">Démonstration et mise en place avec l'équipe PressLink. <a href="{{ route('site.pricing') }}" class="font-semibold text-(--color-primary) hover:underline">Trouvez l'offre faite pour vous →</a></p>
             </div>
             <x-site.contact-buttons message="Bonjour, je souhaite une démonstration de PressLink pour mon pressing." />
         </div>

@@ -78,7 +78,10 @@
                         Voir comment ça marche
                     </a>
                 </div>
-                <p class="mt-5 text-sm text-(--color-text-muted)">Aucun téléchargement depuis un store : l'application s'installe en un geste depuis votre navigateur (<a href="{{ $appUrl }}" class="text-(--color-primary) font-semibold">presslink.org/app</a>).</p>
+                <p class="mt-5 text-sm font-semibold">
+                    <a href="{{ route('site.pricing') }}" class="text-(--color-primary) hover:underline">Vous gérez un pressing ? Découvrez nos offres →</a>
+                </p>
+                <p class="mt-2 text-sm text-(--color-text-muted)">Aucun téléchargement depuis un store : l'application s'installe en un geste depuis votre navigateur (<a href="{{ $appUrl }}" class="text-(--color-primary) font-semibold">presslink.org/app</a>).</p>
             </div>
             <div class="phone-mock phone-mock--hands max-w-md mx-auto w-full self-end" data-motion="hero-phone">
                 <div class="phone-mock__screen"><x-site.app-screen /></div>
@@ -128,6 +131,49 @@
                     <x-site.install-demo os="ios" />
                 </div>
             </div>
+        </div>
+    </section>
+
+    {{-- ===== Nos offres : l'accroche vers la page Offres ===== --}}
+    <section class="bg-slate-900 text-white dark:border-y dark:border-(--color-border)">
+        <div class="max-w-6xl mx-auto px-5 py-16 md:py-20">
+            <div class="flex flex-wrap items-end justify-between gap-6 mb-8">
+                <div class="max-w-2xl">
+                    <p class="text-xs font-semibold uppercase tracking-widest text-blue-300 mb-3">Pour les pressings</p>
+                    <h2 class="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">Vous cherchez la meilleure offre pour votre pressing ?</h2>
+                    <p class="text-slate-300 leading-relaxed">Petit pressing, pressing qui grandit ou plusieurs établissements : choisissez l'offre qui vous ressemble, et payez au mois ou à l'année.</p>
+                </div>
+                <a href="{{ route('site.pricing') }}" class="inline-flex items-center justify-center h-12 px-6 rounded-xl bg-(--color-primary) text-white font-semibold hover:bg-(--color-primary-600) whitespace-nowrap">
+                    Consulter nos offres
+                </a>
+            </div>
+            <div class="grid gap-4 md:grid-cols-3" data-motion="cascade">
+                @foreach ($plans as $item)
+                    <a href="{{ route('site.pricing') }}" class="group rounded-2xl border p-6 transition-colors {{ $item['recommended'] ? 'border-blue-400/60 bg-white/10' : 'border-white/10 bg-white/5 hover:bg-white/10' }}">
+                        <div class="flex items-baseline justify-between gap-3">
+                            <h3 class="font-display text-xl font-bold">{{ $item['label'] }}</h3>
+                            @if ($item['recommended'])<span class="text-[11px] font-semibold uppercase tracking-wide text-blue-300">Recommandée</span>@endif
+                        </div>
+                        <p class="text-sm text-blue-300 font-semibold mt-0.5">{{ $item['tagline'] }}</p>
+                        <p class="mt-4">
+                            @if ($item['monthly'] !== null)
+                                <span class="font-display text-3xl font-extrabold tabular-nums">{{ \App\Support\PlanCatalog::fcfa($item['monthly']) }}</span>
+                                <span class="text-sm text-slate-300">F / mois</span>
+                            @else
+                                <span class="font-display text-2xl font-extrabold">Sur devis</span>
+                            @endif
+                        </p>
+                        <p class="text-sm text-slate-300 mt-1">{{ $item['ordersLimit'] === null ? 'Commandes illimitées' : \App\Support\PlanCatalog::fcfa($item['ordersLimit']).' commandes par mois' }}</p>
+                        <span class="mt-4 inline-block text-sm font-semibold text-blue-300">Voir ce qu'elle comprend <span class="inline-block group-hover:translate-x-1 transition-transform">→</span></span>
+                    </a>
+                @endforeach
+            </div>
+            @if ($launchOffer)
+                <p class="mt-6 inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-[#1DC8FF]" aria-hidden="true"></span>
+                    Offre de lancement : {{ $launchOffer }}
+                </p>
+            @endif
         </div>
     </section>
 

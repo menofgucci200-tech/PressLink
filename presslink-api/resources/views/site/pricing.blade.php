@@ -11,13 +11,13 @@
     ];
 @endphp
 <x-site.page
-    title="Tarifs et formules — PressLink, gestion de pressing"
-    description="Starter, Business, Premium : les formules PressLink pour gérer votre pressing, leurs prix au mois ou à l'année et ce que chacune comprend. Essai gratuit."
-    path="/formules">
+    title="Nos offres — PressLink, logiciel de gestion de pressing"
+    description="Starter, Business, Premium : les offres PressLink pour gérer votre pressing, leurs prix au mois ou à l'année et ce que chacune comprend. Essai gratuit."
+    path="/offres">
     <section class="bg-slate-900 text-white dark:border-b dark:border-(--color-border)">
         <div class="max-w-6xl mx-auto px-5 pt-16 pb-28 md:pt-20 md:pb-32 text-center">
-            <p class="text-xs font-semibold uppercase tracking-widest text-blue-300 mb-3">Tarifs</p>
-            <h1 class="font-display text-4xl md:text-5xl font-extrabold leading-[1.08] tracking-tight mb-5">Une formule pour chaque pressing</h1>
+            <p class="text-xs font-semibold uppercase tracking-widest text-blue-300 mb-3">Nos offres</p>
+            <h1 class="font-display text-4xl md:text-5xl font-extrabold leading-[1.08] tracking-tight mb-5">Une offre pour chaque pressing</h1>
             <p class="text-slate-300 text-lg leading-relaxed max-w-2xl mx-auto">
                 Essai gratuit de {{ $trialDays }} jours, toutes les fonctions ouvertes. Ensuite, payez au mois ou à l'année par Wave.
             </p>
@@ -58,7 +58,7 @@
 
     <section class="bg-(--color-bg) border-y border-(--color-border)">
         <div class="max-w-3xl mx-auto px-5 py-16">
-            <h2 class="font-display text-2xl font-bold tracking-tight mb-6">Questions sur les formules</h2>
+            <h2 class="font-display text-2xl font-bold tracking-tight mb-6">Questions sur nos offres</h2>
             <div class="space-y-3" data-motion="cascade">
                 @foreach ($questions as [$question, $answer])
                     <details class="group bg-(--color-surface) border border-(--color-border) rounded-xl" @if ($loop->first) open @endif>

@@ -134,7 +134,9 @@ function titres(hero) {
 /* ---------------------------------------------------------------- blocs en cascade (toutes les pages) */
 function cascades() {
     $$('[data-motion="cascade"]').forEach((bloc) => {
-        gsap.from([...bloc.children], { y: 70, opacity: 0, duration: 1, stagger: 0.1, ease: 'expo.out', scrollTrigger: { trigger: bloc, start: 'top 88%' } });
+        // fromTo : l'arrivée est toujours visible, même si un élément était
+        // encore masqué au moment où l'animation est préparée.
+        gsap.fromTo([...bloc.children], { y: 70, opacity: 0 }, { y: 0, opacity: 1, duration: 1, stagger: 0.1, ease: 'expo.out', scrollTrigger: { trigger: bloc, start: 'top 88%' } });
     });
     $$('main .phone-mock').forEach((p) => {
         if (p.closest('[data-motion="hero"]') || p.closest('[data-motion="install"]')) return;

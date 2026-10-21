@@ -79,7 +79,7 @@ class LandingPageTest extends TestCase
         return [
             'clients' => ['/pour-les-clients'],
             'pressings' => ['/pour-les-pressings'],
-            'tarifs' => ['/formules'],
+            'offres' => ['/offres'],
             'comment ça marche' => ['/comment-ca-marche'],
             'installer' => ['/installer'],
             'faq' => ['/questions-frequentes'],
@@ -131,7 +131,7 @@ class LandingPageTest extends TestCase
 
         $base = rtrim(config('app.url'), '/');
         $this->assertSame([
-            $base.'/', $base.'/app/', $base.'/pour-les-clients', $base.'/pour-les-pressings', $base.'/formules',
+            $base.'/', $base.'/app/', $base.'/pour-les-clients', $base.'/pour-les-pressings', $base.'/offres',
             $base.'/comment-ca-marche', $base.'/installer', $base.'/questions-frequentes', $base.'/contact',
             $base.'/mentions-legales', $base.'/conditions-generales', $base.'/confidentialite',
         ], $locs);

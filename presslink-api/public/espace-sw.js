@@ -14,7 +14,7 @@ const OFFLINE_PAGE = '/hors-connexion.html';
 const COUNTER_PAGE = '/comptoir-hors-ligne';
 
 // Pages du site public : sans connexion, simple page « hors connexion ».
-const PUBLIC_PAGES = /^\/($|pour-les-|formules|comment-ca-marche|installer|questions-frequentes|contact|mentions-legales|conditions-generales|confidentialite|sitemap)/;
+const PUBLIC_PAGES = /^\/($|pour-les-|offres|formules|comment-ca-marche|installer|questions-frequentes|contact|mentions-legales|conditions-generales|confidentialite|sitemap)/;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

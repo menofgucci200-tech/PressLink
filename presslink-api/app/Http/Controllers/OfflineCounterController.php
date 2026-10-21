@@ -11,11 +11,14 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Pressing;
 use App\Models\ServicePrice;
+use App\Support\ColorPalette;
 use App\Support\PhoneNumber;
+use App\Support\ServiceIcons;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 /**
@@ -48,7 +51,16 @@ class OfflineCounterController extends Controller
             return redirect()->route('subscription.show', ['option' => Feature::Offline->value]);
         }
 
-        return view('comptoir.show', ['pressing' => $pressing, 'user' => $request->user()]);
+        // Icônes et couleurs, gardées avec la page (le comptoir n'a pas le serveur).
+        $icons = fn (string $kind) => collect(array_keys(ServiceIcons::options($kind)))
+            ->mapWithKeys(fn (string $key) => [$key => (string) ServiceIcons::svg($kind, $key, 40)]);
+
+        return view('comptoir.show', [
+            'pressing' => $pressing,
+            'user' => $request->user(),
+            'icons' => ['service' => $icons('service'), 'piece' => $icons('piece')],
+            'colors' => ['presets' => ColorPalette::presets(), 'all' => ColorPalette::all(), 'multi' => ColorPalette::MULTICOLOR],
+        ]);
     }
 
     public function snapshot(Request $request): JsonResponse
@@ -91,11 +103,12 @@ class OfflineCounterController extends Controller
                     'waive' => $user->may(Permission::StorageFeeWaive, $pressing),
                 ],
             ],
-            'prestations' => $pressing->prestations()->where('is_active', true)->ordered()->get(['id', 'name'])
-                ->map(fn ($p) => ['id' => $p->id, 'name' => $p->name])->values(),
+            'prestations' => $pressing->prestations()->where('is_active', true)->ordered()->get()
+                ->map(fn ($p) => ['id' => $p->id, 'name' => $p->name, 'icon' => $p->iconKey()])->values(),
             'pieces' => $pieces->map(fn ($piece) => [
                 'id' => $piece->id,
                 'name' => $piece->name,
+                'icon' => $piece->iconKey(),
                 'variants' => $piece->variants->map(fn ($v) => ['id' => $v->id, 'name' => $v->name])->values(),
             ])->values(),
             'prices' => ServicePrice::whereIn('service_id', $pieces->pluck('id'))->get(['service_id', 'service_variant_id', 'prestation_id', 'price_fcfa'])
@@ -121,6 +134,19 @@ class OfflineCounterController extends Controller
                 ])->values(),
                 'storage_fees' => $hasStoragePolicy && $order->status === OrderStatus::Prete ? $this->storageFees($order) : null,
             ])->values(),
+            'last_orders' => $this->lastOrders($pressing),
+            // Pièces commandées ces 90 derniers jours, par service : les plus
+            // demandées d'abord, comme sur l'écran en ligne.
+            'usage' => DB::table('order_items')
+                ->join('orders', 'orders.id', '=', 'order_items.order_id')
+                ->where('orders.pressing_id', $pressing->id)
+                ->where('orders.created_at', '>=', now()->subDays(90))
+                ->whereNotNull('order_items.service_id')
+                ->groupBy('order_items.prestation_id', 'order_items.service_id')
+                ->selectRaw('order_items.prestation_id, order_items.service_id, SUM(order_items.quantity) as total')
+                ->get()
+                ->map(fn ($row) => [(int) $row->prestation_id, (int) $row->service_id, (int) $row->total])
+                ->values(),
             'payment_methods' => collect(PaymentMethod::cases())->map(fn (PaymentMethod $m) => ['value' => $m->value, 'label' => $m->label()])->values(),
         ]);
     }
@@ -149,6 +175,26 @@ class OfflineCounterController extends Controller
         abort_if($pressing === null, 403);
 
         return $pressing;
+    }
+
+    /**
+     * Pièces de la dernière commande de chaque client (« Refaire sa dernière
+     * commande »), au format compact [pièce, variante, service, nom du
+     * service, nom affiché, couleur, prix, quantité].
+     *
+     * @return array<int, list<array{0: ?int, 1: ?int, 2: ?int, 3: ?string, 4: string, 5: ?string, 6: int, 7: int}>>
+     */
+    private function lastOrders(Pressing $pressing): array
+    {
+        $lastIds = Order::query()->where('pressing_id', $pressing->id)
+            ->selectRaw('MAX(id) as id')->groupBy('customer_id')->pluck('id');
+
+        return Order::query()->whereIn('id', $lastIds)->with('items')->get(['id', 'customer_id'])
+            ->mapWithKeys(fn (Order $order) => [$order->customer_id => $order->items
+                ->reject(fn ($item) => str_starts_with($item->name, Order::STORAGE_FEE_LINE))
+                ->map(fn ($item) => [$item->service_id, $item->service_variant_id, $item->prestation_id, $item->prestation_name, $item->name, $item->color, (int) $item->unit_price_fcfa, (int) $item->quantity])
+                ->values()->all()])
+            ->all();
     }
 
     /** @return array<string, int> date (AAAA-MM-JJ) → droit de magasinage dû ce jour-là */

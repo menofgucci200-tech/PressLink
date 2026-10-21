@@ -52,6 +52,12 @@ final class ColorPalette
         return self::PRESETS;
     }
 
+    /** @return array<string, string> toutes les teintes nommées (comptoir hors connexion) */
+    public static function all(): array
+    {
+        return self::PRESETS + self::EXTRA;
+    }
+
     /** Code hexadécimal d'une couleur connue (pour l'afficher), sinon null. */
     public static function hex(?string $name): ?string
     {

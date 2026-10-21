@@ -85,6 +85,19 @@ class OfflineCounterTest extends TestCase
         $this->assertContains([$this->chemise->id, null, $this->nettoyage, 1000], $response->json('prices'));
     }
 
+    public function test_the_snapshot_holds_each_customer_last_order_for_repeating_it(): void
+    {
+        $customer = $this->customer();
+        Order::factory()->for($this->pressing)->for($customer)->create();
+        $last = Order::factory()->for($this->pressing)->for($customer)->create();
+        $last->items()->create(['service_id' => $this->chemise->id, 'prestation_id' => $this->nettoyage, 'prestation_name' => 'Nettoyage', 'name' => 'Chemise · Nettoyage · Bleu', 'color' => 'Bleu', 'unit_price_fcfa' => 1000, 'quantity' => 4]);
+
+        $this->actingAs($this->owner)->getJson(route('offline.snapshot'))
+            ->assertOk()
+            ->assertJsonPath("last_orders.{$customer->id}", [[$this->chemise->id, null, $this->nettoyage, 'Nettoyage', 'Chemise · Nettoyage · Bleu', 'Bleu', 1000, 4]])
+            ->assertJsonPath('pieces.0.icon', 'chemise');
+    }
+
     public function test_starter_has_no_offline_counter_but_trial_and_business_do(): void
     {
         $this->pressing->subscription->update(['plan' => SubscriptionPlan::Starter]);
@@ -102,7 +115,8 @@ class OfflineCounterTest extends TestCase
 
         $this->actingAs($this->owner)->get(route('offline.show'))
             ->assertOk()
-            ->assertSee('comptoir('.$this->pressing->id.', '.$this->owner->id.')', false);
+            ->assertSee('comptoir('.$this->pressing->id.', '.$this->owner->id.',', false)
+            ->assertSee('Refaire sa dernière commande');
     }
 
     public function test_a_day_offline_is_replayed_in_order_and_only_once(): void

@@ -2,6 +2,7 @@
     $links = [
         'site.clients' => 'Pour les clients',
         'site.pressings' => 'Pour les pressings',
+        'site.pricing' => 'Tarifs',
         'site.how' => 'Comment ça marche',
         'site.install' => 'Installer',
         'site.faq' => 'Questions fréquentes',

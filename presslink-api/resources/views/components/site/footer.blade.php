@@ -9,6 +9,7 @@
         <nav class="flex flex-col gap-2 text-(--color-text-secondary)" aria-label="Pied de page">
             <a href="{{ route('site.clients') }}" class="hover:text-(--color-primary)">Pour les clients</a>
             <a href="{{ route('site.pressings') }}" class="hover:text-(--color-primary)">Pour les pressings</a>
+            <a href="{{ route('site.pricing') }}" class="hover:text-(--color-primary)">Tarifs et formules</a>
             <a href="{{ route('site.how') }}" class="hover:text-(--color-primary)">Comment ça marche</a>
         </nav>
         <nav class="flex flex-col gap-2 text-(--color-text-secondary)" aria-label="Liens utiles">

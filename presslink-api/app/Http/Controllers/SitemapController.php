@@ -21,6 +21,7 @@ class SitemapController extends Controller
             ['loc' => $baseUrl.'/app/', 'priority' => '0.9', 'changefreq' => 'monthly'],
             ['loc' => route('site.clients'), 'priority' => '0.8', 'changefreq' => 'monthly'],
             ['loc' => route('site.pressings'), 'priority' => '0.8', 'changefreq' => 'monthly'],
+            ['loc' => route('site.pricing'), 'priority' => '0.8', 'changefreq' => 'monthly'],
             ['loc' => route('site.how'), 'priority' => '0.8', 'changefreq' => 'monthly'],
             ['loc' => route('site.install'), 'priority' => '0.7', 'changefreq' => 'monthly'],
             ['loc' => route('site.faq'), 'priority' => '0.6', 'changefreq' => 'monthly'],

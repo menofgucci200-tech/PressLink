@@ -42,6 +42,7 @@ use App\Livewire\Orders\Index as OrdersIndex;
 use App\Livewire\Orders\Show as OrdersShow;
 use App\Livewire\Pressing\Settings as PressingSettings;
 use App\Livewire\Services\Index as ServicesIndex;
+use App\Livewire\Subscription\Plans as SubscriptionPlans;
 use App\Livewire\Subscription\Show as SubscriptionShow;
 use App\Livewire\Support\Show as SupportShow;
 use App\Livewire\Team\Index as TeamIndex;
@@ -57,6 +58,7 @@ Route::get('/', LandingController::class)->name('home');
 Route::controller(SitePageController::class)->name('site.')->group(function () {
     Route::get('/pour-les-clients', 'clients')->name('clients');
     Route::get('/pour-les-pressings', 'pressings')->name('pressings');
+    Route::get('/formules', 'pricing')->name('pricing');
     Route::get('/comment-ca-marche', 'how')->name('how');
     Route::get('/installer', 'install')->name('install');
     Route::get('/questions-frequentes', 'faq')->name('faq');
@@ -166,6 +168,7 @@ Route::middleware('auth')->group(function () {
         Route::redirect('/profil-pressing', '/parametres', 301);
         Route::get('/parametres', PressingSettings::class)->name('pressing.settings');
         Route::get('/abonnement', SubscriptionShow::class)->name('subscription.show');
+        Route::get('/abonnement/formules', SubscriptionPlans::class)->name('subscription.plans');
         Route::get('/support', SupportShow::class)->name('support');
 
         // Comptoir hors connexion (page gardée sur le PC, données, envoi).

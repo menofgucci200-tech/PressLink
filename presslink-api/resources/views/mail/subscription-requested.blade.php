@@ -10,12 +10,13 @@
 |:--|:--|
 | **Pressing** | {{ $request->pressing->name }} ({{ $request->pressing->code }}) |
 | **Demande** | {{ $request->label() }} |
+| **Montant** | {{ $request->amount_fcfa !== null ? number_format($request->amount_fcfa, 0, ',', ' ').' F' : 'à fixer' }} |
 | **Formule actuelle** | {{ $subscription?->plan->label() ?? '—' }} |
 | **Demandé par** | {{ $request->requester?->name ?? '—' }} {{ $request->requester?->phone ? '· '.$request->requester->phone : '' }} |
 | **Téléphone du pressing** | {{ $request->pressing->phone ?: '—' }} |
 </x-mail::table>
 
-Une fois le paiement reçu, activez-la depuis la fiche du pressing.
+Créez le lien de paiement dans Wave Business, collez-le sur la fiche du pressing et envoyez-le ; activez la demande une fois le paiement reçu.
 
 <x-mail::button :url="route('admin.pressings.show', $request->pressing)">
 Ouvrir la fiche du pressing

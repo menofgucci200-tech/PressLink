@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Feature;
 use App\Mail\ContactMessage;
+use App\Support\PlanCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -30,6 +32,15 @@ class SitePageController extends Controller
     public function pressings(): View
     {
         return view('site.pressings');
+    }
+
+    public function pricing(): View
+    {
+        return view('site.pricing', [
+            'plans' => PlanCatalog::plans(),
+            'trialDays' => PlanCatalog::trialDays(),
+            'options' => collect(Feature::cases())->filter(fn ($f) => $f->priceFcfa() !== null)->values(),
+        ]);
     }
 
     public function how(): View

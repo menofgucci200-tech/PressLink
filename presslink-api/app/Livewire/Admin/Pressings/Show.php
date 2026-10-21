@@ -45,6 +45,12 @@ class Show extends Component
     /** Commandes ajoutées au quota du mois en cours. */
     public string $extraOrders = '';
 
+    /** @var array<int, string> montant à payer de chaque demande en attente */
+    public array $requestAmounts = [];
+
+    /** @var array<int, string> lien de paiement (Wave Business) de chaque demande en attente */
+    public array $requestLinks = [];
+
     public bool $editingInfo = false;
 
     /** @var array{name: string, phone: string, email: string, city: string, address: string, description: string} */
@@ -228,6 +234,27 @@ class Show extends Component
         $this->toast("Activé : {$request->label()}.");
     }
 
+    /** Montant et lien de paiement d'une demande, montrés au pressing sur sa page Abonnement. */
+    public function savePaymentLink(int $requestId): void
+    {
+        abort_unless(auth()->user()->is_super_admin, 403);
+        $request = $this->pressing->subscriptionRequests()->pending()->findOrFail($requestId);
+
+        $this->validate([
+            "requestAmounts.{$requestId}" => ['nullable', 'integer', 'min:0'],
+            "requestLinks.{$requestId}" => ['nullable', 'url:https', 'max:500'],
+        ], [
+            "requestLinks.{$requestId}.url" => 'Collez le lien complet (il commence par https://).',
+        ]);
+
+        $amount = $this->requestAmounts[$requestId] ?? '';
+        $request->update([
+            'amount_fcfa' => $amount === '' ? null : (int) $amount,
+            'payment_link' => ($this->requestLinks[$requestId] ?? '') ?: null,
+        ]);
+        $this->toast('Lien de paiement enregistré : le pressing le voit sur sa page Abonnement.');
+    }
+
     public function declineRequest(int $requestId): void
     {
         abort_unless(auth()->user()->is_super_admin, 403);
@@ -242,9 +269,15 @@ class Show extends Component
     {
         $this->pressing->loadCount(['staff', 'customers', 'orders', 'services']);
 
+        $pendingRequests = $this->pressing->subscriptionRequests()->pending()->with('requester')->latest()->get();
+        foreach ($pendingRequests as $request) {
+            $this->requestAmounts[$request->id] ??= $request->amount_fcfa !== null ? (string) $request->amount_fcfa : '';
+            $this->requestLinks[$request->id] ??= (string) $request->payment_link;
+        }
+
         return view('livewire.admin.pressings.show', [
             'staff' => $this->pressing->staff()->orderByDesc('pressing_users.created_at')->get(),
-            'pendingRequests' => $this->pressing->subscriptionRequests()->pending()->with('requester')->latest()->get(),
+            'pendingRequests' => $pendingRequests,
         ]);
     }
 }

@@ -48,21 +48,13 @@
             <div class="text-sm text-(--color-text-secondary)">
                 {{ $subscription->plan->monthlyPriceFcfa() !== null ? number_format($subscription->plan->monthlyPriceFcfa(), 0, ',', ' ').' FCFA / mois' : 'Sur devis' }}
             </div>
-            @php $higherPlans = array_slice($plans, array_search($subscription->plan, $plans, true) + 1); @endphp
-            @if ($higherPlans)
-                <div class="flex flex-wrap gap-2 mt-4">
-                    @foreach ($higherPlans as $plan)
-                        @if (in_array($plan->value, $pendingPlans, true))
-                            <span class="inline-flex items-center h-9 px-3 rounded-lg bg-(--color-info-tint) text-(--color-info) text-sm font-medium">Passage à {{ $plan->label() }} demandé</span>
-                        @else
-                            <button type="button" wire:click="requestPlan('{{ $plan->value }}')" wire:loading.attr="disabled"
-                                    class="inline-flex items-center h-9 px-3 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">
-                                Passer à {{ $plan->label() }}
-                            </button>
-                        @endif
-                    @endforeach
-                </div>
-            @endif
+            <div class="flex flex-wrap items-center gap-2 mt-4">
+                <a href="{{ route('subscription.plans') }}" wire:navigate
+                   class="inline-flex items-center h-9 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">Comparer les formules</a>
+                @if ($subscription->plan !== \App\Enums\SubscriptionPlan::Premium)
+                    <span class="text-xs text-(--color-text-muted)">Voyez ce que vous gagnez à passer à la formule supérieure.</span>
+                @endif
+            </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -108,6 +100,36 @@
                     </div>
                 @endif
             </div>
+        </div>
+
+        {{-- Renouveler : l'équipe PressLink envoie le lien de paiement Wave --}}
+        @php
+            $monthly = $subscription->plan->monthlyPriceFcfa();
+            $annual = $subscription->plan->annualPriceFcfa();
+            $renewalPending = $pendingRequests->contains('kind', \App\Models\SubscriptionRequest::KIND_RENEWAL);
+        @endphp
+        <div id="renouveler" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-6 scroll-mt-20">
+            <h2 class="font-display text-base font-bold mb-1">Payer ou renouveler mon abonnement</h2>
+            <p class="text-sm text-(--color-text-muted) mb-4">
+                Formule {{ $subscription->plan->label() }}. Vous recevez un lien de paiement Wave ; la période est prolongée dès le paiement reçu.
+            </p>
+            @if ($renewalPending)
+                <span class="inline-flex items-center h-9 px-3 rounded-lg bg-(--color-info-tint) text-(--color-info) text-sm font-medium">Demande envoyée : voir « Demandes en cours » ci-dessous</span>
+            @else
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" wire:click="requestRenewal('monthly')" wire:loading.attr="disabled"
+                            class="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">
+                        Un mois @if ($monthly !== null)<span class="font-normal text-(--color-text-secondary) tabular-nums">· {{ number_format($monthly, 0, ',', ' ') }} F</span>@endif
+                    </button>
+                    <button type="button" wire:click="requestRenewal('annual')" wire:loading.attr="disabled"
+                            class="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">
+                        Un an @if ($annual !== null)<span class="font-normal text-(--color-text-secondary) tabular-nums">· {{ number_format($annual, 0, ',', ' ') }} F</span>@endif
+                        @if ($monthly && $annual && $annual < 12 * $monthly)
+                            <span class="text-xs font-semibold text-(--color-success-text)">{{ (int) round((12 * $monthly - $annual) / $monthly) }} mois offerts</span>
+                        @endif
+                    </button>
+                </div>
+            @endif
         </div>
 
         @if ($limit !== null)
@@ -188,17 +210,31 @@
                 <h2 class="font-display text-base font-bold mb-3">Demandes en cours</h2>
                 <ul class="divide-y divide-(--color-border)">
                     @foreach ($pendingRequests as $request)
-                        <li class="flex items-center justify-between gap-3 py-2.5 text-sm">
-                            <span>{{ $request->label() }} <span class="text-(--color-text-muted)">· le {{ $request->created_at->format('d/m/Y') }}</span></span>
-                            <button type="button" wire:click="cancelRequest({{ $request->id }})" class="text-(--color-text-muted) hover:text-(--color-error) text-xs font-medium">Annuler</button>
+                        <li class="flex flex-wrap items-center gap-3 py-3 text-sm" data-request="{{ $request->id }}">
+                            <div class="flex-1 min-w-0">
+                                <div class="font-medium">{{ $request->label() }}</div>
+                                <div class="text-xs text-(--color-text-muted)">
+                                    Demandé le {{ $request->created_at->format('d/m/Y') }}
+                                    @if ($request->amount_fcfa !== null) · <span class="font-semibold text-(--color-text-primary) tabular-nums">{{ number_format($request->amount_fcfa, 0, ',', ' ') }} F à payer</span>@endif
+                                    @unless ($request->payment_link) · lien de paiement à venir @endunless
+                                </div>
+                            </div>
+                            @if ($request->payment_link)
+                                <a href="{{ $request->payment_link }}" target="_blank" rel="noopener noreferrer"
+                                   class="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-[#1DC8FF] text-slate-900 text-sm font-semibold hover:brightness-95">
+                                    Payer avec Wave
+                                </a>
+                            @endif
+                            <button type="button" wire:click="cancelRequest({{ $request->id }})" wire:confirm="Annuler cette demande ?" class="text-(--color-text-muted) hover:text-(--color-error) text-xs font-medium">Annuler</button>
                         </li>
                     @endforeach
                 </ul>
+                <p class="mt-3 text-xs text-(--color-text-muted)">Une fois le paiement fait, l'équipe PressLink active votre demande.</p>
             </div>
         @endif
 
         <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 text-sm text-(--color-text-muted)">
-            Après votre demande, l'équipe PressLink vous appelle pour le paiement, puis active l'option sur votre pressing.
+            Après votre demande, l'équipe PressLink vous envoie un lien de paiement Wave, puis active la demande dès le paiement reçu.
         </div>
     @endif
 </div>

@@ -69,10 +69,26 @@ class Subscription extends Model
         return $this->belongsTo(Pressing::class);
     }
 
-    /** La formule inclut cette fonction, ou le pressing l'a prise en option. */
+    /**
+     * La formule inclut cette fonction, ou le pressing l'a prise en option.
+     * Pendant l'essai gratuit, tout est ouvert.
+     */
     public function hasFeature(Feature $feature): bool
     {
-        return $this->plan->includes($feature) || $this->hasAddon($feature);
+        return $this->isInTrial() || $this->plan->includes($feature) || $this->hasAddon($feature);
+    }
+
+    /** Essai gratuit en cours (pas encore terminé). */
+    public function isInTrial(): bool
+    {
+        return $this->status === SubscriptionStatus::Trialing
+            && ($this->trial_ends_at === null || $this->trial_ends_at->isFuture());
+    }
+
+    /** Durée de l'essai gratuit (jours), réglée depuis le Super Admin. */
+    public static function trialDays(): int
+    {
+        return max(0, (int) Setting::read('trial_days', 14));
     }
 
     public function hasAddon(Feature $feature): bool

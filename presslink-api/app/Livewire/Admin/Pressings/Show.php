@@ -39,8 +39,6 @@ class Show extends Component
 
     public string $billingCycle = 'monthly';
 
-    public bool $setupFeePaid = false;
-
     /** @var list<string> options prises en plus de la formule (App\Enums\Feature) */
     public array $addons = [];
 
@@ -153,6 +151,16 @@ class Show extends Component
         $this->toast("Mot de passe de {$member->name} réinitialisé à ".ResetPasswordToDefault::DEFAULT_PASSWORD.'. Il doit maintenant le changer pour sécuriser son compte.');
     }
 
+    /** Nouvelle formule choisie : on propose son nombre de commandes par mois. */
+    public function updatedPlan(string $value): void
+    {
+        $plan = SubscriptionPlan::tryFrom($value);
+        if ($plan !== null) {
+            $limit = $plan->ordersLimit();
+            $this->ordersLimit = $limit !== null ? (string) $limit : '';
+        }
+    }
+
     public function saveSubscription(): void
     {
         $this->validate([
@@ -162,14 +170,12 @@ class Show extends Component
             'trialEndsAt' => ['nullable', 'date'],
             'currentPeriodEndsAt' => ['nullable', 'date'],
             'billingCycle' => ['required', Rule::in(['monthly', 'annual'])],
-            'setupFeePaid' => ['boolean'],
             'addons' => ['array'],
             'addons.*' => [Rule::enum(Feature::class)],
             'extraOrders' => ['nullable', 'integer', 'min:0'],
         ]);
 
         $subscription = $this->pressing->subscription;
-        $plan = SubscriptionPlan::from($this->plan);
 
         $data = [
             'plan' => $this->plan,
@@ -178,9 +184,6 @@ class Show extends Component
             'trial_ends_at' => $this->trialEndsAt ?: null,
             'current_period_ends_at' => $this->currentPeriodEndsAt ?: null,
             'billing_cycle' => $this->billingCycle,
-            // On garde la date de règlement d'origine tant que la case reste cochée.
-            'setup_fee_paid_at' => $this->setupFeePaid ? ($subscription?->setup_fee_paid_at ?? now()) : null,
-            'setup_fee_fcfa' => $subscription?->setup_fee_fcfa ?? $plan->setupFeeFcfa(),
             'addons' => array_values(array_unique($this->addons)),
             'extra_orders' => (int) ($this->extraOrders ?: 0),
             'extra_orders_month' => now()->format('Y-m'),
@@ -207,7 +210,6 @@ class Show extends Component
         $this->trialEndsAt = $subscription?->trial_ends_at?->format('Y-m-d') ?? '';
         $this->currentPeriodEndsAt = $subscription?->current_period_ends_at?->format('Y-m-d') ?? '';
         $this->billingCycle = $subscription?->billing_cycle === 'annual' ? 'annual' : 'monthly';
-        $this->setupFeePaid = $subscription?->isSetupFeePaid() ?? false;
         $this->addons = array_values(array_filter($subscription?->addons ?? [], fn ($value) => Feature::tryFrom($value) !== null));
         $extra = $subscription?->extraOrdersThisMonth() ?? 0;
         $this->extraOrders = $extra > 0 ? (string) $extra : '';

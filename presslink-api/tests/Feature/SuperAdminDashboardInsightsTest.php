@@ -90,14 +90,12 @@ class SuperAdminDashboardInsightsTest extends TestCase
         Subscription::factory()->create(['trial_ends_at' => now()->subDay()]);
         Subscription::factory()->create(['status' => SubscriptionStatus::Expired]);
         Subscription::factory()->active(SubscriptionPlan::Starter)->create(['orders_used' => 1_400]);
-        Subscription::factory()->active()->create(['setup_fee_paid_at' => now()]);
 
         $counts = $this->watchlistCounts();
 
         $this->assertSame(2, $counts['expired']);
         $this->assertSame(1, $counts['trial-ending']);
         $this->assertSame(1, $counts['quota']);
-        $this->assertSame(1, $counts['setup-fee']);
     }
 
     public function test_watchlist_flags_dormant_pressings_and_open_issues(): void
@@ -140,26 +138,21 @@ class SuperAdminDashboardInsightsTest extends TestCase
                 && (int) $top->first()->period_volume === 3_000);
     }
 
-    public function test_super_admin_can_record_billing_cycle_and_setup_fee_payment(): void
+    public function test_super_admin_can_change_plan_and_billing_cycle(): void
     {
-        $subscription = Subscription::factory()->active(SubscriptionPlan::Business)->create();
+        $subscription = Subscription::factory()->active(SubscriptionPlan::Starter)->create();
 
         Livewire::test(AdminPressingsShow::class, ['pressing' => $subscription->pressing])
+            ->set('plan', SubscriptionPlan::Business->value)
+            // La formule choisie propose son nombre de commandes par mois.
+            ->assertSet('ordersLimit', (string) SubscriptionPlan::Business->ordersLimit())
             ->set('billingCycle', 'annual')
-            ->set('setupFeePaid', true)
             ->call('saveSubscription')
             ->assertHasNoErrors();
 
         $subscription->refresh();
+        $this->assertSame(SubscriptionPlan::Business, $subscription->plan);
+        $this->assertSame(SubscriptionPlan::Business->ordersLimit(), $subscription->orders_limit);
         $this->assertSame('annual', $subscription->billing_cycle);
-        $this->assertNotNull($subscription->setup_fee_paid_at);
-        $this->assertSame(SubscriptionPlan::Business->setupFeeFcfa(), $subscription->setup_fee_fcfa);
-
-        Livewire::test(AdminPressingsShow::class, ['pressing' => $subscription->pressing])
-            ->assertSet('setupFeePaid', true)
-            ->set('setupFeePaid', false)
-            ->call('saveSubscription');
-
-        $this->assertNull($subscription->refresh()->setup_fee_paid_at);
     }
 }

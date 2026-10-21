@@ -97,7 +97,10 @@
     </div>
 
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden mb-6">
-        <div class="px-5 py-3.5 border-b border-(--color-border) text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Équipe</div>
+        <div class="px-5 py-3.5 border-b border-(--color-border) flex items-center justify-between gap-3">
+            <span class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Équipe</span>
+            <a href="{{ route('admin.roles.index', ['pressing' => $pressing->id]) }}" wire:navigate class="text-xs font-semibold text-(--color-primary) hover:underline">Rôles et accès →</a>
+        </div>
 
 
         @if ($staff->isEmpty())
@@ -159,7 +162,7 @@
         <form novalidate wire:submit="saveSubscription" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Plan</label>
-                <select wire:model="plan" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                <select wire:model.live="plan" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                     @foreach (\App\Enums\SubscriptionPlan::cases() as $case)
                         <option value="{{ $case->value }}">{{ $case->label() }}</option>
                     @endforeach
@@ -188,15 +191,6 @@
                 </select>
                 @error('billingCycle') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
-            <div class="sm:col-span-2">
-                <label class="flex items-center gap-2.5 text-sm cursor-pointer">
-                    <input type="checkbox" wire:model="setupFeePaid" class="w-4 h-4 rounded border-(--color-border) accent-(--color-primary)">
-                    <span>Ticket d'entrée réglé</span>
-                    @if ($pressing->subscription?->setup_fee_paid_at)
-                        <span class="text-xs text-(--color-text-muted)">le {{ $pressing->subscription->setup_fee_paid_at->format('d/m/Y') }}</span>
-                    @endif
-                </label>
-            </div>
             <div>
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Commandes ajoutées ce mois-ci</label>
                 <input type="number" min="0" wire:model="extraOrders" placeholder="0" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
@@ -208,7 +202,7 @@
                     @foreach (\App\Enums\Feature::cases() as $feature)
                         <label class="flex items-center gap-2.5 text-sm cursor-pointer">
                             <input type="checkbox" wire:model="addons" value="{{ $feature->value }}" class="w-4 h-4 rounded border-(--color-border) accent-(--color-primary)">
-                            <span>{{ $feature->label() }} <span class="text-xs text-(--color-text-muted)">(inclus dès {{ $feature->includedFrom()->label() }})</span></span>
+                            <span>{{ $feature->label() }} @if ($feature->includedFrom()) <span class="text-xs text-(--color-text-muted)">(inclus dès {{ $feature->includedFrom()->label() }})</span> @endif</span>
                         </label>
                     @endforeach
                 </div>

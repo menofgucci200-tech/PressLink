@@ -195,9 +195,9 @@ class Create extends Component
             'plan' => SubscriptionPlan::Starter,
             'status' => SubscriptionStatus::Trialing,
             'orders_limit' => SubscriptionPlan::Starter->ordersLimit(),
-            'trial_ends_at' => now()->addDays(14),
+            'trial_ends_at' => now()->addDays(Subscription::trialDays()),
             'current_period_starts_at' => now(),
-            'current_period_ends_at' => now()->addDays(14),
+            'current_period_ends_at' => now()->addDays(Subscription::trialDays()),
         ]);
     }
 

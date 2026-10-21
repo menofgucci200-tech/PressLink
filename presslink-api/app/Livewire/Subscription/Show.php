@@ -61,7 +61,7 @@ class Show extends Component
     public function requestOrders(int $count): void
     {
         $pressing = $this->pressing();
-        abort_unless(in_array($count, SubscriptionRequest::ORDER_PACKS, true), 422);
+        abort_unless(in_array($count, array_column(SubscriptionRequest::orderPacks(), 'count'), true), 422);
 
         $this->createRequest($pressing, ['kind' => SubscriptionRequest::KIND_ORDERS, 'extra_orders' => $count]);
     }
@@ -119,7 +119,7 @@ class Show extends Component
             'subscription' => $subscription,
             'features' => Feature::cases(),
             'plans' => SubscriptionPlan::cases(),
-            'orderPacks' => SubscriptionRequest::ORDER_PACKS,
+            'orderPacks' => SubscriptionRequest::orderPacks(),
             'pendingRequests' => $pressing->subscriptionRequests()->pending()->latest()->get(),
         ]);
     }

@@ -253,7 +253,6 @@ class Index extends Component
         return $role->isOwner() ? PressingRole::Admin->value : PressingRole::Employee->value;
     }
 
-    /** Limites de la formule : propriétaires comptés comme administrateurs, les autres comme employés. */
     // ── Rôles et accès ────────────────────────────────────────────────────
 
     /** @return list<string> accès que l'utilisateur peut cocher (jamais plus que les siens) */

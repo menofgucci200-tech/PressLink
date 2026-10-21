@@ -325,14 +325,6 @@ class Dashboard extends Component
                     && $s->ordersUsedThisMonth() >= $s->orders_limit * self::QUOTA_ALERT_RATIO)),
             ],
             [
-                'key' => 'setup-fee',
-                'label' => 'Tickets d\'entrée non réglés',
-                'hint' => 'Abonnement actif mais ticket d\'entrée toujours en attente.',
-                'tone' => 'info',
-                'pressings' => $pressingsOf($live->filter(fn (Subscription $s) => $s->status === SubscriptionStatus::Active
-                    && ! $s->isSetupFeePaid())),
-            ],
-            [
                 'key' => 'dormant',
                 'label' => 'Pressings inactifs',
                 'hint' => 'Aucune commande depuis '.self::DORMANT_AFTER_DAYS.' jours : un appel peut éviter un départ.',

@@ -2,10 +2,13 @@
 
 namespace App\Enums;
 
+use App\Models\Setting;
+
 /**
  * Formules d'abonnement. Une seule limite : le nombre de commandes par mois
  * (`null` = illimité, dans la limite d'une utilisation normale du service).
- * Les fonctions réservées à une formule sont décrites par App\Enums\Feature.
+ * Prix, commandes par mois et fonctions incluses (App\Enums\Feature) se
+ * règlent depuis le Super Admin ; les valeurs ci-dessous servent par défaut.
  */
 enum SubscriptionPlan: string
 {
@@ -27,12 +30,35 @@ enum SubscriptionPlan: string
         };
     }
 
-    /** La formule inclut-elle cette fonction ? (Business inclut tout Starter, Premium tout Business.) */
+    /**
+     * Réglages d'origine de la formule, tant que le Super Admin ne les a pas
+     * modifiés (page Formules, réglage « plans »).
+     *
+     * @return array{monthly: ?int, annual: ?int, orders_limit: ?int, features: list<string>}
+     */
+    public function defaults(): array
+    {
+        return match ($this) {
+            self::Starter => ['monthly' => 20_000, 'annual' => 200_000, 'orders_limit' => 1_500, 'features' => []],
+            self::Business => ['monthly' => 30_000, 'annual' => 300_000, 'orders_limit' => 5_000,
+                'features' => [Feature::Cash->value, Feature::CustomRoles->value, Feature::ActivityLog->value, Feature::Exports->value]],
+            self::Premium => ['monthly' => 50_000, 'annual' => 500_000, 'orders_limit' => null,
+                'features' => array_map(fn (Feature $feature) => $feature->value, Feature::cases())],
+        };
+    }
+
+    /** @return array{monthly: ?int, annual: ?int, orders_limit: ?int, features: list<string>} */
+    public function settings(): array
+    {
+        $saved = Setting::read('plans', [])[$this->value] ?? [];
+
+        return array_replace($this->defaults(), array_intersect_key($saved, $this->defaults()));
+    }
+
+    /** La formule inclut-elle cette fonction ? */
     public function includes(Feature $feature): bool
     {
-        $order = array_flip(array_map(fn (self $plan) => $plan->value, self::cases()));
-
-        return $order[$this->value] >= $order[$feature->includedFrom()->value];
+        return in_array($feature->value, $this->settings()['features'], true);
     }
 
     public function label(): string
@@ -44,42 +70,21 @@ enum SubscriptionPlan: string
         };
     }
 
-    /** Ticket d'entrée (FCFA), payé une seule fois à l'installation. */
-    public function setupFeeFcfa(): int
-    {
-        return match ($this) {
-            self::Starter => 100_000,
-            self::Business => 200_000,
-            self::Premium => 350_000,
-        };
-    }
-
+    /** Prix mensuel (FCFA), null = sur devis. */
     public function monthlyPriceFcfa(): ?int
     {
-        return match ($this) {
-            self::Starter => 20_000,
-            self::Business => 30_000,
-            self::Premium => 50_000,
-        };
+        return $this->settings()['monthly'];
     }
 
-    /** Tarif annuel (≈ 10 mois payés sur 12). */
+    /** Prix annuel (FCFA), null = sur devis. */
     public function annualPriceFcfa(): ?int
     {
-        return match ($this) {
-            self::Starter => 200_000,
-            self::Business => 300_000,
-            self::Premium => 500_000,
-        };
+        return $this->settings()['annual'];
     }
 
-    /** Quota mensuel de commandes. Null = illimité. */
+    /** Commandes par mois. Null = illimité. */
     public function ordersLimit(): ?int
     {
-        return match ($this) {
-            self::Starter => 1_500,
-            self::Business => 5_000,
-            self::Premium => null,
-        };
+        return $this->settings()['orders_limit'];
     }
 }

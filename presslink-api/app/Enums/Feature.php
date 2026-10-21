@@ -2,6 +2,8 @@
 
 namespace App\Enums;
 
+use App\Models\Setting;
+
 /**
  * Fonctions réservées à une formule. Un pressing y a accès si sa formule
  * l'inclut, ou s'il l'a prise en option (Subscription::$addons). Tout le
@@ -38,13 +40,22 @@ enum Feature: string
         };
     }
 
-    /** Première formule qui inclut cette fonction. */
-    public function includedFrom(): SubscriptionPlan
+    /** Première formule qui inclut cette fonction (null = aucune, option seulement). */
+    public function includedFrom(): ?SubscriptionPlan
     {
-        return match ($this) {
-            self::Group => SubscriptionPlan::Premium,
-            default => SubscriptionPlan::Business,
-        };
+        foreach (SubscriptionPlan::cases() as $plan) {
+            if ($plan->includes($this)) {
+                return $plan;
+            }
+        }
+
+        return null;
+    }
+
+    /** Prix de l'option seule, par mois (FCFA) ; null = communiqué par PressLink. */
+    public function priceFcfa(): ?int
+    {
+        return Setting::read('option_prices', [])[$this->value] ?? null;
     }
 
     /** Fonction dont dépend un accès de rôle (null = ouvert à toutes les formules). */

@@ -116,9 +116,12 @@
                 <p class="text-sm text-(--color-text-muted) mb-4">Les commandes ajoutées valent jusqu'à la fin du mois, sans changer de formule.</p>
                 <div class="flex flex-wrap gap-2">
                     @foreach ($orderPacks as $pack)
-                        <button type="button" wire:click="requestOrders({{ $pack }})" wire:loading.attr="disabled"
-                                class="inline-flex items-center h-10 px-4 rounded-lg border border-(--color-border) text-sm font-semibold tabular-nums hover:border-(--color-primary) hover:text-(--color-primary)">
-                            + {{ number_format($pack, 0, ',', ' ') }} commandes
+                        <button type="button" wire:click="requestOrders({{ $pack['count'] }})" wire:loading.attr="disabled"
+                                class="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-(--color-border) text-sm font-semibold tabular-nums hover:border-(--color-primary) hover:text-(--color-primary)">
+                            + {{ number_format($pack['count'], 0, ',', ' ') }} commandes
+                            @if ($pack['price'] !== null)
+                                <span class="font-normal text-(--color-text-muted)">· {{ number_format($pack['price'], 0, ',', ' ') }} F</span>
+                            @endif
                         </button>
                     @endforeach
                 </div>
@@ -127,13 +130,20 @@
 
         <div id="options" class="mb-6 scroll-mt-20">
             <h2 class="font-display text-lg font-bold mb-1">Fonctions et options</h2>
-            <p class="text-sm text-(--color-text-muted) mb-4">Une fonction qui n'est pas dans votre formule peut être ajoutée seule, en option.</p>
+            <p class="text-sm text-(--color-text-muted) mb-4">
+                @if ($subscription->isInTrial())
+                    Pendant votre essai gratuit, toutes les fonctions sont ouvertes{{ $subscription->trial_ends_at ? ' jusqu\'au '.$subscription->trial_ends_at->format('d/m/Y') : '' }}. Ensuite, vous gardez celles de votre formule et celles prises en option.
+                @else
+                    Une fonction qui n'est pas dans votre formule peut être ajoutée seule, en option.
+                @endif
+            </p>
             <div class="space-y-3">
                 @foreach ($features as $feature)
                     @php
                         $included = $subscription->plan->includes($feature);
                         $addon = ! $included && $subscription->hasAddon($feature);
                         $pending = in_array($feature->value, $pendingFeatures, true);
+                        $openForTrial = ! $included && ! $addon && $subscription->isInTrial();
                         $highlighted = $option === $feature->value && ! $included && ! $addon;
                     @endphp
                     <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-(--color-surface) border rounded-xl p-4 {{ $highlighted ? 'border-(--color-primary) ring-2 ring-(--color-primary)/20' : 'border-(--color-border)' }}"
@@ -148,6 +158,8 @@
                         <div class="flex-none">
                             @if ($included)
                                 <span class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-(--color-success-tint) text-(--color-success-text) text-xs font-semibold">✓ Incluse dans votre formule</span>
+                            @elseif ($openForTrial)
+                                <span class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-(--color-info-tint) text-(--color-info) text-xs font-semibold">Ouverte pendant l'essai</span>
                             @elseif ($addon)
                                 <span class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-(--color-success-tint) text-(--color-success-text) text-xs font-semibold">✓ Option active</span>
                             @elseif ($pending)
@@ -158,7 +170,11 @@
                                             class="inline-flex items-center h-9 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
                                         Ajouter cette option
                                     </button>
-                                    <span class="text-[11px] text-(--color-text-muted)">ou incluse dans {{ $feature->includedFrom()->label() }}</span>
+                                    <span class="text-[11px] text-(--color-text-muted)">
+                                        @if ($feature->priceFcfa() !== null) {{ number_format($feature->priceFcfa(), 0, ',', ' ') }} F / mois @endif
+                                        @if ($feature->priceFcfa() !== null && $feature->includedFrom()) · @endif
+                                        @if ($feature->includedFrom()) ou incluse dans {{ $feature->includedFrom()->label() }} @endif
+                                    </span>
                                 </div>
                             @endif
                         </div>

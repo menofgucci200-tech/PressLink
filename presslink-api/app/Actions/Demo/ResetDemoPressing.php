@@ -85,6 +85,7 @@ class ResetDemoPressing
                 'billing_cycle' => 'monthly',
                 'orders_limit' => null,
                 'orders_used' => 0,
+                'orders_month' => now()->format('Y-m'),
                 'current_period_starts_at' => now()->startOfMonth(),
                 'current_period_ends_at' => now()->addYear(),
             ]);

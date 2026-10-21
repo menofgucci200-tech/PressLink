@@ -8,10 +8,12 @@ use Database\Factories\SubscriptionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 /**
  * RB-09 : un pressing dont l'abonnement est expiré ne peut plus créer
- * de commande.
+ * de commande. Le quota de commandes est mensuel : `orders_used` compte les
+ * commandes du mois `orders_month` et repart de zéro le mois suivant.
  */
 class Subscription extends Model
 {
@@ -27,10 +29,18 @@ class Subscription extends Model
         'setup_fee_paid_at',
         'orders_limit',
         'orders_used',
+        'orders_month',
         'trial_ends_at',
         'current_period_starts_at',
         'current_period_ends_at',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Subscription $subscription) {
+            $subscription->orders_month ??= now()->format('Y-m');
+        });
+    }
 
     protected function casts(): array
     {
@@ -63,16 +73,37 @@ class Subscription extends Model
             return false;
         }
 
-        if ($this->orders_limit !== null && $this->orders_used >= $this->orders_limit) {
+        if ($this->orders_limit !== null && $this->ordersUsedThisMonth() >= $this->orders_limit) {
             return false;
         }
 
         return true;
     }
 
+    /** Commandes créées ce mois-ci (0 si le compteur date d'un mois précédent). */
+    public function ordersUsedThisMonth(): int
+    {
+        return $this->orders_month === now()->format('Y-m') ? (int) $this->orders_used : 0;
+    }
+
+    /**
+     * +1 commande, en une seule requête (pas de perte sous concurrence). Au
+     * premier passage d'un nouveau mois, le compteur repart à 1.
+     */
     public function incrementOrdersUsed(): void
     {
-        $this->increment('orders_used');
+        $month = now()->format('Y-m');
+
+        // orders_used avant orders_month : MySQL évalue les affectations dans
+        // l'ordre, la comparaison porte donc sur l'ancien mois.
+        static::query()->whereKey($this->getKey())->update([
+            'orders_used' => DB::raw("CASE WHEN orders_month = '{$month}' THEN orders_used + 1 ELSE 1 END"),
+            'orders_month' => $month,
+            'updated_at' => now(),
+        ]);
+
+        $fresh = static::query()->whereKey($this->getKey())->first(['orders_used', 'orders_month', 'updated_at']);
+        $this->forceFill($fresh->only(['orders_used', 'orders_month', 'updated_at']))->syncOriginal();
     }
 
     /** Limite d'employés (hors administrateurs) de la formule. */

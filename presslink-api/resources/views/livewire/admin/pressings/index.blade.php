@@ -142,7 +142,7 @@
                                             {{ $subscription->trial_ends_at->isPast() ? 'Essai terminé le ' : 'Fin d\'essai le ' }}{{ $subscription->trial_ends_at->format('d/m/Y') }}
                                         </div>
                                     @elseif ($subscription->orders_limit)
-                                        <div class="text-xs text-(--color-text-muted) mt-0.5 tabular-nums">Quota {{ $subscription->orders_used }} / {{ number_format($subscription->orders_limit, 0, ',', ' ') }}</div>
+                                        <div class="text-xs text-(--color-text-muted) mt-0.5 tabular-nums">Ce mois {{ $subscription->ordersUsedThisMonth() }} / {{ number_format($subscription->orders_limit, 0, ',', ' ') }}</div>
                                     @endif
                                 @else
                                     <span class="text-(--color-text-muted)">Sans abonnement</span>

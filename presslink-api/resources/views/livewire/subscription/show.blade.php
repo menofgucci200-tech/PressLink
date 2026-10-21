@@ -22,8 +22,8 @@
                 <p>
                     @if ($subscription->status === \App\Enums\SubscriptionStatus::Trialing && $subscription->trial_ends_at?->isPast())
                         Votre période d'essai s'est terminée le {{ $subscription->trial_ends_at->format('d/m/Y') }}.
-                    @elseif ($subscription->orders_limit !== null && $subscription->orders_used >= $subscription->orders_limit)
-                        Le quota de {{ $subscription->orders_limit }} commandes de votre plan {{ $subscription->plan->label() }} est atteint.
+                    @elseif ($subscription->orders_limit !== null && $subscription->ordersUsedThisMonth() >= $subscription->orders_limit)
+                        Le quota de {{ $subscription->orders_limit }} commandes par mois de votre plan {{ $subscription->plan->label() }} est atteint. Il repart à zéro le {{ now()->addMonthNoOverflow()->startOfMonth()->format('d/m/Y') }}.
                     @else
                         Votre abonnement est {{ mb_strtolower($subscription->status->label()) }}.
                     @endif
@@ -50,13 +50,14 @@
             <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px animate-step">
                 <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-3">Commandes ce mois-ci</div>
                 @if ($subscription->orders_limit === null)
-                    <div class="font-display text-2xl font-bold tabular-nums">{{ $subscription->orders_used }}</div>
+                    <div class="font-display text-2xl font-bold tabular-nums">{{ $subscription->ordersUsedThisMonth() }}</div>
                     <div class="text-xs text-(--color-text-muted) mt-1">Quota illimité</div>
                 @else
-                    @php $ratio = $subscription->orders_limit > 0 ? min(1, $subscription->orders_used / $subscription->orders_limit) : 1; @endphp
+                    @php $ratio = $subscription->orders_limit > 0 ? min(1, $subscription->ordersUsedThisMonth() / $subscription->orders_limit) : 1; @endphp
                     <div class="font-display text-2xl font-bold tabular-nums mb-2">
-                        {{ $subscription->orders_used }} <span class="text-(--color-text-muted) text-base font-normal">/ {{ $subscription->orders_limit }}</span>
+                        {{ $subscription->ordersUsedThisMonth() }} <span class="text-(--color-text-muted) text-base font-normal">/ {{ $subscription->orders_limit }}</span>
                     </div>
+                    <div class="text-xs text-(--color-text-muted) mb-2">Repart à zéro le {{ now()->addMonthNoOverflow()->startOfMonth()->format('d/m/Y') }}</div>
                     <div class="h-1.5 rounded-full bg-(--color-border) overflow-hidden">
                         <div class="h-full rounded-full transition-[width] duration-500 ease-out {{ $ratio >= 1 ? 'bg-(--color-error)' : 'bg-(--color-primary)' }}" style="width: {{ $ratio * 100 }}%"></div>
                     </div>

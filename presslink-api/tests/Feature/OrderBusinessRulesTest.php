@@ -127,6 +127,31 @@ class OrderBusinessRulesTest extends TestCase
         (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
     }
 
+    public function test_order_quota_starts_again_at_zero_each_month(): void
+    {
+        // Quota MENSUEL : le quota épuisé le mois dernier ne bloque plus ce mois-ci.
+        $pressing = Pressing::factory()->create();
+        $customer = $this->makeCustomerOf($pressing);
+        $subscription = Subscription::factory()->for($pressing)->create([
+            'orders_limit' => 2,
+            'orders_used' => 2,
+            'orders_month' => now()->subMonthNoOverflow()->format('Y-m'),
+        ]);
+
+        $this->assertSame(0, $subscription->ordersUsedThisMonth());
+
+        (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
+        (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
+
+        $subscription->refresh();
+        $this->assertSame(2, $subscription->orders_used);
+        $this->assertSame(now()->format('Y-m'), $subscription->orders_month);
+
+        // Deux commandes ce mois-ci : le quota du mois est atteint.
+        $this->expectException(RuntimeException::class);
+        (new CreateOrderAction)->handle($pressing, $customer, [$this->makeItem()]);
+    }
+
     public function test_deleting_an_order_is_a_soft_delete(): void
     {
         // RB-10

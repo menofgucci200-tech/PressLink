@@ -308,10 +308,10 @@ class Dashboard extends Component
             [
                 'key' => 'quota',
                 'label' => 'Quota de commandes presque atteint',
-                'hint' => 'Au moins '.(int) (self::QUOTA_ALERT_RATIO * 100).' % du quota utilisé : proposer la formule supérieure.',
+                'hint' => 'Au moins '.(int) (self::QUOTA_ALERT_RATIO * 100).' % du quota du mois utilisé : proposer la formule supérieure.',
                 'tone' => 'warning',
                 'pressings' => $pressingsOf($live->filter(fn (Subscription $s) => $s->orders_limit
-                    && $s->orders_used >= $s->orders_limit * self::QUOTA_ALERT_RATIO)),
+                    && $s->ordersUsedThisMonth() >= $s->orders_limit * self::QUOTA_ALERT_RATIO)),
             ],
             [
                 'key' => 'setup-fee',

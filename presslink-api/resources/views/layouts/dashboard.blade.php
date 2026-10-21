@@ -9,6 +9,7 @@
         <link rel="icon" href="{{ asset('favicon.ico') }}?v=2" sizes="any">
         <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}?v=2">
         <x-theme-script />
+        <x-installable-app />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
     </head>
@@ -213,6 +214,7 @@
                         </div>
                     @endif
                     <div class="border-t border-white/20 pt-3.5 flex flex-col gap-1.5">
+                        <x-install-button />
                         @if ($can(\App\Enums\Permission::SubscriptionManage))
                             <a href="{{ route('subscription.show') }}" wire:navigate class="nav-item {{ ($active ?? null) === 'subscription' ? 'nav-item-active' : '' }}">
                                 @if (($active ?? null) === 'subscription') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif

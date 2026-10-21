@@ -257,27 +257,40 @@ class OrderRepository {
   final ApiClient _apiClient;
 
   Future<List<OrderModel>> list() async {
-    final response = await _apiClient.dio.get('/orders');
-    final data = (response.data as Map<String, dynamic>)['data'] as List;
+    final body = await _apiClient.getKeepingCopy('/orders');
+    final data = (body as Map<String, dynamic>)['data'] as List;
     return data
         .map((e) => OrderModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
   Future<OrderModel> show(int id) async {
-    final response = await _apiClient.dio.get('/orders/$id');
-    return OrderModel.fromJson(response.data as Map<String, dynamic>);
+    final body = await _apiClient.getKeepingCopy('/orders/$id');
+    return OrderModel.fromJson(body as Map<String, dynamic>);
   }
 
-  Future<void> reportIssue({
+  /// Envoie le signalement. Hors connexion, il est gardé dans le téléphone
+  /// et part au retour de la connexion : renvoie alors `false`.
+  Future<bool> reportIssue({
     required int orderId,
     required IssueCategory category,
     String? description,
   }) async {
-    await _apiClient.dio.post(
-      '/orders/$orderId/issues',
-      data: {'category': category.value, 'description': description},
-    );
+    try {
+      await _apiClient.dio.post(
+        '/orders/$orderId/issues',
+        data: {'category': category.value, 'description': description},
+      );
+      return true;
+    } catch (error) {
+      if (!ApiClient.isConnectionError(error)) rethrow;
+      await _apiClient.queueIssue({
+        'order_id': orderId,
+        'category': category.value,
+        'description': description,
+      });
+      return false;
+    }
   }
 
   static String errorMessage(Object error) => apiErrorMessage(error);

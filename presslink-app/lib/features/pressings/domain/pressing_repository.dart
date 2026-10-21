@@ -214,8 +214,8 @@ class PressingRepository {
   final ApiClient _apiClient;
 
   Future<List<PressingModel>> mine() async {
-    final response = await _apiClient.dio.get('/pressings/mine');
-    return (response.data as List)
+    final body = await _apiClient.getKeepingCopy('/pressings/mine');
+    return (body as List)
         .map((e) => PressingModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }

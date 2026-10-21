@@ -37,16 +37,16 @@ class NotificationRepository {
   final ApiClient _apiClient;
 
   Future<List<AppNotification>> list() async {
-    final response = await _apiClient.dio.get('/notifications');
-    final data = (response.data as Map<String, dynamic>)['data'] as List;
+    final body = await _apiClient.getKeepingCopy('/notifications');
+    final data = (body as Map<String, dynamic>)['data'] as List;
     return data
         .map((e) => AppNotification.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
   Future<int> unreadCount() async {
-    final response = await _apiClient.dio.get('/notifications/unread-count');
-    return (response.data as Map<String, dynamic>)['count'] as int;
+    final body = await _apiClient.getKeepingCopy('/notifications/unread-count');
+    return (body as Map<String, dynamic>)['count'] as int;
   }
 
   Future<void> markAsRead(String id) async {

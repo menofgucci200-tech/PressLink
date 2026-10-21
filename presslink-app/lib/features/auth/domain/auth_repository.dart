@@ -170,6 +170,10 @@ class AuthRepository {
 
   Future<Customer> _saveSessionAndReturnCustomer(Response response) async {
     final data = response.data as Map<String, dynamic>;
+    // Nouveau compte sur ce téléphone : aucune copie de l'ancien.
+    await _apiClient.offlineStore.clear();
+    // Profil gardé tout de suite : une réouverture hors connexion l'affiche.
+    await _apiClient.offlineStore.save('/auth/customer/me', data['customer']);
     await _tokenStorage.saveToken(data['token'] as String);
     return Customer.fromJson(data['customer'] as Map<String, dynamic>);
   }
@@ -188,15 +192,17 @@ class AuthRepository {
     if (token == null) return const SessionCheck(valid: false);
 
     try {
-      final response = await _apiClient.dio.get('/auth/customer/me');
+      // Hors connexion : le profil vient de la copie gardée dans le téléphone.
+      final body = await _apiClient.getKeepingCopy('/auth/customer/me');
       return SessionCheck(
         valid: true,
-        customer: Customer.fromJson(response.data as Map<String, dynamic>),
+        customer: Customer.fromJson(body as Map<String, dynamic>),
       );
     } on DioException catch (e) {
       final status = e.response?.statusCode;
       if (status == 401 || status == 403) {
         await _tokenStorage.clearToken();
+        await _apiClient.offlineStore.clear();
         return const SessionCheck(valid: false);
       }
       return const SessionCheck(valid: true);
@@ -284,6 +290,7 @@ class AuthRepository {
       // Le token est probablement déjà invalide côté serveur — on nettoie localement.
     }
     await _tokenStorage.clearToken();
+    await _apiClient.offlineStore.clear();
   }
 
   /// Extrait un message d'erreur lisible depuis une réponse API PressLink.

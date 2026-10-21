@@ -258,6 +258,24 @@
       };
     })();
   </script>
+  <script id="offline-script">
+    // Ouverture hors connexion (hors-connexion-sw.js). Après le premier
+    // affichage, on fait garder tout ce que la page a chargé : la prochaine
+    // ouverture marchera même sans Internet.
+    (function () {
+      if (!('serviceWorker' in navigator)) return;
+      navigator.serviceWorker.register('hors-connexion-sw.js', { scope: './' }).catch(function () {});
+      function keepLoadedFiles() {
+        navigator.serviceWorker.ready.then(function (registration) {
+          if (!registration.active) return;
+          var urls = performance.getEntriesByType('resource').map(function (entry) { return entry.name; });
+          urls.push(location.href);
+          registration.active.postMessage({ type: 'cache-urls', urls: urls });
+        });
+      }
+      window.addEventListener('flutter-first-frame', function () { setTimeout(keepLoadedFiles, 3000); });
+    })();
+  </script>
   <script id="splash-screen-script">
     function removeSplashFromWeb() {
       var el = document.getElementById("pl-splash");

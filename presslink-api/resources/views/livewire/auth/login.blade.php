@@ -48,6 +48,10 @@
                 ou demandez à l'administrateur de votre pressing.
             </div>
 
+            <div class="mt-4">
+                <x-install-button variant="link" class="text-sm" />
+            </div>
+
             <p class="mt-8 text-xs text-(--color-text-muted)">
                 <a href="{{ route('home') }}" class="hover:text-(--color-primary)">← presslink.org</a>
                 <span class="mx-2">·</span>

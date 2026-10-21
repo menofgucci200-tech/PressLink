@@ -43,7 +43,7 @@ class _ReportIssueScreenState extends ConsumerState<ReportIssueScreen> {
     });
 
     try {
-      await ref
+      final sent = await ref
           .read(orderRepositoryProvider)
           .reportIssue(
             orderId: widget.orderId,
@@ -55,7 +55,12 @@ class _ReportIssueScreenState extends ConsumerState<ReportIssueScreen> {
 
       if (!mounted) return;
       ref.invalidate(orderDetailProvider(widget.orderId));
-      showAppToast(context, 'Signalement envoyé au pressing.');
+      showAppToast(
+        context,
+        sent
+            ? 'Signalement envoyé au pressing.'
+            : 'Vous êtes hors connexion : le signalement partira dès le retour d\'Internet.',
+      );
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;

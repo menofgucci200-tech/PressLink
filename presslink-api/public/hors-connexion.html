@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hors connexion — PressLink</title>
+<meta name="robots" content="noindex">
+<style>
+  :root { --bg: #f8fafc; --surface: #fff; --text: #0f172a; --muted: #475569; --primary: #2563eb; --border: #e2e8f0; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0b1220; --surface: #111a2e; --text: #e2e8f0; --muted: #94a3b8; --border: #1e293b; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; background: var(--bg); color: var(--text);
+         font: 15px/1.55 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 440px; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px 28px; text-align: center; }
+  .marque { font-weight: 800; font-size: 22px; letter-spacing: -.02em; margin-bottom: 20px; }
+  .marque span { color: var(--primary); }
+  svg { color: var(--muted); }
+  h1 { font-size: 20px; margin: 14px 0 8px; }
+  p { color: var(--muted); margin: 0 0 22px; }
+  button { appearance: none; border: 0; border-radius: 10px; background: var(--primary); color: #fff; font: inherit; font-weight: 600; height: 44px; padding: 0 22px; cursor: pointer; }
+  .etat { margin-top: 14px; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <div class="marque">Press<span>Link</span></div>
+  <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 2 20 20"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 13a10 10 0 0 1 5.24-2.76"/><path d="M12 20h.01"/></svg>
+  <h1>Vous êtes hors connexion</h1>
+  <p>Cette page a besoin d'Internet. PressLink se rouvrira tout seul dès que la connexion revient.</p>
+  <button type="button" onclick="location.reload()">Réessayer</button>
+  <div class="etat" id="etat">En attente de connexion…</div>
+</main>
+<script>
+  function rouvrir() { document.getElementById('etat').textContent = 'Connexion revenue, réouverture…'; location.reload(); }
+  window.addEventListener('online', rouvrir);
+  // Le navigateur ne voit pas toujours le retour d'Internet : on vérifie nous-mêmes.
+  setInterval(function () {
+    fetch(location.href, { method: 'HEAD', cache: 'no-store' }).then(function (r) { if (r.ok || r.status < 500) rouvrir(); }).catch(function () {});
+  }, 15000);
+</script>
+</body>
+</html>

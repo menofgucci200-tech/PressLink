@@ -12,6 +12,7 @@
         <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}?v=2">
 
         <x-theme-script />
+        <x-installable-app />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         @livewireStyles

@@ -134,7 +134,9 @@ deploy_backend() {
   # ces fichiers n'y arrivent que si on les envoie. favicon.ico y était vide
   # (0 octet) et robots.txt était celui par défaut.
   local static_file
-  for static_file in robots.txt favicon.ico apple-touch-icon.png favicon-48.png favicon-96.png favicon-192.png og-image.png qr-presslink-app.png; do
+  # manifest-espace.json, espace-sw.js, hors-connexion.html : espace pressing
+  # installable sur PC (le service worker doit être servi à la racine).
+  for static_file in robots.txt favicon.ico apple-touch-icon.png favicon-48.png favicon-96.png favicon-192.png og-image.png qr-presslink-app.png manifest-espace.json espace-sw.js hors-connexion.html; do
     lftp_run "put '$API_DIR/public/$static_file' -o $REMOTE_WEBROOT/$static_file;"
   done
 
@@ -252,6 +254,7 @@ deploy_pwa() {
     put '$APP_DIR/build/web/index.html' -o $REMOTE_PWA_DIR/index.html;
     put '$APP_DIR/build/web/flutter_bootstrap.js' -o $REMOTE_PWA_DIR/flutter_bootstrap.js;
     put '$APP_DIR/build/web/flutter_service_worker.js' -o $REMOTE_PWA_DIR/flutter_service_worker.js;
+    put '$APP_DIR/build/web/hors-connexion-sw.js' -o $REMOTE_PWA_DIR/hors-connexion-sw.js;
     put '$APP_DIR/build/web/version.json' -o $REMOTE_PWA_DIR/version.json;
     put '$APP_DIR/build/web/manifest.json' -o $REMOTE_PWA_DIR/manifest.json;
   "

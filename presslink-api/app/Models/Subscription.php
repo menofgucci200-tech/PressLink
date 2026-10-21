@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Casts\SubscriptionPlanCast;
+use App\Enums\Feature;
 use App\Enums\SubscriptionStatus;
 use Database\Factories\SubscriptionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,6 +15,10 @@ use Illuminate\Support\Facades\DB;
  * RB-09 : un pressing dont l'abonnement est expiré ne peut plus créer
  * de commande. Le quota de commandes est mensuel : `orders_used` compte les
  * commandes du mois `orders_month` et repart de zéro le mois suivant.
+ *
+ * Options prises en plus de la formule : `addons` (fonctions à la carte,
+ * App\Enums\Feature) et `extra_orders` (commandes ajoutées pour le mois
+ * `extra_orders_month`).
  */
 class Subscription extends Model
 {
@@ -30,6 +35,9 @@ class Subscription extends Model
         'orders_limit',
         'orders_used',
         'orders_month',
+        'addons',
+        'extra_orders',
+        'extra_orders_month',
         'trial_ends_at',
         'current_period_starts_at',
         'current_period_ends_at',
@@ -47,6 +55,7 @@ class Subscription extends Model
         return [
             'plan' => SubscriptionPlanCast::class,
             'status' => SubscriptionStatus::class,
+            'addons' => 'array',
             'setup_fee_paid_at' => 'datetime',
             'trial_ends_at' => 'datetime',
             'current_period_starts_at' => 'datetime',
@@ -58,6 +67,56 @@ class Subscription extends Model
     public function pressing(): BelongsTo
     {
         return $this->belongsTo(Pressing::class);
+    }
+
+    /** La formule inclut cette fonction, ou le pressing l'a prise en option. */
+    public function hasFeature(Feature $feature): bool
+    {
+        return $this->plan->includes($feature) || $this->hasAddon($feature);
+    }
+
+    public function hasAddon(Feature $feature): bool
+    {
+        return in_array($feature->value, $this->addons ?? [], true);
+    }
+
+    /** @param  list<Feature>  $features */
+    public function syncAddons(array $features): void
+    {
+        $this->update(['addons' => array_values(array_unique(array_map(fn (Feature $f) => $f->value, $features)))]);
+    }
+
+    public function addAddon(Feature $feature): void
+    {
+        $this->update(['addons' => array_values(array_unique([...($this->addons ?? []), $feature->value]))]);
+    }
+
+    /** Commandes ajoutées pour le mois en cours. */
+    public function extraOrdersThisMonth(): int
+    {
+        return $this->extra_orders_month === now()->format('Y-m') ? (int) $this->extra_orders : 0;
+    }
+
+    /** Ajoute des commandes au quota du mois en cours. */
+    public function addExtraOrders(int $count): void
+    {
+        $this->update([
+            'extra_orders' => $this->extraOrdersThisMonth() + $count,
+            'extra_orders_month' => now()->format('Y-m'),
+        ]);
+    }
+
+    /** Quota du mois : celui de la formule plus les commandes ajoutées (null = illimité). */
+    public function ordersLimitThisMonth(): ?int
+    {
+        return $this->orders_limit === null ? null : $this->orders_limit + $this->extraOrdersThisMonth();
+    }
+
+    public function hasReachedOrdersLimit(): bool
+    {
+        $limit = $this->ordersLimitThisMonth();
+
+        return $limit !== null && $this->ordersUsedThisMonth() >= $limit;
     }
 
     /** RB-09. */
@@ -73,7 +132,7 @@ class Subscription extends Model
             return false;
         }
 
-        if ($this->orders_limit !== null && $this->ordersUsedThisMonth() >= $this->orders_limit) {
+        if ($this->hasReachedOrdersLimit()) {
             return false;
         }
 
@@ -104,54 +163,6 @@ class Subscription extends Model
 
         $fresh = static::query()->whereKey($this->getKey())->first(['orders_used', 'orders_month', 'updated_at']);
         $this->forceFill($fresh->only(['orders_used', 'orders_month', 'updated_at']))->syncOriginal();
-    }
-
-    /** Limite d'employés (hors administrateurs) de la formule. */
-    public function allowsNewEmployee(): bool
-    {
-        $limit = $this->plan->employeesLimit();
-
-        if ($limit === null) {
-            return true;
-        }
-
-        return $this->pressing->employees()->wherePivot('is_active', true)->count() < $limit;
-    }
-
-    /** Limite de comptes administrateur de la formule. */
-    public function allowsNewAdmin(): bool
-    {
-        $limit = $this->plan->adminsLimit();
-
-        if ($limit === null) {
-            return true;
-        }
-
-        return $this->pressing->admins()->wherePivot('is_active', true)->count() < $limit;
-    }
-
-    /** Limite de clients rattachés au pressing de la formule. */
-    public function allowsNewClient(): bool
-    {
-        $limit = $this->plan->clientsLimit();
-
-        if ($limit === null) {
-            return true;
-        }
-
-        return $this->pressing->customers()->count() < $limit;
-    }
-
-    /** Limite de services/tarifs de la formule. */
-    public function allowsNewService(): bool
-    {
-        $limit = $this->plan->servicesLimit();
-
-        if ($limit === null) {
-            return true;
-        }
-
-        return $this->pressing->services()->count() < $limit;
     }
 
     /** Le ticket d'entrée de la formule a-t-il été réglé ? */

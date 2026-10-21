@@ -84,7 +84,9 @@ class CreateOrderAction
         $subscription = $pressing->subscription;
 
         if ($subscription !== null && ! $subscription->allowsNewOrder()) {
-            throw new RuntimeException("L'abonnement de ce pressing ne permet plus de créer de commande (quota atteint ou essai expiré).");
+            throw new RuntimeException($subscription->hasReachedOrdersLimit()
+                ? 'Toutes les commandes de ce mois sont utilisées. Ajoutez-en depuis la page Abonnement, ou attendez le 1er du mois.'
+                : "L'abonnement de ce pressing ne permet plus de créer de commande (essai terminé ou abonnement expiré).");
         }
 
         return DB::transaction(function () use ($pressing, $customer, $items, $expectedAt, $notes, $subscription, $amountPaidFcfa, $paymentMethod) {

@@ -154,6 +154,16 @@
     </div>
 
     {{-- Rôles et accès --}}
+    @if ($rolesLocked)
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-6">
+            <div class="flex-1">
+                <h2 class="font-display text-lg font-bold">Rôles sur mesure</h2>
+                <p class="text-sm text-(--color-text-muted)">Votre équipe utilise les rôles Propriétaire, Gérant et Employé. Pour créer vos propres rôles (Caissière, Repasseur…) et cocher les accès de chacun, ajoutez l'option ou passez à Business.</p>
+            </div>
+            <a href="{{ route('subscription.show', ['option' => \App\Enums\Feature::CustomRoles->value]) }}#options" wire:navigate
+               class="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">Voir l'option</a>
+        </div>
+    @endif
     @if ($canManageRoles)
         <div class="flex flex-wrap items-end justify-between gap-3 mb-3">
             <div>

@@ -104,10 +104,6 @@ class Index extends Component
             'lastName' => ['required', 'string', 'max:100'],
         ]);
 
-        if (! $this->allowsAnotherClient()) {
-            return;
-        }
-
         DB::transaction(function () use ($pressing) {
             $customer = Customer::create(['phone' => $this->phone, 'first_name' => $this->firstName, 'last_name' => $this->lastName]);
             $pressing->customers()->attach($customer->id, ['joined_at' => now()]);
@@ -130,10 +126,6 @@ class Index extends Component
             return;
         }
 
-        if (! $this->allowsAnotherClient()) {
-            return;
-        }
-
         auth()->user()->currentPressing()->customers()->syncWithoutDetaching([$customer->id => ['joined_at' => now()]]);
 
         $this->toast($customer->fullName().' a été ajouté à vos clients.');
@@ -144,19 +136,6 @@ class Index extends Component
     public function dismissKnownCustomer(): void
     {
         $this->reset(['knownCustomerId', 'knownCustomerName']);
-    }
-
-    private function allowsAnotherClient(): bool
-    {
-        $subscription = auth()->user()->currentPressing()->subscription;
-
-        if ($subscription !== null && ! $subscription->allowsNewClient()) {
-            $this->errorMessage = "Limite atteinte : votre formule {$subscription->plan->label()} autorise jusqu'à {$subscription->plan->clientsLimit()} client(s).";
-
-            return false;
-        }
-
-        return true;
     }
 
     #[Layout('layouts.dashboard', ['active' => 'clients', 'title' => 'Clients'])]

@@ -59,17 +59,6 @@ class Team extends Component
             return;
         }
 
-        $subscription = $pressing->subscription;
-        $needsSeat = ! $current || ! $current->is_active || $current->role !== $target;
-        if ($needsSeat && $subscription !== null) {
-            $allowed = $target === PressingRole::Admin ? $subscription->allowsNewAdmin() : $subscription->allowsNewEmployee();
-            if (! $allowed) {
-                $this->toast("Limite de la formule de {$pressing->name} atteinte pour ce rôle.", 'error');
-
-                return;
-            }
-        }
-
         if ($current) {
             $pressing->staff()->updateExistingPivot($member->id, ['role' => $target->value, 'is_active' => true]);
         } else {

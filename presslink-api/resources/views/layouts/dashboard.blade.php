@@ -22,8 +22,13 @@
             // Accès du rôle dans le pressing actif (voir App\Enums\Permission).
             $can = fn (\App\Enums\Permission $permission) => $pressing !== null && $user->may($permission, $pressing);
             $canCash = $can(\App\Enums\Permission::CashExpenses) || $can(\App\Enums\Permission::CashClose) || $can(\App\Enums\Permission::CashHistory);
-            $navItem = fn (string $key, string $route, string $label, string $icon) => [
-                'key' => $key, 'route' => $route, 'label' => $label, 'icon' => $icon,
+            // Fonction hors formule : le propriétaire la voit avec un cadenas,
+            // le lien mène à l'option sur la page Abonnement.
+            $lockedFor = fn (\App\Enums\Feature $feature) => $pressing !== null && $can(\App\Enums\Permission::SubscriptionManage)
+                && ! $user->pressingHasFeature($pressing, $feature);
+            $optionUrl = fn (\App\Enums\Feature $feature) => route('subscription.show', ['option' => $feature->value]).'#options';
+            $navItem = fn (string $key, string $route, string $label, string $icon, ?string $url = null) => [
+                'key' => $key, 'route' => $route, 'label' => $label, 'icon' => $icon, 'url' => $url,
                 'active' => ($active ?? null) === $key,
             ];
             $navItems = [
@@ -31,7 +36,8 @@
                 $navItem('orders', 'orders.index', 'Commandes', 'M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z|m3.3 7 8.7 5 8.7-5|M12 22V12'),
                 $navItem('clients', 'clients.index', 'Clients', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M9 11A4 4 0 1 0 9 3a4 4 0 0 0 0 8Z'),
                 $navItem('issues', 'issues.index', 'Signalements', 'M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z|M12 9v4|M12 17h.01'),
-                $canCash ? $navItem('cash', 'cash.index', 'Caisse', 'M2 7h20v12H2Z|M16 13h.01|M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2') : null,
+                $canCash ? $navItem('cash', 'cash.index', 'Caisse', 'M2 7h20v12H2Z|M16 13h.01|M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2')
+                    : ($lockedFor(\App\Enums\Feature::Cash) ? $navItem('cash', 'cash.index', 'Caisse', 'M2 7h20v12H2Z|M16 13h.01|M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2', $optionUrl(\App\Enums\Feature::Cash)) : null),
             ];
             $navItems = array_values(array_filter($navItems));
             // Groupe : qui administre plusieurs pressings. En vue d'ensemble, le
@@ -97,6 +103,14 @@
                     </div>
                 @endif
 
+                @if (! $managesGroup && $user->administersSeveralPressings() && $lockedFor(\App\Enums\Feature::Group))
+                    <div class="pr-5 pb-3">
+                        <a href="{{ $optionUrl(\App\Enums\Feature::Group) }}" wire:navigate class="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-[13px] font-semibold">
+                            Vue du groupe
+                            <x-lock-icon />
+                        </a>
+                    </div>
+                @endif
                 @if ($managesGroup && ! $groupMode)
                     <div class="pr-5 pb-3">
                         <a href="{{ route('pressings.overview') }}" wire:navigate class="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-[13px] font-semibold">
@@ -111,7 +125,7 @@
 
                 <nav class="flex flex-col gap-1.5">
                     @foreach ($groupMode ? $groupNavItems : $navItems as $item)
-                        <a href="{{ route($item['route']) }}" wire:navigate style="--nav-i:{{ $loop->index }}" class="nav-item {{ $item['active'] ? 'nav-item-active' : '' }}">
+                        <a href="{{ $item['url'] ?? route($item['route']) }}" wire:navigate style="--nav-i:{{ $loop->index }}" class="nav-item {{ $item['active'] ? 'nav-item-active' : '' }}">
                             @if ($item['active'])
                                 <span class="nav-notch nav-notch-top"></span>
                                 <span class="nav-notch nav-notch-bottom"></span>
@@ -122,6 +136,9 @@
                                 @endforeach
                             </svg>
                             <span class="truncate">{{ $item['label'] }}</span>
+                            @if ($item['url'] ?? null)
+                                <x-lock-icon />
+                            @endif
                             @if ($item['key'] === 'issues' && $openIssuesCount > 0)
                                 <span class="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-(--color-error) text-white text-[11px] font-semibold">
                                     {{ $openIssuesCount }}
@@ -158,6 +175,12 @@
                             @if ($active === 'activity') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><path d="M12 8v4l3 3"/><path d="M3.05 11a9 9 0 1 1 .5 4"/><path d="M3 4v5h5"/></svg>
                             <span class="truncate">Journal</span>
+                        </a>
+                        @elseif ($lockedFor(\App\Enums\Feature::ActivityLog))
+                        <a href="{{ $optionUrl(\App\Enums\Feature::ActivityLog) }}" wire:navigate style="--nav-i:7" class="nav-item">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><path d="M12 8v4l3 3"/><path d="M3.05 11a9 9 0 1 1 .5 4"/><path d="M3 4v5h5"/></svg>
+                            <span class="truncate">Journal</span>
+                            <x-lock-icon />
                         </a>
                         @endif
                     @endif

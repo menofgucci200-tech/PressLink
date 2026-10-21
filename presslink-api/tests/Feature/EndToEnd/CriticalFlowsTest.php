@@ -321,7 +321,7 @@ class CriticalFlowsTest extends TestCase
             ->call('selectPrestation', $service->pressing->cleaningPrestation()->id)
             ->call('addPiece', $service->id)
             ->call('create')
-            ->assertSet('errorMessage', fn ($message) => str_contains($message, 'abonnement'));
+            ->assertSet('errorMessage', fn ($message) => str_contains($message, 'Abonnement'));
 
         $this->assertSame(0, $pressing->orders()->count());
     }

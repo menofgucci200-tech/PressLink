@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Actions\Demo\ResetDemoPressing;
+use App\Enums\Feature;
 use App\Enums\PressingRole;
 use App\Enums\PressingStatus;
 use App\Exceptions\PressingClosedException;
@@ -466,6 +467,21 @@ class Pressing extends Model
     public function subscription(): HasOne
     {
         return $this->hasOne(Subscription::class)->latestOfMany();
+    }
+
+    /**
+     * Le pressing a-t-il accès à cette fonction (formule ou option) ? Sans
+     * abonnement (phase pilote), tout est ouvert.
+     */
+    public function hasFeature(Feature $feature): bool
+    {
+        return $this->subscription?->hasFeature($feature) ?? true;
+    }
+
+    /** @return HasMany<SubscriptionRequest, $this> */
+    public function subscriptionRequests(): HasMany
+    {
+        return $this->hasMany(SubscriptionRequest::class);
     }
 
     /** @return BelongsToMany<Customer, $this> */

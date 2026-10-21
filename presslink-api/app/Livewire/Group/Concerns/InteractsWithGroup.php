@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Group\Concerns;
 
+use App\Enums\Feature;
 use App\Models\Pressing;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Collection;
 
 /**
@@ -13,7 +15,15 @@ trait InteractsWithGroup
 {
     public function bootInteractsWithGroup(): void
     {
-        abort_unless(auth()->user()?->managesGroup(), 403);
+        $user = auth()->user();
+
+        // Plusieurs pressings sans la gestion de groupe : le propriétaire
+        // arrive sur l'option qui la débloque.
+        if ($user !== null && ! $user->managesGroup() && $user->administersSeveralPressings()) {
+            throw new HttpResponseException(redirect()->route('subscription.show', ['option' => Feature::Group->value]));
+        }
+
+        abort_unless($user?->managesGroup(), 403);
 
         // Les pages du groupe s'affichent en « vue d'ensemble » (menu du groupe).
         session()->forget('active_pressing_id');

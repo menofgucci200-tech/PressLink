@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Feature;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\Permission;
@@ -25,6 +26,12 @@ class OrderExportController extends Controller
     public function __invoke(Request $request, string $format): Response
     {
         $pressing = $request->user()->currentPressing();
+
+        if ($pressing !== null && $request->user()->featureLockedFor(Permission::ReportsExport, $pressing) !== null
+            && $request->user()->may(Permission::SubscriptionManage, $pressing)) {
+            return redirect()->route('subscription.show', ['option' => Feature::Exports->value]);
+        }
+
         abort_unless($pressing !== null && $request->user()->may(Permission::ReportsExport, $pressing), 403);
 
         $filters = [

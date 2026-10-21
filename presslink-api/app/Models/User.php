@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\Feature;
 use App\Enums\Permission;
 use App\Enums\PressingRole;
 use Database\Factories\UserFactory;
@@ -102,9 +103,13 @@ class User extends Authenticatable
         return $this->rolesByPressing[$pressing->id] = $role;
     }
 
+    /** @var array<int, Subscription|null> abonnement par pressing, pour la durée de la requête */
+    private array $subscriptionsByPressing = [];
+
     /**
      * Le membre a-t-il cet accès dans ce pressing (par défaut, le pressing
-     * actif) ? Le propriétaire a tous les accès.
+     * actif) ? Le propriétaire a tous les accès, dans la limite de ce que
+     * comprend la formule du pressing (App\Enums\Feature).
      */
     public function may(Permission $permission, ?Pressing $pressing = null): bool
     {
@@ -114,7 +119,38 @@ class User extends Authenticatable
             return false;
         }
 
+        $feature = Feature::forPermission($permission);
+        if ($feature !== null && ! $this->pressingHasFeature($pressing, $feature)) {
+            return false;
+        }
+
         return $this->roleIn($pressing)?->allows($permission) ?? false;
+    }
+
+    /**
+     * Accès que le rôle donnerait mais que la formule du pressing n'inclut
+     * pas : la fonction à proposer (page Abonnement), sinon null.
+     */
+    public function featureLockedFor(Permission $permission, ?Pressing $pressing = null): ?Feature
+    {
+        $pressing ??= $this->currentPressing();
+        $feature = Feature::forPermission($permission);
+
+        if ($pressing === null || $feature === null || $this->pressingHasFeature($pressing, $feature)) {
+            return null;
+        }
+
+        return ($this->roleIn($pressing)?->allows($permission) ?? false) ? $feature : null;
+    }
+
+    /** La formule (ou une option) du pressing comprend-elle cette fonction ? */
+    public function pressingHasFeature(Pressing $pressing, Feature $feature): bool
+    {
+        if (! array_key_exists($pressing->id, $this->subscriptionsByPressing)) {
+            $this->subscriptionsByPressing[$pressing->id] = $pressing->subscription;
+        }
+
+        return $this->subscriptionsByPressing[$pressing->id]?->hasFeature($feature) ?? true;
     }
 
     /** « Propriétaire », « Gérant », « Caissière »… */
@@ -127,6 +163,7 @@ class User extends Authenticatable
     public function forgetRoles(): void
     {
         $this->rolesByPressing = [];
+        $this->subscriptionsByPressing = [];
     }
 
     /** RB-08 : un employé n'accède qu'aux pressings auxquels il est affecté. */
@@ -187,8 +224,18 @@ class User extends Authenticatable
         return $this->managedPressings()->pluck('id')->map(fn ($id) => (int) $id)->all();
     }
 
-    /** Pilote un groupe : administre au moins deux pressings. */
+    /**
+     * Pilote un groupe : administre au moins deux pressings, dont l'un au
+     * moins a la gestion de plusieurs pressings (Premium ou option).
+     */
     public function managesGroup(): bool
+    {
+        return $this->administersSeveralPressings()
+            && $this->managedPressings()->contains(fn (Pressing $pressing) => $this->pressingHasFeature($pressing, Feature::Group));
+    }
+
+    /** Administre au moins deux pressings (avec ou sans la gestion de groupe). */
+    public function administersSeveralPressings(): bool
     {
         return $this->pressings()
             ->wherePivot('is_active', true)

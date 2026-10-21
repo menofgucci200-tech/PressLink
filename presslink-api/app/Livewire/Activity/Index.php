@@ -3,7 +3,9 @@
 namespace App\Livewire\Activity;
 
 use App\Enums\ActivityAction;
+use App\Enums\Feature;
 use App\Enums\Permission;
+use App\Livewire\Concerns\RequiresFeature;
 use App\Models\ActivityLog;
 use App\Models\Pressing;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,7 +23,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class Index extends Component
 {
-    use WithPagination;
+    use RequiresFeature, WithPagination;
 
     #[Url(as: 'membre', except: '')]
     public string $userId = '';
@@ -43,6 +45,7 @@ class Index extends Component
 
     public function mount(): void
     {
+        $this->requireFeature(Feature::ActivityLog);
         abort_unless(auth()->user()->may(Permission::ActivityView), 403);
     }
 

@@ -79,17 +79,16 @@ class Harmonize extends Component
             return;
         }
 
-        $created = $updated = $skipped = $services = 0;
+        $created = $updated = $services = 0;
         foreach ($targets as $target) {
             $stats = $sync->handle($source, $target);
             $created += $stats['created'];
             $updated += $stats['updated'];
-            $skipped += $stats['skipped'];
             $services += $stats['services'];
         }
 
         $this->catalogTargets = [];
-        $this->toast("Services et tarifs harmonisés : {$services} service(s) et {$created} pièce(s) ajoutés, {$updated} pièce(s) mises à jour".($skipped ? ", {$skipped} non ajoutée(s) (limite de formule)" : '').'.');
+        $this->toast("Services et tarifs harmonisés : {$services} service(s) et {$created} pièce(s) ajoutés, {$updated} pièce(s) mises à jour.");
     }
 
     public function syncSettings(): void

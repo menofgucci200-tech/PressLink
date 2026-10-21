@@ -4,7 +4,9 @@ namespace App\Livewire\Cash;
 
 use App\Actions\Cash\CashDaySummary;
 use App\Enums\ActivityAction;
+use App\Enums\Feature;
 use App\Enums\Permission;
+use App\Livewire\Concerns\RequiresFeature;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\ActivityLog;
 use App\Models\CashClosing;
@@ -26,7 +28,7 @@ use Livewire\Component;
  */
 class Index extends Component
 {
-    use ShowsToasts;
+    use RequiresFeature, ShowsToasts;
 
     #[Url(as: 'jour', except: '')]
     public string $day = '';
@@ -42,6 +44,7 @@ class Index extends Component
 
     public function mount(): void
     {
+        $this->requireFeature(Feature::Cash);
         $user = auth()->user();
         abort_unless($user->may(Permission::CashHistory) || $user->may(Permission::CashClose) || $user->may(Permission::CashExpenses), 403);
     }

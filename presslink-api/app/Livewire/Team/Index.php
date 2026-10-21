@@ -150,10 +150,6 @@ class Index extends Component
             return;
         }
 
-        if (! $this->withinPlanLimits($role)) {
-            return;
-        }
-
         $member = User::create([
             'name' => $this->name,
             'login' => $this->login,
@@ -185,10 +181,6 @@ class Index extends Component
         if ($current?->isOwner() && ! $role->isOwner() && $this->activeOwnersCount() <= 1 && $member->pivot->is_active) {
             $this->errorMessage = 'Le pressing doit garder au moins un propriétaire actif.';
 
-            return;
-        }
-
-        if ($current?->id !== $role->id && $member->pivot->is_active && ! $this->withinPlanLimits($role, $current)) {
             return;
         }
 
@@ -262,27 +254,6 @@ class Index extends Component
     }
 
     /** Limites de la formule : propriétaires comptés comme administrateurs, les autres comme employés. */
-    private function withinPlanLimits(Role $role, ?Role $current = null): bool
-    {
-        $subscription = $this->pressing()->subscription;
-        if ($subscription === null || ($current !== null && $current->isOwner() === $role->isOwner())) {
-            return true;
-        }
-
-        $allowed = $role->isOwner() ? $subscription->allowsNewAdmin() : $subscription->allowsNewEmployee();
-        if ($allowed) {
-            return true;
-        }
-
-        $limit = $role->isOwner() ? $subscription->plan->adminsLimit() : $subscription->plan->employeesLimit();
-        $this->addError('roleId', $role->isOwner()
-            ? "Limite atteinte : votre formule {$subscription->plan->label()} autorise jusqu'à {$limit} propriétaire(s)."
-            : "Limite atteinte : votre formule {$subscription->plan->label()} autorise jusqu'à {$limit} employé(s).");
-        $this->errorMessage = $this->getErrorBag()->first('roleId');
-
-        return false;
-    }
-
     // ── Rôles et accès ────────────────────────────────────────────────────
 
     /** @return list<string> accès que l'utilisateur peut cocher (jamais plus que les siens) */
@@ -403,6 +374,8 @@ class Index extends Component
             'assignableRoles' => $this->assignableRoles(),
             'canManageTeam' => auth()->user()->may(Permission::TeamManage),
             'canManageRoles' => auth()->user()->may(Permission::RolesManage),
+            'rolesLocked' => auth()->user()->featureLockedFor(Permission::RolesManage) !== null
+                && auth()->user()->may(Permission::SubscriptionManage),
             'grantable' => $this->grantablePermissions(),
             'permissionGroups' => Permission::grouped(),
         ]);

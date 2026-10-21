@@ -269,13 +269,6 @@ class Index extends Component
             return;
         }
 
-        $subscription = $pressing->subscription;
-        if ($subscription !== null && ! $subscription->allowsNewService()) {
-            $this->errorMessage = "Limite atteinte : votre formule {$subscription->plan->label()} autorise jusqu'à {$subscription->plan->servicesLimit()} pièce(s).";
-
-            return;
-        }
-
         $piece = $pressing->services()->create(['name' => $this->pieceName, 'icon' => $this->pieceIcon, 'price_fcfa' => 0, 'is_active' => true]);
 
         $validPrestationIds = $pressing->prestations()->pluck('id')->all();

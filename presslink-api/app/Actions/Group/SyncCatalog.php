@@ -20,11 +20,11 @@ use Illuminate\Support\Facades\DB;
 class SyncCatalog
 {
     /**
-     * @return array{created: int, updated: int, skipped: int, services: int}
+     * @return array{created: int, updated: int, services: int}
      */
     public function handle(Pressing $source, Pressing $target, bool $dryRun = false): array
     {
-        $stats = ['created' => 0, 'updated' => 0, 'skipped' => 0, 'services' => 0];
+        $stats = ['created' => 0, 'updated' => 0, 'services' => 0];
         $norm = fn (string $name) => mb_strtolower(trim($name));
 
         $sourcePrestations = $source->prestations()->where('is_active', true)->get();
@@ -33,9 +33,8 @@ class SyncCatalog
             ->get();
         $targetPrestations = $target->prestations()->get()->keyBy(fn (Prestation $p) => $norm($p->name));
         $targetPieces = $target->services()->with(['variants'])->get()->keyBy(fn (Service $s) => $norm($s->name));
-        $subscription = $target->subscription;
 
-        $run = function () use ($sourcePrestations, $sourcePieces, $targetPrestations, $targetPieces, $target, $subscription, $dryRun, $norm, &$stats) {
+        $run = function () use ($sourcePrestations, $sourcePieces, $targetPrestations, $targetPieces, $target, $dryRun, $norm, &$stats) {
             // 1. Services : ceux de la source qui manquent chez la cible.
             $prestationMap = [];
             foreach ($sourcePrestations as $sp) {
@@ -67,11 +66,6 @@ class SyncCatalog
                 $changed = false;
 
                 if ($match === null) {
-                    if ($subscription !== null && ! $subscription->allowsNewService()) {
-                        $stats['skipped']++;
-
-                        continue;
-                    }
                     $stats['created']++;
                     if ($dryRun) {
                         continue;

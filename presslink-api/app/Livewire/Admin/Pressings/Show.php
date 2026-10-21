@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Pressings;
 
 use App\Actions\Auth\ResetPasswordToDefault;
+use App\Enums\Feature;
 use App\Enums\PressingStatus;
 use App\Enums\SubscriptionPlan;
 use App\Enums\SubscriptionStatus;
@@ -39,6 +40,12 @@ class Show extends Component
     public string $billingCycle = 'monthly';
 
     public bool $setupFeePaid = false;
+
+    /** @var list<string> options prises en plus de la formule (App\Enums\Feature) */
+    public array $addons = [];
+
+    /** Commandes ajoutées au quota du mois en cours. */
+    public string $extraOrders = '';
 
     public bool $editingInfo = false;
 
@@ -156,6 +163,9 @@ class Show extends Component
             'currentPeriodEndsAt' => ['nullable', 'date'],
             'billingCycle' => ['required', Rule::in(['monthly', 'annual'])],
             'setupFeePaid' => ['boolean'],
+            'addons' => ['array'],
+            'addons.*' => [Rule::enum(Feature::class)],
+            'extraOrders' => ['nullable', 'integer', 'min:0'],
         ]);
 
         $subscription = $this->pressing->subscription;
@@ -171,6 +181,9 @@ class Show extends Component
             // On garde la date de règlement d'origine tant que la case reste cochée.
             'setup_fee_paid_at' => $this->setupFeePaid ? ($subscription?->setup_fee_paid_at ?? now()) : null,
             'setup_fee_fcfa' => $subscription?->setup_fee_fcfa ?? $plan->setupFeeFcfa(),
+            'addons' => array_values(array_unique($this->addons)),
+            'extra_orders' => (int) ($this->extraOrders ?: 0),
+            'extra_orders_month' => now()->format('Y-m'),
         ];
 
         if ($subscription === null) {
@@ -195,6 +208,31 @@ class Show extends Component
         $this->currentPeriodEndsAt = $subscription?->current_period_ends_at?->format('Y-m-d') ?? '';
         $this->billingCycle = $subscription?->billing_cycle === 'annual' ? 'annual' : 'monthly';
         $this->setupFeePaid = $subscription?->isSetupFeePaid() ?? false;
+        $this->addons = array_values(array_filter($subscription?->addons ?? [], fn ($value) => Feature::tryFrom($value) !== null));
+        $extra = $subscription?->extraOrdersThisMonth() ?? 0;
+        $this->extraOrders = $extra > 0 ? (string) $extra : '';
+    }
+
+    /** Demande payée : on active ce qui a été demandé. */
+    public function applyRequest(int $requestId): void
+    {
+        abort_unless(auth()->user()->is_super_admin, 403);
+
+        $request = $this->pressing->subscriptionRequests()->pending()->findOrFail($requestId);
+        $request->apply();
+
+        $this->pressing->refresh();
+        $this->fillSubscriptionFields();
+        $this->toast("Activé : {$request->label()}.");
+    }
+
+    public function declineRequest(int $requestId): void
+    {
+        abort_unless(auth()->user()->is_super_admin, 403);
+
+        $request = $this->pressing->subscriptionRequests()->pending()->findOrFail($requestId);
+        $request->decline();
+        $this->toast('Demande refusée.');
     }
 
     #[Layout('layouts.admin', ['active' => 'pressings', 'title' => 'Pressing'])]
@@ -204,6 +242,7 @@ class Show extends Component
 
         return view('livewire.admin.pressings.show', [
             'staff' => $this->pressing->staff()->orderByDesc('pressing_users.created_at')->get(),
+            'pendingRequests' => $this->pressing->subscriptionRequests()->pending()->with('requester')->latest()->get(),
         ]);
     }
 }

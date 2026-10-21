@@ -14,6 +14,7 @@ use App\Models\Order;
 use App\Models\OrderIssue;
 use App\Models\Pressing;
 use App\Models\Subscription;
+use App\Models\SubscriptionRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -288,7 +289,17 @@ class Dashboard extends Component
 
         $trialEndsBy = now()->addDays(self::TRIAL_ENDING_WITHIN_DAYS);
 
+        $pendingRequests = SubscriptionRequest::pending()->whereIn('pressing_id', $pressingIds)->with('pressing:id,name')->get();
+
         $items = [
+            [
+                'key' => 'requests',
+                'label' => 'Demandes d\'options et de commandes',
+                'hint' => 'Options, commandes en plus ou changement de formule demandés depuis la page Abonnement : encaisser puis activer sur la fiche du pressing.',
+                'tone' => 'info',
+                'pressings' => $pendingRequests->pluck('pressing')->filter()->unique('id')->values(),
+                'count' => $pendingRequests->count(),
+            ],
             [
                 'key' => 'expired',
                 'label' => 'Abonnements expirés',

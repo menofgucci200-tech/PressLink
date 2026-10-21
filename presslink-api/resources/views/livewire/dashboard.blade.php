@@ -36,6 +36,8 @@
                         </div>
                     @endif
                 </div>
+                @else
+                <x-locked-export />
                 @endif
                 @if (auth()->user()->may(\App\Enums\Permission::OrdersCreate))
                 <a href="{{ route('orders.create') }}" wire:navigate class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">

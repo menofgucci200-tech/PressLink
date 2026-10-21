@@ -134,6 +134,27 @@
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
         <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-4">Abonnement</div>
 
+        @if ($pendingRequests->isNotEmpty())
+            <div class="mb-5 rounded-lg border border-(--color-warning)/40 bg-(--color-warning-tint) p-4" data-testid="pending-requests">
+                <div class="text-sm font-semibold text-(--color-warning-text) mb-2">Demandes du pressing à traiter</div>
+                <ul class="space-y-2">
+                    @foreach ($pendingRequests as $request)
+                        <li class="flex flex-wrap items-center justify-between gap-2 text-sm">
+                            <span>
+                                <span class="font-medium">{{ $request->label() }}</span>
+                                <span class="text-(--color-text-muted)">· {{ $request->requester?->name ?? '—' }}, le {{ $request->created_at->format('d/m/Y à H:i') }}</span>
+                            </span>
+                            <span class="flex gap-2">
+                                <button type="button" wire:click="applyRequest({{ $request->id }})" wire:confirm="Le paiement est reçu ? « {{ $request->label() }} » sera activé tout de suite."
+                                        class="h-8 px-3 rounded-lg bg-(--color-primary) text-white text-xs font-semibold hover:bg-(--color-primary-600)">Payé, activer</button>
+                                <button type="button" wire:click="declineRequest({{ $request->id }})"
+                                        class="h-8 px-3 rounded-lg border border-(--color-border) text-xs font-semibold hover:border-(--color-error) hover:text-(--color-error)">Refuser</button>
+                            </span>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         <form novalidate wire:submit="saveSubscription" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -155,7 +176,7 @@
                 @error('status') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
-                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Quota de commandes (vide = illimité)</label>
+                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Commandes par mois (vide = illimité)</label>
                 <input type="number" min="0" wire:model="ordersLimit" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                 @error('ordersLimit') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
@@ -175,6 +196,22 @@
                         <span class="text-xs text-(--color-text-muted)">le {{ $pressing->subscription->setup_fee_paid_at->format('d/m/Y') }}</span>
                     @endif
                 </label>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Commandes ajoutées ce mois-ci</label>
+                <input type="number" min="0" wire:model="extraOrders" placeholder="0" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                @error('extraOrders') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+            </div>
+            <div class="sm:col-span-2">
+                <div class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Options en plus de la formule</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    @foreach (\App\Enums\Feature::cases() as $feature)
+                        <label class="flex items-center gap-2.5 text-sm cursor-pointer">
+                            <input type="checkbox" wire:model="addons" value="{{ $feature->value }}" class="w-4 h-4 rounded border-(--color-border) accent-(--color-primary)">
+                            <span>{{ $feature->label() }} <span class="text-xs text-(--color-text-muted)">(inclus dès {{ $feature->includedFrom()->label() }})</span></span>
+                        </label>
+                    @endforeach
+                </div>
             </div>
             <div>
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Fin d'essai</label>

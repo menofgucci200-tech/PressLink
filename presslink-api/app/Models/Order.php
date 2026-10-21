@@ -336,13 +336,14 @@ class Order extends Model
      * Enregistre un règlement (acompte, solde ou paiement complet). Le
      * montant est plafonné au reste à payer par l'appelant.
      */
-    public function recordPayment(int $amountFcfa, PaymentMethod $method, ?int $recordedBy = null, ?string $note = null): OrderPayment
+    public function recordPayment(int $amountFcfa, PaymentMethod $method, ?int $recordedBy = null, ?string $note = null, ?\DateTimeInterface $paidAt = null): OrderPayment
     {
         return $this->payments()->create([
             'amount_fcfa' => $amountFcfa,
             'method' => $method,
             'recorded_by' => $recordedBy,
             'note' => $note,
+            'paid_at' => $paidAt,
         ]);
     }
 

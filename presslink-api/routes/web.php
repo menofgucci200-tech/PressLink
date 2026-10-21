@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminExportController;
 use App\Http\Controllers\GroupExportController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\OfflineCounterController;
 use App\Http\Controllers\OrderExportController;
 use App\Http\Controllers\OrderReceiptController;
 use App\Http\Controllers\PublicReceiptController;
@@ -166,6 +167,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/parametres', PressingSettings::class)->name('pressing.settings');
         Route::get('/abonnement', SubscriptionShow::class)->name('subscription.show');
         Route::get('/support', SupportShow::class)->name('support');
+
+        // Comptoir hors connexion (page gardée sur le PC, données, envoi).
+        Route::get('/comptoir-hors-ligne', [OfflineCounterController::class, 'show'])->name('offline.show');
+        Route::get('/comptoir-hors-ligne/donnees', [OfflineCounterController::class, 'snapshot'])->name('offline.snapshot');
+        Route::post('/comptoir-hors-ligne/envoyer', [OfflineCounterController::class, 'sync'])->middleware('throttle:60,1')->name('offline.sync');
     });
 
     Route::get('/mon-compte', AccountSettings::class)->name('account.settings');

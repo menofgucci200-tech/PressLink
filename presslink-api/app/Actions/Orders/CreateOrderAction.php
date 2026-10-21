@@ -11,6 +11,7 @@ use App\Models\ActivityLog;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Pressing;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -25,6 +26,11 @@ use RuntimeException;
  * ou pour un client dont le compte a été désactivé depuis la console.
  * Le montant déjà payé au dépôt (tout ou acompte) est enregistré comme un
  * premier paiement ; le reste se règle au retrait.
+ *
+ * Commande faite sur le comptoir hors connexion (`$offline`) : elle a déjà
+ * été promise au client, elle n'est donc refusée ni hors des horaires ni
+ * pour un quota atteint (elle compte quand même dans le quota), et garde
+ * son numéro et son heure de dépôt quand c'est possible.
  */
 class CreateOrderAction
 {
@@ -41,6 +47,9 @@ class CreateOrderAction
         ?string $notes = null,
         int $amountPaidFcfa = 0,
         PaymentMethod $paymentMethod = PaymentMethod::Cash,
+        bool $offline = false,
+        ?string $orderNumber = null,
+        ?CarbonInterface $droppedOffAt = null,
     ): Order {
         if ($items === []) {
             throw new InvalidArgumentException('Une commande doit contenir au moins un article.');
@@ -56,7 +65,9 @@ class CreateOrderAction
             throw new RuntimeException('Ce pressing est suspendu : impossible de créer une commande.');
         }
 
-        $pressing->ensureAcceptsCustomers();
+        if (! $offline) {
+            $pressing->ensureAcceptsCustomers();
+        }
 
         $staff = Auth::guard('web')->user();
         if ($staff !== null && ! $staff->is_super_admin && ! $staff->may(Permission::OrdersCreate, $pressing)) {
@@ -83,14 +94,16 @@ class CreateOrderAction
 
         $subscription = $pressing->subscription;
 
-        if ($subscription !== null && ! $subscription->allowsNewOrder()) {
+        if (! $offline && $subscription !== null && ! $subscription->allowsNewOrder()) {
             throw new RuntimeException($subscription->hasReachedOrdersLimit()
                 ? 'Toutes les commandes de ce mois sont utilisées. Ajoutez-en depuis la page Abonnement, ou attendez le 1er du mois.'
                 : "L'abonnement de ce pressing ne permet plus de créer de commande (essai terminé ou abonnement expiré).");
         }
 
-        return DB::transaction(function () use ($pressing, $customer, $items, $expectedAt, $notes, $subscription, $amountPaidFcfa, $paymentMethod) {
+        return DB::transaction(function () use ($pressing, $customer, $items, $expectedAt, $notes, $subscription, $amountPaidFcfa, $paymentMethod, $orderNumber, $droppedOffAt) {
             $order = Order::create([
+                'order_number' => $orderNumber,
+                'dropped_off_at' => $droppedOffAt,
                 'pressing_id' => $pressing->id,
                 'customer_id' => $customer->id,
                 'status' => OrderStatus::Recue,
@@ -111,7 +124,7 @@ class CreateOrderAction
                 $order, ['customer_id' => $customer->id, 'pieces' => $pieces, 'total_fcfa' => (int) $order->total_fcfa]);
 
             if ($amountPaidFcfa > 0) {
-                $order->recordPayment($amountPaidFcfa, $paymentMethod, Auth::guard('web')->id(), 'Payé au dépôt');
+                $order->recordPayment($amountPaidFcfa, $paymentMethod, Auth::guard('web')->id(), 'Payé au dépôt', $droppedOffAt);
             }
 
             $subscription?->incrementOrdersUsed();

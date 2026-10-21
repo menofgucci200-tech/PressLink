@@ -8,6 +8,8 @@ use App\Enums\PaymentMethod;
 use App\Enums\Permission;
 use App\Models\ActivityLog;
 use App\Models\Order;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -31,7 +33,7 @@ class ChangeOrderStatusAction
     /**
      * @throws RuntimeException transition interdite (voir OrderObserver)
      */
-    public function handle(Order $order, OrderStatus $target, ?PaymentMethod $settleBalanceWith = null, bool $waiveStorageFee = false): Order
+    public function handle(Order $order, OrderStatus $target, ?PaymentMethod $settleBalanceWith = null, bool $waiveStorageFee = false, bool $offline = false, ?CarbonInterface $performedAt = null): Order
     {
         if ($target === OrderStatus::Annulee) {
             throw new RuntimeException('Pour annuler une commande, ouvrez sa fiche et indiquez le motif.');
@@ -50,7 +52,8 @@ class ChangeOrderStatusAction
 
         // Remise au client : seulement pendant les heures d'ouverture. Le
         // travail d'atelier (en traitement, prête, en attente) reste possible.
-        if ($target === OrderStatus::Recuperee) {
+        // (Comptoir hors connexion : la remise a déjà eu lieu.)
+        if ($target === OrderStatus::Recuperee && ! $offline) {
             $order->pressing->ensureAcceptsCustomers();
         }
 
@@ -58,12 +61,12 @@ class ChangeOrderStatusAction
             throw new RuntimeException('Votre rôle ne permet pas d\'exonérer du droit de magasinage.');
         }
 
-        return DB::transaction(function () use ($order, $target, $settleBalanceWith, $waiveStorageFee) {
+        return DB::transaction(function () use ($order, $target, $settleBalanceWith, $waiveStorageFee, $performedAt) {
             $locked = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
 
             // Remise d'une commande restée trop longtemps : le droit de
             // magasinage s'ajoute à la commande (sauf exonération, tracée).
-            if ($target === OrderStatus::Recuperee && ($fee = $locked->storageFee()) !== null) {
+            if ($target === OrderStatus::Recuperee && ($fee = $locked->storageFee($performedAt ? Carbon::instance($performedAt) : null)) !== null) {
                 $daysLabel = $fee['days'].' jour'.($fee['days'] > 1 ? 's' : '').' de retard';
                 $amount = number_format($fee['amount'], 0, ',', ' ').' F';
 
@@ -85,11 +88,20 @@ class ChangeOrderStatusAction
             }
 
             if ($settleBalanceWith !== null && $locked->balance_due_fcfa > 0) {
-                $locked->recordPayment($locked->balance_due_fcfa, $settleBalanceWith, Auth::guard('web')->id(), 'Solde au retrait');
+                $locked->recordPayment($locked->balance_due_fcfa, $settleBalanceWith, Auth::guard('web')->id(), 'Solde au retrait', $performedAt);
                 $locked->refresh();
             }
 
+            if ($performedAt !== null && $target === OrderStatus::Recuperee) {
+                $locked->recovered_at = $performedAt;
+            }
+
             $locked->update(['status' => $target]);
+
+            // Fait hors connexion : l'historique garde l'heure réelle.
+            if ($performedAt !== null) {
+                $locked->statusHistory()->where('status', $target->value)->latest('id')->first()?->forceFill(['created_at' => $performedAt])->save();
+            }
 
             return $locked;
         });

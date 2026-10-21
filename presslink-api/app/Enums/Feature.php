@@ -17,6 +17,7 @@ enum Feature: string
     case ActivityLog = 'journal';
     case Exports = 'exports';
     case Group = 'groupe';
+    case Offline = 'hors_ligne';
 
     public function label(): string
     {
@@ -26,6 +27,7 @@ enum Feature: string
             self::ActivityLog => "Journal d'activité",
             self::Exports => 'Exports Excel et PDF',
             self::Group => 'Gestion de plusieurs pressings',
+            self::Offline => 'Mode hors connexion',
         };
     }
 
@@ -37,6 +39,7 @@ enum Feature: string
             self::ActivityLog => 'Qui a fait quoi, et quand : commandes, paiements, équipe, caisse.',
             self::Exports => 'Vos commandes et paiements en Excel, CSV ou PDF.',
             self::Group => 'Commandes, caisse, clients, équipe et rapports de tous vos pressings, et tarifs harmonisés.',
+            self::Offline => 'Sans Internet, continuez à créer commandes et clients, encaisser et remettre ; tout est envoyé au retour de la connexion.',
         };
     }
 

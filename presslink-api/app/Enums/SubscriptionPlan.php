@@ -41,7 +41,7 @@ enum SubscriptionPlan: string
         return match ($this) {
             self::Starter => ['monthly' => 20_000, 'annual' => 200_000, 'orders_limit' => 1_500, 'features' => []],
             self::Business => ['monthly' => 30_000, 'annual' => 300_000, 'orders_limit' => 5_000,
-                'features' => [Feature::Cash->value, Feature::CustomRoles->value, Feature::ActivityLog->value, Feature::Exports->value]],
+                'features' => [Feature::Cash->value, Feature::CustomRoles->value, Feature::ActivityLog->value, Feature::Exports->value, Feature::Offline->value]],
             self::Premium => ['monthly' => 50_000, 'annual' => 500_000, 'orders_limit' => null,
                 'features' => array_map(fn (Feature $feature) => $feature->value, Feature::cases())],
         };

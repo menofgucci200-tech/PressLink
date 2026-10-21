@@ -13,7 +13,13 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
     </head>
-    <body class="bg-(--color-bg) text-(--color-text-primary)">
+    @php
+        $offlineUser = auth()->user();
+        $offlinePressing = $offlineUser?->currentPressing();
+        $offlineCounter = $offlinePressing !== null && $offlineUser->pressingHasFeature($offlinePressing, \App\Enums\Feature::Offline);
+    @endphp
+    <body class="bg-(--color-bg) text-(--color-text-primary)"
+          @if ($offlineCounter) data-hors-ligne-pressing="{{ $offlinePressing->id }}" data-hors-ligne-user="{{ $offlineUser->id }}" @endif>
         <a href="#contenu" class="skip-link">Aller au contenu</a>
         @php
             $user = auth()->user();

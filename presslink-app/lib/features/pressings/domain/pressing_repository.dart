@@ -173,9 +173,12 @@ class PressingModel {
     final words = name
         .replaceFirst(RegExp(r'^Pressing\s+', caseSensitive: false), '')
         .trim()
-        .split(' ');
-    if (words.isEmpty || words.first.isEmpty)
-      return name.substring(0, 1).toUpperCase();
+        .split(RegExp(r'\s+'))
+        .where((word) => word.isNotEmpty)
+        .toList();
+    if (words.isEmpty) {
+      return name.trim().isEmpty ? '?' : name.trim()[0].toUpperCase();
+    }
     return words.length > 1
         ? (words[0][0] + words[1][0]).toUpperCase()
         : words[0].substring(0, words[0].length >= 2 ? 2 : 1).toUpperCase();

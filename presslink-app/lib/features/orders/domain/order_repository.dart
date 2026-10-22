@@ -257,7 +257,9 @@ class OrderRepository {
   final ApiClient _apiClient;
 
   Future<List<OrderModel>> list() async {
-    final body = await _apiClient.getKeepingCopy('/orders');
+    // Toutes les commandes, pas seulement la première page : l'accueil
+    // compte les commandes prêtes, les filtres doivent tout montrer.
+    final body = await _apiClient.getAllPagesKeepingCopy('/orders');
     final data = (body as Map<String, dynamic>)['data'] as List;
     return data
         .map((e) => OrderModel.fromJson(e as Map<String, dynamic>))

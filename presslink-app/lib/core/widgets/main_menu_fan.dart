@@ -122,25 +122,29 @@ class MainMenuFan extends ConsumerWidget {
                     ),
                   ),
                 ),
-                for (var i = 0; i < entries.length; i++)
-                  _buildEntry(
-                    entries[i],
-                    index: i,
-                    count: entries.length,
-                    t: t,
-                    anchor: anchor,
-                    target: _pointOnArc(
-                      anchor,
-                      radius,
-                      entries.length == 1
-                          ? firstAngle
-                          : firstAngle +
-                                i *
-                                    (lastAngle - firstAngle) /
-                                    (entries.length - 1),
+                // Bulles d'abord, libellés ensuite : une bulle ne cache
+                // jamais le libellé d'une autre (petits écrans).
+                for (final layer in [_Layer.bubble, _Layer.label])
+                  for (var i = 0; i < entries.length; i++)
+                    _buildEntry(
+                      entries[i],
+                      layer: layer,
+                      index: i,
+                      t: t,
+                      anchor: anchor,
+                      target: _pointOnArc(
+                        anchor,
+                        radius,
+                        entries.length == 1
+                            ? firstAngle
+                            : firstAngle +
+                                  i *
+                                      (lastAngle - firstAngle) /
+                                      (entries.length - 1),
+                      ),
+                      screenWidth: constraints.maxWidth,
+                      isDark: isDark,
                     ),
-                    isDark: isDark,
-                  ),
               ],
             );
           },
@@ -157,13 +161,17 @@ class MainMenuFan extends ConsumerWidget {
     );
   }
 
+  /// Largeur réservée à un libellé : « Signaler un problème » y tient.
+  static const _labelWidth = 170.0;
+
   Widget _buildEntry(
     _FanEntry entry, {
+    required _Layer layer,
     required int index,
-    required int count,
     required double t,
     required Offset anchor,
     required Offset target,
+    required double screenWidth,
     required bool isDark,
   }) {
     // Les bulles sortent l'une après l'autre (léger décalage) avec un petit
@@ -176,78 +184,102 @@ class MainMenuFan extends ConsumerWidget {
     ).transform(t);
     final position = Offset.lerp(anchor, target, progress)!;
     final opacity = (progress * 1.6).clamp(0.0, 1.0);
+    final scale = 0.4 + 0.6 * progress.clamp(0.0, 1.1);
+
+    if (layer == _Layer.bubble) {
+      return Positioned(
+        left: position.dx - bubbleSize / 2,
+        top: position.dy - bubbleSize / 2,
+        width: bubbleSize,
+        height: bubbleSize,
+        child: Opacity(
+          opacity: opacity,
+          child: Transform.scale(
+            scale: scale,
+            child: Semantics(
+              button: true,
+              label: entry.label,
+              excludeSemantics: true,
+              child: GestureDetector(
+                onTap: entry.onTap,
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isDark ? const Color(0xFF16233D) : Colors.white,
+                    border: isDark
+                        ? Border.all(color: const Color(0xFF2D3F5F))
+                        : null,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        blurRadius: 22,
+                        offset: const Offset(0, 12),
+                        spreadRadius: -10,
+                      ),
+                    ],
+                  ),
+                  alignment: Alignment.center,
+                  child:
+                      entry.bubble ??
+                      Icon(
+                        entry.icon,
+                        size: 26,
+                        color: entry.danger
+                            ? AppColors.error
+                            : (isDark
+                                  ? const Color(0xFF93C5FD)
+                                  : AppColors.primary),
+                      ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Libellé centré sous sa bulle, mais toujours entier à l'écran : près
+    // d'un bord, il glisse vers l'intérieur au lieu d'être coupé.
+    const margin = 4.0;
+    final maxLeft = math.max(margin, screenWidth - _labelWidth - margin);
+    final left = (position.dx - _labelWidth / 2).clamp(margin, maxLeft);
+    final alignX = ((position.dx - left) / _labelWidth * 2 - 1).clamp(
+      -1.0,
+      1.0,
+    );
 
     return Positioned(
-      left: position.dx - 75,
-      top: position.dy - bubbleSize / 2,
-      width: 150,
+      left: left,
+      top: position.dy + bubbleSize / 2 * scale + 7,
+      width: _labelWidth,
       child: Opacity(
         opacity: opacity,
-        child: Transform.scale(
-          scale: 0.4 + 0.6 * progress.clamp(0.0, 1.1),
-          alignment: const Alignment(0, -0.6),
-          child: Semantics(
-            button: true,
-            label: entry.label,
-            excludeSemantics: true,
+        child: ExcludeSemantics(
+          child: Align(
+            alignment: Alignment(alignX, 0),
             child: GestureDetector(
               onTap: entry.onTap,
               behavior: HitTestBehavior.opaque,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: bubbleSize,
-                    height: bubbleSize,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isDark ? const Color(0xFF16233D) : Colors.white,
-                      border: isDark
-                          ? Border.all(color: const Color(0xFF2D3F5F))
-                          : null,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.45),
-                          blurRadius: 22,
-                          offset: const Offset(0, 12),
-                          spreadRadius: -10,
-                        ),
-                      ],
-                    ),
-                    alignment: Alignment.center,
-                    child:
-                        entry.bubble ??
-                        Icon(
-                          entry.icon,
-                          size: 26,
-                          color: entry.danger
-                              ? AppColors.error
-                              : (isDark
-                                    ? const Color(0xFF93C5FD)
-                                    : AppColors.primary),
-                        ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xB30F172A),
+                  borderRadius: BorderRadius.circular(99),
+                ),
+                child: Text(
+                  entry.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
                   ),
-                  const SizedBox(height: 7),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0x8C0F172A),
-                      borderRadius: BorderRadius.circular(99),
-                    ),
-                    child: Text(
-                      entry.label,
-                      maxLines: 1,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -256,6 +288,8 @@ class MainMenuFan extends ConsumerWidget {
     );
   }
 }
+
+enum _Layer { bubble, label }
 
 class _FanEntry {
   const _FanEntry({

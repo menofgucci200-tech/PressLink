@@ -2,8 +2,11 @@
 // PressLink (appli client) — ouverture hors connexion.
 //
 // Garde dans le téléphone ce qu'il faut pour rouvrir l'appli sans Internet :
-// la page, le code, les ressources de la version en cours et le moteur
-// d'affichage Flutter (servi par gstatic.com). Les données (commandes,
+// la page, le code, les ressources de la version en cours (dont les polices
+// Inter embarquées), le moteur d'affichage Flutter (servi par gstatic.com)
+// et les polices de secours qu'il va chercher sur fonts.gstatic.com
+// (caractères absents d'Inter) : sans elles, ces textes seraient invisibles
+// hors connexion. Les données (commandes,
 // pressings…) sont gardées par l'appli elle-même (lib/core/network).
 //
 // En ligne, la page et le code viennent toujours du serveur (une mise à jour
@@ -35,7 +38,8 @@ function isVersionedAsset(url) {
 }
 
 function isFlutterEngine(url) {
-  return url.hostname === 'www.gstatic.com' && url.pathname.startsWith('/flutter-canvaskit/');
+  return (url.hostname === 'www.gstatic.com' && url.pathname.startsWith('/flutter-canvaskit/'))
+    || url.hostname === 'fonts.gstatic.com';
 }
 
 async function networkFirst(request, fallbackPath) {

@@ -94,7 +94,8 @@ class HomeScreen extends ConsumerWidget {
                         .where(
                           (o) =>
                               o.status == OrderStatus.recue ||
-                              o.status == OrderStatus.traitement,
+                              o.status == OrderStatus.traitement ||
+                              o.status == OrderStatus.attente,
                         )
                         .length;
                     return _SummaryCard(
@@ -122,8 +123,13 @@ class HomeScreen extends ConsumerWidget {
                   onRetry: () => ref.invalidate(ordersProvider),
                 ),
                 data: (orders) {
+                  // Commandes encore au pressing : ni récupérées, ni annulées.
                   final activeOrders = orders
-                      .where((o) => o.status != OrderStatus.recuperee)
+                      .where(
+                        (o) =>
+                            o.status != OrderStatus.recuperee &&
+                            o.status != OrderStatus.annulee,
+                      )
                       .toList();
 
                   if (activeOrders.isEmpty) {
@@ -376,8 +382,12 @@ class _SummaryCard extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.16),
               shape: BoxShape.circle,
             ),
-            child: const Center(
-              child: Text('🧺', style: TextStyle(fontSize: 22)),
+            // Icône plutôt qu'un emoji : un emoji demande une police
+            // téléchargée, absente hors connexion.
+            child: const Icon(
+              Icons.local_laundry_service_outlined,
+              color: Colors.white,
+              size: 26,
             ),
           ),
         ],

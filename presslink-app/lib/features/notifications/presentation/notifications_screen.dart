@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/app_page_route.dart';
@@ -195,10 +196,12 @@ class _NotificationTile extends StatelessWidget {
 
   ({IconData icon, Color color}) _iconStyle(BuildContext context) {
     final title = notification.title.toLowerCase();
-    if (title.contains('prête'))
+    if (title.contains('prête')) {
       return (icon: Icons.local_laundry_service, color: AppColors.success);
-    if (title.contains('récupérée'))
+    }
+    if (title.contains('récupérée')) {
       return (icon: Icons.check_circle, color: context.textSecondary);
+    }
     return (icon: Icons.receipt_long, color: AppColors.primary);
   }
 
@@ -276,10 +279,18 @@ class _NotificationTile extends StatelessWidget {
     );
   }
 
-  String _relativeTime(DateTime dateTime) {
-    final diff = DateTime.now().difference(dateTime);
-    if (diff.inMinutes < 60) return 'Il y a ${diff.inMinutes} min';
-    if (diff.inHours < 24) return 'Il y a ${diff.inHours} h';
-    return 'Il y a ${diff.inDays} j';
-  }
+  String _relativeTime(DateTime dateTime) => relativeTimeFr(dateTime);
+}
+
+/// « À l'instant », « Il y a 5 min », « Il y a 3 h », « Il y a 2 j », puis
+/// la date au-delà d'une semaine (« Le 3 octobre »).
+String relativeTimeFr(DateTime dateTime, {DateTime? now}) {
+  final current = now ?? DateTime.now();
+  final diff = current.difference(dateTime);
+  if (diff.inMinutes < 1) return 'À l\'instant';
+  if (diff.inMinutes < 60) return 'Il y a ${diff.inMinutes} min';
+  if (diff.inHours < 24) return 'Il y a ${diff.inHours} h';
+  if (diff.inDays < 7) return 'Il y a ${diff.inDays} j';
+  final pattern = dateTime.year == current.year ? 'd MMMM' : 'd MMMM y';
+  return 'Le ${DateFormat(pattern, 'fr_FR').format(dateTime)}';
 }

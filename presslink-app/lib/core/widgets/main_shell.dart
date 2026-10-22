@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_theme.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/notifications/presentation/notifications_controller.dart';
 import '../../features/orders/presentation/orders_controller.dart';
@@ -358,6 +359,7 @@ class _SlotButton extends StatelessWidget {
             AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 200),
               style: TextStyle(
+                fontFamily: AppTheme.bodyFont,
                 fontSize: 11,
                 fontWeight: emphasized ? FontWeight.w700 : FontWeight.w500,
                 color: color,

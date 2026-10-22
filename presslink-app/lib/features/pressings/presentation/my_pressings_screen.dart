@@ -81,8 +81,9 @@ class MyPressingsScreen extends ConsumerWidget {
                                               const JoinPressingScreen(),
                                         ),
                                       );
-                                  if (joined == true)
+                                  if (joined == true) {
                                     ref.invalidate(myPressingsProvider);
+                                  }
                                 },
                                 child: const Text('Ajouter un pressing'),
                               ),
@@ -113,7 +114,9 @@ class MyPressingsScreen extends ConsumerWidget {
                                   context,
                                   title: 'Quitter ce pressing ?',
                                   message:
-                                      'Vous ne verrez plus les commandes de ${pressing.name}. Vous pourrez le rejoindre à nouveau avec son code.',
+                                      // Quitter ne cache pas les commandes (l'API les garde
+                                      // dans l'historique) : on dit ce qui se passe vraiment.
+                                      '${pressing.name} ne sera plus dans « Mes pressings ». Vos commandes chez ce pressing restent dans votre historique et vous serez toujours prévenu de leur suivi. Vous pourrez le rejoindre à nouveau avec son code.',
                                   confirmLabel: 'Quitter',
                                   tone: AppConfirmTone.danger,
                                 );

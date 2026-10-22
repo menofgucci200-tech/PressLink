@@ -39,7 +39,7 @@ class IvorianPhoneField extends StatelessWidget {
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('🇨🇮', style: TextStyle(fontSize: 20)),
+              IvoryCoastFlag(),
               SizedBox(width: 6),
               Text(
                 IvorianPhone.prefix,
@@ -61,6 +61,39 @@ class IvorianPhoneField extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Drapeau ivoirien dessiné (orange, blanc, vert) plutôt que l'emoji du
+/// drapeau : un emoji demande une police téléchargée, absente hors connexion.
+class IvoryCoastFlag extends StatelessWidget {
+  const IvoryCoastFlag({super.key});
+
+  static const _orange = Color(0xFFF77F00);
+  static const _green = Color(0xFF009E60);
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: "Côte d'Ivoire",
+      child: Container(
+        width: 22,
+        height: 15,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(2),
+          border: Border.all(color: const Color(0x33000000), width: 0.5),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: const Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(child: ColoredBox(color: _orange)),
+            Expanded(child: ColoredBox(color: Colors.white)),
+            Expanded(child: ColoredBox(color: _green)),
+          ],
+        ),
+      ),
     );
   }
 }

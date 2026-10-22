@@ -60,8 +60,11 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
         onBack: () => Navigator.of(context).pop(_found != null),
       ),
       body: SafeArea(
-        child: Padding(
+        // Défilement : avec le clavier ouvert sur un petit téléphone, le
+        // bouton reste atteignable.
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.md),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -89,6 +92,8 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
                   controller: _codeController,
                   textCapitalization: TextCapitalization.characters,
                   enabled: _found == null,
+                  textInputAction: TextInputAction.go,
+                  onSubmitted: (_) => _loading ? null : _submit(),
                   style: const TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 17,
@@ -133,7 +138,7 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            'Pressing trouvé',
+                            'Pressing ajouté',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -205,7 +210,7 @@ class _JoinPressingScreenState extends ConsumerState<JoinPressingScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : Text(_found != null ? 'Continuer' : 'Rejoindre'),
+                      : Text(_found != null ? 'Terminer' : 'Rejoindre'),
                 ),
               ),
               if (_found == null) ...[

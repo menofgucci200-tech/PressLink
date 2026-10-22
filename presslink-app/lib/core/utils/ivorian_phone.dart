@@ -53,16 +53,62 @@ class IvorianPhone {
 }
 
 /// Saisie limitée à 10 chiffres, affichés par paires au fil de la frappe.
+///
+/// Le curseur reste où le client tape (correction d'un chiffre au milieu) ;
+/// un champ déjà plein refuse un chiffre de plus au lieu de faire sauter les
+/// derniers.
 class IvorianPhoneInputFormatter extends TextInputFormatter {
+  static final _nonDigit = RegExp(r'\D');
+
   @override
   TextEditingValue formatEditUpdate(
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    final text = IvorianPhone.pairs(IvorianPhone.digitsOf(newValue.text));
+    final raw = newValue.text.replaceAll(_nonDigit, '');
+    var national = raw;
+    if (national.startsWith('00225')) {
+      national = national.substring(5);
+    } else if (national.startsWith('225') &&
+        national.length > IvorianPhone.length) {
+      national = national.substring(3);
+    }
+
+    var cursorAtEnd = national.length != raw.length;
+    if (national.length > IvorianPhone.length) {
+      final oldDigits = oldValue.text.replaceAll(_nonDigit, '');
+      if (oldDigits.length >= IvorianPhone.length) return oldValue;
+      // Numéro collé trop long : on garde les 10 premiers chiffres.
+      national = national.substring(0, IvorianPhone.length);
+      cursorAtEnd = true;
+    }
+
+    final text = IvorianPhone.pairs(national);
+    var offset = text.length;
+    final selection = newValue.selection;
+    if (!cursorAtEnd && selection.isValid) {
+      final end = selection.extentOffset.clamp(0, newValue.text.length);
+      final digitsBefore = newValue.text
+          .substring(0, end)
+          .replaceAll(_nonDigit, '')
+          .length;
+      offset = _offsetAfterDigits(text, digitsBefore);
+    }
     return TextEditingValue(
       text: text,
-      selection: TextSelection.collapsed(offset: text.length),
+      selection: TextSelection.collapsed(offset: offset),
     );
+  }
+
+  /// Position juste après le [count]-ième chiffre de [text].
+  static int _offsetAfterDigits(String text, int count) {
+    if (count <= 0) return 0;
+    var seen = 0;
+    for (var i = 0; i < text.length; i++) {
+      if (_nonDigit.hasMatch(text[i])) continue;
+      seen++;
+      if (seen == count) return i + 1;
+    }
+    return text.length;
   }
 }

@@ -38,7 +38,6 @@ dependencies:
   go_router: ^17.5.0
   dio: ^5.11.0
   flutter_secure_storage: ^11.0.0
-  google_fonts: ^8.2.1
   intl: ^0.20.3
   shared_preferences: ^2.5.5
   image_picker: ^1.2.3
@@ -85,10 +84,29 @@ flutter:
     - assets/branding/logo_original.png
     - assets/branding/logo_wordmark.png
     - assets/icons/
-    # Polices Inter / Inter Tight embarquées : affichage immédiat, sans aller
-    # les chercher sur Google Fonts au démarrage (google_fonts les utilise
-    # automatiquement si elles sont présentes dans les assets).
-    - assets/google_fonts/
+
+  # Polices Inter / Inter Tight embarquées (AppTheme.bodyFont/displayFont) :
+  # affichage immédiat et identique hors connexion, rien n'est téléchargé
+  # sur Google Fonts.
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/google_fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/google_fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/google_fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/google_fonts/Inter-Bold.ttf
+          weight: 700
+    - family: InterTight
+      fonts:
+        - asset: assets/google_fonts/InterTight-SemiBold.ttf
+          weight: 600
+        - asset: assets/google_fonts/InterTight-Bold.ttf
+          weight: 700
+        - asset: assets/google_fonts/InterTight-ExtraBold.ttf
+          weight: 800
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

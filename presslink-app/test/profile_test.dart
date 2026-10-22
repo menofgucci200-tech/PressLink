@@ -7,12 +7,14 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:presslink_app/core/network/api_client.dart';
 import 'package:presslink_app/core/storage/token_storage.dart';
 import 'package:presslink_app/core/theme/app_theme.dart';
+import 'package:presslink_app/core/widgets/ivorian_phone_field.dart';
 import 'package:presslink_app/features/auth/domain/auth_repository.dart';
 import 'package:presslink_app/features/auth/presentation/auth_controller.dart';
 import 'package:presslink_app/features/home/presentation/home_screen.dart';
 import 'package:presslink_app/features/notifications/presentation/notifications_controller.dart';
 import 'package:presslink_app/features/orders/presentation/orders_controller.dart';
 import 'package:presslink_app/features/pressings/presentation/pressings_controller.dart';
+import 'package:presslink_app/features/profile/presentation/change_password_screen.dart';
 import 'package:presslink_app/features/profile/presentation/change_phone_screen.dart';
 import 'package:presslink_app/features/profile/presentation/profile_screen.dart';
 
@@ -103,7 +105,7 @@ void main() {
 
     expect(find.byType(ChangePhoneScreen), findsOneWidget);
     expect(find.text('Numéro actuel'), findsOneWidget);
-    expect(find.text('🇨🇮'), findsOneWidget);
+    expect(find.byType(IvoryCoastFlag), findsOneWidget);
 
     await tester.tap(find.widgetWithText(ElevatedButton, 'Changer de numéro'));
     await tester.pump();
@@ -119,4 +121,29 @@ void main() {
     await tester.pump();
     expect(find.text('Indiquez votre mot de passe actuel.'), findsOneWidget);
   });
+
+  testWidgets(
+    'the password button stays reachable on a small screen with the keyboard',
+    (tester) async {
+      // 360 × 400 : petit téléphone, clavier ouvert.
+      tester.view.physicalSize = const Size(360, 400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(app(const ChangePasswordScreen()));
+      await tester.pump();
+
+      await tester.scrollUntilVisible(
+        find.widgetWithText(ElevatedButton, 'Mettre à jour'),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Mettre à jour'));
+      await tester.pump();
+      expect(
+        find.text('Le mot de passe doit contenir au moins 4 caractères.'),
+        findsOneWidget,
+      );
+    },
+  );
 }

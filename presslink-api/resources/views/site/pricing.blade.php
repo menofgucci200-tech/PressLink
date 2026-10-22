@@ -9,18 +9,24 @@
         ['Et si j\'ai plus de commandes que prévu ce mois-ci ?', 'Vous pouvez ajouter des commandes pour le mois en cours depuis votre espace, sans changer de formule.'],
         ['L\'application est-elle payante pour mes clients ?', 'Non, l\'application PressLink est gratuite pour les clients des pressings.'],
     ];
+    // Matériel, coupures d'Internet, engagement : les mêmes réponses que sur la page Pour les pressings.
+    foreach (array_slice(\App\Http\Controllers\LandingController::pressingFaqs(), 1, 3) as $faq) {
+        $questions[] = [$faq['question'], $faq['answer']];
+    }
 @endphp
 <x-site.page
     title="Nos offres — PressLink, logiciel de gestion de pressing"
     description="Starter, Business, Premium : les offres PressLink pour gérer votre pressing, leurs prix au mois ou à l'année et ce que chacune comprend. Essai gratuit."
-    path="/offres">
+    path="/offres"
+    :json-ld="\App\Support\SiteContent::softwareJsonLd(route('site.pricing'))">
     <section class="bg-slate-900 text-white dark:border-b dark:border-(--color-border)">
         <div class="max-w-6xl mx-auto px-5 pt-16 pb-28 md:pt-20 md:pb-32 text-center">
             <p class="text-xs font-semibold uppercase tracking-widest text-blue-300 mb-3">Nos offres</p>
             <h1 class="font-display text-4xl md:text-5xl font-extrabold leading-[1.08] tracking-tight mb-5">Une offre pour chaque pressing</h1>
             <p class="text-slate-300 text-lg leading-relaxed max-w-2xl mx-auto">
-                Essai gratuit de {{ $trialDays }} jours, toutes les fonctions ouvertes. Ensuite, payez au mois ou à l'année par Wave.
+                Essai gratuit de {{ $trialDays }} jours, toutes les fonctions ouvertes. Ensuite, payez au mois ou à l'année par Wave, sans engagement.
             </p>
+            <x-site.trial-button tone="light" class="mt-7" />
             @if ($launchOffer)
                 <p class="mt-6 inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold">
                     <span class="w-2 h-2 rounded-full bg-[#1DC8FF]" aria-hidden="true"></span>
@@ -57,6 +63,13 @@
         <x-plans.compare :plans="$plans" />
     </section>
 
+    <section class="max-w-6xl mx-auto px-5 pb-16">
+        <h2 class="font-display text-2xl font-bold tracking-tight mb-6">Se lancer sans risque</h2>
+        <x-site.reassurance />
+    </section>
+
+    <x-site.testimonials class="pt-0" />
+
     <section class="bg-(--color-bg) border-y border-(--color-border)">
         <div class="max-w-3xl mx-auto px-5 py-16">
             <h2 class="font-display text-2xl font-bold tracking-tight mb-6">Questions sur nos offres</h2>
@@ -76,11 +89,14 @@
 
     <section class="max-w-6xl mx-auto px-5 py-16 text-center">
         <h2 class="font-display text-3xl font-bold tracking-tight mb-3">Une question avant de choisir ?</h2>
-        <p class="text-(--color-text-secondary) mb-6">Écrivez-nous : nous vous aidons à choisir la formule adaptée à votre pressing.</p>
+        <p class="text-(--color-text-secondary) mb-6">Écrivez-nous : nous vous aidons à choisir l'offre adaptée à votre pressing. Ou commencez par l'essai gratuit.</p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <x-site.trial-button />
         <a href="{{ $whatsapp.rawurlencode('Bonjour, je voudrais de l\'aide pour choisir une formule PressLink pour mon pressing.') }}" target="_blank" rel="noopener"
            class="inline-flex items-center justify-center gap-3 h-12 pl-2 pr-6 rounded-xl bg-(--color-whatsapp) text-white font-semibold hover:brightness-95">
             <img src="{{ asset('images/whatsapp.png') }}" alt="" class="w-8 h-8 rounded-full ring-2 ring-white" width="32" height="32">
             Nous écrire sur WhatsApp
         </a>
+        </div>
     </section>
 </x-site.page>

@@ -2,7 +2,7 @@
     $jsonLd = [
         '@context' => 'https://schema.org',
         '@type' => 'FAQPage',
-        'mainEntity' => collect($faqs)->map(fn ($faq) => [
+        'mainEntity' => collect([...$faqs, ...$pressingFaqs])->map(fn ($faq) => [
             '@type' => 'Question',
             'name' => $faq['question'],
             'acceptedAnswer' => ['@type' => 'Answer', 'text' => $faq['answer']],
@@ -11,14 +11,16 @@
 @endphp
 <x-site.page
     title="Questions fréquentes — PressLink, suivi de pressing"
-    description="Suivi des commandes, installation de l'application, code du pressing, logiciel de gestion, support : les réponses à vos questions sur PressLink."
+    description="Suivi des commandes, installation, code du pressing, logiciel de gestion, essai gratuit, hors connexion, support : les réponses à vos questions sur PressLink."
     path="/questions-frequentes"
     :json-ld="$jsonLd">
     <section class="bg-(--color-bg)">
         <div class="max-w-3xl mx-auto px-5 py-16 md:py-20">
             <h1 class="font-display text-4xl font-extrabold tracking-tight mb-8">Questions fréquentes</h1>
+            @foreach (['Vous êtes client d\'un pressing' => $faqs, 'Vous gérez un pressing' => $pressingFaqs] as $heading => $list)
+            <h2 class="font-display text-xl font-bold mb-4 {{ $loop->first ? '' : 'mt-10' }}">{{ $heading }}</h2>
             <div class="space-y-3" data-motion="cascade">
-                @foreach ($faqs as $faq)
+                @foreach ($list as $faq)
                     <details class="group bg-(--color-surface) border border-(--color-border) rounded-xl" @if ($loop->first) open @endif>
                         <summary class="flex items-center justify-between gap-4 cursor-pointer list-none px-5 py-4 font-semibold">
                             {{ $faq['question'] }}
@@ -28,6 +30,8 @@
                     </details>
                 @endforeach
             </div>
+            @endforeach
+            <p class="mt-6"><a href="{{ route('site.pressings') }}" class="font-semibold text-(--color-primary) hover:underline">Découvrir le logiciel pour les pressings →</a></p>
             <p class="mt-10 text-(--color-text-secondary)">Vous ne trouvez pas votre réponse ? <a href="{{ route('site.contact') }}" class="font-semibold text-(--color-primary) hover:underline">Contactez-nous</a>.</p>
         </div>
     </section>

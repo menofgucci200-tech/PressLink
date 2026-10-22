@@ -241,6 +241,37 @@
             </div>
         @endif
 
+        @if ($declinedRequests->isNotEmpty())
+            <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-6" data-testid="declined-requests">
+                <h2 class="font-display text-base font-bold mb-3">Demandes refusées</h2>
+                <ul class="divide-y divide-(--color-border)">
+                    @foreach ($declinedRequests as $request)
+                        <li class="py-3 text-sm">
+                            <div class="font-medium">{{ $request->label() }}</div>
+                            <div class="text-xs text-(--color-text-muted)">
+                                Refusée le {{ $request->handled_at->format('d/m/Y') }}@if ($request->decline_reason) : <span class="text-(--color-text-secondary)">{{ $request->decline_reason }}</span>@endif
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+                <p class="mt-3 text-xs text-(--color-text-muted)">Une question ? Écrivez à l'équipe PressLink depuis la page Support, ou refaites la demande.</p>
+            </div>
+        @endif
+
+        @if ($payments->isNotEmpty())
+            <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-6" data-testid="subscription-payments">
+                <h2 class="font-display text-base font-bold mb-3">Mes paiements</h2>
+                <ul class="divide-y divide-(--color-border)">
+                    @foreach ($payments as $payment)
+                        <li class="flex items-center justify-between gap-3 py-2.5 text-sm">
+                            <span><span class="text-(--color-text-muted) tabular-nums">{{ $payment->handled_at?->format('d/m/Y') }}</span> · {{ $payment->label() }}</span>
+                            <span class="font-semibold tabular-nums whitespace-nowrap">{{ number_format($payment->amount_fcfa, 0, ',', ' ') }} F</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 text-sm text-(--color-text-muted)">
             Après votre demande, l'équipe PressLink vous envoie un lien de paiement Wave, puis active la demande dès le paiement reçu.
         </div>

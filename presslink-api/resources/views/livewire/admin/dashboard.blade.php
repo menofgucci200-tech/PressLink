@@ -196,6 +196,9 @@
                                         <li class="text-xs text-(--color-text-muted)">et {{ $alert['pressings']->count() - 6 }} autre(s)…</li>
                                     @endif
                                 </ul>
+                                @if ($alert['key'] === 'requests')
+                                    <a href="{{ route('admin.requests.index') }}" wire:navigate class="inline-block mt-2 text-xs font-semibold text-(--color-primary) hover:underline">Traiter les demandes →</a>
+                                @endif
                             </div>
                         </div>
                     @endforeach

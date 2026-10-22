@@ -143,9 +143,12 @@
                     <h2 class="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">Vous cherchez la meilleure offre pour votre pressing ?</h2>
                     <p class="text-slate-300 leading-relaxed">Petit pressing, pressing qui grandit ou plusieurs établissements : choisissez l'offre qui vous ressemble, et payez au mois ou à l'année.</p>
                 </div>
-                <a href="{{ route('site.pricing') }}" class="inline-flex items-center justify-center h-12 px-6 rounded-xl bg-(--color-primary) text-white font-semibold hover:bg-(--color-primary-600) whitespace-nowrap">
-                    Consulter nos offres
-                </a>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <x-site.trial-button tone="light" />
+                    <a href="{{ route('site.pricing') }}" class="inline-flex items-center justify-center min-h-12 px-6 rounded-xl border border-white/30 font-semibold hover:bg-white/10 whitespace-nowrap">
+                        Consulter nos offres
+                    </a>
+                </div>
             </div>
             <div class="grid gap-4 md:grid-cols-3" data-motion="cascade">
                 @foreach ($plans as $item)

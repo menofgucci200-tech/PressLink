@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\Guides;
 use Illuminate\Http\Response;
 
 /**
@@ -25,6 +26,8 @@ class SitemapController extends Controller
             ['loc' => route('site.how'), 'priority' => '0.8', 'changefreq' => 'monthly'],
             ['loc' => route('site.install'), 'priority' => '0.7', 'changefreq' => 'monthly'],
             ['loc' => route('site.faq'), 'priority' => '0.6', 'changefreq' => 'monthly'],
+            ['loc' => route('site.guides'), 'priority' => '0.6', 'changefreq' => 'monthly'],
+            ...array_map(fn (string $slug) => ['loc' => route('site.guide', $slug), 'priority' => '0.6', 'changefreq' => 'yearly'], array_keys(Guides::ALL)),
             ['loc' => route('site.contact'), 'priority' => '0.5', 'changefreq' => 'yearly'],
             ['loc' => route('site.legal'), 'priority' => '0.2', 'changefreq' => 'yearly'],
             ['loc' => route('site.terms'), 'priority' => '0.2', 'changefreq' => 'yearly'],

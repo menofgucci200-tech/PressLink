@@ -20,8 +20,10 @@ use App\Livewire\Admin\Plans\Index as AdminPlansIndex;
 use App\Livewire\Admin\Pressings\Create as AdminPressingsCreate;
 use App\Livewire\Admin\Pressings\Index as AdminPressingsIndex;
 use App\Livewire\Admin\Pressings\Show as AdminPressingsShow;
+use App\Livewire\Admin\Requests\Index as AdminRequestsIndex;
 use App\Livewire\Admin\Roles\Index as AdminRolesIndex;
 use App\Livewire\Admin\Services\Index as AdminServicesIndex;
+use App\Livewire\Admin\Site\Index as AdminSiteIndex;
 use App\Livewire\Admin\Users\Index as AdminUsersIndex;
 use App\Livewire\Auth\AdminLogin;
 use App\Livewire\Auth\Login;
@@ -49,6 +51,7 @@ use App\Livewire\Team\Index as TeamIndex;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Pressing;
+use App\Support\Guides;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -62,6 +65,8 @@ Route::controller(SitePageController::class)->name('site.')->group(function () {
     Route::get('/comment-ca-marche', 'how')->name('how');
     Route::get('/installer', 'install')->name('install');
     Route::get('/questions-frequentes', 'faq')->name('faq');
+    Route::get('/guides', 'guides')->name('guides');
+    Route::get('/guides/{slug}', 'guide')->whereIn('slug', array_keys(Guides::ALL))->name('guide');
     Route::get('/contact', 'contact')->name('contact');
     Route::post('/contact', 'sendContact')->middleware('throttle:5,10')->name('contact.send');
     Route::get('/mentions-legales', 'legalNotice')->name('legal');
@@ -190,6 +195,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/administrateurs', AdminAdministratorsIndex::class)->name('administrators.index');
         Route::get('/utilisateurs', AdminUsersIndex::class)->name('users.index');
         Route::get('/formules', AdminPlansIndex::class)->name('plans.index');
+        Route::get('/demandes', AdminRequestsIndex::class)->name('requests.index');
+        Route::get('/site', AdminSiteIndex::class)->name('site.index');
         Route::get('/roles', AdminRolesIndex::class)->name('roles.index');
         Route::get('/services', AdminServicesIndex::class)->name('services.index');
         Route::get('/export/{type}', AdminExportController::class)->whereIn('type', ['pressings', 'orders', 'clients'])->name('export');

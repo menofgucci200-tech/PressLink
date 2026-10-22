@@ -50,6 +50,40 @@ class LandingController extends Controller
         ];
     }
 
+    /**
+     * Questions des gérants de pressing (pages Pour les pressings, Nos offres
+     * et Questions fréquentes) : uniquement ce que le produit fait vraiment.
+     *
+     * @return list<array{question: string, answer: string}>
+     */
+    public static function pressingFaqs(): array
+    {
+        $days = PlanCatalog::trialDays();
+
+        return [
+            [
+                'question' => 'Comment essayer PressLink dans mon pressing ?',
+                'answer' => "Écrivez-nous sur WhatsApp avec le nom de votre pressing et votre commune : nous créons votre espace et vous accompagnons pour le mettre en place. L'essai gratuit dure {$days} jours, avec toutes les fonctions ouvertes, sans paiement à l'avance.",
+            ],
+            [
+                'question' => 'Faut-il acheter du matériel ?',
+                'answer' => "Non. PressLink s'utilise dans le navigateur du téléphone, de la tablette ou de l'ordinateur que vous avez déjà, et s'installe comme une application sur l'ordinateur du comptoir. Les reçus se partagent sur WhatsApp ou s'impriment.",
+            ],
+            [
+                'question' => 'Que se passe-t-il quand Internet coupe ?',
+                'answer' => 'Avec les offres Business et Premium, le comptoir continue de fonctionner hors connexion : créer des commandes et des clients, encaisser, remettre. Tout est envoyé dès le retour du réseau.',
+            ],
+            [
+                'question' => 'Y a-t-il un engagement ?',
+                'answer' => "Non. Vous payez une période à la fois, au mois ou à l'année, par un lien de paiement Wave. Rien n'est prélevé automatiquement, et vous pouvez changer d'offre à tout moment.",
+            ],
+            [
+                'question' => 'Quels moyens de paiement puis-je enregistrer pour mes clients ?',
+                'answer' => 'Espèces, Wave, Orange Money, MTN MoMo, Moov Money et carte bancaire. Le client peut payer au dépôt, verser un acompte ou payer au retrait ; le reste à payer figure sur son reçu et dans sa notification « prête ».',
+            ],
+        ];
+    }
+
     public function __invoke(): View|RedirectResponse
     {
         if (Auth::check()) {

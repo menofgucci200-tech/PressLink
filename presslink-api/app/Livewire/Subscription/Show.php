@@ -43,6 +43,11 @@ class Show extends Component
             'plans' => SubscriptionPlan::cases(),
             'orderPacks' => SubscriptionRequest::orderPacks(),
             'pendingRequests' => $pressing->subscriptionRequests()->pending()->latest()->get(),
+            // Refus récents (avec le motif de l'équipe PressLink) et paiements reçus.
+            'declinedRequests' => $pressing->subscriptionRequests()->where('status', SubscriptionRequest::DECLINED)
+                ->where('handled_at', '>=', now()->subDays(30))->latest('handled_at')->get(),
+            'payments' => $pressing->subscriptionRequests()->where('status', SubscriptionRequest::DONE)
+                ->where('amount_fcfa', '>', 0)->latest('handled_at')->take(12)->get(),
         ]);
     }
 }

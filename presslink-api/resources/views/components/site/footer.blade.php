@@ -2,7 +2,7 @@
     <div class="max-w-6xl mx-auto px-5 py-10 grid gap-8 md:grid-cols-[1.4fr_1fr_1fr] text-sm">
         <div>
             <p class="font-display text-lg font-bold">Press<span class="text-(--color-primary)">Link</span></p>
-            <p class="mt-2 text-(--color-text-muted)">Le lien entre votre pressing et vos clients.</p>
+            <p class="mt-2 text-(--color-text-muted)">Le lien entre votre pressing et vos clients. Logiciel de gestion de pressing conçu à Abidjan, pour toute la Côte d'Ivoire.</p>
             <x-site.contact-buttons class="mt-4" size="sm" />
             <a href="mailto:{{ config('presslink.support.email') }}" class="mt-3 inline-block font-semibold text-(--color-text-secondary) hover:text-(--color-primary)">{{ config('presslink.support.email') }}</a>
         </div>
@@ -11,6 +11,7 @@
             <a href="{{ route('site.pressings') }}" class="hover:text-(--color-primary)">Pour les pressings</a>
             <a href="{{ route('site.pricing') }}" class="hover:text-(--color-primary)">Nos offres</a>
             <a href="{{ route('site.how') }}" class="hover:text-(--color-primary)">Comment ça marche</a>
+            <a href="{{ route('site.guides') }}" class="hover:text-(--color-primary)">Guides pour les pressings</a>
         </nav>
         <nav class="flex flex-col gap-2 text-(--color-text-secondary)" aria-label="Liens utiles">
             <a href="{{ route('site.install') }}" class="hover:text-(--color-primary)">Installer l'application</a>

@@ -56,7 +56,17 @@ class SitePageController extends Controller
 
     public function faq(): View
     {
-        return view('site.faq', ['faqs' => LandingController::faqs()]);
+        return view('site.faq', ['faqs' => LandingController::faqs(), 'pressingFaqs' => LandingController::pressingFaqs()]);
+    }
+
+    public function guides(): View
+    {
+        return view('site.guides.index');
+    }
+
+    public function guide(string $slug): View
+    {
+        return view('site.guides.'.$slug);
     }
 
     public function contact(): View

@@ -41,7 +41,7 @@ class SubscriptionRequest extends Model
     /** Commandes en plus proposées par défaut pour le mois en cours : [nombre, prix]. */
     public const DEFAULT_ORDER_PACKS = [[50, 1_000], [100, 1_500], [500, 3_500]];
 
-    protected $fillable = ['pressing_id', 'requested_by', 'kind', 'feature', 'plan', 'extra_orders', 'cycle', 'amount_fcfa', 'payment_link', 'status', 'handled_at'];
+    protected $fillable = ['pressing_id', 'requested_by', 'kind', 'feature', 'plan', 'extra_orders', 'cycle', 'amount_fcfa', 'payment_link', 'status', 'decline_reason', 'handled_at', 'handled_by'];
 
     protected function casts(): array
     {
@@ -84,6 +84,16 @@ class SubscriptionRequest extends Model
         return $this->belongsTo(User::class, 'requested_by');
     }
 
+    /**
+     * Membre de l'équipe PressLink qui a activé ou refusé la demande.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function handler(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'handled_by');
+    }
+
     /** @param  Builder<self>  $query */
     public function scopePending(Builder $query): void
     {
@@ -106,7 +116,6 @@ class SubscriptionRequest extends Model
         };
     }
 
-    /** Active ce qui a été demandé sur l'abonnement du pressing (après paiement). */
     /**
      * Active ce qui a été demandé sur l'abonnement du pressing (après paiement).
      * Une seule fois : un double clic ou un second onglet ne l'applique pas deux fois.
@@ -133,7 +142,7 @@ class SubscriptionRequest extends Model
                 };
             }
 
-            $locked->update(['status' => self::DONE, 'handled_at' => now()]);
+            $locked->update(['status' => self::DONE, 'handled_at' => now(), 'handled_by' => auth()->id()]);
         });
 
         $this->refresh();
@@ -207,8 +216,22 @@ class SubscriptionRequest extends Model
             .'Nous activons votre demande dès le paiement reçu. Merci !';
     }
 
-    public function decline(): void
+    /** Refus, avec un motif facultatif montré au pressing sur sa page Abonnement. */
+    public function decline(?string $reason = null): void
     {
-        $this->update(['status' => self::DECLINED, 'handled_at' => now()]);
+        $reason = trim((string) $reason);
+
+        $this->update([
+            'status' => self::DECLINED,
+            'decline_reason' => $reason === '' ? null : $reason,
+            'handled_at' => now(),
+            'handled_by' => auth()->id(),
+        ]);
+    }
+
+    /** Payée et activée, avec un montant : une ligne de l'historique des paiements. */
+    public function isPayment(): bool
+    {
+        return $this->status === self::DONE && (int) $this->amount_fcfa > 0;
     }
 }

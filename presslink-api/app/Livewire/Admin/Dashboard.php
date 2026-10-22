@@ -295,7 +295,7 @@ class Dashboard extends Component
             [
                 'key' => 'requests',
                 'label' => 'Demandes d\'options et de commandes',
-                'hint' => 'Options, commandes en plus ou changement de formule demandés depuis la page Abonnement : encaisser puis activer sur la fiche du pressing.',
+                'hint' => 'Options, commandes en plus ou changement de formule demandés depuis la page Abonnement : encaisser puis activer depuis « Demandes et paiements ».',
                 'tone' => 'info',
                 'pressings' => $pendingRequests->pluck('pressing')->filter()->unique('id')->values(),
                 'count' => $pendingRequests->count(),

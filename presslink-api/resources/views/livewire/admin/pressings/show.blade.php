@@ -106,17 +106,24 @@
         @if ($staff->isEmpty())
             <div class="px-5 py-8 text-center text-sm text-(--color-text-muted)">Aucun membre.</div>
         @else
-            <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
+            <div class="overflow-x-auto"><table class="w-full min-w-[720px] whitespace-nowrap text-sm">
                 <tbody>
                     @foreach ($staff as $member)
-                        <tr class="border-t border-(--color-border) first:border-t-0 hover:bg-(--color-bg)">
+                        <tr class="border-t border-(--color-border) first:border-t-0 hover:bg-(--color-bg)" wire:key="staff-{{ $member->id }}-{{ $memberRoleIds[$member->id] }}-{{ (int) $member->pivot->is_active }}">
                             <td class="px-5 py-3 font-medium">{{ $member->name }}</td>
                             <td class="px-5 py-3 text-(--color-text-secondary)">{{ $member->login ?: ($member->email ?: \App\Support\PhoneNumber::format($member->phone)) }}</td>
-                            <td class="px-5 py-3">{{ $member->roleLabelIn($pressing) }}</td>
+                            <td class="px-5 py-2">
+                                <select aria-label="Rôle de {{ $member->name }}" wire:change="changeMemberRole({{ $member->id }}, $event.target.value)"
+                                        class="h-9 px-2.5 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm focus:outline-none focus:border-(--color-primary)">
+                                    @foreach ($roles as $role)
+                                        <option value="{{ $role->id }}" @selected($memberRoleIds[$member->id] === $role->id)>{{ $role->name }}</option>
+                                    @endforeach
+                                </select>
+                            </td>
                             <td class="px-5 py-3 text-xs font-medium {{ $member->pivot->is_active ? 'text-(--color-success-text)' : 'text-(--color-text-muted)' }}">
                                 {{ $member->pivot->is_active ? 'Actif' : 'Retiré' }}
                             </td>
-                            <td class="px-5 py-3 text-right">
+                            <td class="px-5 py-3 text-right space-x-3">
                                 @if ($member->pivot->is_active)
                                     <button wire:click="resetStaffPassword({{ $member->id }})"
                                             data-confirm-title="Réinitialiser le mot de passe" data-confirm-label="Réinitialiser" data-confirm-tone="warning"
@@ -126,16 +133,84 @@
                                         Réinitialiser le mot de passe
                                     </button>
                                 @endif
+                                <button wire:click="toggleMember({{ $member->id }})"
+                                        @if ($member->pivot->is_active)
+                                            data-confirm-title="Retirer de l'équipe" data-confirm-label="Retirer" data-confirm-tone="danger"
+                                            wire:confirm="Retirer {{ $member->name }} de l'équipe ? Son accès au pressing est coupé ; son compte et son historique sont gardés."
+                                        @endif
+                                        class="text-xs font-medium {{ $member->pivot->is_active ? 'text-(--color-text-muted) hover:text-(--color-error)' : 'text-(--color-primary) hover:underline' }}">
+                                    {{ $member->pivot->is_active ? 'Retirer' : 'Réintégrer' }}
+                                </button>
                             </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table></div>
         @endif
+
+        <div class="border-t border-(--color-border) px-5 py-4">
+            @if ($addingMember)
+                <form novalidate wire:submit="addMember" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label for="nm-name" class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom</label>
+                        <input id="nm-name" type="text" wire:model="newMember.name" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                        @error('newMember.name') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label for="nm-login" class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Identifiant de connexion</label>
+                        <input id="nm-login" type="text" wire:model="newMember.login" autocomplete="off" placeholder="ex. awa.kone" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                        @error('newMember.login') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Téléphone (facultatif)</label>
+                        <x-phone-input wire:model="newMember.phone" />
+                        @error('newMember.phone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label for="nm-password" class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Mot de passe (8 caractères minimum)</label>
+                        <input id="nm-password" type="text" wire:model="newMember.password" autocomplete="new-password" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                        @error('newMember.password') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label for="nm-role" class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Rôle</label>
+                        <select id="nm-role" wire:model="newMember.roleId" class="w-full h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm focus:outline-none focus:border-(--color-primary)">
+                            @foreach ($roles as $role)
+                                <option value="{{ $role->id }}">{{ $role->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('newMember.roleId') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="flex items-end justify-end gap-2">
+                        <button type="button" wire:click="$set('addingMember', false)" class="h-10 px-4 rounded-lg border border-(--color-border) text-sm font-medium">Annuler</button>
+                        <button type="submit" wire:loading.attr="disabled" wire:target="addMember" class="h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600) disabled:opacity-60">Ajouter</button>
+                    </div>
+                </form>
+            @else
+                <button type="button" wire:click="$set('addingMember', true)" class="text-sm font-semibold text-(--color-primary) hover:underline">+ Ajouter un membre</button>
+            @endif
+        </div>
     </div>
 
     <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
-        <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-4">Abonnement</div>
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Abonnement</div>
+            @if ($pressing->subscription)
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" wire:click="extend('trial')" wire:confirm="Prolonger l'essai de {{ $pressing->name }} de 7 jours ?"
+                            class="h-8 px-3 rounded-lg border border-(--color-border) text-xs font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">+ 7 jours d'essai</button>
+                    <button type="button" wire:click="extend('month')" wire:confirm="Offrir un mois de période payée à {{ $pressing->name }} (sans paiement) ?"
+                            class="h-8 px-3 rounded-lg border border-(--color-border) text-xs font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">+ 1 mois offert</button>
+                </div>
+            @endif
+        </div>
+        @if ($sub = $pressing->subscription)
+            <p class="mb-4 text-xs text-(--color-text-secondary)">
+                {{ $sub->plan->label() }} · {{ $sub->status->label() }}
+                @if ($sub->status === \App\Enums\SubscriptionStatus::Trialing && $sub->trial_ends_at) · essai jusqu'au {{ $sub->trial_ends_at->format('d/m/Y') }}
+                @elseif ($sub->current_period_ends_at) · payé jusqu'au {{ $sub->current_period_ends_at->format('d/m/Y') }}
+                @endif
+            </p>
+        @endif
 
         @if ($pendingRequests->isNotEmpty())
             <div class="mb-5 rounded-lg border border-(--color-warning)/40 bg-(--color-warning-tint) p-4" data-testid="pending-requests">
@@ -143,42 +218,7 @@
                 <p class="text-xs text-(--color-text-secondary) mb-3">Créez le lien de paiement dans Wave Business, collez-le ici et envoyez-le ; activez la demande une fois le paiement reçu.</p>
                 <ul class="space-y-2">
                     @foreach ($pendingRequests as $request)
-                        @php
-                            $waPhone = ltrim((string) ($request->requester?->phone ?: $pressing->phone), '+');
-                            $waUrl = $waPhone !== '' ? 'https://wa.me/'.$waPhone.'?text='.rawurlencode($request->paymentMessage()) : null;
-                        @endphp
-                        <li class="rounded-lg bg-(--color-surface) border border-(--color-border) p-3 text-sm" wire:key="request-{{ $request->id }}">
-                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
-                                <span>
-                                    <span class="font-medium">{{ $request->label() }}</span>
-                                    <span class="text-(--color-text-muted)">· {{ $request->requester?->name ?? '—' }}, le {{ $request->created_at->format('d/m/Y à H:i') }}</span>
-                                </span>
-                                <span class="flex gap-2">
-                                    <button type="button" wire:click="applyRequest({{ $request->id }})" wire:confirm="Le paiement est reçu ? « {{ $request->label() }} » sera activé tout de suite."
-                                            class="h-8 px-3 rounded-lg bg-(--color-primary) text-white text-xs font-semibold hover:bg-(--color-primary-600)">Payé, activer</button>
-                                    <button type="button" wire:click="declineRequest({{ $request->id }})"
-                                            class="h-8 px-3 rounded-lg border border-(--color-border) text-xs font-semibold hover:border-(--color-error) hover:text-(--color-error)">Refuser</button>
-                                </span>
-                            </div>
-                            <form wire:submit="savePaymentLink({{ $request->id }})" class="grid grid-cols-1 sm:grid-cols-[9rem_minmax(0,1fr)_auto] gap-2 items-start">
-                                <div>
-                                    <input type="number" min="0" wire:model="requestAmounts.{{ $request->id }}" placeholder="Montant" aria-label="Montant à payer (F)"
-                                           class="w-full h-9 px-3 rounded-lg border border-(--color-border) text-sm tabular-nums">
-                                    @error("requestAmounts.{$request->id}") <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
-                                </div>
-                                <div>
-                                    <input type="url" wire:model="requestLinks.{{ $request->id }}" placeholder="Lien de paiement Wave Business (https://…)" aria-label="Lien de paiement"
-                                           class="w-full h-9 px-3 rounded-lg border border-(--color-border) text-sm">
-                                    @error("requestLinks.{$request->id}") <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
-                                </div>
-                                <div class="flex gap-2">
-                                    <button type="submit" class="h-9 px-3 rounded-lg border border-(--color-primary) text-(--color-primary) text-xs font-semibold">Enregistrer</button>
-                                    @if ($waUrl && $request->payment_link)
-                                        <a href="{{ $waUrl }}" target="_blank" rel="noopener" class="inline-flex items-center h-9 px-3 rounded-lg bg-(--color-whatsapp) text-white text-xs font-semibold">Envoyer sur WhatsApp</a>
-                                    @endif
-                                </div>
-                            </form>
-                        </li>
+                        <x-admin.subscription-request :request="$request" />
                     @endforeach
                 </ul>
             </div>
@@ -251,6 +291,39 @@
             </div>
         </form>
     </div>
+
+    <div class="mt-6 bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden" data-testid="payment-history">
+        <div class="px-5 py-3.5 border-b border-(--color-border) flex flex-wrap items-center justify-between gap-3">
+            <span class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Paiements et demandes traitées</span>
+            @php $paidTotal = $handledRequests->filter->isPayment()->sum('amount_fcfa'); @endphp
+            @if ($paidTotal > 0)
+                <span class="text-xs text-(--color-text-secondary)">Total reçu : <span class="font-semibold tabular-nums text-(--color-text-primary)">{{ number_format($paidTotal, 0, ',', ' ') }} F</span></span>
+            @endif
+        </div>
+        @if ($handledRequests->isEmpty())
+            <div class="px-5 py-6 text-center text-sm text-(--color-text-muted)">Aucun paiement ni demande traitée pour l'instant.</div>
+        @else
+            <div class="overflow-x-auto"><table class="w-full min-w-[640px] text-sm">
+                <tbody>
+                    @foreach ($handledRequests as $handled)
+                        <tr class="border-t border-(--color-border) first:border-t-0" wire:key="handled-{{ $handled->id }}">
+                            <td class="px-5 py-3 whitespace-nowrap text-(--color-text-secondary) tabular-nums">{{ ($handled->handled_at ?? $handled->updated_at)->format('d/m/Y') }}</td>
+                            <td class="px-5 py-3">
+                                {{ $handled->label() }}
+                                @if ($handled->decline_reason) <div class="text-xs text-(--color-text-muted)">Motif : {{ $handled->decline_reason }}</div> @endif
+                            </td>
+                            <td class="px-5 py-3 whitespace-nowrap text-right tabular-nums font-semibold">{{ $handled->isPayment() ? number_format($handled->amount_fcfa, 0, ',', ' ').' F' : '—' }}</td>
+                            <td class="px-5 py-3 whitespace-nowrap text-xs font-medium {{ $handled->status === \App\Models\SubscriptionRequest::DONE ? 'text-(--color-success-text)' : 'text-(--color-error)' }}">
+                                {{ $handled->status === \App\Models\SubscriptionRequest::DONE ? 'Payé, activé' : 'Refusé' }}
+                            </td>
+                            <td class="px-5 py-3 whitespace-nowrap text-xs text-(--color-text-muted)">{{ $handled->handler?->name }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table></div>
+        @endif
+    </div>
+
     <div class="mt-6 border border-(--color-error)/30 rounded-xl p-5" x-data="{ open: false }">
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div class="max-w-xl">

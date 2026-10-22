@@ -87,6 +87,11 @@ class LandingPageTest extends TestCase
             'mentions légales' => ['/mentions-legales'],
             'cgu' => ['/conditions-generales'],
             'confidentialité' => ['/confidentialite'],
+            'guides' => ['/guides'],
+            'guide coupure' => ['/guides/pressing-coupure-internet'],
+            'guide logiciel' => ['/guides/logiciel-gestion-pressing-abidjan'],
+            'guide clients' => ['/guides/prevenir-clients-vetements-prets'],
+            'guide paiements' => ['/guides/encaisser-wave-orange-money-pressing'],
         ];
     }
 
@@ -132,7 +137,9 @@ class LandingPageTest extends TestCase
         $base = rtrim(config('app.url'), '/');
         $this->assertSame([
             $base.'/', $base.'/app/', $base.'/pour-les-clients', $base.'/pour-les-pressings', $base.'/offres',
-            $base.'/comment-ca-marche', $base.'/installer', $base.'/questions-frequentes', $base.'/contact',
+            $base.'/comment-ca-marche', $base.'/installer', $base.'/questions-frequentes', $base.'/guides',
+            $base.'/guides/logiciel-gestion-pressing-abidjan', $base.'/guides/prevenir-clients-vetements-prets',
+            $base.'/guides/encaisser-wave-orange-money-pressing', $base.'/guides/pressing-coupure-internet', $base.'/contact',
             $base.'/mentions-legales', $base.'/conditions-generales', $base.'/confidentialite',
         ], $locs);
     }

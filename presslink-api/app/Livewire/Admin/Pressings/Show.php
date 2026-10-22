@@ -3,15 +3,23 @@
 namespace App\Livewire\Admin\Pressings;
 
 use App\Actions\Auth\ResetPasswordToDefault;
+use App\Enums\ActivityAction;
 use App\Enums\Feature;
+use App\Enums\PressingRole;
 use App\Enums\PressingStatus;
 use App\Enums\SubscriptionPlan;
 use App\Enums\SubscriptionStatus;
+use App\Livewire\Concerns\HandlesSubscriptionRequests;
 use App\Livewire\Concerns\ShowsToasts;
+use App\Models\ActivityLog;
 use App\Models\Pressing;
+use App\Models\Role;
 use App\Models\Subscription;
+use App\Models\SubscriptionRequest;
+use App\Models\User;
 use App\Rules\IvorianPhone;
 use App\Support\PhoneNumber;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -23,6 +31,7 @@ use Livewire\Component;
  */
 class Show extends Component
 {
+    use HandlesSubscriptionRequests;
     use ShowsToasts;
 
     public Pressing $pressing;
@@ -45,11 +54,10 @@ class Show extends Component
     /** Commandes ajoutées au quota du mois en cours. */
     public string $extraOrders = '';
 
-    /** @var array<int, string> montant à payer de chaque demande en attente */
-    public array $requestAmounts = [];
+    /** @var array{name: string, login: string, phone: string, password: string, roleId: string} nouveau membre de l'équipe */
+    public array $newMember = ['name' => '', 'login' => '', 'phone' => '', 'password' => '', 'roleId' => ''];
 
-    /** @var array<int, string> lien de paiement (Wave Business) de chaque demande en attente */
-    public array $requestLinks = [];
+    public bool $addingMember = false;
 
     public bool $editingInfo = false;
 
@@ -221,53 +229,135 @@ class Show extends Component
         $this->extraOrders = $extra > 0 ? (string) $extra : '';
     }
 
-    /** Demande payée : on active ce qui a été demandé. */
-    public function applyRequest(int $requestId): void
+    protected function handleableRequests(): HasMany
+    {
+        return $this->pressing->subscriptionRequests();
+    }
+
+    protected function requestApplied(SubscriptionRequest $request): void
+    {
+        $this->pressing->refresh();
+        $this->fillSubscriptionFields();
+    }
+
+    // ── Prolongation en un clic ───────────────────────────────────────────
+
+    /**
+     * Geste commercial sans paiement : 7 jours d'essai de plus, ou un mois
+     * de période payée offert. Part de la date de fin si elle est encore à
+     * venir, sinon d'aujourd'hui ; l'abonnement redevient utilisable.
+     */
+    public function extend(string $what): void
     {
         abort_unless(auth()->user()->is_super_admin, 403);
+        abort_unless(in_array($what, ['trial', 'month'], true), 404);
 
-        $request = $this->pressing->subscriptionRequests()->pending()->findOrFail($requestId);
-        try {
-            $request->apply();
-        } catch (\RuntimeException $e) {
-            $this->toast($e->getMessage(), 'error');
+        $subscription = $this->pressing->subscription;
+        if ($subscription === null) {
+            $this->toast("Ce pressing n'a pas encore d'abonnement : enregistrez-en un ci-dessous.", 'error');
 
             return;
         }
 
+        if ($what === 'trial') {
+            $from = $subscription->trial_ends_at?->isFuture() ? $subscription->trial_ends_at->copy() : now();
+            $subscription->update(['status' => SubscriptionStatus::Trialing, 'trial_ends_at' => $from->addDays(7)]);
+            $message = "Essai prolongé jusqu'au ".$subscription->trial_ends_at->format('d/m/Y').'.';
+        } else {
+            $end = $subscription->current_period_ends_at;
+            $ongoing = $subscription->status === SubscriptionStatus::Active && $end?->isFuture();
+            $subscription->update([
+                'status' => SubscriptionStatus::Active,
+                'current_period_starts_at' => $ongoing ? ($subscription->current_period_starts_at ?? now()) : now(),
+                'current_period_ends_at' => ($ongoing ? $end->copy() : now())->addMonthNoOverflow(),
+            ]);
+            $message = 'Un mois offert : période payée jusqu\'au '.$subscription->current_period_ends_at->format('d/m/Y').'.';
+        }
+
+        ActivityLog::record($this->pressing->id, ActivityAction::SettingsChanged, $message.' (par l\'équipe PressLink)');
         $this->pressing->refresh();
         $this->fillSubscriptionFields();
-        $this->toast("Activé : {$request->label()}.");
+        $this->toast($message);
     }
 
-    /** Montant et lien de paiement d'une demande, montrés au pressing sur sa page Abonnement. */
-    public function savePaymentLink(int $requestId): void
+    // ── Équipe ────────────────────────────────────────────────────────────
+
+    public function addMember(): void
     {
         abort_unless(auth()->user()->is_super_admin, 403);
-        $request = $this->pressing->subscriptionRequests()->pending()->findOrFail($requestId);
+        $this->newMember['phone'] = filled($this->newMember['phone']) ? PhoneNumber::normalize($this->newMember['phone']) : '';
 
         $this->validate([
-            "requestAmounts.{$requestId}" => ['nullable', 'integer', 'min:0'],
-            "requestLinks.{$requestId}" => ['nullable', 'url:https', 'max:500'],
+            'newMember.name' => ['required', 'string', 'max:100'],
+            'newMember.login' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9._-]+$/', 'unique:users,login'],
+            'newMember.phone' => ['nullable', 'string', new IvorianPhone, 'unique:users,phone'],
+            'newMember.password' => ['required', 'string', 'min:8'],
+            'newMember.roleId' => ['required', Rule::exists('roles', 'id')->where('pressing_id', $this->pressing->id)],
         ], [
-            "requestLinks.{$requestId}.url" => 'Collez le lien complet (il commence par https://).',
+            'newMember.login.regex' => 'Lettres, chiffres, point, tiret ou tiret bas, sans espace.',
+        ], [
+            'newMember.name' => 'nom', 'newMember.login' => 'identifiant', 'newMember.phone' => 'téléphone',
+            'newMember.password' => 'mot de passe', 'newMember.roleId' => 'rôle',
         ]);
 
-        $amount = $this->requestAmounts[$requestId] ?? '';
-        $request->update([
-            'amount_fcfa' => $amount === '' ? null : (int) $amount,
-            'payment_link' => ($this->requestLinks[$requestId] ?? '') ?: null,
+        $role = $this->pressing->roles()->findOrFail((int) $this->newMember['roleId']);
+        $member = User::create([
+            'name' => $this->newMember['name'],
+            'login' => $this->newMember['login'],
+            'phone' => $this->newMember['phone'] ?: null,
+            'password' => $this->newMember['password'],
         ]);
-        $this->toast('Lien de paiement enregistré : le pressing le voit sur sa page Abonnement.');
+        $this->pressing->staff()->attach($member, [
+            'role' => $role->isOwner() ? PressingRole::Admin->value : PressingRole::Employee->value,
+            'role_id' => $role->id,
+            'is_active' => true,
+        ]);
+
+        ActivityLog::record($this->pressing->id, ActivityAction::TeamChanged, "{$member->name} ajouté à l'équipe comme « {$role->name} » (identifiant {$member->login}, par l'équipe PressLink)");
+        $this->reset('newMember', 'addingMember');
+        $this->toast("{$member->name} ajouté à l'équipe. Transmettez-lui son identifiant et son mot de passe.");
     }
 
-    public function declineRequest(int $requestId): void
+    public function changeMemberRole(int $userId, int $roleId): void
     {
         abort_unless(auth()->user()->is_super_admin, 403);
+        $member = $this->pressing->staff()->whereKey($userId)->firstOrFail();
+        $role = $this->pressing->roles()->findOrFail($roleId);
 
-        $request = $this->pressing->subscriptionRequests()->pending()->findOrFail($requestId);
-        $request->decline();
-        $this->toast('Demande refusée.');
+        if ($member->pivot->role === PressingRole::Admin && ! $role->isOwner() && $member->pivot->is_active && $this->activeOwnersCount() <= 1) {
+            $this->toast('Le pressing doit garder au moins un propriétaire actif.', 'error');
+
+            return;
+        }
+
+        $this->pressing->staff()->updateExistingPivot($member->id, [
+            'role' => $role->isOwner() ? PressingRole::Admin->value : PressingRole::Employee->value,
+            'role_id' => $role->id,
+        ]);
+        ActivityLog::record($this->pressing->id, ActivityAction::TeamChanged, "Rôle de {$member->name} : « {$role->name} » (par l'équipe PressLink)");
+        $this->toast("{$member->name} est maintenant « {$role->name} ».");
+    }
+
+    /** Retire un membre (accès coupé, compte gardé) ou le réintègre. */
+    public function toggleMember(int $userId): void
+    {
+        abort_unless(auth()->user()->is_super_admin, 403);
+        $member = $this->pressing->staff()->whereKey($userId)->firstOrFail();
+
+        if ($member->pivot->is_active && $member->pivot->role === PressingRole::Admin && $this->activeOwnersCount() <= 1) {
+            $this->toast('Impossible de retirer le dernier propriétaire actif.', 'error');
+
+            return;
+        }
+
+        $this->pressing->staff()->updateExistingPivot($member->id, ['is_active' => ! $member->pivot->is_active]);
+        ActivityLog::record($this->pressing->id, ActivityAction::TeamChanged, ($member->pivot->is_active ? "{$member->name} retiré de l'équipe" : "{$member->name} réintégré dans l'équipe").' (par l\'équipe PressLink)');
+        $this->toast($member->pivot->is_active ? "{$member->name} est retiré : son accès est coupé." : "{$member->name} a retrouvé l'accès au pressing.", $member->pivot->is_active ? 'warning' : 'success');
+    }
+
+    private function activeOwnersCount(): int
+    {
+        return $this->pressing->admins()->wherePivot('is_active', true)->count();
     }
 
     #[Layout('layouts.admin', ['active' => 'pressings', 'title' => 'Pressing'])]
@@ -275,15 +365,28 @@ class Show extends Component
     {
         $this->pressing->loadCount(['staff', 'customers', 'orders', 'services']);
 
-        $pendingRequests = $this->pressing->subscriptionRequests()->pending()->with('requester')->latest()->get();
-        foreach ($pendingRequests as $request) {
-            $this->requestAmounts[$request->id] ??= $request->amount_fcfa !== null ? (string) $request->amount_fcfa : '';
-            $this->requestLinks[$request->id] ??= (string) $request->payment_link;
+        $pendingRequests = $this->pressing->subscriptionRequests()->pending()->with(['requester', 'pressing'])->latest()->get();
+        $this->fillRequestFields($pendingRequests);
+
+        $staff = $this->pressing->staff()->orderByDesc('pressing_users.created_at')->get();
+        $roles = $this->pressing->roles()->get();
+        if ($this->newMember['roleId'] === '') {
+            $this->newMember['roleId'] = (string) $this->pressing->defaultRole(Role::EMPLOYEE)->id;
         }
 
         return view('livewire.admin.pressings.show', [
-            'staff' => $this->pressing->staff()->orderByDesc('pressing_users.created_at')->get(),
+            'staff' => $staff,
+            'roles' => $roles,
+            'memberRoleIds' => $staff->mapWithKeys(fn (User $member) => [$member->id => $member->pivot->role_id
+                ?? $this->pressing->defaultRole($member->pivot->role === PressingRole::Admin ? Role::OWNER : Role::EMPLOYEE)->id]),
             'pendingRequests' => $pendingRequests,
+            // Demandes traitées : paiements reçus et refus, du plus récent au plus ancien.
+            'handledRequests' => $this->pressing->subscriptionRequests()
+                ->where('status', '!=', SubscriptionRequest::PENDING)
+                ->with('handler')
+                ->latest('handled_at')
+                ->take(30)
+                ->get(),
         ]);
     }
 }

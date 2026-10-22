@@ -16,9 +16,9 @@
         <a href="#contenu" class="skip-link">Aller au contenu</a>
         @php
             $user = auth()->user();
-            $navItem = fn (string $key, string $route, string $label, string $icon) => [
+            $navItem = fn (string $key, string $route, string $label, string $icon, int $badge = 0) => [
                 'key' => $key, 'route' => $route, 'label' => $label, 'icon' => $icon,
-                'active' => ($active ?? null) === $key,
+                'active' => ($active ?? null) === $key, 'badge' => $badge,
             ];
             $navItems = [
                 $navItem('dashboard', 'admin.dashboard', 'Vue globale', 'M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z|M9 21v-6h6v6'),
@@ -27,8 +27,10 @@
                 $navItem('clients', 'admin.clients.index', 'Clients', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M9 11A4 4 0 1 0 9 3a4 4 0 0 0 0 8Z'),
                 $navItem('administrators', 'admin.administrators.index', 'Administrateurs', 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2|M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z|M22 21v-2a4 4 0 0 0-3-3.87|M16 3.13a4 4 0 0 1 0 7.75'),
                 $navItem('users', 'admin.users.index', 'Liste des utilisateurs', 'M8 6h13|M8 12h13|M8 18h13|M3 6h.01|M3 12h.01|M3 18h.01'),
+                $navItem('requests', 'admin.requests.index', 'Demandes et paiements', 'M2 7h20v12H2Z|M2 11h20|M6 15h4', \App\Models\SubscriptionRequest::pending()->count()),
                 $navItem('plans', 'admin.plans.index', 'Formules et prix', 'M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z|M7 7h.01'),
                 $navItem('roles', 'admin.roles.index', 'Rôles et accès', 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z|m9 12 2 2 4-4'),
+                $navItem('site', 'admin.site.index', 'Site vitrine', 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z|M2 12h20|M12 2a15 15 0 0 1 0 20|M12 2a15 15 0 0 0 0 20'),
                 $navItem('services', 'admin.services.index', 'Services', 'M8 8m-6 0a6 6 0 1 0 12 0a6 6 0 1 0-12 0|M18.09 10.37A6 6 0 1 1 10.34 18'),
             ];
         @endphp
@@ -61,6 +63,9 @@
                                 @endforeach
                             </svg>
                             <span class="truncate">{{ $item['label'] }}</span>
+                            @if ($item['badge'] > 0)
+                                <span class="ml-auto mr-3 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-amber-400 text-slate-900 text-[11px] font-bold tabular-nums" aria-label="{{ $item['badge'] }} à traiter">{{ $item['badge'] }}</span>
+                            @endif
                         </a>
                     @endforeach
                 </nav>

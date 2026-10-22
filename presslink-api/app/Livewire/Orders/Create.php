@@ -18,6 +18,7 @@ use App\Support\ReceiptLinks;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use RuntimeException;
 
@@ -52,6 +53,7 @@ class Create extends Component
      * montre le nom connu et le staff confirme qu'il s'agit bien de son
      * client, ce qui rattrape aussi une erreur de saisie du numéro.
      */
+    #[Locked]
     public ?int $knownCustomerId = null;
 
     public string $knownCustomerName = '';
@@ -199,6 +201,7 @@ class Create extends Component
     public function createAndPickCustomer(): void
     {
         $pressing = $this->pressing();
+        abort_unless(auth()->user()->may(Permission::OrdersCreate, $pressing), 403);
 
         if (! $pressing->acceptsCustomers()) {
             $this->addError('newPhone', $pressing->closedMessage());
@@ -249,13 +252,16 @@ class Create extends Component
     /** « Oui, c'est mon client » : rattaché au pressing avec le nom déjà connu. */
     public function confirmKnownCustomer(): void
     {
+        abort_unless(auth()->user()->may(Permission::OrdersCreate, $this->pressing()), 403);
+
         if (! $this->pressing()->acceptsCustomers()) {
             $this->addError('newPhone', $this->pressing()->closedMessage());
 
             return;
         }
 
-        $customer = Customer::findOrFail($this->knownCustomerId);
+        // Le client confirmé doit être celui du numéro saisi (jamais un autre id).
+        $customer = Customer::whereKey($this->knownCustomerId)->where('phone', PhoneNumber::normalize($this->newPhone))->firstOrFail();
         $this->pressing()->customers()->syncWithoutDetaching([$customer->id => ['joined_at' => now()]]);
 
         $this->pickCreatedCustomer($customer);

@@ -7,6 +7,8 @@ use App\Models\ActivityLog;
 use App\Models\User;
 use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -30,6 +32,15 @@ class Login extends Component
             'password' => ['required', 'string'],
         ]);
 
+        // Pas d'essais de mots de passe à la chaîne : 5 par minute pour un
+        // identifiant depuis une même adresse.
+        $throttleKey = 'connexion:'.Str::lower(trim($this->login)).'|'.request()->ip();
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            throw ValidationException::withMessages([
+                'login' => 'Trop de tentatives. Réessayez dans '.RateLimiter::availableIn($throttleKey).' secondes.',
+            ]);
+        }
+
         $field = match (true) {
             str_contains($this->login, '@') => 'email',
             User::where('login', $this->login)->exists() => 'login',
@@ -39,6 +50,8 @@ class Login extends Component
         $identifier = $field === 'phone' ? PhoneNumber::normalize($this->login) : $this->login;
 
         if (! Auth::attempt([$field => $identifier, 'password' => $this->password], $this->remember)) {
+            RateLimiter::hit($throttleKey, 60);
+
             throw ValidationException::withMessages([
                 'login' => 'Identifiants incorrects.',
             ]);
@@ -52,6 +65,7 @@ class Login extends Component
             ]);
         }
 
+        RateLimiter::clear($throttleKey);
         session()->regenerate();
 
         // Journal de chaque pressing du membre : qui s'est connecté, et quand.

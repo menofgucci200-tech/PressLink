@@ -8,6 +8,7 @@ use App\Livewire\Concerns\ShowsToasts;
 use App\Livewire\Group\Concerns\InteractsWithGroup;
 use App\Models\ActivityLog;
 use App\Models\Pressing;
+use App\Models\Role;
 use App\Models\User;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -54,15 +55,26 @@ class Team extends Component
             return;
         }
 
-        $alreadyActiveWithRole = $current && $current->is_active && $current->role === $target;
+        // Le rôle détaillé (role_id) décide des accès : il suit toujours le choix fait ici.
+        $roleId = $pressing->defaultRole($target === PressingRole::Admin ? Role::OWNER : Role::EMPLOYEE)->id;
+
+        $alreadyActiveWithRole = $current && $current->is_active && $current->role === $target && (int) $current->role_id === $roleId;
         if ($alreadyActiveWithRole) {
             return;
         }
 
+        // Le pressing garde toujours au moins un propriétaire actif.
+        if ($target !== PressingRole::Admin && $current?->is_active && $current->role === PressingRole::Admin
+            && $pressing->admins()->wherePivot('is_active', true)->count() <= 1) {
+            $this->toast("{$pressing->name} doit garder au moins un propriétaire actif.", 'error');
+
+            return;
+        }
+
         if ($current) {
-            $pressing->staff()->updateExistingPivot($member->id, ['role' => $target->value, 'is_active' => true]);
+            $pressing->staff()->updateExistingPivot($member->id, ['role' => $target->value, 'role_id' => $roleId, 'is_active' => true]);
         } else {
-            $pressing->staff()->attach($member->id, ['role' => $target->value, 'is_active' => true]);
+            $pressing->staff()->attach($member->id, ['role' => $target->value, 'role_id' => $roleId, 'is_active' => true]);
         }
 
         ActivityLog::record($pressing->id, ActivityAction::TeamChanged, "{$member->name} : {$target->label()}");

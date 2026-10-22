@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Pressing;
 use Illuminate\Support\Str;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
@@ -21,7 +22,8 @@ class CommandPalette extends Component
 {
     public string $query = '';
 
-    /** Console Super Admin (sinon : espace pressing). */
+    /** Console Super Admin (sinon : espace pressing). Verrouillé : jamais modifiable depuis le navigateur. */
+    #[Locked]
     public bool $admin = false;
 
     public function mount(bool $admin = false): void
@@ -36,6 +38,8 @@ class CommandPalette extends Component
     {
         $term = trim($this->query);
         $groups = [];
+        // Revérifié à chaque requête : seule la console Super Admin cherche sur toute la plateforme.
+        $this->admin = $this->admin && (bool) auth()->user()?->is_super_admin;
 
         if (mb_strlen($term) >= 2) {
             $groups = $this->admin ? $this->adminSearch($term) : $this->pressingSearch($term);

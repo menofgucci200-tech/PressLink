@@ -9,6 +9,7 @@ use App\Rules\IvorianPhone;
 use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -42,6 +43,8 @@ class Index extends Component
     public ?string $errorMessage = null;
 
     /** Numéro déjà enregistré ailleurs : nom connu, à confirmer par le staff. */
+    /** Rempli par le serveur seulement (numéro déjà connu) : jamais modifiable depuis le navigateur. */
+    #[Locked]
     public ?int $knownCustomerId = null;
 
     public string $knownCustomerName = '';
@@ -116,7 +119,8 @@ class Index extends Component
     /** « Oui, c'est mon client » : ajouté au fichier avec le nom déjà connu. */
     public function confirmKnownCustomer(): void
     {
-        $customer = Customer::findOrFail($this->knownCustomerId);
+        // Le client confirmé doit être celui du numéro saisi (jamais un autre id).
+        $customer = Customer::whereKey($this->knownCustomerId)->where('phone', PhoneNumber::normalize($this->phone))->firstOrFail();
         $pressing = auth()->user()->currentPressing();
         abort_unless(auth()->user()->may(Permission::OrdersCreate, $pressing), 403);
 

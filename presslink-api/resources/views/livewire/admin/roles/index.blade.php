@@ -91,7 +91,7 @@
                             <td class="px-4 py-3 text-(--color-text-secondary)">
                                 {{ $role->isOwner() ? 'Tous les accès' : count($role->permissionValues()).' accès' }}
                             </td>
-                            <td class="px-4 py-3 tabular-nums">{{ $role->memberships_count }}</td>
+                            <td class="px-4 py-3 tabular-nums">{{ collect($memberRoleIds)->filter(fn ($id) => (int) $id === $role->id)->count() }}</td>
                             <td class="px-4 py-3 text-right whitespace-nowrap">
                                 @unless ($role->isOwner())
                                     <button type="button" wire:click="editRole({{ $role->id }})" class="text-xs font-semibold text-(--color-primary) hover:underline">Modifier les accès</button>
@@ -112,7 +112,7 @@
         @else
             <div class="bg-(--color-surface) border border-(--color-border) rounded-xl divide-y divide-(--color-border)">
                 @foreach ($members as $member)
-                    <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3" wire:key="member-{{ $member->id }}">
+                    <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3" wire:key="member-{{ $member->id }}-{{ $memberRoleIds[$member->id] }}-{{ $refusals }}">
                         <div class="min-w-0">
                             <div class="font-medium text-sm">{{ $member->name }}</div>
                             <div class="text-xs text-(--color-text-muted)">{{ $member->login }} @unless ($member->pivot->is_active) · inactif @endunless</div>

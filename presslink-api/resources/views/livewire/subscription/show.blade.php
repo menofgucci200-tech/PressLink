@@ -26,6 +26,9 @@
                     @if ($subscription->status === \App\Enums\SubscriptionStatus::Trialing && $subscription->trial_ends_at?->isPast())
                         Votre période d'essai s'est terminée le {{ $subscription->trial_ends_at->format('d/m/Y') }}.
                         Contactez PressLink pour choisir votre formule.
+                    @elseif ($subscription->periodEnded())
+                        Votre période payée s'est terminée le {{ $subscription->current_period_ends_at->format('d/m/Y') }}.
+                        <a href="#renouveler" class="font-semibold underline">Renouveler mon abonnement</a>
                     @elseif ($subscription->hasReachedOrdersLimit())
                         Les {{ number_format($subscription->ordersLimitThisMonth(), 0, ',', ' ') }} commandes de ce mois sont utilisées. Le compteur repart à zéro le {{ $nextReset }}.
                         <a href="#commandes-en-plus" class="font-semibold underline">Ajouter des commandes ce mois-ci</a>
@@ -33,6 +36,14 @@
                         Votre abonnement est {{ mb_strtolower($subscription->status->label()) }}. Contactez PressLink pour le renouveler.
                     @endif
                 </p>
+            </div>
+        @endif
+
+        @if ($subscription->periodEnded() && $subscription->allowsNewOrder())
+            <div class="mb-5 p-4 rounded-lg bg-(--color-warning-tint) text-(--color-warning-text) text-sm">
+                <span class="font-semibold">Votre période payée s'est terminée le {{ $subscription->current_period_ends_at->format('d/m/Y') }}.</span>
+                Renouvelez votre abonnement pour continuer sans interruption.
+                <a href="#renouveler" class="font-semibold underline">Renouveler</a>
             </div>
         @endif
 

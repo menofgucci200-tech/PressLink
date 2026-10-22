@@ -30,6 +30,9 @@ class Index extends Component
     /** Offre de lancement affichée avec les formules (vide = aucune). */
     public string $launchOffer = '';
 
+    /** Bloquer les nouvelles commandes après la fin de la période payée (+ délai de grâce). */
+    public bool $blockAfterPeriodEnd = false;
+
     /** @var array<string, string> fonction => prix mensuel de l'option */
     public array $optionPrices = [];
 
@@ -58,6 +61,7 @@ class Index extends Component
 
         $this->trialDays = (string) Subscription::trialDays();
         $this->launchOffer = (string) PlanCatalog::launchOffer();
+        $this->blockAfterPeriodEnd = Subscription::blocksAfterPeriodEnd();
         foreach (Feature::cases() as $feature) {
             $this->optionPrices[$feature->value] = $text($feature->priceFcfa());
         }
@@ -87,6 +91,7 @@ class Index extends Component
             'plans.*.features.*' => [Rule::enum(Feature::class)],
             'trialDays' => ['required', 'integer', 'min:0', 'max:365'],
             'launchOffer' => ['nullable', 'string', 'max:200'],
+            'blockAfterPeriodEnd' => ['boolean'],
             'optionPrices.*' => ['nullable', 'integer', 'min:0'],
             'orderPacks' => ['array'],
             'orderPacks.*.count' => ['required', 'integer', 'min:1', 'distinct'],
@@ -107,6 +112,7 @@ class Index extends Component
         ]])->all());
         Setting::write('trial_days', (int) $this->trialDays);
         Setting::write('launch_offer', trim($this->launchOffer));
+        Setting::write('block_after_period_end', $this->blockAfterPeriodEnd);
         Setting::write('option_prices', array_map($number, $this->optionPrices));
         Setting::write('order_packs', collect($this->orderPacks)
             ->map(fn (array $pack) => ['count' => (int) $pack['count'], 'price' => $number($pack['price'])])

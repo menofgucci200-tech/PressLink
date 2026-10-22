@@ -227,7 +227,13 @@ class Show extends Component
         abort_unless(auth()->user()->is_super_admin, 403);
 
         $request = $this->pressing->subscriptionRequests()->pending()->findOrFail($requestId);
-        $request->apply();
+        try {
+            $request->apply();
+        } catch (\RuntimeException $e) {
+            $this->toast($e->getMessage(), 'error');
+
+            return;
+        }
 
         $this->pressing->refresh();
         $this->fillSubscriptionFields();

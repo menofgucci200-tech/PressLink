@@ -59,7 +59,13 @@
 
                 <label class="{{ $label }} mt-4" for="launch-offer">Offre de lancement (vide = aucune)</label>
                 <textarea id="launch-offer" rows="3" wire:model="launchOffer" class="w-full px-3 py-2 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm focus:outline-none focus:border-(--color-primary)"></textarea>
-                <p class="text-[11px] text-(--color-text-muted) mt-1">Affichée sur la page Tarifs du site et la page Formules des pressings.</p>
+                <p class="text-[11px] text-(--color-text-muted) mt-1">Affichée sur la page Nos offres du site et la page Formules des pressings.</p>
+
+                <label class="mt-4 flex items-start gap-2.5 text-sm cursor-pointer">
+                    <input type="checkbox" wire:model="blockAfterPeriodEnd" class="mt-0.5 w-4 h-4 rounded border-(--color-border) accent-(--color-primary)">
+                    <span>Bloquer les nouvelles commandes {{ \App\Models\Subscription::PERIOD_GRACE_DAYS }} jours après la fin de la période payée
+                        <span class="block text-[11px] text-(--color-text-muted)">Vérifiez d'abord les dates de fin des pressings actifs (tableau de bord : « Périodes payées terminées »).</span></span>
+                </label>
                 @error('launchOffer') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
 

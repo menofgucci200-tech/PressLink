@@ -309,6 +309,13 @@ class Dashboard extends Component
                     || ($s->status === SubscriptionStatus::Trialing && $s->trial_ends_at?->isPast()))),
             ],
             [
+                'key' => 'period-ended',
+                'label' => 'Périodes payées terminées',
+                'hint' => 'Abonnement actif dont la période payée est finie : à renouveler (lien de paiement), ou à corriger sur la fiche du pressing.',
+                'tone' => 'warning',
+                'pressings' => $pressingsOf($live->filter(fn (Subscription $s) => $s->periodEnded())),
+            ],
+            [
                 'key' => 'trial-ending',
                 'label' => 'Essais qui se terminent',
                 'hint' => 'Fin d\'essai dans les '.self::TRIAL_ENDING_WITHIN_DAYS.' prochains jours : le moment de proposer une formule.',
@@ -321,8 +328,8 @@ class Dashboard extends Component
                 'label' => 'Quota de commandes presque atteint',
                 'hint' => 'Au moins '.(int) (self::QUOTA_ALERT_RATIO * 100).' % du quota du mois utilisé : proposer la formule supérieure.',
                 'tone' => 'warning',
-                'pressings' => $pressingsOf($live->filter(fn (Subscription $s) => $s->orders_limit
-                    && $s->ordersUsedThisMonth() >= $s->orders_limit * self::QUOTA_ALERT_RATIO)),
+                'pressings' => $pressingsOf($live->filter(fn (Subscription $s) => $s->ordersLimitThisMonth()
+                    && $s->ordersUsedThisMonth() >= $s->ordersLimitThisMonth() * self::QUOTA_ALERT_RATIO)),
             ],
             [
                 'key' => 'dormant',

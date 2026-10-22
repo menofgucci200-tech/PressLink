@@ -41,6 +41,9 @@ class Index extends Component
 
     public ?string $errorMessage = null;
 
+    /** Changement de rôle refusé : redessine le menu sur le rôle actuel. */
+    public int $refusals = 0;
+
     public function mount(): void
     {
         abort_unless(auth()->user()->is_super_admin, 403);
@@ -180,6 +183,7 @@ class Index extends Component
         $activeOwners = $pressing->admins()->wherePivot('is_active', true)->count();
         if ($isOwnerNow && ! $role->isOwner() && $member->pivot->is_active && $activeOwners <= 1) {
             $this->errorMessage = 'Le pressing doit garder au moins un propriétaire actif.';
+            $this->refusals++;
 
             return;
         }

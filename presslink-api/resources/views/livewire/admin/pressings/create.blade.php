@@ -75,7 +75,7 @@
                     @error('address') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                 </div>
                 <p class="sm:col-span-2 text-xs text-(--color-text-muted)">
-                    Un abonnement d'essai de 14 jours (plan Starter) est créé automatiquement. L'administrateur se crée ensuite depuis le menu Administrateurs.
+                    Un abonnement d'essai de {{ \App\Models\Subscription::trialDays() }} jours (plan Starter, toutes les fonctions ouvertes) est créé automatiquement. L'administrateur se crée ensuite depuis le menu Administrateurs.
                 </p>
             </div>
 
@@ -158,7 +158,7 @@
                 </div>
 
                 <p class="text-xs text-(--color-text-muted) mt-3">
-                    Un abonnement d'essai de 14 jours (plan Starter) est créé automatiquement pour chaque pressing.
+                    Un abonnement d'essai de {{ \App\Models\Subscription::trialDays() }} jours (plan Starter, toutes les fonctions ouvertes) est créé automatiquement pour chaque pressing.
                 </p>
             </div>
 

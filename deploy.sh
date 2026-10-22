@@ -99,8 +99,12 @@ deploy_backend() {
   # (fichiers de logs, uploads clients, etc. ne sont de toute façon pas
   # dans ces dossiers locaux, mais mieux vaut rester prudent sur un
   # hébergement partagé sans accès shell pour vérifier les dégâts).
+  # Pas de --ignore-time ici : comparer seulement les tailles laissait sur le
+  # serveur l'ancienne version d'un fichier modifié qui gardait la même
+  # taille (vu le 22/10 : resources/views/site/pricing.blade.php, 6 040 octets
+  # avant et après). La date est donc comparée aussi.
   lftp_run "
-    mirror --reverse --verbose --parallel=3 --ignore-time \
+    mirror --reverse --verbose --parallel=3 \
       --exclude-glob .env \
       --exclude-glob .env.* \
       --exclude-glob .git/ \
@@ -115,6 +119,12 @@ deploy_backend() {
       --exclude .DS_Store \
       '$API_DIR' '$REMOTE_API_DIR';
   "
+
+  log "Backend — vues Blade compilées effacées (recompilées à la prochaine visite)"
+  # Une vue envoyée garde la date du fichier local : si elle est plus ancienne
+  # que la version déjà compilée sur le serveur, Laravel servirait l'ancienne.
+  # (Aucune vue compilée = rien à effacer : ce n'est pas une erreur.)
+  lftp_run "glob rm -f $REMOTE_API_DIR/storage/framework/views/*.php;" || warn "Aucune vue compilée à effacer."
 
   log "Backend — copie des assets buildés vers le webroot ($REMOTE_WEBROOT/build)"
   # index.php est servi depuis $REMOTE_WEBROOT, séparé de presslink-api/public

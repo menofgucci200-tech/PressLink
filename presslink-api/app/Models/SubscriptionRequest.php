@@ -8,6 +8,8 @@ use App\Enums\SubscriptionStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 /**
  * Demande faite par un pressing depuis sa page Abonnement : une option (une
@@ -62,7 +64,8 @@ class SubscriptionRequest extends Model
     {
         $packs = Setting::read('order_packs');
 
-        if (! is_array($packs) || $packs === []) {
+        // Jamais réglé : paquets par défaut. Réglé à vide : aucun paquet proposé.
+        if (! is_array($packs)) {
             return array_map(fn (array $pack) => ['count' => $pack[0], 'price' => $pack[1]], self::DEFAULT_ORDER_PACKS);
         }
 
@@ -104,37 +107,75 @@ class SubscriptionRequest extends Model
     }
 
     /** Active ce qui a été demandé sur l'abonnement du pressing (après paiement). */
+    /**
+     * Active ce qui a été demandé sur l'abonnement du pressing (après paiement).
+     * Une seule fois : un double clic ou un second onglet ne l'applique pas deux fois.
+     *
+     * @throws RuntimeException demande déjà traitée, ou renouvellement d'une formule qui a changé depuis
+     */
     public function apply(): void
     {
-        $subscription = $this->pressing->subscription;
+        DB::transaction(function () {
+            $locked = self::whereKey($this->id)->lockForUpdate()->first();
+            if ($locked === null || ! $locked->isPending()) {
+                throw new RuntimeException('Cette demande a déjà été traitée.');
+            }
 
-        if ($subscription !== null) {
-            match ($this->kind) {
-                self::KIND_OPTION => $subscription->addAddon($this->feature),
-                self::KIND_ORDERS => $subscription->addExtraOrders((int) $this->extra_orders),
-                self::KIND_PLAN => $subscription->update(['plan' => $this->plan, 'orders_limit' => $this->plan->ordersLimit()]),
-                self::KIND_RENEWAL => $this->renew($subscription),
-            };
-        }
+            $subscription = $this->pressing->subscription;
 
-        $this->update(['status' => self::DONE, 'handled_at' => now()]);
+            if ($subscription !== null) {
+                match ($this->kind) {
+                    // Déjà incluse dans la formule (changée entre-temps) : rien à ajouter.
+                    self::KIND_OPTION => $subscription->plan->includes($this->feature) ? null : $subscription->addAddon($this->feature),
+                    self::KIND_ORDERS => $subscription->addExtraOrders((int) $this->extra_orders),
+                    self::KIND_PLAN => $this->changePlan($subscription),
+                    self::KIND_RENEWAL => $this->renew($subscription),
+                };
+            }
+
+            $locked->update(['status' => self::DONE, 'handled_at' => now()]);
+        });
+
+        $this->refresh();
     }
 
     /**
-     * Abonnement payé pour un mois (ou un an) de plus : la période repart de
-     * la fin de la période en cours si elle n'est pas finie, sinon d'aujourd'hui.
+     * Nouvelle formule payée : elle s'applique tout de suite, pour la durée
+     * payée (un mois ou un an à partir d'aujourd'hui), et l'abonnement est actif
+     * (même s'il était en essai ou expiré).
      */
+    private function changePlan(Subscription $subscription): void
+    {
+        $subscription->update(['plan' => $this->plan, 'orders_limit' => $this->plan->ordersLimit()]);
+        $this->openPaidPeriod($subscription, extend: false);
+    }
+
+    /** Abonnement payé pour un mois (ou un an) de plus, sur la même formule. */
     private function renew(Subscription $subscription): void
     {
-        $end = $subscription->current_period_ends_at;
-        $start = ($end !== null && $end->isFuture() && $subscription->status === SubscriptionStatus::Active) ? $end : now();
+        if ($this->plan !== null && $subscription->plan !== $this->plan) {
+            throw new RuntimeException("La formule a changé depuis cette demande ({$this->plan->label()} → {$subscription->plan->label()}) : refusez-la et demandez au pressing d'en refaire une.");
+        }
+
+        $this->openPaidPeriod($subscription, extend: true);
+    }
+
+    /**
+     * Période payée. En prolongation d'une période active pas encore finie, la
+     * fin est repoussée d'un mois (ou d'un an) ; sinon la période part d'aujourd'hui.
+     */
+    private function openPaidPeriod(Subscription $subscription, bool $extend): void
+    {
         $annual = $this->cycle === self::ANNUAL;
+        $end = $subscription->current_period_ends_at;
+        $ongoing = $extend && $subscription->status === SubscriptionStatus::Active && $end !== null && $end->isFuture();
+        $from = $ongoing ? $end->copy() : now();
 
         $subscription->update([
             'status' => SubscriptionStatus::Active,
             'billing_cycle' => $annual ? self::ANNUAL : self::MONTHLY,
-            'current_period_starts_at' => $start,
-            'current_period_ends_at' => $annual ? $start->copy()->addYear() : $start->copy()->addMonthNoOverflow(),
+            'current_period_starts_at' => $ongoing ? ($subscription->current_period_starts_at ?? now()) : now(),
+            'current_period_ends_at' => $annual ? $from->addYear() : $from->addMonthNoOverflow(),
         ]);
     }
 

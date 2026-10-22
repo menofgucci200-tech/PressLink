@@ -111,8 +111,8 @@
                     @foreach ($staff as $member)
                         <tr class="border-t border-(--color-border) first:border-t-0 hover:bg-(--color-bg)">
                             <td class="px-5 py-3 font-medium">{{ $member->name }}</td>
-                            <td class="px-5 py-3 text-(--color-text-secondary)">{{ $member->email }}</td>
-                            <td class="px-5 py-3">{{ $member->pivot->role->label() }}</td>
+                            <td class="px-5 py-3 text-(--color-text-secondary)">{{ $member->login ?: ($member->email ?: \App\Support\PhoneNumber::format($member->phone)) }}</td>
+                            <td class="px-5 py-3">{{ $member->roleLabelIn($pressing) }}</td>
                             <td class="px-5 py-3 text-xs font-medium {{ $member->pivot->is_active ? 'text-(--color-success-text)' : 'text-(--color-text-muted)' }}">
                                 {{ $member->pivot->is_active ? 'Actif' : 'Retiré' }}
                             </td>

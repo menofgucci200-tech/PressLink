@@ -152,7 +152,31 @@ class Subscription extends Model
             return false;
         }
 
+        // Période payée terminée (et délai de grâce passé) : bloqué seulement si
+        // le Super Admin l'a activé (Formules et prix), une fois les dates vérifiées.
+        if ($this->periodEnded() && self::blocksAfterPeriodEnd()
+            && $this->current_period_ends_at->copy()->addDays(self::PERIOD_GRACE_DAYS)->isPast()) {
+            return false;
+        }
+
         return true;
+    }
+
+    /** Jours laissés après la fin de la période payée, avant blocage. */
+    public const PERIOD_GRACE_DAYS = 3;
+
+    /** Abonnement actif dont la période payée est terminée (à renouveler). */
+    public function periodEnded(): bool
+    {
+        return $this->status === SubscriptionStatus::Active
+            && $this->current_period_ends_at !== null
+            && $this->current_period_ends_at->isPast();
+    }
+
+    /** Réglage du Super Admin : bloquer les nouvelles commandes après la fin de la période payée. */
+    public static function blocksAfterPeriodEnd(): bool
+    {
+        return (bool) Setting::read('block_after_period_end', false);
     }
 
     /** Commandes créées ce mois-ci (0 si le compteur date d'un mois précédent). */

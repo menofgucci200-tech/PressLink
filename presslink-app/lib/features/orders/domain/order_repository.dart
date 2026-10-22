@@ -96,6 +96,16 @@ IssueCategory _categoryFromApi(String value) => switch (value) {
   _ => IssueCategory.other,
 };
 
+enum IssueReport { sent, queued, alreadyQueued }
+
+/// Signalement fait hors connexion, en attente d'envoi.
+class PendingIssue {
+  const PendingIssue({required this.category, this.description});
+
+  final IssueCategory category;
+  final String? description;
+}
+
 class OrderIssueModel {
   const OrderIssueModel({
     required this.id,
@@ -273,7 +283,9 @@ class OrderRepository {
 
   /// Envoie le signalement. Hors connexion, il est gardé dans le téléphone
   /// et part au retour de la connexion : renvoie alors `false`.
-  Future<bool> reportIssue({
+  /// Envoyé tout de suite, gardé pour plus tard (hors connexion), ou déjà
+  /// gardé (le client l'avait refait).
+  Future<IssueReport> reportIssue({
     required int orderId,
     required IssueCategory category,
     String? description,
@@ -283,17 +295,28 @@ class OrderRepository {
         '/orders/$orderId/issues',
         data: {'category': category.value, 'description': description},
       );
-      return true;
+      return IssueReport.sent;
     } catch (error) {
       if (!ApiClient.isConnectionError(error)) rethrow;
-      await _apiClient.queueIssue({
+      final queued = await _apiClient.queueIssue({
         'order_id': orderId,
         'category': category.value,
         'description': description,
       });
-      return false;
+      return queued ? IssueReport.queued : IssueReport.alreadyQueued;
     }
   }
+
+  /// Signalements de cette commande faits hors connexion, pas encore partis.
+  Future<List<PendingIssue>> pendingIssues(int orderId) async =>
+      (await _apiClient.pendingIssuesFor(orderId))
+          .map(
+            (issue) => PendingIssue(
+              category: _categoryFromApi(issue['category'] as String),
+              description: issue['description'] as String?,
+            ),
+          )
+          .toList();
 
   static String errorMessage(Object error) => apiErrorMessage(error);
 }

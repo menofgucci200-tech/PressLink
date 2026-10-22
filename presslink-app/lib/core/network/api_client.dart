@@ -158,39 +158,72 @@ class ApiClient {
   }
 
   /// Signalement fait hors connexion : gardé, puis envoyé dès que le
-  /// serveur répond de nouveau.
-  Future<void> queueIssue(Map<String, dynamic> issue) async {
+  /// serveur répond de nouveau. Le même signalement (même commande, même
+  /// problème, même texte) n'est gardé qu'une fois : false s'il l'était déjà.
+  Future<bool> queueIssue(Map<String, dynamic> issue) async {
     final pending = await offlineStore.pendingIssues();
-    await offlineStore.savePendingIssues([...pending, issue]);
+    final alreadyQueued = pending.any(
+      (p) =>
+          p['order_id'] == issue['order_id'] &&
+          p['category'] == issue['category'] &&
+          p['description'] == issue['description'],
+    );
+    if (alreadyQueued) return false;
+    await offlineStore.savePendingIssues([
+      ...pending,
+      {...issue, 'queued_at': DateTime.now().toIso8601String()},
+    ]);
+    return true;
   }
 
-  bool _sending = false;
+  /// Signalements de cette commande pas encore partis (hors connexion).
+  Future<List<Map<String, dynamic>>> pendingIssuesFor(int orderId) async =>
+      (await offlineStore.pendingIssues())
+          .where((issue) => issue['order_id'] == orderId)
+          .toList();
 
-  Future<void> _sendPendingIssues() async {
-    if (_sending) return;
-    _sending = true;
-    try {
-      final pending = await offlineStore.pendingIssues();
-      if (pending.isEmpty) return;
-      final left = <Map<String, dynamic>>[];
-      for (final issue in pending) {
-        try {
-          await dio.post(
-            '/orders/${issue['order_id']}/issues',
-            data: {
-              'category': issue['category'],
-              'description': issue['description'],
-            },
-          );
-        } catch (error) {
-          // Encore hors connexion : on réessaiera. Refus de l'API
-          // (commande annulée…) : on abandonne ce signalement.
-          if (isConnectionError(error)) left.add(issue);
-        }
+  /// Tente d'envoyer tout de suite les signalements en attente (avant une
+  /// déconnexion) et renvoie le nombre de ceux qui n'ont pas pu partir.
+  Future<int> flushPendingIssues() async {
+    await _sendPendingIssues();
+    return (await offlineStore.pendingIssues()).length;
+  }
+
+  Future<void>? _sending;
+
+  Future<void> _sendPendingIssues() =>
+      _sending ??= _sendPendingIssuesOnce().whenComplete(() => _sending = null);
+
+  Future<void> _sendPendingIssuesOnce() async {
+    final pending = await offlineStore.pendingIssues();
+    if (pending.isEmpty) return;
+    final left = <Map<String, dynamic>>[];
+    for (final issue in pending) {
+      try {
+        await dio.post(
+          '/orders/${issue['order_id']}/issues',
+          data: {
+            'category': issue['category'],
+            'description': issue['description'],
+          },
+        );
+      } catch (error) {
+        // Encore hors connexion : on réessaiera. Refus de l'API
+        // (commande annulée…) : on abandonne ce signalement.
+        if (isConnectionError(error)) left.add(issue);
       }
-      await offlineStore.savePendingIssues(left);
-    } finally {
-      _sending = false;
     }
+    // Un signalement ajouté pendant l'envoi n'est pas perdu.
+    final now = await offlineStore.pendingIssues();
+    await offlineStore.savePendingIssues([
+      ...left,
+      ...now.where((issue) => !pending.any((sent) => _sameIssue(sent, issue))),
+    ]);
   }
+
+  static bool _sameIssue(Map<String, dynamic> a, Map<String, dynamic> b) =>
+      a['order_id'] == b['order_id'] &&
+      a['category'] == b['category'] &&
+      a['description'] == b['description'] &&
+      a['queued_at'] == b['queued_at'];
 }

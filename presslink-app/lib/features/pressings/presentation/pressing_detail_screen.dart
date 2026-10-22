@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/utils/ivorian_phone.dart';
 import '../../../core/widgets/presslink_top_bar.dart';
 import '../domain/pressing_repository.dart';
 import 'pressing_contact.dart';
@@ -46,6 +47,20 @@ class PressingDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final initials = Center(
+      child: Text(
+        pressing.initials,
+        style: const TextStyle(
+          color: AppColors.primary,
+          fontWeight: FontWeight.w700,
+          fontSize: 24,
+        ),
+      ),
+    );
+    final place = [
+      pressing.address,
+      pressing.city,
+    ].where((e) => e != null && e.isNotEmpty).join(', ');
 
     return Scaffold(
       appBar: const PressLinkTopBar(title: 'Détail du pressing'),
@@ -65,17 +80,13 @@ class PressingDetailScreen extends StatelessWidget {
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: pressing.logoUrl != null
-                        ? Image.network(pressing.logoUrl!, fit: BoxFit.cover)
-                        : Center(
-                            child: Text(
-                              pressing.initials,
-                              style: const TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 24,
-                              ),
-                            ),
-                          ),
+                        ? Image.network(
+                            pressing.logoUrl!,
+                            fit: BoxFit.cover,
+                            // Hors connexion ou image supprimée : les initiales.
+                            errorBuilder: (_, _, _) => initials,
+                          )
+                        : initials,
                   ),
                   const SizedBox(height: AppSpacing.sm + 4),
                   Text(
@@ -97,16 +108,29 @@ class PressingDetailScreen extends StatelessWidget {
               title: 'Contact & localisation',
               children: [
                 if (pressing.phone != null)
-                  _InfoRow(icon: Icons.call, label: pressing.phone!),
+                  _InfoRow(
+                    icon: Icons.call,
+                    label: IvorianPhone.format(pressing.phone!),
+                    action: 'Appeler',
+                    uri: Uri(scheme: 'tel', path: pressing.phone),
+                  ),
                 if (pressing.email != null)
-                  _InfoRow(icon: Icons.email_outlined, label: pressing.email!),
-                if (pressing.address != null || pressing.city != null)
+                  _InfoRow(
+                    icon: Icons.email_outlined,
+                    label: pressing.email!,
+                    uri: Uri(scheme: 'mailto', path: pressing.email),
+                  ),
+                if (place.isNotEmpty)
                   _InfoRow(
                     icon: Icons.location_on_outlined,
-                    label: [
-                      pressing.address,
-                      pressing.city,
-                    ].where((e) => e != null && e.isNotEmpty).join(', '),
+                    label: place,
+                    action: 'Itinéraire',
+                    // Recherche dans Google Maps (ou l'appli Plans) : pas
+                    // de coordonnées enregistrées, l'adresse suffit.
+                    uri: Uri.https('www.google.com', '/maps/search/', {
+                      'api': '1',
+                      'query': '${pressing.name}, $place, Côte d\'Ivoire',
+                    }),
                   ),
                 if (pressing.contact != null) ...[
                   const SizedBox(height: AppSpacing.sm + 4),
@@ -308,23 +332,58 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
+/// Ligne de contact ; avec [uri], toute la ligne s'ouvre (appel, e-mail,
+/// carte) et [action] l'annonce à droite.
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.icon, required this.label});
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    this.uri,
+    this.action,
+  });
 
   final IconData icon;
   final String label;
+  final Uri? uri;
+  final String? action;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
+    final row = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: context.textSecondary),
+          Icon(
+            icon,
+            size: 18,
+            color: uri != null ? AppColors.primary : context.textSecondary,
+          ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
+          if (action != null) ...[
+            const SizedBox(width: AppSpacing.sm),
+            Text(
+              action!,
+              style: const TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          ],
         ],
+      ),
+    );
+    if (uri == null) return row;
+    return Semantics(
+      button: true,
+      label: action != null ? '$action : $label' : label,
+      excludeSemantics: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        onTap: () => openExternalLink(context, uri!),
+        child: row,
       ),
     );
   }

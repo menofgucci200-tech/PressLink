@@ -43,7 +43,7 @@ class _ReportIssueScreenState extends ConsumerState<ReportIssueScreen> {
     });
 
     try {
-      final sent = await ref
+      final report = await ref
           .read(orderRepositoryProvider)
           .reportIssue(
             orderId: widget.orderId,
@@ -55,12 +55,14 @@ class _ReportIssueScreenState extends ConsumerState<ReportIssueScreen> {
 
       if (!mounted) return;
       ref.invalidate(orderDetailProvider(widget.orderId));
-      showAppToast(
-        context,
-        sent
-            ? 'Signalement envoyé au pressing.'
-            : 'Vous êtes hors connexion : le signalement partira dès le retour d\'Internet.',
-      );
+      ref.invalidate(pendingIssuesProvider(widget.orderId));
+      showAppToast(context, switch (report) {
+        IssueReport.sent => 'Signalement envoyé au pressing.',
+        IssueReport.queued =>
+          'Vous êtes hors connexion : le signalement partira dès le retour d\'Internet.',
+        IssueReport.alreadyQueued =>
+          'Ce signalement est déjà en attente : il partira dès le retour d\'Internet.',
+      });
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;

@@ -53,3 +53,11 @@ final orderDetailProvider = FutureProvider.autoDispose.family<OrderModel, int>((
   );
   return ref.watch(orderRepositoryProvider).show(id);
 });
+
+/// Signalements de la commande pas encore envoyés (faits hors connexion).
+/// Relu à chaque rechargement du détail : ils disparaissent une fois partis.
+final pendingIssuesProvider = FutureProvider.autoDispose
+    .family<List<PendingIssue>, int>((ref, id) {
+      ref.watch(orderDetailProvider(id));
+      return ref.watch(orderRepositoryProvider).pendingIssues(id);
+    });

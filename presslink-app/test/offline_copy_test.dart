@@ -85,20 +85,23 @@ void main() {
     );
   });
 
-  test('un signalement gardé hors connexion part au retour du réseau', () async {
-    await client.queueIssue({
-      'order_id': 7,
-      'category': 'tache',
-      'description': null,
-    });
-    expect(await client.offlineStore.pendingIssues(), hasLength(1));
+  test(
+    'un signalement gardé hors connexion part au retour du réseau',
+    () async {
+      await client.queueIssue({
+        'order_id': 7,
+        'category': 'tache',
+        'description': null,
+      });
+      expect(await client.offlineStore.pendingIssues(), hasLength(1));
 
-    await client.getKeepingCopy('/orders');
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+      await client.getKeepingCopy('/orders');
+      await Future<void>.delayed(const Duration(milliseconds: 50));
 
-    expect(server.posts, ['/orders/7/issues']);
-    expect(await client.offlineStore.pendingIssues(), isEmpty);
-  });
+      expect(server.posts, ['/orders/7/issues']);
+      expect(await client.offlineStore.pendingIssues(), isEmpty);
+    },
+  );
 
   test('la déconnexion efface la copie locale', () async {
     await client.getKeepingCopy('/orders');

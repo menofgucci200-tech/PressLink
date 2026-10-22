@@ -68,6 +68,8 @@ class _OrderDetailBody extends ConsumerWidget {
     final theme = Theme.of(context);
     final dateFormat = DateFormat('d MMMM', 'fr_FR');
     final currentIndex = canonicalSteps.indexOf(order.status);
+    final pendingIssues =
+        ref.watch(pendingIssuesProvider(order.id)).valueOrNull ?? const [];
 
     // Tirer vers le bas recharge la commande (son statut a pu changer au comptoir).
     return RefreshIndicator(
@@ -183,12 +185,64 @@ class _OrderDetailBody extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
 
-          if (order.issues.isNotEmpty) ...[
+          if (order.issues.isNotEmpty || pendingIssues.isNotEmpty) ...[
             Text(
               'SIGNALEMENTS',
               style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6),
             ),
             const SizedBox(height: AppSpacing.sm + 4),
+            // Faits hors connexion : visibles tout de suite, pour que le
+            // client ne les refasse pas.
+            for (final issue in pendingIssues)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(AppSpacing.sm + 6),
+                margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: context.errorTint,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.cloud_off_rounded,
+                      size: 18,
+                      color: AppColors.error,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            issue.category.label,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.error,
+                            ),
+                          ),
+                          if (issue.description != null) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              issue.description!,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontSize: 12.5,
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 2),
+                          Text(
+                            'Pas encore envoyé : il partira dès le retour d\'Internet',
+                            style: theme.textTheme.labelSmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             for (final issue in order.issues) ...[
               Container(
                 width: double.infinity,

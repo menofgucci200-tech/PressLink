@@ -61,6 +61,11 @@ List<_ContactAction> _actions(
   ];
 }
 
+/// Ouvre un lien (appel, carte, WhatsApp, e-mail) dans l'application du
+/// téléphone, ou affiche un message si rien ne peut l'ouvrir.
+Future<void> openExternalLink(BuildContext context, Uri uri) =>
+    _open(context, uri);
+
 Future<void> _open(BuildContext context, Uri uri) async {
   var opened = false;
   try {

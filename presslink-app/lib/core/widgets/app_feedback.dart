@@ -263,8 +263,13 @@ class _ConfirmDialog extends StatelessWidget {
                           child: SizedBox(
                             height: 46,
                             child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                              ),
                               onPressed: () => Navigator.of(context).pop(false),
-                              child: Text(cancelLabel),
+                              child: _OneLine(cancelLabel),
                             ),
                           ),
                         ),
@@ -277,12 +282,12 @@ class _ConfirmDialog extends StatelessWidget {
                               style: FilledButton.styleFrom(
                                 backgroundColor: accent,
                                 foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
                               ),
                               onPressed: () => Navigator.of(context).pop(true),
-                              child: Text(
-                                confirmLabel,
-                                textAlign: TextAlign.center,
-                              ),
+                              child: _OneLine(confirmLabel),
                             ),
                           ),
                         ),
@@ -295,6 +300,22 @@ class _ConfirmDialog extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Libellé de bouton sur une seule ligne : réduit plutôt que coupé en deux
+/// sur un petit écran (« Se déconnecter » à 360 px).
+class _OneLine extends StatelessWidget {
+  const _OneLine(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(label, maxLines: 1, textAlign: TextAlign.center),
     );
   }
 }

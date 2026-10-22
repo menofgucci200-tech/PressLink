@@ -79,6 +79,7 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final notice = ref.watch(authControllerProvider.select((s) => s.notice));
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -120,6 +121,41 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
                   style: theme.textTheme.bodyMedium,
                 ),
               ),
+              // Retour ici parce que le serveur a refusé la session : on dit
+              // pourquoi au lieu d'afficher l'écran sans explication.
+              if (notice != null) ...[
+                const SizedBox(height: AppSpacing.md),
+                Container(
+                  key: const ValueKey('session-notice'),
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(AppSpacing.sm + 4),
+                  decoration: BoxDecoration(
+                    color: context.warningTint,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.info_outline,
+                        size: 18,
+                        color: AppColors.warningText,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          notice,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.warningText,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: AppSpacing.lg),
               _Entrance(
                 index: 3,

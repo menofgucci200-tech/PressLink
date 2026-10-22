@@ -69,8 +69,11 @@ class _LoginPasswordScreenState extends ConsumerState<LoginPasswordScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       body: SafeArea(
-        child: Padding(
+        // Défilement : avec le clavier ouvert sur un petit téléphone, le
+        // bouton reste atteignable.
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.md),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

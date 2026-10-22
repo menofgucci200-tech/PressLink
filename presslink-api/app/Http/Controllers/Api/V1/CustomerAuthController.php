@@ -114,7 +114,16 @@ class CustomerAuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $customer = $request->user();
+        $customer->currentAccessToken()->delete();
+
+        // Téléphone partagé : ce téléphone ne doit plus recevoir les
+        // notifications de ce compte. On ne détache que l'identifiant de ce
+        // téléphone (un autre appareil encore connecté garde le sien).
+        $playerId = $request->string('player_id')->toString();
+        if ($playerId !== '' && $customer->onesignal_player_id === $playerId) {
+            $customer->update(['onesignal_player_id' => null]);
+        }
 
         return response()->json(['message' => 'Déconnecté.']);
     }
@@ -132,6 +141,8 @@ class CustomerAuthController extends Controller
             'email' => $customer->email,
             'gender' => $customer->gender?->value,
             'photo_url' => $customer->photo_url,
+            // Réglage « Aussi par email » du profil (activé par défaut).
+            'email_notifications' => $customer->email_notifications ?? true,
             'created_at' => $customer->created_at?->toIso8601String(),
             // L'application invite à changer un mot de passe réinitialisé ou par défaut.
             'must_change_password' => (bool) $customer->must_change_password,

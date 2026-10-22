@@ -11,4 +11,6 @@ class WebPush {
   static void onSubscriptionChange(void Function(String id) callback) {}
   static void onClick(void Function(int? orderId) callback) {}
   static void onForeground(void Function() callback) {}
+  static Future<String> setOptedIn(bool enabled) async => 'unsupported';
+  static Future<void> logout() async {}
 }

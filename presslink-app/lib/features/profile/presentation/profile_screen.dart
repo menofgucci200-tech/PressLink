@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/link.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../core/notifications/push_notification_service.dart';
+import '../../../core/widgets/app_feedback.dart';
 
 import '../../../core/widgets/app_page_route.dart';
 import '../../../core/utils/ivorian_phone.dart';
@@ -12,7 +14,6 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/theme_mode_controller.dart';
 import '../../../core/widgets/presslink_top_bar.dart';
 import '../../auth/presentation/auth_controller.dart';
-import '../../auth/domain/auth_repository.dart';
 import '../../auth/presentation/logout_confirmation.dart';
 import '../../pressings/presentation/my_pressings_screen.dart';
 import '../../pressings/presentation/pressings_controller.dart';
@@ -157,7 +158,10 @@ class ProfileScreen extends ConsumerWidget {
             _Card(
               child: Column(
                 children: [
-                  const _NotificationToggleRow(),
+                  // Seulement si les notifications push existent ici :
+                  // l'interrupteur ne doit jamais promettre ce qu'il ne fait pas.
+                  if (ref.watch(pushNotificationServiceProvider).isAvailable)
+                    const _NotificationToggleRow(),
                   if (customer?.email != null) const _EmailToggleRow(),
                   _ProfileRow(
                     icon: Icons.store_outlined,
@@ -469,9 +473,14 @@ class _NotificationToggleRow extends ConsumerWidget {
           Switch(
             value: enabled,
             activeThumbColor: AppColors.primary,
-            onChanged: (value) => ref
-                .read(notificationPreferencesControllerProvider.notifier)
-                .setEnabled(value),
+            onChanged: (value) async {
+              final error = await ref
+                  .read(notificationPreferencesControllerProvider.notifier)
+                  .setEnabled(value);
+              if (error != null && context.mounted) {
+                showAppToast(context, error, type: AppToastType.error);
+              }
+            },
           ),
         ],
       ),
@@ -501,17 +510,20 @@ class _EmailToggleRow extends ConsumerWidget {
           Switch(
             value: customer.emailNotifications,
             activeThumbColor: AppColors.primary,
-            onChanged: (value) => ref
-                .read(authControllerProvider.notifier)
-                .updateProfile(
-                  firstName: customer.firstName,
-                  lastName: customer.lastName,
-                  gender: customer.gender == 'homme'
-                      ? Gender.homme
-                      : Gender.femme,
-                  email: customer.email,
-                  emailNotifications: value,
-                ),
+            // Seul ce réglage est envoyé : le genre et le reste du profil ne
+            // sont jamais touchés.
+            onChanged: (value) async {
+              final controller = ref.read(authControllerProvider.notifier);
+              final ok = await controller.updateEmailNotifications(value);
+              if (!ok && context.mounted) {
+                showAppToast(
+                  context,
+                  ref.read(authControllerProvider).error ??
+                      'Réglage non enregistré. Réessayez.',
+                  type: AppToastType.error,
+                );
+              }
+            },
           ),
         ],
       ),

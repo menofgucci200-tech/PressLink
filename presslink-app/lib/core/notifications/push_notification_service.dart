@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../widgets/app_page_route.dart';
 import '../../features/auth/presentation/auth_controller.dart';
@@ -14,17 +15,39 @@ import '../../main.dart';
 import '../config/app_config.dart';
 import 'web_push.dart';
 
+/// Interrupteur « Notifications » du profil : ce qu'il faut du service push
+/// (interface séparée pour pouvoir le tester sans OneSignal).
+abstract interface class PushSwitch {
+  /// Notifications push possibles ici (clé OneSignal, navigateur compatible).
+  bool get isAvailable;
+
+  /// Le téléphone (ou le navigateur) autorise les notifications de l'appli.
+  bool get permissionGranted;
+
+  /// Active ou coupe réellement les envois vers ce téléphone (OneSignal
+  /// optIn / optOut). Renvoie `true` si le réglage demandé est appliqué.
+  Future<bool> setEnabled(bool enabled);
+}
+
 /// Initialise OneSignal, demande la permission de notification et
 /// synchronise le "player ID" de l'appareil avec le compte client connecté.
 ///
 /// Gère aussi le deep linking : taper une notification push (bandeau,
 /// verrouillage, ou relance de l'app depuis l'état "tuée") ouvre
 /// directement le détail de la commande concernée — User Flows §6.
-class PushNotificationService {
+class PushNotificationService implements PushSwitch {
   PushNotificationService(this._ref);
 
   final Ref _ref;
   bool _listening = false;
+
+  /// Dernier identifiant push connu de ce téléphone (envoyé au serveur à la
+  /// déconnexion pour qu'il le détache du compte).
+  String? _playerId;
+
+  /// Choix de l'interrupteur « Notifications » du profil, gardé dans le
+  /// téléphone et réappliqué à chaque démarrage.
+  static const enabledPrefKey = 'presslink_notifications_enabled';
 
   /// `main()` attend cet appel avant `runApp()` : une erreur OneSignal non
   /// interceptée ici (ex. App ID manquant) empêcherait l'app entière de
@@ -48,7 +71,12 @@ class PushNotificationService {
 
     try {
       OneSignal.initialize(AppConfig.oneSignalAppId);
-      await OneSignal.Notifications.requestPermission(true);
+      if (await _disabledByCustomer()) {
+        // Coupées depuis le profil : on ne redemande rien.
+        OneSignal.User.pushSubscription.optOut();
+      } else {
+        await OneSignal.Notifications.requestPermission(true);
+      }
 
       if (!_listening) {
         // Le player ID n'est disponible qu'une fois l'appareil enregistré
@@ -94,6 +122,7 @@ class PushNotificationService {
       await WebPush.init(
         AppConfig.oneSignalAppId,
       ).timeout(const Duration(seconds: 10));
+      if (await _disabledByCustomer()) await WebPush.setOptedIn(false);
 
       if (!_listening) {
         WebPush.onSubscriptionChange(_registerPlayerId);
@@ -119,9 +148,95 @@ class PushNotificationService {
     if (!kIsWeb || AppConfig.oneSignalAppId.isEmpty) return false;
 
     final granted = await WebPush.requestPermission() == 'granted';
-    if (granted) await syncTokenIfLoggedIn();
+    if (granted) {
+      await _saveEnabled(true);
+      await syncTokenIfLoggedIn();
+    }
 
     return granted;
+  }
+
+  Future<bool> _disabledByCustomer() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool(enabledPrefKey) == false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _saveEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(enabledPrefKey, enabled);
+  }
+
+  @override
+  bool get isAvailable =>
+      AppConfig.oneSignalAppId.isNotEmpty && (!kIsWeb || WebPush.isSupported);
+
+  @override
+  bool get permissionGranted {
+    if (!isAvailable) return false;
+    if (kIsWeb) return WebPush.permission == 'granted';
+    try {
+      return OneSignal.Notifications.permission;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> setEnabled(bool enabled) async {
+    if (!isAvailable) return false;
+    try {
+      if (kIsWeb) {
+        // optIn demande l'autorisation du navigateur si besoin (le tap sur
+        // l'interrupteur est le geste exigé par Safari iOS).
+        final permission = await WebPush.setOptedIn(enabled);
+        if (enabled && permission != 'granted') return false;
+      } else if (enabled) {
+        await OneSignal.User.pushSubscription.optIn();
+        if (!OneSignal.Notifications.permission) return false;
+      } else {
+        await OneSignal.User.pushSubscription.optOut();
+      }
+    } catch (e) {
+      debugPrint('PushNotificationService: réglage impossible ($e)');
+      return false;
+    }
+    await _saveEnabled(enabled);
+    if (enabled) await syncTokenIfLoggedIn();
+    return true;
+  }
+
+  /// Identifiant push de ce téléphone, pour la déconnexion. N'attend jamais
+  /// longtemps le SDK : la déconnexion ne doit pas traîner.
+  Future<String?> currentPlayerId() async {
+    if (_playerId != null || AppConfig.oneSignalAppId.isEmpty) {
+      return _playerId;
+    }
+    try {
+      return kIsWeb
+          ? await WebPush.subscriptionId().timeout(const Duration(seconds: 3))
+          : OneSignal.User.pushSubscription.id;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Déconnexion : ce téléphone n'est plus rattaché au client chez
+  /// OneSignal (le serveur, lui, a déjà oublié son identifiant).
+  Future<void> unlinkDevice() async {
+    if (AppConfig.oneSignalAppId.isEmpty) return;
+    try {
+      if (kIsWeb) {
+        await WebPush.logout();
+      } else {
+        await OneSignal.logout();
+      }
+    } catch (e) {
+      debugPrint('PushNotificationService: déconnexion OneSignal ($e)');
+    }
   }
 
   void _openOrderFromNotification(OSNotificationClickEvent event) {
@@ -170,6 +285,7 @@ class PushNotificationService {
   }
 
   Future<void> _registerPlayerId(String playerId) async {
+    _playerId = playerId;
     if (_ref.read(authControllerProvider).status != AuthStatus.loggedIn) return;
 
     try {

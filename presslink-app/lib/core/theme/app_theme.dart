@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 import 'app_spacing.dart';
@@ -7,15 +6,25 @@ import 'app_spacing.dart';
 /// Thème PressLink — clair et sombre, dérivés des mêmes tokens.
 /// Source : Design System PressLink §5-12.
 abstract final class AppTheme {
+  /// Polices embarquées dans l'appli (pubspec.yaml, `fonts:`) : rien n'est
+  /// jamais téléchargé sur Google Fonts, l'affichage est identique hors
+  /// connexion. Inter : 400, 500, 600, 700 ; Inter Tight (titres) : 600,
+  /// 700, 800.
+  static const bodyFont = 'Inter';
+  static const displayFont = 'InterTight';
+
   static TextTheme _textTheme(Color primaryText, Color secondaryText) {
     // Couleur de base sur tous les styles : sinon ceux qui ne sont pas
     // redéfinis ci-dessous (titleLarge, labelMedium…) restent noirs, même en
     // mode sombre.
-    final display = GoogleFonts.interTightTextTheme().apply(
+    final base = ThemeData.light().textTheme;
+    final display = base.apply(
+      fontFamily: displayFont,
       bodyColor: primaryText,
       displayColor: primaryText,
     );
-    final body = GoogleFonts.interTextTheme().apply(
+    final body = base.apply(
+      fontFamily: bodyFont,
       bodyColor: primaryText,
       displayColor: primaryText,
     );
@@ -105,6 +114,9 @@ abstract final class AppTheme {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: background,
       textTheme: _textTheme(textPrimary, textSecondary),
+      primaryTextTheme: ThemeData.light().primaryTextTheme.apply(
+        fontFamily: bodyFont,
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: background,
         foregroundColor: textPrimary,
@@ -130,7 +142,11 @@ abstract final class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
-          textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+          textStyle: const TextStyle(
+            fontFamily: bodyFont,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(

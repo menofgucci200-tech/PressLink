@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/app_page_route.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/widgets/error_state_view.dart';
@@ -32,11 +33,16 @@ class _OrdersListScreenState extends ConsumerState<OrdersListScreen> {
 
   static bool _isIn(_Filter filter, OrderModel order) => switch (filter) {
     _Filter.toutes => true,
+    // « En attente » est une commande encore au pressing : en cours.
     _Filter.enCours =>
       order.status == OrderStatus.recue ||
-          order.status == OrderStatus.traitement,
+          order.status == OrderStatus.traitement ||
+          order.status == OrderStatus.attente,
     _Filter.pretes => order.status == OrderStatus.prete,
-    _Filter.historique => order.status == OrderStatus.recuperee,
+    // Commandes terminées : récupérées ou annulées.
+    _Filter.historique =>
+      order.status == OrderStatus.recuperee ||
+          order.status == OrderStatus.annulee,
   };
 
   @override
@@ -286,6 +292,7 @@ class _FilterChip extends StatelessWidget {
               AnimatedDefaultTextStyle(
                 duration: const Duration(milliseconds: 200),
                 style: TextStyle(
+                  fontFamily: AppTheme.bodyFont,
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
                   color: selected ? Colors.white : text,

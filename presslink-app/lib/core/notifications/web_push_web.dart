@@ -26,6 +26,12 @@ external void _onClick(JSFunction callback);
 @JS('presslinkPush.onForeground')
 external void _onForeground(JSFunction callback);
 
+@JS('presslinkPush.setOptedIn')
+external JSPromise<JSString> _setOptedIn(JSBoolean enabled);
+
+@JS('presslinkPush.logout')
+external JSPromise<JSAny?> _logout();
+
 /// Notifications push de la PWA (SDK web OneSignal). Toute erreur JS est
 /// absorbée : un bloqueur de pub ou un navigateur sans push ne doit jamais
 /// empêcher l'app de fonctionner.
@@ -89,5 +95,27 @@ class WebPush {
 
   static void onForeground(void Function() callback) {
     _onForeground(callback.toJS);
+  }
+
+  /// Interrupteur « Notifications » : OneSignal arrête (ou reprend) les
+  /// envois vers ce navigateur. Renvoie l'autorisation du navigateur après
+  /// coup (`granted`, `denied`…).
+  static Future<String> setOptedIn(bool enabled) async {
+    try {
+      return (await _setOptedIn(
+        enabled.toJS,
+      ).toDart.timeout(const Duration(seconds: 60))).toDart;
+    } catch (_) {
+      return permission;
+    }
+  }
+
+  /// Déconnexion : ce navigateur n'est plus rattaché au client chez OneSignal.
+  static Future<void> logout() async {
+    try {
+      await _logout().toDart.timeout(const Duration(seconds: 5));
+    } catch (_) {
+      // SDK bloqué ou absent : le serveur a déjà détaché l'identifiant.
+    }
   }
 }

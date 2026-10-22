@@ -124,6 +124,10 @@ class AuthRepository {
   final ApiClient _apiClient;
   final TokenStorage _tokenStorage;
 
+  /// Session refusée par le serveur pendant l'utilisation (voir
+  /// [ApiClient.sessionEnded]) : message à afficher à la connexion.
+  Stream<String> get sessionEnded => _apiClient.sessionEnded;
+
   Future<PhoneCheck> checkPhone(String phone) async {
     final response = await _apiClient.dio.post(
       '/auth/customer/check-phone',
@@ -227,7 +231,25 @@ class AuthRepository {
       },
     );
 
-    return Customer.fromJson(response.data as Map<String, dynamic>);
+    return _keepProfile(response.data);
+  }
+
+  /// Interrupteur « Aussi par email » : seul ce réglage est envoyé, le
+  /// reste du profil (genre, e-mail…) n'est pas touché.
+  Future<Customer> updateEmailNotifications(bool enabled) async {
+    final response = await _apiClient.dio.put(
+      '/customer/profile',
+      data: {'email_notifications': enabled},
+    );
+    return _keepProfile(response.data);
+  }
+
+  /// Profil modifié : la copie hors connexion est mise à jour aussi, sinon
+  /// une réouverture sans Internet montrerait l'ancien profil.
+  Future<Customer> _keepProfile(Object? data) async {
+    final json = data as Map<String, dynamic>;
+    await _apiClient.offlineStore.save('/auth/customer/me', json);
+    return Customer.fromJson(json);
   }
 
   /// Envoie les octets plutôt qu'un chemin de fichier : `dart:io` n'existe
@@ -242,12 +264,12 @@ class AuthRepository {
       ),
     });
     final response = await _apiClient.dio.post('/customer/photo', data: form);
-    return Customer.fromJson(response.data as Map<String, dynamic>);
+    return _keepProfile(response.data);
   }
 
   Future<Customer> deletePhoto() async {
     final response = await _apiClient.dio.delete('/customer/photo');
-    return Customer.fromJson(response.data as Map<String, dynamic>);
+    return _keepProfile(response.data);
   }
 
   Future<void> updatePassword({
@@ -273,7 +295,7 @@ class AuthRepository {
       '/customer/phone',
       data: {'phone': phone, 'current_password': currentPassword},
     );
-    return Customer.fromJson(response.data as Map<String, dynamic>);
+    return _keepProfile(response.data);
   }
 
   Future<void> updateOnesignalPlayerId(String playerId) async {
@@ -283,9 +305,15 @@ class AuthRepository {
     );
   }
 
-  Future<void> logout() async {
+  /// [playerId] : identifiant des notifications push de ce téléphone. Le
+  /// serveur le détache du compte : un téléphone partagé ne reçoit plus les
+  /// notifications du client qui s'est déconnecté.
+  Future<void> logout({String? playerId}) async {
     try {
-      await _apiClient.dio.post('/auth/customer/logout');
+      await _apiClient.dio.post(
+        '/auth/customer/logout',
+        data: {'player_id': ?playerId},
+      );
     } on DioException {
       // Le token est probablement déjà invalide côté serveur — on nettoie localement.
     }

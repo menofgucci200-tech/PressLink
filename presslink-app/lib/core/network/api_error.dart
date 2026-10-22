@@ -18,6 +18,12 @@ String apiErrorMessage(Object error) {
         break;
     }
 
+    // Session refusée (« Unauthenticated. » de Laravel) : l'appli revient
+    // à l'écran de connexion (ApiClient.sessionEnded).
+    if (error.response?.statusCode == 401) {
+      return 'Votre session a expiré. Reconnectez-vous.';
+    }
+
     // Limite anti-abus du serveur (connexion, changement de numéro…) : son
     // message par défaut est en anglais.
     if (error.response?.statusCode == 429) {

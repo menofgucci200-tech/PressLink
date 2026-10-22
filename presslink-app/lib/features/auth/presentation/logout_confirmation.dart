@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/notifications/push_notification_service.dart';
 import '../../../core/widgets/app_feedback.dart';
 import 'auth_controller.dart';
 
@@ -16,6 +17,11 @@ Future<void> confirmAndLogout(BuildContext context, WidgetRef ref) async {
     icon: Icons.logout_rounded,
   );
   if (confirmed) {
-    await ref.read(authControllerProvider.notifier).logout();
+    // Téléphone partagé : il ne doit plus recevoir les notifications de ce
+    // compte. Le serveur oublie son identifiant push, OneSignal le détache.
+    final push = ref.read(pushNotificationServiceProvider);
+    final playerId = await push.currentPlayerId();
+    await ref.read(authControllerProvider.notifier).logout(playerId: playerId);
+    await push.unlinkDevice();
   }
 }

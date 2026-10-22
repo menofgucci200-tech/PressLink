@@ -14,10 +14,24 @@ class UpdateCustomerProfileRequest extends FormRequest
     }
 
     /**
+     * Seul le réglage « Aussi par email » est envoyé (interrupteur du
+     * profil) : le reste du profil n'est ni exigé ni modifié.
+     */
+    public function isPreferenceOnly(): bool
+    {
+        return $this->has('email_notifications')
+            && ! $this->hasAny(['first_name', 'last_name', 'gender', 'email']);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function rules(): array
     {
+        if ($this->isPreferenceOnly()) {
+            return ['email_notifications' => ['required', 'boolean']];
+        }
+
         return [
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],

@@ -156,7 +156,11 @@ class _OrderDetailBody extends ConsumerWidget {
                     color: order.status.colorFor(context),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.check, color: Colors.white, size: 24),
+                  child: Icon(
+                    _heroIcon(order.status),
+                    color: Colors.white,
+                    size: 24,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.sm + 6),
                 Text(
@@ -398,7 +402,9 @@ class _OrderDetailBody extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.sm + 2),
-              if (order.expectedAt != null)
+              // Commande annulée : plus de retrait à prévoir.
+              if (order.expectedAt != null &&
+                  order.status != OrderStatus.annulee)
                 Expanded(
                   child: _DateCard(
                     label: 'Retrait prévu',
@@ -460,6 +466,17 @@ class _OrderDetailBody extends ConsumerWidget {
       ),
     );
   }
+
+  /// Une coche seulement quand tout va bien : jamais sur une commande
+  /// annulée (croix) ou en attente (sablier).
+  static IconData _heroIcon(OrderStatus status) => switch (status) {
+    OrderStatus.annulee => Icons.close_rounded,
+    OrderStatus.attente => Icons.hourglass_empty_rounded,
+    OrderStatus.traitement => Icons.autorenew_rounded,
+    OrderStatus.recue ||
+    OrderStatus.prete ||
+    OrderStatus.recuperee => Icons.check,
+  };
 
   String _heroMessage(OrderModel order) => switch (order.status) {
     OrderStatus.prete => 'Votre commande est prête à être récupérée.',

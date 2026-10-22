@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
 import '../theme/app_colors.dart';
+import '../theme/app_theme.dart';
 
 /// Rendu texte du nom "PressLink" conforme à l'identité de marque :
 /// "Press" en noir/marine, "Link" en bleu primaire, police Inter Bold.
@@ -12,7 +11,8 @@ class AppNameText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = GoogleFonts.inter(
+    final style = TextStyle(
+      fontFamily: AppTheme.bodyFont,
       fontSize: fontSize,
       fontWeight: FontWeight.w700,
     );

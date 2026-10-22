@@ -29,7 +29,7 @@ List<_ContactAction> _actions(
   final message = orderNumber != null
       ? 'Bonjour $pressingName, je vous contacte au sujet de ma commande $orderNumber.'
       : 'Bonjour $pressingName, ';
-  final digits = (String phone) => phone.replaceAll(RegExp(r'\D'), '');
+  String digits(String phone) => phone.replaceAll(RegExp(r'\D'), '');
 
   return [
     if (contact.phone != null)

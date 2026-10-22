@@ -54,6 +54,7 @@ void main() {
               order(4, OrderStatus.recuperee),
               order(5, OrderStatus.recuperee),
               order(6, OrderStatus.annulee),
+              order(7, OrderStatus.attente),
             ],
           ),
         ],
@@ -66,14 +67,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Mes commandes'), findsOneWidget);
-    expect(find.bySemanticsLabel('Toutes, 6'), findsOneWidget);
-    expect(find.bySemanticsLabel('En cours, 2'), findsOneWidget);
+    expect(find.bySemanticsLabel('Toutes, 7'), findsOneWidget);
+    expect(find.bySemanticsLabel('En cours, 3'), findsOneWidget);
     expect(find.bySemanticsLabel('Prêtes, 1'), findsOneWidget);
-    expect(find.bySemanticsLabel('Historique, 2'), findsOneWidget);
+    expect(find.bySemanticsLabel('Historique, 3'), findsOneWidget);
 
     await tester.tap(find.text('Historique'));
     await tester.pumpAndSettle();
     expect(find.text('PL-004'), findsOneWidget);
+    expect(find.text('PL-006'), findsOneWidget);
     expect(find.text('PL-001'), findsNothing);
 
     semantics.dispose();

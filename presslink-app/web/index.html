@@ -254,6 +254,18 @@
           withSdk(function (OneSignal) {
             OneSignal.Notifications.addEventListener('foregroundWillDisplay', function () { cb(); });
           });
+        },
+        // Interrupteur « Notifications » du profil : OneSignal n'envoie plus
+        // rien à ce téléphone (optOut) ou reprend (optIn, qui demande
+        // l'autorisation si elle n'a pas encore été donnée).
+        setOptedIn: function (enabled) {
+          return withSdk(function (OneSignal) {
+            return enabled ? OneSignal.User.PushSubscription.optIn() : OneSignal.User.PushSubscription.optOut();
+          }).then(function () { return window.presslinkPush.permission(); });
+        },
+        // Déconnexion : ce téléphone n'est plus rattaché au client.
+        logout: function () {
+          return withSdk(function (OneSignal) { return OneSignal.logout(); });
         }
       };
     })();

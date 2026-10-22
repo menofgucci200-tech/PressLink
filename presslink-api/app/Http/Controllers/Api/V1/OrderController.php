@@ -14,12 +14,21 @@ use Illuminate\Http\Request;
  */
 class OrderController extends Controller
 {
+    /**
+     * Pagination conservée (anciennes versions de l'appli : 20 par page),
+     * mais l'appli peut demander jusqu'à 100 commandes par page et lit
+     * toutes les pages : une commande prête plus ancienne que les 20
+     * dernières ne doit jamais disparaître de l'appli.
+     */
     public function index(Request $request): JsonResponse
     {
+        $perPage = min(max($request->integer('per_page', 20), 1), 100);
+
         $orders = $request->user()->orders()
             ->with(['pressing', 'items'])
             ->latest()
-            ->paginate(20);
+            ->orderByDesc('id')
+            ->paginate($perPage);
 
         return response()->json($orders);
     }

@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateCustomerPasswordRequest;
 use App\Http\Requests\UpdateCustomerPhoneRequest;
 use App\Http\Requests\UpdateCustomerPhotoRequest;
 use App\Http\Requests\UpdateCustomerProfileRequest;
+use App\Models\Customer;
 use App\Support\ImageOptimizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,6 +22,14 @@ class CustomerProfileController extends Controller
     public function update(UpdateCustomerProfileRequest $request): JsonResponse
     {
         $customer = $request->user();
+
+        // Interrupteur « Aussi par email » : seul ce réglage change, le
+        // reste du profil (genre, e-mail…) n'est pas touché.
+        if ($request->isPreferenceOnly()) {
+            $customer->update(['email_notifications' => $request->boolean('email_notifications')]);
+
+            return response()->json($customer->fresh());
+        }
 
         $customer->update([
             'first_name' => $request->string('first_name')->toString(),
@@ -105,9 +114,20 @@ class CustomerProfileController extends Controller
 
     public function updateOnesignalPlayerId(Request $request): JsonResponse
     {
-        $request->validate(['player_id' => ['required', 'string']]);
+        $request->validate(['player_id' => ['required', 'string', 'max:255']]);
 
-        $request->user()->update(['onesignal_player_id' => $request->string('player_id')->toString()]);
+        $playerId = $request->string('player_id')->toString();
+        $customer = $request->user();
+
+        // Un téléphone ne reçoit les notifications que d'un seul compte : le
+        // client qui s'y connecte en dernier. Un autre compte qui gardait cet
+        // identifiant (téléphone partagé, ancien compte) le perd.
+        Customer::query()
+            ->where('onesignal_player_id', $playerId)
+            ->whereKeyNot($customer->getKey())
+            ->update(['onesignal_player_id' => null]);
+
+        $customer->update(['onesignal_player_id' => $playerId]);
 
         return response()->json(['message' => 'Identifiant OneSignal enregistré.']);
     }

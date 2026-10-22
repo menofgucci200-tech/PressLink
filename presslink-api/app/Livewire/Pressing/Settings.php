@@ -13,6 +13,7 @@ use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -57,6 +58,16 @@ class Settings extends Component
 
     /** @var array<string, array{closed: bool, open: string, close: string}> */
     public array $openingHours = [];
+
+    /**
+     * Horaires tels qu'affichés à l'ouverture de la page, quand le pressing n'en
+     * avait pas (ouvert à toute heure) : laissés tels quels, ils ne sont pas
+     * enregistrés (sinon le pressing se fermerait hors 08:00-18:00 sans le savoir).
+     *
+     * @var array<string, array{closed: bool, open: string, close: string}>|null
+     */
+    #[Locked]
+    public ?array $untouchedDefaultHours = null;
 
     public bool $showPricingToCustomers = false;
 
@@ -104,6 +115,7 @@ class Settings extends Component
         $this->supportEmail = $contact['email'] ?? '';
         $this->supportHours = $contact['hours'] ?? '';
         $this->openingHours = $this->normalizeOpeningHours($pressing->opening_hours);
+        $this->untouchedDefaultHours = empty($pressing->opening_hours) ? $this->openingHours : null;
         $this->showPricingToCustomers = $pressing->show_pricing_to_customers;
         $this->terms = $pressing->terms ?? '';
 
@@ -199,6 +211,14 @@ class Settings extends Component
             'storageFeeGraceDays.required_if' => 'Indiquez le délai avant facturation.',
         ]);
 
+        foreach ($this->openingHours as $day => $hours) {
+            if (! ($hours['closed'] ?? false) && filled($hours['open'] ?? null) && filled($hours['close'] ?? null) && $hours['close'] <= $hours['open']) {
+                $this->addError("openingHours.{$day}.close", 'L\'heure de fermeture doit être après l\'heure d\'ouverture.');
+
+                return;
+            }
+        }
+
         $data = [
             'name' => $this->name,
             'phone' => $this->phone,
@@ -212,7 +232,9 @@ class Settings extends Component
                 'email' => trim($this->supportEmail) ?: null,
                 'hours' => trim($this->supportHours) ?: null,
             ]) ?: null,
-            'opening_hours' => $this->openingHours,
+            'opening_hours' => $this->untouchedDefaultHours !== null && $this->openingHours == $this->untouchedDefaultHours
+                ? $this->pressing->opening_hours
+                : $this->openingHours,
             'show_pricing_to_customers' => $this->showPricingToCustomers,
             'terms' => trim($this->terms) ?: null,
             'storage_fee' => $this->storageFeeSettings(),

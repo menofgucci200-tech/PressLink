@@ -128,6 +128,14 @@
                         @if ($closing->note)
                             <p class="mt-2 text-xs text-(--color-text-secondary)"><span class="font-semibold">Note :</span> {{ $closing->note }}</p>
                         @endif
+                        {{-- Espèces encaissées après la clôture : rien ne doit disparaître du contrôle. --}}
+                        @php $afterClosing = $summary['cash'] - $closing->cash_received_fcfa; @endphp
+                        @if ($afterClosing !== 0)
+                            <div class="mt-3 p-3 rounded-lg bg-(--color-warning-tint) text-(--color-warning-text) text-sm" data-testid="after-closing">
+                                <span class="font-semibold">{{ ($afterClosing > 0 ? '+' : '').$fcfa($afterClosing) }} F en espèces enregistrés après la clôture.</span>
+                                Ils ne sont pas dans le comptage ci-dessus{{ $canReopen ? ' : rouvrez la journée puis clôturez-la de nouveau.' : ' : prévenez le propriétaire.' }}
+                            </div>
+                        @endif
                         @if ($canReopen)
                             <button type="button" wire:click="reopen" data-confirm-title="Rouvrir la journée" data-confirm-label="Rouvrir" data-confirm-tone="warning"
                                     wire:confirm="Annuler la clôture du {{ $selectedDay->format('d/m/Y') }} ? Elle restera tracée dans le journal d'activité."

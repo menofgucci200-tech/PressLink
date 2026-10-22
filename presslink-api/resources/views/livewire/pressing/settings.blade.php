@@ -109,7 +109,12 @@
         </div>
 
         <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
-            <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-4">Horaires d'ouverture</div>
+            <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1">Horaires d'ouverture</div>
+            @if ($untouchedDefaultHours !== null)
+                <p class="text-xs text-(--color-text-muted) mb-4">Aucun horaire enregistré : le pressing est ouvert à toute heure. Modifiez un jour pour enregistrer vos horaires.</p>
+            @else
+                <div class="mb-4"></div>
+            @endif
             <div class="flex flex-col gap-2.5">
                 @foreach ($days as $day)
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -123,6 +128,7 @@
                         <span class="text-(--color-text-muted)">—</span>
                         <input type="time" wire:model="openingHours.{{ $day }}.close" @disabled($openingHours[$day]['closed'])
                                class="h-9 px-2.5 rounded-lg border border-(--color-border) text-sm disabled:opacity-40">
+                        @error("openingHours.{$day}.close") <p class="basis-full text-xs text-(--color-error)">{{ $message }}</p> @enderror
                     </div>
                 @endforeach
             </div>

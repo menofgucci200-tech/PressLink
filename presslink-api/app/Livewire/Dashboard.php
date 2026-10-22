@@ -227,16 +227,14 @@ class Dashboard extends Component
                 'openIssues' => ['count' => $openIssueOrders->count(), 'orderId' => $openIssueOrders->first()],
             ];
 
-            // "Encaissé" = paiements réellement reçus (au dépôt, acomptes,
-            // soldes au retrait), datés du jour de l'encaissement. Les
-            // commandes annulées en sont exclues (à rembourser). Récupéré
-            // sur toute la fenêtre [période précédente → période courante]
-            // pour calculer le delta avec une seule requête.
+            // "Encaissé" = argent réellement entré ce jour-là (au dépôt,
+            // acomptes, soldes au retrait), moins les remboursements : le même
+            // calcul que la Caisse (CashDaySummary), pour que les deux pages
+            // donnent le même montant. Récupéré sur toute la fenêtre
+            // [période précédente → période courante] en une seule requête.
             $revenueByDay = OrderPayment::query()
                 ->join('orders', 'orders.id', '=', 'order_payments.order_id')
                 ->where('orders.pressing_id', $pressing->id)
-                ->where('orders.status', '!=', OrderStatus::Annulee->value)
-                ->whereNull('orders.deleted_at')
                 ->whereBetween('order_payments.paid_at', [$previousStart, $rangeEnd])
                 ->selectRaw('DATE(order_payments.paid_at) as day, SUM(order_payments.amount_fcfa) as total')
                 ->groupBy('day')

@@ -268,8 +268,11 @@ class OrderPaymentTest extends TestCase
         $cancelled->update(['status' => OrderStatus::Annulee]);
         $this->actingAs($this->staff());
 
+        // Encaissé = argent réellement entré, comme sur la page Caisse : les
+        // 2 000 F de la commande annulée (gardés, non remboursés) y comptent ;
+        // un remboursement s'enregistre à part et vient en déduction.
         Livewire::test(Dashboard::class)
-            ->assertViewHas('revenuePeriod', 7000)
+            ->assertViewHas('revenuePeriod', 9000)
             ->assertViewHas('outstanding', 6000);
     }
 

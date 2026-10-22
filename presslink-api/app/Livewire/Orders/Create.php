@@ -15,6 +15,7 @@ use App\Rules\IvorianPhone;
 use App\Support\ColorPalette;
 use App\Support\PhoneNumber;
 use App\Support\ReceiptLinks;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -722,17 +723,31 @@ class Create extends Component
         abort_if($customer === null, 403);
 
         $this->validatePayment();
+        $this->validate([
+            'expectedAt' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:today'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'expectedAt.date_format' => 'La date « Prête le » n\'est pas valide.',
+            'expectedAt.after_or_equal' => 'La date « Prête le » ne peut pas être passée.',
+            'notes.max' => 'La remarque est trop longue (1 000 caractères au plus).',
+        ]);
 
         try {
             $order = (new CreateOrderAction)->handle(
                 pressing: $pressing,
                 customer: $customer,
                 items: array_map(fn (array $item) => collect($item)->except('base_name')->all(), $this->items),
-                expectedAt: $this->expectedAt,
+                expectedAt: $this->expectedAt ?: null,
                 notes: $this->notes ?: null,
                 amountPaidFcfa: $this->amountPaidNow,
                 paymentMethod: PaymentMethod::from($this->paymentMethod),
             );
+        } catch (QueryException $e) {
+            // Jamais de détail technique (requête, base) à l'écran.
+            report($e);
+            $this->errorMessage = 'La commande n\'a pas pu être enregistrée. Réessayez ; si le problème continue, contactez le support PressLink.';
+
+            return;
         } catch (RuntimeException $e) {
             $this->errorMessage = $e->getMessage();
 
@@ -760,6 +775,8 @@ class Create extends Component
             'notes', 'paymentChoice', 'depositAmount', 'paymentMethod', 'errorMessage', 'draftRestored', 'lastCreated']);
         $this->expectedAt = $this->defaultExpectedAt();
         session()->forget($this->draftKey());
+        // Totaux calculés de la commande précédente : oubliés.
+        unset($this->total, $this->pieceCount, $this->amountPaidNow);
     }
 
     // ── Données de l'écran ────────────────────────────────────────────────

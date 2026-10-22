@@ -109,6 +109,9 @@
                         <x-payment-badge :order="$previewOrder" />
                     </div>
                     <div class="mt-2 flex justify-between text-(--color-text-secondary)"><span>Déjà payé</span><span class="tabular-nums">{{ $fcfa($previewOrder->amount_paid_fcfa) }} F</span></div>
+                    @if (($storageFee['amount'] ?? 0) > 0)
+                        <div class="mt-1 flex justify-between text-(--color-warning-text)"><span>Droit de magasinage ({{ $storageFee['days'] }} j de retard)</span><span class="tabular-nums">+ {{ $fcfa($storageFee['amount']) }} F</span></div>
+                    @endif
                     <div class="mt-1 flex justify-between font-semibold"><span>Reste à payer</span><span class="tabular-nums {{ $balance > 0 ? 'text-(--color-warning-text)' : 'text-(--color-success-text)' }}">{{ $fcfa($balance) }} F</span></div>
                 </div>
             @endif

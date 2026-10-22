@@ -12,6 +12,8 @@ use App\Models\ActivityLog;
 use App\Models\CashClosing;
 use App\Models\CashExpense;
 use App\Models\Pressing;
+use Carbon\CarbonInterface;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -45,6 +47,13 @@ class Index extends Component
     public function mount(): void
     {
         $this->requireFeature(Feature::Cash);
+        $user = auth()->user();
+        abort_unless($user->may(Permission::CashHistory) || $user->may(Permission::CashClose) || $user->may(Permission::CashExpenses), 403);
+    }
+
+    /** Revérifié à chaque action : le pressing actif ou le rôle a pu changer depuis l'ouverture de la page. */
+    public function hydrate(): void
+    {
         $user = auth()->user();
         abort_unless($user->may(Permission::CashHistory) || $user->may(Permission::CashClose) || $user->may(Permission::CashExpenses), 403);
     }
@@ -103,6 +112,29 @@ class Index extends Component
         $declared = (int) $this->declaredCash;
         $difference = $declared - $summary['expected_cash'];
 
+        try {
+            $this->storeClosing($pressing, $day, $summary, $declared, $difference);
+        } catch (UniqueConstraintViolationException) {
+            // Double clic ou deuxième onglet : la journée vient d'être clôturée.
+            $this->toast('Cette journée vient déjà d\'être clôturée.', 'info');
+
+            return;
+        }
+
+        $fcfa = fn (int $n) => number_format($n, 0, ',', ' ');
+        ActivityLog::record($pressing->id, ActivityAction::CashClosed,
+            'Caisse du '.$day->format('d/m/Y').' clôturée : '.$fcfa($declared).' F comptés pour '.$fcfa($summary['expected_cash']).' F attendus'
+            .($summary['expenses_total'] > 0 ? ' (après '.$fcfa($summary['expenses_total']).' F de dépenses)' : '')
+            .($difference !== 0 ? ' (écart '.($difference > 0 ? '+' : '').$fcfa($difference).' F)' : ''),
+            null, ['difference_fcfa' => $difference, 'business_date' => $day->toDateString()]);
+
+        $this->reset(['declaredCash', 'note']);
+        $this->toast($difference === 0 ? 'Caisse clôturée : aucun écart.' : 'Caisse clôturée avec un écart de '.($difference > 0 ? '+' : '').$fcfa($difference).' F.', $difference === 0 ? 'success' : 'warning');
+    }
+
+    /** @param  array<string, mixed>  $summary */
+    private function storeClosing(Pressing $pressing, CarbonInterface $day, array $summary, int $declared, int $difference): void
+    {
         CashClosing::create([
             'pressing_id' => $pressing->id,
             'business_date' => $day->toDateString(),
@@ -117,16 +149,6 @@ class Index extends Component
             'note' => trim($this->note) ?: null,
             'closed_by' => auth()->id(),
         ]);
-
-        $fcfa = fn (int $n) => number_format($n, 0, ',', ' ');
-        ActivityLog::record($pressing->id, ActivityAction::CashClosed,
-            'Caisse du '.$day->format('d/m/Y').' clôturée : '.$fcfa($declared).' F comptés pour '.$fcfa($summary['expected_cash']).' F attendus'
-            .($summary['expenses_total'] > 0 ? ' (après '.$fcfa($summary['expenses_total']).' F de dépenses)' : '')
-            .($difference !== 0 ? ' (écart '.($difference > 0 ? '+' : '').$fcfa($difference).' F)' : ''),
-            null, ['difference_fcfa' => $difference, 'business_date' => $day->toDateString()]);
-
-        $this->reset(['declaredCash', 'note']);
-        $this->toast($difference === 0 ? 'Caisse clôturée : aucun écart.' : 'Caisse clôturée avec un écart de '.($difference > 0 ? '+' : '').$fcfa($difference).' F.', $difference === 0 ? 'success' : 'warning');
     }
 
     /** Dépense payée avec les espèces de la caisse (achat de produits, transport…). */

@@ -176,7 +176,9 @@ function accueilSections() {
     }
     const contact = $('[data-motion="contact"]');
     if (contact) {
-        gsap.from([...contact.children].filter((e) => e.tagName !== 'H2'), { y: 30, opacity: 0, duration: 0.9, stagger: 0.1, delay: 0.25, ease: 'expo.out', scrollTrigger: { trigger: contact, start: 'top 85%' } });
+        // Le paragraphe qui suit le titre est déjà animé par titres() : pas deux fois.
+        const titre = $('h2', contact);
+        gsap.from([...contact.children].filter((e) => e.tagName !== 'H2' && e !== titre?.nextElementSibling), { y: 30, opacity: 0, duration: 0.9, stagger: 0.1, delay: 0.25, ease: 'expo.out', scrollTrigger: { trigger: contact, start: 'top 85%' } });
         const wa = $('a[href*="wa.me"]', contact);
         if (wa) wa.classList.add('motion-pulse');
     }

@@ -60,6 +60,13 @@ class Index extends Component
         abort_unless($pressing && auth()->user()->may(Permission::CatalogManage, $pressing), 403);
     }
 
+    /** Revérifié à chaque action : le pressing actif ou le rôle a pu changer depuis l'ouverture de la page. */
+    public function hydrate(): void
+    {
+        $pressing = auth()->user()->currentPressing();
+        abort_unless($pressing && auth()->user()->may(Permission::CatalogManage, $pressing), 403);
+    }
+
     private function pressing(): Pressing
     {
         return auth()->user()->currentPressing();

@@ -58,7 +58,8 @@ abstract class OrderNotification extends Notification implements ShouldQueueAfte
     /** Phrase d'introduction de l'email. */
     protected function emailIntro(): string
     {
-        return $this->body();
+        // Le texte de l'e-mail est inséré tel quel : tout ce qui vient d'une saisie (nom du pressing…) est échappé.
+        return e($this->body());
     }
 
     public function toMail(mixed $notifiable): MailMessage

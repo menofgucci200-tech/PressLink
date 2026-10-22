@@ -21,6 +21,6 @@ class OrderCreatedNotification extends OrderNotification
 
     protected function emailIntro(): string
     {
-        return "Votre commande **{$this->order->order_number}** a bien été enregistrée chez **{$this->order->pressing->name}**. Voici son récapitulatif ; nous vous préviendrons dès qu'elle sera prête.";
+        return "Votre commande **{$this->order->order_number}** a bien été enregistrée chez **".e(str_replace(['*', '_', '[', ']'], '', $this->order->pressing->name))."**. Voici son récapitulatif ; nous vous préviendrons dès qu'elle sera prête.";
     }
 }

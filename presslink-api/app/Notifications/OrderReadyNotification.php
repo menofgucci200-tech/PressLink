@@ -26,6 +26,6 @@ class OrderReadyNotification extends OrderNotification
 
     protected function emailIntro(): string
     {
-        return "Bonne nouvelle : votre commande **{$this->order->order_number}** est prête. Vous pouvez passer la récupérer chez **{$this->order->pressing->name}**.";
+        return "Bonne nouvelle : votre commande **{$this->order->order_number}** est prête. Vous pouvez passer la récupérer chez **".e(str_replace(['*', '_', '[', ']'], '', $this->order->pressing->name)).'**.';
     }
 }

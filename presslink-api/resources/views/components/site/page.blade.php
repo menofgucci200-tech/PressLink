@@ -23,8 +23,9 @@
     :og-image="$baseUrl.'/og-image.png'"
     :json-ld="$jsonLd"
     :breadcrumb-json-ld="$breadcrumb">
+    <a href="#contenu" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-(--color-primary) focus:text-white">Aller au contenu</a>
     <x-site.header />
-    <main>{{ $slot }}</main>
+    <main id="contenu">{{ $slot }}</main>
     <x-site.footer />
 
     <a href="https://wa.me/{{ ltrim($e164, '+') }}?text={{ rawurlencode('Bonjour, j\'ai une question sur PressLink.') }}"

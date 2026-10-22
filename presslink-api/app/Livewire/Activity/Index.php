@@ -8,6 +8,7 @@ use App\Enums\Permission;
 use App\Livewire\Concerns\RequiresFeature;
 use App\Models\ActivityLog;
 use App\Models\Pressing;
+use App\Support\SpreadsheetSafe;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
@@ -46,6 +47,12 @@ class Index extends Component
     public function mount(): void
     {
         $this->requireFeature(Feature::ActivityLog);
+        abort_unless(auth()->user()->may(Permission::ActivityView), 403);
+    }
+
+    /** Revérifié à chaque action (export compris). */
+    public function hydrate(): void
+    {
         abort_unless(auth()->user()->may(Permission::ActivityView), 403);
     }
 
@@ -106,7 +113,7 @@ class Index extends Component
             fwrite($out, "\xEF\xBB\xBF");
             fputcsv($out, ['Date', 'Heure', 'Membre', 'Rôle', 'Action', 'Détail', 'Commande'], ';');
             foreach ($logs as $log) {
-                fputcsv($out, [
+                fputcsv($out, SpreadsheetSafe::row([
                     $log->created_at->format('d/m/Y'),
                     $log->created_at->format('H:i:s'),
                     $log->user?->name ?? 'Système / client',
@@ -114,7 +121,7 @@ class Index extends Component
                     $log->action->label(),
                     $log->description,
                     $log->order?->order_number ?? '',
-                ], ';');
+                ]), ';');
             }
             fclose($out);
         }, 'journal-'.$pressing->code.'-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);

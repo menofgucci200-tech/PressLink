@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Livewire\Group\Orders;
 use App\Models\Order;
+use App\Support\SpreadsheetSafe;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -37,7 +38,7 @@ class GroupOrdersExport implements FromCollection, ShouldAutoSize, WithHeadings,
      */
     public function map($order): array
     {
-        return [
+        return SpreadsheetSafe::row([
             $order->pressing->name,
             $order->order_number,
             $order->customer->fullName(),
@@ -50,6 +51,6 @@ class GroupOrdersExport implements FromCollection, ShouldAutoSize, WithHeadings,
             $order->dropped_off_at?->format('d/m/Y') ?? '',
             $order->expected_at?->format('d/m/Y') ?? '',
             $order->recovered_at?->format('d/m/Y') ?? '',
-        ];
+        ]);
     }
 }

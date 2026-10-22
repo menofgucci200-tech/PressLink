@@ -11,6 +11,7 @@ use App\Models\ActivityLog;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Pressing;
+use App\Models\ServiceVariant;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -90,6 +91,18 @@ class CreateOrderAction
         if (($pieceIds !== [] && $pressing->services()->whereIn('id', $pieceIds)->count() !== count($pieceIds))
             || ($prestationIds !== [] && $pressing->prestations()->whereIn('id', $prestationIds)->count() !== count($prestationIds))) {
             throw new InvalidArgumentException('Une pièce ou un service de la commande n\'appartient pas à ce pressing.');
+        }
+
+        // Lignes revérifiées ici (elles peuvent venir du navigateur) : quantité
+        // d'au moins 1, prix positif, variante qui appartient bien à sa pièce.
+        foreach ($items as $item) {
+            if ((int) ($item['quantity'] ?? 0) < 1 || (int) ($item['unit_price_fcfa'] ?? -1) < 0) {
+                throw new InvalidArgumentException('Une ligne de la commande a une quantité ou un prix invalide.');
+            }
+            if (! empty($item['service_variant_id'])
+                && ! ServiceVariant::whereKey($item['service_variant_id'])->where('service_id', $item['service_id'] ?? 0)->exists()) {
+                throw new InvalidArgumentException('Une variante de la commande ne correspond pas à sa pièce.');
+            }
         }
 
         $subscription = $pressing->subscription;

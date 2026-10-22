@@ -19,7 +19,7 @@
             <a href="{{ route('login') }}" class="hover:text-(--color-primary)">Espace pressing</a>
         </nav>
     </div>
-    <div class="border-t border-(--color-border) py-5 px-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-(--color-text-muted)">
+    <div class="border-t border-(--color-border) pt-5 pb-24 sm:pb-5 px-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-(--color-text-muted)">
         <span>© {{ date('Y') }} PressLink · Côte d'Ivoire</span>
         <a href="{{ route('site.legal') }}" class="hover:text-(--color-primary)">Mentions légales</a>
         <a href="{{ route('site.terms') }}" class="hover:text-(--color-primary)">CGU</a>

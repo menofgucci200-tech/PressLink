@@ -100,6 +100,13 @@ export class StockHorsLigne {
                 credentials: 'same-origin',
                 cache: 'no-store',
             });
+            if (reponse.status === 401 || reponse.status === 403) {
+                // Session terminée ou accès retiré : sur un PC partagé, la liste
+                // des clients et la page du comptoir ne restent pas.
+                this.oublierDonnees();
+                navigator.serviceWorker?.controller?.postMessage({ type: 'oublier-comptoir' });
+                return false;
+            }
             if (!reponse.ok) {
                 return false;
             }

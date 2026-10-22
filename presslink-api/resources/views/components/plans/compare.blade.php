@@ -5,6 +5,7 @@
     $yes = '<svg class="w-5 h-5 mx-auto text-(--color-success-text)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-label="Inclus"><path d="M20 6 9 17l-5-5"/></svg>';
     $no = '<span class="text-(--color-text-muted)" aria-label="Non inclus">—</span>';
 @endphp
+<p class="sm:hidden mb-2 text-xs text-(--color-text-muted)">Faites glisser le tableau pour voir les trois offres →</p>
 <div {{ $attributes->merge(['class' => 'overflow-x-auto rounded-2xl border border-(--color-border) bg-(--color-surface)']) }}>
     <table class="w-full min-w-[640px] text-sm">
         <thead>
@@ -42,7 +43,12 @@
             @foreach (\App\Enums\Feature::cases() as $feature)
                 <tr>
                     <td class="px-5 py-3"><span class="font-medium">{{ $feature->label() }}</span><span class="block text-xs text-(--color-text-secondary)">{{ $feature->description() }}</span></td>
-                    @foreach ($plans as $item)<td class="px-4 py-3 text-center">{!! in_array($feature, $item['features'], true) ? $yes : $no !!}</td>@endforeach
+                    @if (collect($plans)->contains(fn ($item) => in_array($feature, $item['features'], true)))
+                        @foreach ($plans as $item)<td class="px-4 py-3 text-center">{!! in_array($feature, $item['features'], true) ? $yes : $no !!}</td>@endforeach
+                    @else
+                        {{-- Dans aucune formule : proposée à part, jamais affichée comme absente. --}}
+                        <td colspan="{{ count($plans) }}" class="px-4 py-3 text-center text-xs font-semibold text-(--color-text-secondary)">{{ $feature->priceFcfa() !== null ? 'En option : '.\App\Support\PlanCatalog::fcfa($feature->priceFcfa()).' F / mois' : 'Sur demande' }}</td>
+                    @endif
                 </tr>
             @endforeach
         </tbody>

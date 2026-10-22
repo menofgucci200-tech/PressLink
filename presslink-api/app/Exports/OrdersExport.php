@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Models\Order;
 use App\Models\Pressing;
+use App\Support\SpreadsheetSafe;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\Export;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -43,7 +44,7 @@ class OrdersExport implements Export, FromCollection, ShouldAutoSize, WithHeadin
      */
     public function map($order): array
     {
-        return [
+        return SpreadsheetSafe::row([
             $order->order_number,
             $order->customer->fullName(),
             $order->customer->phone,
@@ -55,6 +56,6 @@ class OrdersExport implements Export, FromCollection, ShouldAutoSize, WithHeadin
             $order->dropped_off_at?->format('d/m/Y') ?? '',
             $order->expected_at?->format('d/m/Y') ?? '',
             $order->recovered_at?->format('d/m/Y') ?? '',
-        ];
+        ]);
     }
 }

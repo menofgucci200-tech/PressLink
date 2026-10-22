@@ -9,6 +9,7 @@ use App\Livewire\Admin\Pressings\Index as PressingsIndex;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Pressing;
+use App\Support\SpreadsheetSafe;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -42,7 +43,7 @@ class AdminExportController extends Controller
             fputcsv($out, $header, ';');
             $query->chunk(500, function ($models) use ($out, $row) {
                 foreach ($models as $model) {
-                    fputcsv($out, $row($model), ';');
+                    fputcsv($out, SpreadsheetSafe::row($row($model)), ';');
                 }
             });
             fclose($out);

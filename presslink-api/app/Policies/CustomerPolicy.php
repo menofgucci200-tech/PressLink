@@ -18,7 +18,7 @@ class CustomerPolicy
     public function view(User $user, Customer $customer): bool
     {
         return $customer->pressings()
-            ->whereIn('pressings.id', $user->pressings()->pluck('pressings.id'))
+            ->whereIn('pressings.id', $user->pressings()->wherePivot('is_active', true)->pluck('pressings.id'))
             ->exists();
     }
 

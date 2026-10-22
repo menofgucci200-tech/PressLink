@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\OrderPayment;
+use App\Support\SpreadsheetSafe;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -39,7 +40,7 @@ class GroupPaymentsExport implements FromCollection, ShouldAutoSize, WithHeading
      */
     public function map($payment): array
     {
-        return [
+        return SpreadsheetSafe::row([
             $payment->paid_at->format('d/m/Y'),
             $payment->paid_at->format('H:i'),
             $payment->order?->pressing?->name ?? '',
@@ -49,6 +50,6 @@ class GroupPaymentsExport implements FromCollection, ShouldAutoSize, WithHeading
             $payment->amount_fcfa,
             $payment->recorder?->name ?? '',
             $payment->note ?? '',
-        ];
+        ]);
     }
 }

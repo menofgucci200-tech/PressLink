@@ -67,20 +67,23 @@ class OrderExportController extends Controller
     {
         $parts = [];
 
-        if ($filters['status']) {
-            $parts[] = 'statut '.OrderStatus::from($filters['status'])->label();
+        if ($filters['status'] && ($status = OrderStatus::tryFrom($filters['status']))) {
+            $parts[] = 'statut '.$status->label();
         }
 
         if ($filters['search']) {
             $parts[] = 'recherche « '.$filters['search'].' »';
         }
 
-        if ($filters['date_from']) {
-            $parts[] = 'depuis le '.Carbon::parse($filters['date_from'])->format('d/m/Y');
+        // Date illisible dans l'adresse : simplement non mentionnée (jamais d'erreur 500).
+        $date = fn (?string $value) => rescue(fn () => Carbon::parse($value)->format('d/m/Y'), null, report: false);
+
+        if ($filters['date_from'] && ($from = $date($filters['date_from']))) {
+            $parts[] = 'depuis le '.$from;
         }
 
-        if ($filters['date_to']) {
-            $parts[] = 'jusqu\'au '.Carbon::parse($filters['date_to'])->format('d/m/Y');
+        if ($filters['date_to'] && ($to = $date($filters['date_to']))) {
+            $parts[] = 'jusqu\'au '.$to;
         }
 
         if ($filters['payment'] === Pressing::UNSETTLED_FILTER) {

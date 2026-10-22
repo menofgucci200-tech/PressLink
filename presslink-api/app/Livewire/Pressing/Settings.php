@@ -97,6 +97,12 @@ class Settings extends Component
 
     public string $storageFeeCap = '';
 
+    /** Revérifié à chaque action : le rôle ou l'appartenance ont pu changer depuis l'ouverture de la page. */
+    public function hydrate(): void
+    {
+        abort_unless(auth()->user()->belongsToPressing($this->pressing) && auth()->user()->may(Permission::SettingsManage, $this->pressing), 403);
+    }
+
     public function mount(): void
     {
         $pressing = auth()->user()->currentPressing();

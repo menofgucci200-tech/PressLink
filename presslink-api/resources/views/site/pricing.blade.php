@@ -31,6 +31,7 @@
     </section>
 
     <section class="max-w-6xl mx-auto px-5 -mt-20 md:-mt-24 pb-16">
+        <h2 class="sr-only">Nos trois offres</h2>
         <x-plans.cards :plans="$plans" mode="site" data-motion="cascade" />
     </section>
 

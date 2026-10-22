@@ -174,7 +174,7 @@
                                 <div class="flex gap-2">
                                     <button type="submit" class="h-9 px-3 rounded-lg border border-(--color-primary) text-(--color-primary) text-xs font-semibold">Enregistrer</button>
                                     @if ($waUrl && $request->payment_link)
-                                        <a href="{{ $waUrl }}" target="_blank" rel="noopener" class="inline-flex items-center h-9 px-3 rounded-lg bg-[#25D366] text-white text-xs font-semibold">Envoyer sur WhatsApp</a>
+                                        <a href="{{ $waUrl }}" target="_blank" rel="noopener" class="inline-flex items-center h-9 px-3 rounded-lg bg-(--color-whatsapp) text-white text-xs font-semibold">Envoyer sur WhatsApp</a>
                                     @endif
                                 </div>
                             </form>

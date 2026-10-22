@@ -68,37 +68,55 @@
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-[19px] mb-5 loading-dim rounded-xl"
              wire:loading.delay.class="is-loading" wire:target="setPeriod, customFrom, customTo">
             @php
-                $totalPeriod = array_sum($counts);
-                $kpis = [
+                $openTotal = array_sum($counts);
+                $depositDelta = $activity['deposited'] - $activity['depositedPrevious'];
+                $nowCards = [
                     ['key' => 'recue', 'label' => 'Nouvelles', 'value' => $counts['recue'], 'color' => 'var(--color-info)', 'hint' => $counts['recue'] > 0 ? 'À réceptionner' : 'Aucune commande reçue'],
                     ['key' => 'traitement', 'label' => 'En traitement', 'value' => $counts['traitement'], 'color' => 'var(--color-secondary)', 'hint' => $counts['traitement'] > 0 ? 'En atelier' : 'Rien en atelier'],
                     ['key' => 'prete', 'label' => 'Prêtes', 'value' => $counts['prete'], 'color' => 'var(--color-success)', 'hint' => $counts['prete'] > 0 ? 'À retirer' : 'Aucune en attente de retrait'],
-                    ['key' => 'recuperee', 'label' => 'Récupérées', 'value' => $counts['recuperee'], 'color' => 'var(--color-text-muted)', 'hint' => $counts['recuperee'] > 0 ? number_format($counts['recuperee'], 0, ',', ' ').' sur la période' : 'Aucune sur la période'],
                 ];
             @endphp
-            @foreach ($kpis as $kpi)
-                @php
-                    $previousValue = (int) ($countsPrevious[$kpi['key']] ?? 0);
-                    $delta = $kpi['value'] - $previousValue;
-                    $pct = $totalPeriod > 0 ? round(($kpi['value'] / $totalPeriod) * 100) : 0;
-                @endphp
-                <a href="{{ route('orders.index', ['status' => $kpi['key'], 'dateFrom' => $exportParams['date_from'], 'dateTo' => $exportParams['date_to']]) }}" wire:navigate
-                   wire:key="kpi-{{ $kpi['key'] }}-{{ $period }}"
-                   title="Voir les commandes « {{ $kpi['label'] }} » {{ $periodLabel }}"
+            {{-- Activité de la période choisie : commandes déposées (date de dépôt, comme le filtre de la liste). --}}
+            <a href="{{ route('orders.index', ['dateFrom' => $exportParams['date_from'], 'dateTo' => $exportParams['date_to']]) }}" wire:navigate
+               wire:key="kpi-deposees-{{ $period }}"
+               title="Voir les commandes déposées {{ $periodLabel }}"
+               class="kpi-link group block bg-(--color-surface) border border-(--color-border) rounded-xl px-5 pt-[19px] pb-5 animate-step">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="w-[7px] h-[7px] rounded-full bg-(--color-primary)"></span>
+                        <span class="text-[13.5px] font-medium text-(--color-text-secondary)">Déposées</span>
+                    </div>
+                    @if ($depositDelta !== 0)
+                        <span class="text-[11.5px] font-semibold {{ $depositDelta > 0 ? 'text-(--color-success-text)' : 'text-(--color-text-muted)' }}" data-tooltip="Par rapport à la période précédente">{{ $depositDelta > 0 ? '+'.$depositDelta : $depositDelta }}</span>
+                    @else
+                        <span class="text-[11.5px] font-semibold text-(--color-text-muted)">—</span>
+                    @endif
+                </div>
+                <div class="text-[34px] font-bold tracking-tight my-3.5 tabular-nums" data-count="{{ $activity['deposited'] }}" data-count-key="kpi-deposees">{{ $activity['deposited'] }}</div>
+                <div class="text-[12.5px] text-(--color-text-muted) mb-3">{{ $periodLabel }}</div>
+                <div class="h-1 bg-(--color-border) rounded-full overflow-hidden">
+                    <div class="h-full rounded-full animate-step bg-(--color-primary)" style="width:{{ $activity['deposited'] > 0 ? min(100, round($activity['handedOver'] / max($activity['deposited'], 1) * 100)) : 0 }}%"></div>
+                </div>
+                <div class="mt-2.5 flex items-center justify-between gap-2 text-[11.5px] text-(--color-text-muted)">
+                    <span class="truncate">{{ $activity['handedOver'] > 0 ? number_format($activity['handedOver'], 0, ',', ' ').' remise'.($activity['handedOver'] > 1 ? 's' : '').' au client' : 'Aucune remise au client' }}</span>
+                    <span class="kpi-cta flex-none font-semibold text-(--color-primary)">Voir →</span>
+                </div>
+            </a>
+            {{-- État de l'atelier en ce moment, quelle que soit la date de dépôt. --}}
+            @foreach ($nowCards as $kpi)
+                @php $pct = $openTotal > 0 ? round(($kpi['value'] / $openTotal) * 100) : 0; @endphp
+                <a href="{{ route('orders.index', ['status' => $kpi['key']]) }}" wire:navigate
+                   wire:key="kpi-{{ $kpi['key'] }}"
+                   title="Voir les commandes « {{ $kpi['label'] }} » en ce moment"
                    class="kpi-link group block bg-(--color-surface) border border-(--color-border) rounded-xl px-5 pt-[19px] pb-5 animate-step">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <span class="w-[7px] h-[7px] rounded-full" style="background:{{ $kpi['color'] }}"></span>
                             <span class="text-[13.5px] font-medium text-(--color-text-secondary)">{{ $kpi['label'] }}</span>
                         </div>
-                        @if ($delta !== 0)
-                            <span class="text-[11.5px] font-semibold {{ $delta > 0 ? 'text-(--color-success-text)' : 'text-(--color-text-muted)' }}" data-tooltip="Par rapport à la période précédente">{{ $delta > 0 ? '+'.$delta : $delta }}</span>
-                        @else
-                            <span class="text-[11.5px] font-semibold text-(--color-text-muted)">—</span>
-                        @endif
                     </div>
                     <div class="text-[34px] font-bold tracking-tight my-3.5 tabular-nums" data-count="{{ $kpi['value'] }}" data-count-key="kpi-{{ $kpi['key'] }}">{{ $kpi['value'] }}</div>
-                    <div class="text-[12.5px] text-(--color-text-muted) mb-3">{{ $periodLabel }}</div>
+                    <div class="text-[12.5px] text-(--color-text-muted) mb-3">En ce moment</div>
                     <div class="h-1 bg-(--color-border) rounded-full overflow-hidden">
                         <div class="h-full rounded-full animate-step" style="width:{{ $pct }}%;background:{{ $kpi['color'] }}"></div>
                     </div>

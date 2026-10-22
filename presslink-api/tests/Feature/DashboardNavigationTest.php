@@ -67,11 +67,28 @@ class DashboardNavigationTest extends TestCase
         $pressing = Pressing::factory()->create();
         $this->actingAs($this->makeAdmin($pressing));
 
-        $url = route('orders.index', ['status' => 'prete', 'dateFrom' => now()->subDays(6)->toDateString(), 'dateTo' => now()->toDateString()]);
+        $deposited = route('orders.index', ['dateFrom' => now()->subDays(6)->toDateString(), 'dateTo' => now()->toDateString()]);
 
         Livewire::test(Dashboard::class)
             ->call('setPeriod', '7d')
-            ->assertSeeHtml('href="'.e($url).'"');
+            ->assertSeeHtml('href="'.e($deposited).'"')
+            ->assertSeeHtml('href="'.e(route('orders.index', ['status' => 'prete'])).'"');
+    }
+
+    public function test_dashboard_shows_the_workshop_now_and_the_activity_of_the_period(): void
+    {
+        $pressing = Pressing::factory()->create();
+        $this->actingAs($this->makeAdmin($pressing));
+        // Déposée il y a 10 jours, prête aujourd'hui : elle est à retirer.
+        $this->makeOrder($pressing, OrderStatus::Prete, ['dropped_off_at' => now()->subDays(10)]);
+        $this->makeOrder($pressing, OrderStatus::Recue, ['dropped_off_at' => now()]);
+        $handed = $this->makeOrder($pressing, OrderStatus::Prete, ['dropped_off_at' => now()->subDays(3)]);
+        $handed->update(['status' => OrderStatus::Recuperee]);
+
+        Livewire::test(Dashboard::class)
+            ->call('setPeriod', 'today')
+            ->assertViewHas('counts', fn (array $counts) => $counts['prete'] === 1 && $counts['recue'] === 1)
+            ->assertViewHas('activity', fn (array $activity) => $activity['deposited'] === 1 && $activity['handedOver'] === 1);
     }
 
     public function test_orders_list_rows_are_clickable_and_status_counts_follow_the_search(): void

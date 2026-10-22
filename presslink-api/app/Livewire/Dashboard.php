@@ -6,6 +6,7 @@ use App\Enums\OrderIssueStatus;
 use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderPayment;
+use App\Models\OrderStatusHistory;
 use App\Models\User;
 use App\Support\GroupMetrics;
 use Carbon\Carbon;
@@ -165,12 +166,15 @@ class Dashboard extends Component
     {
         $pressing = $user->currentPressing();
 
+        // État de l'atelier en ce moment (toutes dates de dépôt confondues) :
+        // ce sont des listes de travail, une commande déposée hier et prête
+        // aujourd'hui doit compter dans « Prêtes ».
         $counts = [
             OrderStatus::Recue->value => 0,
             OrderStatus::Traitement->value => 0,
             OrderStatus::Prete->value => 0,
-            OrderStatus::Recuperee->value => 0,
         ];
+        $activity = ['deposited' => 0, 'depositedPrevious' => 0, 'handedOver' => 0];
 
         $recent = collect();
         $tasks = [];
@@ -179,25 +183,35 @@ class Dashboard extends Component
         [$rangeStart, $rangeEnd, $previousStart, $previousEnd, $periodLabel] = $this->resolvePeriod();
 
         if ($pressing !== null) {
-            // Date de dépôt, comme le filtre de la liste des commandes : un
-            // clic sur une carte retrouve exactement le même nombre.
             $counts = array_merge(
                 $counts,
                 $pressing->orders()
                     ->selectRaw('status, count(*) as aggregate')
-                    ->whereBetween('dropped_off_at', [$rangeStart, $rangeEnd])
+                    ->whereIn('status', array_keys($counts))
                     ->groupBy('status')
                     ->pluck('aggregate', 'status')
                     ->all(),
             );
 
-            $recent = $pressing->filteredOrders(['search' => $this->search ?: null])->withReadySince()->latest()->take(8)->get();
+            // Activité de la période. Déposées : date de dépôt, comme le filtre
+            // de la liste des commandes (un clic retrouve le même nombre).
+            // Remises : date du passage à « récupérée ».
+            $deposited = fn ($from, $to) => $pressing->orders()
+                ->where('status', '!=', OrderStatus::Annulee->value)
+                ->whereBetween('dropped_off_at', [$from, $to])
+                ->count();
+            $activity = [
+                'deposited' => $deposited($rangeStart, $rangeEnd),
+                'depositedPrevious' => $deposited($previousStart, $previousEnd),
+                'handedOver' => OrderStatusHistory::query()
+                    ->whereIn('order_id', $pressing->orders()->select('id'))
+                    ->where('status', OrderStatus::Recuperee->value)
+                    ->whereBetween('created_at', [$rangeStart, $rangeEnd])
+                    ->distinct()
+                    ->count('order_id'),
+            ];
 
-            $countsPrevious = $pressing->orders()
-                ->selectRaw('status, count(*) as aggregate')
-                ->whereBetween('dropped_off_at', [$previousStart, $previousEnd])
-                ->groupBy('status')
-                ->pluck('aggregate', 'status');
+            $recent = $pressing->filteredOrders(['search' => $this->search ?: null])->withReadySince()->latest()->take(8)->get();
 
             // "À traiter aujourd'hui" reste indépendant de la période choisie
             // pour les cartes : c'est toujours l'état actuel de l'atelier,
@@ -262,7 +276,7 @@ class Dashboard extends Component
         return view('livewire.dashboard', [
             'pressing' => $pressing,
             'counts' => $counts,
-            'countsPrevious' => $countsPrevious ?? collect(),
+            'activity' => $activity,
             'periodLabel' => $periodLabel,
             // Pour que "Exporter" respecte la période affichée (Aujourd'hui,
             // 7/30 jours, personnalisée) au lieu de toujours tout exporter.

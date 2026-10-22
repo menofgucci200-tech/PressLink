@@ -12,7 +12,7 @@
                 </p>
                 <div class="flex flex-col sm:flex-row gap-3">
                     <a href="https://wa.me/{{ ltrim(config('presslink.support.phone_e164'), '+') }}?text={{ rawurlencode('Bonjour, je souhaite en savoir plus sur PressLink pour mon pressing.') }}" target="_blank" rel="noopener"
-                       class="inline-flex items-center justify-center gap-3 h-12 pl-2 pr-6 rounded-xl bg-[#25D366] text-white font-semibold hover:brightness-95">
+                       class="inline-flex items-center justify-center gap-3 h-12 pl-2 pr-6 rounded-xl bg-(--color-whatsapp) text-white font-semibold hover:brightness-95">
                         <img src="{{ asset('images/whatsapp.png') }}" alt="" class="w-8 h-8 rounded-full ring-2 ring-white" width="32" height="32">
                         Nous écrire sur WhatsApp
                     </a>

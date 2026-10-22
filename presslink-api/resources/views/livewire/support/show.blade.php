@@ -15,7 +15,7 @@
                 <img src="{{ asset('images/phone.png') }}" alt="" width="26" height="26" class="rounded-full ring-2 ring-white">
                 Appeler le support
             </a>
-            <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl bg-[#25D366] text-white font-semibold hover:brightness-95">
+            <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl bg-(--color-whatsapp) text-white font-semibold hover:brightness-95">
                 <img src="{{ asset('images/whatsapp.png') }}" alt="" width="26" height="26" class="rounded-full ring-2 ring-white">
                 Écrire sur WhatsApp
             </a>

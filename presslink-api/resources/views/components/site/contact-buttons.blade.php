@@ -12,7 +12,7 @@
         <img src="{{ asset('images/phone.png') }}" alt="" class="{{ $icon }} rounded-full dark:bg-white" width="36" height="36" loading="lazy">
         Appeler
     </a>
-    <a href="{{ $whatsapp }}" target="_blank" rel="noopener" class="{{ $button }} bg-[#25D366] text-white hover:brightness-95">
+    <a href="{{ $whatsapp }}" target="_blank" rel="noopener" class="{{ $button }} bg-(--color-whatsapp) text-white hover:brightness-95">
         <img src="{{ asset('images/whatsapp.png') }}" alt="" class="{{ $icon }} rounded-full ring-2 ring-white" width="36" height="36" loading="lazy">
         WhatsApp
     </a>

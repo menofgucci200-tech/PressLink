@@ -33,7 +33,10 @@
     --color-border: #e2e8f0;
     --color-text-primary: #0f172a;
     --color-text-secondary: #475569;
-    --color-text-muted: #94a3b8;
+    /* slate-500 : 4,8:1 sur blanc (slate-400 n'atteignait que 2,6:1). */
+    --color-text-muted: #64748b;
+    /* Vert WhatsApp foncé : texte blanc lisible (5,2:1 ; #25D366 = 2:1). */
+    --color-whatsapp: #0f7b5f;
 
     --radius-sm: 6px;
     --radius-md: 8px;
@@ -436,7 +439,7 @@ main.is-navigating {
     --color-border: #e2e8f0;
     --color-text-primary: #0f172a;
     --color-text-secondary: #475569;
-    --color-text-muted: #94a3b8;
+    --color-text-muted: #64748b;
 }
 
 /* Démos d'installation : 3 écrans enchaînés en boucle de 12 s, et la liste
@@ -736,3 +739,13 @@ label:has(> input.sr-only:focus-visible) {
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 .lenis.lenis-stopped { overflow: hidden; }
+
+/* Thème sombre : le bleu principal y est plus clair (#3b82f6), lisible en
+   texte mais trop pâle sous un libellé blanc (3,7:1). Les boutons pleins
+   prennent la nuance foncée (5,2:1). */
+[data-theme='dark'] .bg-\(--color-primary\).text-white {
+    background-color: #2563eb;
+}
+[data-theme='dark'] .bg-\(--color-primary\).text-white:hover {
+    background-color: #1d4ed8;
+}

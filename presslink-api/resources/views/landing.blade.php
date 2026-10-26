@@ -239,7 +239,7 @@
                 <div class="max-w-2xl">
                     <p class="text-xs font-semibold uppercase tracking-widest text-blue-300 mb-3">Nos offres</p>
                     <h2 class="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">{{ $offer ? 'Et après le '.$until.' ?' : 'Vous cherchez la meilleure offre pour votre pressing ?' }}</h2>
-                    <p class="text-slate-300 leading-relaxed">{{ $offer ? 'Ensuite, vous choisissez l\'offre qui vous ressemble, seulement si PressLink vous convient.' : 'Petit pressing, pressing qui grandit ou plusieurs établissements : choisissez l\'offre qui vous ressemble, et payez au mois ou à l\'année.' }}</p>
+                    <p class="text-slate-300 leading-relaxed">{{ $offer ? 'Ensuite, vous choisissez l\'offre qui vous ressemble, seulement si PressLink vous convient. Rien n\'est prélevé automatiquement.' : 'Petit pressing, pressing qui grandit ou plusieurs établissements : choisissez l\'offre qui vous ressemble, et payez au mois ou à l\'année.' }}</p>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3">
                     <x-site.trial-button tone="light" />

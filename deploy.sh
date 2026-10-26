@@ -68,8 +68,18 @@ lftp_run() {
   "
 }
 
+# Le build sans dev se fait dans le dossier de travail local : on y remet les
+# outils de développement (tests, Pint…) une fois l'envoi fini, même en cas
+# d'échec en cours de route.
+restore_dev_dependencies() {
+  log "Backend — outils de développement réinstallés en local (composer, avec dev)"
+  (cd "$API_DIR" && composer install --no-interaction --quiet) \
+    || warn "Réinstallation locale impossible : lancez « composer install » dans presslink-api."
+}
+
 deploy_backend() {
   log "Backend — installation des dépendances PHP (composer, sans dev)"
+  trap restore_dev_dependencies EXIT
   (cd "$API_DIR" && composer install --no-dev --optimize-autoloader --no-interaction)
 
   log "Backend — build des assets (Vite)"

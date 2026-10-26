@@ -1,0 +1,31 @@
+{
+  "fps": 30,
+  "duree": 44.0,
+  "groove": 3.6,
+  "voix": [
+    { "cle": "lance", "debut": 0.6 },
+    { "cle": "offre", "debut": 3.85 },
+    { "cle": "gestion", "debut": 8.8 },
+    { "cle": "depot", "debut": 14.2 },
+    { "cle": "numero", "debut": 20.0 },
+    { "cle": "notif", "debut": 26.0 },
+    { "cle": "rejoindre", "debut": 30.4 },
+    { "cle": "cta", "debut": 35.9 }
+  ],
+  "scenes": [
+    { "id": "lance", "debut": 0.0, "fin": 3.6, "note": "lancement officiel : logo, confettis" },
+    { "id": "offre", "debut": 3.6, "fin": 8.6, "note": "GRATUIT jusqu'au 15 novembre" },
+    { "id": "gestion", "debut": 8.6, "fin": 14.0, "note": "ordinateur : tableau de bord, caisse du jour" },
+    { "id": "depot", "debut": 14.0, "fin": 19.8, "note": "téléphone : nouvelle commande en 4 étapes" },
+    { "id": "numero", "debut": 19.8, "fin": 25.8, "note": "appli client : le numéro suffit, les commandes attendent" },
+    { "id": "notif", "debut": 25.8, "fin": 30.2, "note": "notification « prête »" },
+    { "id": "rejoindre", "debut": 30.2, "fin": 35.6, "note": "3 étapes pour rejoindre" },
+    { "id": "fin", "debut": 35.6, "fin": 44.0, "note": "gratuit jusqu'au 15 novembre, WhatsApp, e-mail, QR" }
+  ],
+  "sons": {
+    "souffles": [3.6, 8.6, 14.0, 19.8, 25.8, 30.2, 35.6],
+    "signature_sonore": [0.75, 35.95],
+    "notification": [26.35],
+    "pops": [0.3, 2.0, 5.3, 6.0, 6.8, 9.0, 9.6, 10.3, 11.0, 12.4, 15.7, 16.7, 17.6, 18.8, 21.1, 22.3, 24.1, 30.9, 32.6, 34.2, 36.6, 38.2, 38.6, 39.3]
+  }
+}

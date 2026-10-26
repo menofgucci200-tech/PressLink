@@ -23,6 +23,13 @@
     :og-image="$baseUrl.'/og-image.png'"
     :json-ld="$jsonLd"
     :breadcrumb-json-ld="$breadcrumb">
+    @if ($path !== '/' && \App\Support\LaunchOffer::isActive())
+        <a href="{{ route('home') }}#rejoindre" class="block bg-[#0B1530] text-white text-center text-sm font-medium px-5 py-2.5 hover:bg-[#12245A]">
+            <span class="inline-block w-2 h-2 rounded-full bg-[#22C55E] mr-1.5 align-middle" aria-hidden="true"></span>
+            Lancement officiel : PressLink est gratuit pour les pressings jusqu'au {{ \App\Support\LaunchOffer::dateLabel() }}.
+            <span class="font-bold text-[#FBBF24] whitespace-nowrap">En profiter →</span>
+        </a>
+    @endif
     <x-site.header />
     <main>{{ $slot }}</main>
     <x-site.footer />

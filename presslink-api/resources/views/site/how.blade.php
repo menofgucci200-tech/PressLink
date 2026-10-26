@@ -1,8 +1,8 @@
 @php
     $steps = [
         ['Ouvrez l\'application', 'Scannez le code QR ou ouvrez presslink.org/app, puis installez-la sur votre écran d\'accueil.'],
-        ['Inscrivez-vous', 'Votre numéro de téléphone, votre prénom, votre nom et un mot de passe : c\'est tout.'],
-        ['Rejoignez votre pressing', 'Saisissez le code de votre pressing, par exemple PE-4821. Une seule fois.'],
+        ['Inscrivez-vous avec votre numéro', 'Le numéro que vous donnez au pressing, votre nom et un mot de passe. Si votre pressing vous a déjà enregistré, vos informations sont pré-remplies : vous vérifiez, c\'est tout.'],
+        ['Retrouvez vos commandes', 'Vos commandes, dans tous vos pressings PressLink, s\'affichent automatiquement : pas de code à saisir.'],
         ['Déposez vos vêtements', 'Le pressing enregistre la commande : elle apparaît aussitôt dans l\'application, avec les articles et le total.'],
         ['Suivez l\'avancement', 'Reçue, en traitement, prête : l\'état de la commande se met à jour en temps réel.'],
         ['Soyez prévenu', 'Une notification vous indique que votre commande est prête.'],

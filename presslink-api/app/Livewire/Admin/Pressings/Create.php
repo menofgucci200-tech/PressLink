@@ -9,6 +9,7 @@ use App\Models\Pressing;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Rules\IvorianPhone;
+use App\Support\LaunchOffer;
 use App\Support\PhoneNumber;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -190,14 +191,20 @@ class Create extends Component
 
     private function createTrialSubscription(Pressing $pressing): void
     {
+        // 14 jours d'essai, et au moins jusqu'à la fin de l'offre de lancement.
+        $trialEndsAt = now()->addDays(14);
+        if (LaunchOffer::isActive() && LaunchOffer::endsAt()->greaterThan($trialEndsAt)) {
+            $trialEndsAt = LaunchOffer::endsAt();
+        }
+
         Subscription::create([
             'pressing_id' => $pressing->id,
             'plan' => SubscriptionPlan::Starter,
             'status' => SubscriptionStatus::Trialing,
             'orders_limit' => SubscriptionPlan::Starter->ordersLimit(),
-            'trial_ends_at' => now()->addDays(14),
+            'trial_ends_at' => $trialEndsAt,
             'current_period_starts_at' => now(),
-            'current_period_ends_at' => now()->addDays(14),
+            'current_period_ends_at' => $trialEndsAt,
         ]);
     }
 

@@ -19,7 +19,7 @@ class LandingPageTest extends TestCase
     {
         $this->get('/')
             ->assertOk()
-            ->assertSee('Suivez vos vêtements au pressing', false)
+            ->assertSee('Inscrire mon pressing', false)
             ->assertSee('presslink.org/app', false)
             ->assertSee(route('login'), false);
     }

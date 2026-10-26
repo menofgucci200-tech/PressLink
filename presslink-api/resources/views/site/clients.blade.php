@@ -21,7 +21,7 @@
         <h2 class="font-display text-3xl font-bold tracking-tight mb-8">En trois étapes</h2>
         <ol class="grid md:grid-cols-3 gap-5">
             @foreach ([
-                ['1', 'Rejoignez votre pressing', 'Saisissez le code de votre pressing (par exemple PE-4821) dans l\'application. Vous le faites une seule fois.'],
+                ['1', 'Entrez votre numéro', 'Créez votre compte avec le numéro que vous donnez au pressing : vos commandes, dans tous vos pressings, s\'affichent automatiquement.'],
                 ['2', 'Déposez vos vêtements', 'Le pressing enregistre votre commande : vous la retrouvez aussitôt dans l\'application, avec le détail des articles et le total.'],
                 ['3', 'Soyez notifié', 'Dès que votre commande est prête, une notification vous prévient. Vous passez récupérer vos vêtements au bon moment.'],
             ] as [$n, $heading, $text])
@@ -39,7 +39,7 @@
                 ['Suivi en temps réel', 'Reçue, en traitement, prête, récupérée : l\'état de chaque commande est toujours à jour.'],
                 ['Notifications', 'Un message sur votre téléphone quand votre commande est prête à être récupérée.'],
                 ['Historique complet', 'Retrouvez toutes vos commandes passées, leurs articles et leurs montants en FCFA.'],
-                ['Infos pratiques du pressing', 'Adresse, horaires d\'ouverture, numéro de téléphone et code du pressing, dans l\'application.'],
+                ['Infos pratiques du pressing', 'Adresse, horaires d\'ouverture et numéro de téléphone de vos pressings, dans l\'application.'],
                 ['Tarifs consultables', 'Quand votre pressing le souhaite, sa grille de tarifs est visible directement dans l\'application.'],
                 ['Signalement d\'un problème', 'Un article manquant ou abîmé ? Signalez-le en quelques secondes depuis la commande concernée.'],
             ] as [$heading, $text])

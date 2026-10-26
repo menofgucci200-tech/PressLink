@@ -51,8 +51,8 @@ class StaticPages {
       'Ouvrez l\'onglet Commandes pour voir toutes vos commandes en cours. Appuyez sur une commande pour voir le détail et l\'avancement.',
     ),
     (
-      'Comment rejoindre un pressing ?',
-      'Depuis l\'accueil, appuyez sur "Ajouter un pressing" et entrez le code fourni par votre pressing (ex. PE-4821).',
+      'Comment retrouver mon pressing ?',
+      'Rien à faire : vos pressings et vos commandes apparaissent dès que vous utilisez le numéro de téléphone donné au comptoir. Si vous avez un code (ex. PE-4821), vous pouvez aussi l\'entrer avec "Ajouter un pressing".',
     ),
     (
       'Je ne reçois pas de notifications',

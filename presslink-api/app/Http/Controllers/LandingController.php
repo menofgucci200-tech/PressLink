@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\LaunchOffer;
 use App\Support\PlanCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -29,15 +30,16 @@ class LandingController extends Controller
             ],
             [
                 'question' => 'L\'application PressLink est-elle gratuite ?',
-                'answer' => 'Oui, l\'application est gratuite pour les clients des pressings. Les pressings utilisent PressLink comme logiciel de gestion.',
+                'answer' => 'Oui, l\'application est gratuite pour les clients des pressings. Les pressings utilisent PressLink comme logiciel de gestion'
+                    .(LaunchOffer::isActive() ? ', gratuit lui aussi pendant le lancement officiel, jusqu\'au '.LaunchOffer::dateLabel().'.' : '.'),
             ],
             [
                 'question' => 'Comment installer PressLink sur mon téléphone ?',
                 'answer' => 'Ouvrez presslink.org/app ou scannez le code QR. Sur Android, appuyez sur « Installer ». Sur iPhone, ouvrez le lien dans Safari, touchez Partager puis « Sur l\'écran d\'accueil ». Aucun téléchargement depuis un store n\'est nécessaire.',
             ],
             [
-                'question' => 'Comment rejoindre mon pressing dans l\'application ?',
-                'answer' => 'Depuis l\'accueil, choisissez « Ajouter un pressing » et saisissez le code fourni par votre pressing (par exemple PE-4821).',
+                'question' => 'Comment retrouver mes commandes et mon pressing dans l\'application ?',
+                'answer' => 'Créez votre compte avec le numéro de téléphone que vous donnez au pressing : vos commandes s\'affichent automatiquement, dans tous vos pressings PressLink. Aucun code n\'est nécessaire.',
             ],
             [
                 'question' => 'Je suis propriétaire de pressing : à quoi sert PressLink ?',

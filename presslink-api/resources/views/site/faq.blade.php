@@ -11,7 +11,7 @@
 @endphp
 <x-site.page
     title="Questions fréquentes — PressLink, suivi de pressing"
-    description="Suivi des commandes, installation, code du pressing, logiciel de gestion, essai gratuit, hors connexion, support : les réponses à vos questions sur PressLink."
+    description="Suivi des commandes, installation, inscription avec votre numéro, logiciel de gestion, essai gratuit, hors connexion : vos questions sur PressLink."
     path="/questions-frequentes"
     :json-ld="$jsonLd">
     <section class="bg-(--color-bg)">

@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>PressLink — vidéo de lancement</title>
+<style>
+:root {
+    --primary: #2563EB; --primary-dark: #1D4ED8; --primary-tint: #EFF4FE; --sky: #93C5FD;
+    --success: #10B981; --success-tint: #ECFDF5; --success-text: #059669;
+    --navy: #0B1530; --ink: #0F172A; --ink-2: #475569; --muted: #94A3B8;
+    --bg: #F4F7FE; --border: #E2E8F0; --yellow: #FBBF24; --wa: #22C55E;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+body { font-family: "Inter", sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+#stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--navy); }
+.scene { position: absolute; inset: 0; overflow: hidden; display: none; will-change: transform, opacity; }
+.abs { position: absolute; }
+.display { font-family: "Inter Display", "Inter", sans-serif; font-weight: 800; letter-spacing: -0.035em; line-height: 1.04; }
+.center { left: 0; right: 0; text-align: center; }
+.wax { position: absolute; inset: -200px; }
+img { display: block; }
+
+.badge { display: inline-flex; align-items: center; gap: 18px; height: 84px; padding: 0 38px; border-radius: 999px; font-size: 38px; font-weight: 800; white-space: nowrap; }
+.badge i { width: 20px; height: 20px; border-radius: 50%; background: var(--wa); box-shadow: 0 0 0 9px rgba(34,197,94,.25); }
+.badge.glass { background: rgba(255,255,255,.1); border: 3px solid rgba(255,255,255,.25); color: #fff; }
+.badge.navy { background: var(--navy); color: #fff; }
+.h { font-size: 82px; }
+.h .b { color: var(--primary); }
+.h .s { color: var(--sky); }
+
+/* Téléphone */
+.phone { position: absolute; width: 560px; padding: 14px; background: #0B0F19; border-radius: 62px;
+    box-shadow: 0 50px 90px rgba(15,23,42,.35), inset 0 0 0 3px #2A3245; }
+.phone .scr { position: relative; width: 532px; height: 1153px; border-radius: 48px; overflow: hidden; background: #fff; }
+.phone .scr > .pg { position: absolute; left: 0; top: 0; width: 532px; height: 1153px; overflow: hidden; background: #fff; }
+.phone .scr .pg > img { position: absolute; left: 0; top: 54px; width: 532px; height: auto; }
+.phone .sb { position: absolute; left: 0; right: 0; top: 0; height: 54px; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: 6px 44px 0 50px;
+    font-size: 22px; font-weight: 700; color: var(--ink); background: #fff; }
+.phone .sb.app { background: linear-gradient(90deg, #1E3B8B, #1E3EAB 50%, #2563EA); color: #fff; }
+.phone .notch { position: absolute; left: 50%; top: 26px; width: 130px; height: 34px; margin-left: -65px; border-radius: 20px; background: #0B0F19; z-index: 3; }
+.tap { position: absolute; width: 110px; height: 110px; margin: -55px 0 0 -55px; border-radius: 50%; background: rgba(37,99,235,.25); border: 5px solid rgba(255,255,255,.95); box-shadow: 0 0 0 3px rgba(15,23,42,.25), 0 10px 26px rgba(15,23,42,.35); z-index: 6; opacity: 0; }
+
+/* Écrans de l'appli client recréés (connexion par numéro) */
+.app { padding: 120px 40px 0; background: #F8FAFC; font-size: 26px; color: var(--ink); }
+.app .logo { font: 800 50px "Inter Display"; letter-spacing: -1px; }
+.app .logo span { color: var(--primary); }
+.app h4 { font: 800 38px/1.15 "Inter Display"; letter-spacing: -.5px; margin-top: 34px; }
+.app p { font-size: 25px; line-height: 1.4; color: var(--ink-2); margin-top: 10px; }
+.app label { display: block; font-size: 22px; font-weight: 600; color: var(--ink-2); margin: 40px 0 10px; }
+.field { display: flex; align-items: center; height: 92px; border-radius: 18px; border: 3px solid var(--primary); background: #fff; overflow: hidden; box-shadow: 0 0 0 6px rgba(37,99,235,.12); }
+.field .cc { display: flex; align-items: center; gap: 10px; height: 100%; padding: 0 20px; background: #F1F5F9; border-right: 2px solid var(--border); font-weight: 700; color: var(--ink-2); }
+.field .num { padding: 0 22px; font-size: 36px; font-weight: 600; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+.field .num .ph { color: #CBD5E1; }
+.caret { display: inline-block; width: 3px; height: 40px; background: var(--primary); vertical-align: middle; margin-left: 2px; }
+.btn { display: flex; align-items: center; justify-content: center; height: 92px; border-radius: 18px; background: var(--primary); color: #fff; font-size: 30px; font-weight: 700; margin-top: 34px; }
+.known { display: flex; gap: 18px; background: var(--primary-tint); border: 2px solid #BFDBFE; border-radius: 22px; padding: 24px; margin-top: 30px; }
+.known i { flex: none; width: 58px; height: 58px; border-radius: 16px; background: var(--primary); display: grid; place-items: center; font-style: normal; font-size: 30px; }
+.known b { display: block; font-size: 27px; }
+.known span { display: block; font-size: 23px; line-height: 1.35; color: var(--ink-2); margin-top: 4px; }
+.prefill { display: flex; gap: 16px; }
+.prefill > div { flex: 1; }
+.prefill .in { height: 84px; border-radius: 16px; border: 2px solid var(--border); background: #fff; display: flex; align-items: center; padding: 0 22px; font-size: 30px; font-weight: 600; }
+
+/* Pastilles flottantes */
+.chip { position: absolute; display: inline-flex; align-items: center; gap: 16px; background: #fff; border-radius: 999px; padding: 14px 32px 14px 14px;
+    font-weight: 700; font-size: 36px; box-shadow: 0 18px 40px rgba(15,23,42,.2); white-space: nowrap; z-index: 5; color: var(--ink); }
+.chip i { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-weight: 800; font-size: 28px; flex: none; }
+
+/* 1. Lancement */
+#s1 { background: radial-gradient(120% 80% at 50% 35%, #1D3F96 0, var(--navy) 70%); color: #fff; z-index: 1; }
+.confetti { position: absolute; left: 0; top: 0; width: 22px; height: 34px; border-radius: 5px; }
+
+/* 2. Offre */
+#s2 { background: var(--yellow); z-index: 2; }
+#s2 .stripes { position: absolute; inset: -300px; background: radial-gradient(60% 40% at 100% 0%, #FDE68A 0, transparent 70%), repeating-linear-gradient(135deg, rgba(15,23,42,.04) 0 4px, transparent 4px 44px); }
+.gratuit { font: 900 232px/0.86 "Inter Display"; letter-spacing: -11px; color: var(--navy); }
+.until { display: inline-block; background: var(--navy); color: var(--yellow); font: 900 78px "Inter Display"; letter-spacing: -2px; padding: 16px 44px 24px; border-radius: 30px; }
+.cal { width: 300px; border-radius: 40px; overflow: hidden; background: #fff; box-shadow: 0 34px 60px -20px rgba(11,21,48,.55); text-align: center; }
+.cal .m { background: #EF4444; color: #fff; font: 900 50px Inter; letter-spacing: .12em; padding: 16px 0 12px; }
+.cal .d { font: 900 190px/1.05 "Inter Display"; letter-spacing: -8px; color: var(--navy); padding-bottom: 12px; }
+
+/* 3. Gestion */
+#s3 { background: radial-gradient(120% 70% at 50% 0%, #1B3A86 0, var(--navy) 65%); color: #fff; z-index: 3; }
+.laptop .lid { width: 960px; padding: 20px 20px 26px; background: #0E1424; border-radius: 30px 30px 10px 10px; box-shadow: 0 40px 90px rgba(0,0,0,.5); }
+.laptop .view { position: relative; width: 920px; height: 575px; border-radius: 8px; overflow: hidden; background: #fff; }
+.laptop .view img { position: absolute; left: 0; top: 0; width: 920px; height: 575px; transform-origin: 0 0; }
+.laptop .base { width: 1080px; margin-left: -60px; height: 34px; background: linear-gradient(#C9D2E3, #8C97AD); border-radius: 0 0 40px 40px; }
+.feat { display: flex; align-items: center; gap: 18px; background: rgba(255,255,255,.08); border: 2px solid rgba(147,197,253,.35); border-radius: 28px; padding: 22px 26px; font-size: 36px; font-weight: 700; width: 450px; }
+.feat i { width: 66px; height: 66px; border-radius: 18px; display: grid; place-items: center; font-style: normal; font-size: 36px; flex: none; }
+.toast { display: flex; gap: 22px; align-items: center; background: #fff; color: var(--ink); border-radius: 26px; padding: 22px 30px; font-size: 34px; font-weight: 700; box-shadow: 0 24px 60px rgba(0,0,0,.4); white-space: nowrap; }
+.toast i { width: 58px; height: 58px; border-radius: 50%; background: var(--success-tint); display: grid; place-items: center; flex: none; }
+
+/* 4-5. Écrans clairs */
+#s4, #s5 { background: var(--bg); }
+#s4 { z-index: 4; } #s5 { z-index: 5; }
+
+/* 6. Notification */
+#s6 { background: linear-gradient(#DADADC, #C6C6C8); z-index: 6; }
+.notif { width: 960px; left: 60px; background: rgba(255,255,255,.97); border-radius: 40px; padding: 30px 34px; display: flex; gap: 26px; align-items: flex-start; box-shadow: 0 30px 70px rgba(15,23,42,.28); }
+.notif .ic { width: 92px; height: 92px; border-radius: 24px; background: var(--primary); display: grid; place-items: center; flex: none; }
+.notif .app2 { font-size: 25px; font-weight: 700; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; display: flex; justify-content: space-between; }
+.notif .t { font-size: 40px; font-weight: 800; margin-top: 6px; letter-spacing: -.01em; }
+.notif .b { font-size: 31px; color: var(--ink-2); margin-top: 4px; line-height: 1.3; }
+
+/* 7. Rejoindre */
+#s7 { background: radial-gradient(110% 70% at 100% 0%, #2563EB 0, var(--navy) 60%); color: #fff; z-index: 7; }
+.step { left: 80px; width: 920px; display: flex; align-items: center; gap: 34px; background: #fff; color: var(--ink); border-radius: 40px; padding: 36px 40px; box-shadow: 0 30px 60px rgba(0,0,0,.35); }
+.step .n { flex: none; width: 110px; height: 110px; border-radius: 50%; display: grid; place-items: center; font: 900 54px "Inter Display"; }
+.step b { display: block; font: 800 46px/1.12 "Inter Display"; letter-spacing: -.8px; }
+.step span { display: block; font-size: 31px; color: var(--ink-2); margin-top: 6px; }
+
+/* 8. Fin */
+#s8 { background: radial-gradient(90% 60% at 85% 10%, #3B82F6 0, var(--primary) 45%, var(--primary-dark) 100%); color: #fff; z-index: 8; }
+.free { width: 880px; left: 100px; background: var(--yellow); color: var(--navy); border-radius: 40px; padding: 30px 20px 30px; text-align: center; box-shadow: 0 30px 60px rgba(15,23,42,.3); }
+.free b { display: block; font-family: "Inter Display", sans-serif; font-weight: 900; font-size: 128px; letter-spacing: -.035em; line-height: 1; }
+.free span { display: block; font-size: 52px; font-weight: 800; margin-top: 8px; letter-spacing: -.01em; }
+.contact { width: 880px; left: 100px; height: 140px; background: #fff; color: var(--ink); border-radius: 36px; display: flex; align-items: center; gap: 30px; padding: 0 40px; box-shadow: 0 24px 50px rgba(15,23,42,.25); }
+.contact .ci { width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.contact small { display: block; font-size: 24px; font-weight: 700; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; }
+.contact b { display: block; font-size: 52px; font-weight: 800; letter-spacing: -.01em; }
+.qrrow { left: 100px; width: 880px; display: flex; align-items: center; gap: 40px; }
+.qr { flex: none; width: 290px; height: 290px; background: #fff; border-radius: 34px; padding: 22px; box-shadow: 0 24px 50px rgba(15,23,42,.25); }
+.qr img { width: 100%; height: 100%; }
+.qrrow b { display: block; font: 800 52px/1.08 "Inter Display"; letter-spacing: -1px; }
+.qrrow span { display: block; font-size: 32px; color: #DBEAFE; margin-top: 12px; }
+
+/* Sous-titres */
+#caption { position: absolute; left: 60px; right: 60px; top: 1700px; display: flex; justify-content: center; z-index: 50; pointer-events: none; }
+#caption span { background: rgba(11,21,48,.82); color: #fff; font-size: 40px; font-weight: 600; line-height: 1.32; text-align: center; padding: 16px 30px; border-radius: 22px; max-width: 960px; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+</style>
+</head>
+<body>
+<div id="stage">
+
+<svg width="0" height="0" style="position:absolute">
+    <defs>
+        <pattern id="wax-light" width="180" height="180" patternUnits="userSpaceOnUse">
+            <g fill="none" stroke="#2563EB" stroke-width="5">
+                <circle cx="45" cy="45" r="32"/><circle cx="45" cy="45" r="16" fill="#2563EB" stroke="none"/>
+                <path d="M135 12 L168 45 L135 78 L102 45Z"/><path d="M135 30 L150 45 L135 60 L120 45Z" fill="#2563EB" stroke="none"/>
+                <path d="M12 135 Q45 102 78 135 Q45 168 12 135Z"/>
+                <circle cx="135" cy="135" r="30"/><circle cx="135" cy="135" r="6" fill="#2563EB" stroke="none"/>
+            </g>
+        </pattern>
+        <pattern id="wax-dark" width="180" height="180" patternUnits="userSpaceOnUse">
+            <g fill="none" stroke="#93C5FD" stroke-width="5">
+                <circle cx="45" cy="45" r="32"/><circle cx="45" cy="45" r="16" fill="#93C5FD" stroke="none"/>
+                <path d="M135 12 L168 45 L135 78 L102 45Z"/><path d="M135 30 L150 45 L135 60 L120 45Z" fill="#93C5FD" stroke="none"/>
+                <path d="M12 135 Q45 102 78 135 Q45 168 12 135Z"/>
+                <circle cx="135" cy="135" r="30"/><circle cx="135" cy="135" r="6" fill="#93C5FD" stroke="none"/>
+            </g>
+        </pattern>
+    </defs>
+</svg>
+
+<!-- ============ 1. C'est officiel : PressLink est lancé ============ -->
+<section class="scene" id="s1">
+    <svg class="wax" id="wax1" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-dark)" opacity=".07"/></svg>
+    <div id="s1-glow" class="abs" style="left:140px; top:580px; width:800px; height:800px; border-radius:50%; background:radial-gradient(circle, rgba(96,165,250,.45), transparent 65%);"></div>
+    <div class="abs center" style="top:640px;"><span id="s1-badge" class="badge glass" style="display:inline-flex;"><i></i>LANCEMENT OFFICIEL</span></div>
+    <img id="s1-logo" class="abs" src="../../video-presentation/src/assets/wordmark_white.png" style="left:150px; top:840px; width:780px;">
+    <div id="s1-sub" class="abs center display" style="top:1190px; font-size:110px; color:var(--yellow);">est lancé !</div>
+    <div id="confetti"></div>
+</section>
+
+<!-- ============ 2. Gratuit jusqu'au 15 novembre ============ -->
+<section class="scene" id="s2">
+    <div class="stripes" id="s2-bg"></div>
+    <div class="abs center" style="top:250px;"><span id="s2-badge" class="badge navy" style="display:inline-flex;"><i></i>Pour le lancement</span></div>
+    <div id="s2-free" class="abs center gratuit" style="top:490px;">GRATUIT</div>
+    <div id="s2-who" class="abs center display" style="top:760px; font-size:62px; color:var(--navy);">pour tous les pressings</div>
+    <div class="abs center" style="top:900px;"><span id="s2-until" class="until">jusqu'au 15 novembre</span></div>
+    <div id="s2-cal" class="abs cal" style="left:390px; top:1130px;"><div class="m">NOV.</div><div class="d">15</div></div>
+</section>
+
+<!-- ============ 3. Tout votre pressing au même endroit ============ -->
+<section class="scene" id="s3">
+    <svg class="wax" id="wax3" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-dark)" opacity=".06"/></svg>
+    <div id="s3-h" class="abs center display h" style="top:190px;">Tout votre pressing<br><span class="s">au même endroit.</span></div>
+    <div id="s3-lap" class="abs laptop" style="left:60px; top:480px;">
+        <div class="lid"><div class="view">
+            <img id="s3-dash" src="../../video-presentation/src/assets/d-dashboard.jpg">
+            <img id="s3-caisse" src="../../video-presentation/src/assets/d-caisse.jpg" style="opacity:0;">
+        </div></div>
+        <div class="base"></div>
+    </div>
+    <div id="s3-toast" class="abs toast" style="left:250px; top:980px; opacity:0;"><i><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Caisse clôturée · sans écart</div>
+    <div id="s3-f1" class="abs feat" style="left:60px; top:1220px;"><i style="background:#DBEAFE;">🧺</i>Commandes</div>
+    <div id="s3-f2" class="abs feat" style="left:570px; top:1220px;"><i style="background:#D1FAE5;">💵</i>Paiements</div>
+    <div id="s3-f3" class="abs feat" style="left:60px; top:1380px;"><i style="background:#FEF3C7;">🧾</i>Reçus</div>
+    <div id="s3-f4" class="abs feat" style="left:570px; top:1380px;"><i style="background:#EDE9FE;">📊</i>Caisse du jour</div>
+</section>
+
+<!-- ============ 4. Un dépôt en quelques secondes ============ -->
+<section class="scene" id="s4">
+    <svg class="wax" id="wax4" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-light)" opacity=".05"/></svg>
+    <div id="s4-h" class="abs center display h" style="top:110px;">Un dépôt en<br><span class="b">quelques secondes.</span></div>
+    <div id="s4-phone" class="phone" style="left:260px; top:370px;">
+        <div class="scr">
+            <div class="sb"><span>9:41</span><span>●●● 100 %</span></div>
+            <div class="pg" id="s4-p1"><img src="../../video-presentation/src/assets/p-new1.jpg"></div>
+            <div class="pg" id="s4-p2"><img src="../../video-presentation/src/assets/p-new2.jpg"></div>
+            <div class="pg" id="s4-p3"><img src="../../video-presentation/src/assets/p-new3.jpg"></div>
+            <div class="pg" id="s4-p4"><img src="../../video-presentation/src/assets/p-new4.jpg"></div>
+            <div class="tap" id="s4-tap"></div>
+        </div>
+        <div class="notch"></div>
+    </div>
+    <div id="s4-c1" class="chip" style="left:40px; top:640px;"><i style="background:var(--primary); color:#fff;">1</i>Le client</div>
+    <div id="s4-c2" class="chip" style="right:40px; top:860px;"><i style="background:var(--primary); color:#fff;">2</i>Les articles</div>
+    <div id="s4-c3" class="chip" style="left:40px; top:1080px;"><i style="background:var(--primary); color:#fff;">3</i>Le paiement</div>
+    <div id="s4-c4" class="chip" style="right:40px; top:1300px;"><i style="background:var(--success); color:#fff;"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>C'est fait !</div>
+</section>
+
+<!-- ============ 5. Leur numéro suffit ============ -->
+<section class="scene" id="s5">
+    <svg class="wax" id="wax5" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-light)" opacity=".05"/></svg>
+    <div id="s5-h" class="abs center display h" style="top:110px;">Vos clients ?<br><span class="b">Leur numéro suffit.</span></div>
+    <div id="s5-phone" class="phone" style="left:260px; top:370px;">
+        <div class="scr">
+            <div class="sb"><span>9:41</span><span>●●● 100 %</span></div>
+            <div class="pg app" id="s5-p1">
+                <div class="logo">Press<span>Link</span></div>
+                <h4>Votre numéro de téléphone</h4>
+                <p>Nous nous en servirons pour retrouver ou créer votre compte.</p>
+                <label>Téléphone</label>
+                <div class="field"><div class="cc"><span style="font-size:34px;">🇨🇮</span>+225</div><div class="num" id="s5-num"></div></div>
+                <div class="btn" id="s5-btn1">Continuer</div>
+            </div>
+            <div class="pg app" id="s5-p2">
+                <div class="logo">Press<span>Link</span></div>
+                <h4>Bienvenue sur PressLink</h4>
+                <div class="known"><i>🧺</i><div><b>Votre pressing vous a déjà enregistré</b><span>2 commandes vous attendent au Pressing du Plateau.</span></div></div>
+                <label>Est-ce bien vous ?</label>
+                <div class="prefill"><div><div class="in">Awa</div></div><div><div class="in">Konan</div></div></div>
+                <div class="btn" id="s5-btn2">Accéder à mes commandes</div>
+            </div>
+            <div class="pg" id="s5-p3"><img src="../../video-presentation/src/assets/c-accueil.jpg"></div>
+            <div class="tap" id="s5-tap"></div>
+        </div>
+        <div class="notch"></div>
+    </div>
+    <div id="s5-c1" class="chip" style="left:30px; top:1120px;"><i style="background:#FEE2E2; color:#DC2626;">✕</i>Pas de code à retenir</div>
+    <div id="s5-c2" class="chip" style="right:30px; top:1330px;"><i style="background:var(--primary-tint);">🧺</i>Commandes déjà là</div>
+</section>
+
+<!-- ============ 6. Prévenus dès que c'est prêt ============ -->
+<section class="scene" id="s6">
+    <div id="s6-photo" class="abs" style="left:-110px; top:420px; width:1300px; height:1300px; transform-origin:50% 45%; -webkit-mask-image:linear-gradient(transparent 0, #000 140px, #000 calc(100% - 260px), transparent 100%);">
+        <div class="abs" style="left:422px; top:526px; width:351px; height:696px; border-radius:26px; overflow:hidden; background:#fff;">
+            <img src="../../video-presentation/src/assets/c-detail.jpg" style="width:351px;">
+        </div>
+        <img src="../../video-presentation/src/assets/man.png" style="position:relative; width:1300px;">
+    </div>
+    <div id="s6-notif" class="abs notif" style="top:120px;">
+        <div class="ic"><img src="../../video-presentation/src/assets/icon.png" style="width:64px; filter:brightness(0) invert(1);"></div>
+        <div style="flex:1; min-width:0;">
+            <div class="app2"><span>PressLink</span><span style="letter-spacing:0; text-transform:none; font-weight:600;">maintenant</span></div>
+            <div class="t">Votre commande est prête !</div>
+            <div class="b">La commande #PL-286571 vous attend au Pressing du Plateau.</div>
+        </div>
+    </div>
+    <div id="s6-h" class="abs center" style="top:150px;">
+        <div class="display" style="font-size:96px; color:var(--ink);">Fini les appels</div>
+        <div class="display" style="font-size:96px; color:var(--primary);">pour rien.</div>
+    </div>
+</section>
+
+<!-- ============ 7. Rejoindre en 3 étapes ============ -->
+<section class="scene" id="s7">
+    <svg class="wax" id="wax7" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-dark)" opacity=".06"/></svg>
+    <div id="s7-h" class="abs center display h" style="top:170px;">Nous rejoindre,<br><span style="color:var(--yellow);">c'est simple.</span></div>
+    <div id="s7-1" class="abs step" style="top:560px;">
+        <div class="n" style="background:var(--wa);"><svg width="62" height="62" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg></div>
+        <div><b>Écrivez-nous</b><span>sur WhatsApp, au 07 18 00 22 93</span></div>
+    </div>
+    <div id="s7-2" class="abs step" style="top:870px;">
+        <div class="n" style="background:var(--primary); color:#fff;">2</div>
+        <div><b>On installe votre espace</b><span>avec vous : pressing, tarifs, équipe</span></div>
+    </div>
+    <div id="s7-3" class="abs step" style="top:1180px;">
+        <div class="n" style="background:var(--yellow); color:var(--navy);">3</div>
+        <div><b>Vous travaillez</b><span>sans rien payer jusqu'au 15 novembre</span></div>
+    </div>
+</section>
+
+<!-- ============ 8. Fin : offre, contacts, QR ============ -->
+<section class="scene" id="s8">
+    <svg class="wax" id="wax8" width="1480" height="2320"><rect width="100%" height="100%" fill="url(#wax-dark)" opacity=".09"/></svg>
+    <img id="s8-logo" class="abs" src="../../video-presentation/src/assets/wordmark_white.png" style="left:250px; top:120px; width:580px;">
+    <div id="s8-free" class="abs free" style="top:390px;"><b>GRATUIT</b><span>jusqu'au 15 novembre</span></div>
+    <div id="s8-l" class="abs center" style="top:730px; font-size:32px; font-weight:800; letter-spacing:.16em; color:#DBEAFE;">ÉCRIVEZ-NOUS</div>
+    <div id="s8-wa" class="abs contact" style="top:790px;">
+        <div class="ci" style="background:var(--wa);"><svg width="54" height="54" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg></div>
+        <div><small>WhatsApp</small><b>+225 07 18 00 22 93</b></div>
+    </div>
+    <div id="s8-mail" class="abs contact" style="top:960px;">
+        <div class="ci" style="background:var(--primary);"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div>
+        <div><small>E-mail</small><b>contact@presslink.org</b></div>
+    </div>
+    <div id="s8-qr" class="abs qrrow" style="top:1170px;">
+        <div class="qr"><img src="qr-whatsapp.svg"></div>
+        <div><b>Scannez pour inscrire votre pressing</b><span>presslink.org</span></div>
+    </div>
+</section>
+
+<div id="caption"><span id="caption-text"></span></div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const lerp = (a, b, p) => a + (b - a) * p;
+const E = {
+    out: (p) => 1 - Math.pow(1 - p, 3),
+    inOut: (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2),
+    back: (p) => { const c = 1.7; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); },
+    in: (p) => p * p * p,
+};
+function set(el, { o = 1, x = 0, y = 0, s = 1, r = 0, extra = '' } = {}) {
+    if (typeof el === 'string') el = $(el);
+    el.style.opacity = o;
+    el.style.transform = `translate(${x}px, ${y}px) scale(${s}) rotate(${r}deg) ${extra}`;
+}
+/** Apparition (montée + fondu). */
+function rise(el, t, a, dur = 0.55, dy = 40) {
+    const p = E.out(prog(t, a, a + dur));
+    set(el, { o: p, y: (1 - p) * dy });
+}
+function pop(el, t, a, dur = 0.5, r = 0) {
+    const p = prog(t, a, a + dur);
+    set(el, { o: clamp(p * 3), s: p === 0 ? 0.6 : lerp(0.6, 1, E.back(p)), r });
+}
+/** Pastille qui glisse depuis le côté (dx < 0 : depuis la gauche). */
+function slideIn(el, t, a, dx = -60, dur = 0.5) {
+    const p = prog(t, a, a + dur);
+    set(el, { o: clamp(p * 2.5), x: (1 - E.back(p)) * dx, s: 0.94 + 0.06 * E.out(p) });
+}
+/** Pages d'un téléphone qui défilent horizontalement aux instants donnés. */
+function pages(ids, switches, t, w = 532, dur = 0.45) {
+    const f = switches.reduce((s, a) => s + E.inOut(prog(t, a, a + dur)), 0);
+    ids.forEach((id, i) => { $(id).style.transform = `translateX(${w * (i - f)}px)`; });
+}
+/** Doigt qui touche l'écran : point, puis onde. */
+function tap(el, t, at, x, y) {
+    const p = prog(t, at - 0.18, at + 0.45);
+    const k = prog(t, at, at + 0.45);
+    el = $(el);
+    if (p <= 0 || p >= 1) { el.style.opacity = 0; return; }
+    el.style.left = x + 'px'; el.style.top = y + 'px';
+    el.style.opacity = t < at ? 0.9 : 0.9 * (1 - k);
+    el.style.transform = `scale(${t < at ? 0.55 : 0.55 + 1.1 * E.out(k)})`;
+}
+/** Zoom « Ken Burns » d'une capture de bureau vers un point (coordonnées CSS 1440×900). */
+function zoomTo(img, t, keys, W = 920, H = 575) {
+    let k = keys[0];
+    for (let i = 0; i < keys.length - 1; i++) {
+        const [a, b] = [keys[i], keys[i + 1]];
+        if (t >= a[0] && t <= b[0]) { const p = E.inOut(prog(t, a[0], b[0])); k = [t, lerp(a[1], b[1], p), lerp(a[2], b[2], p), lerp(a[3], b[3], p)]; }
+        else if (t > b[0]) k = b;
+    }
+    const [, s, cx, cy] = k;
+    const f = W / 1440;
+    let tx = W / 2 - cx * f * s, ty = H / 2 - cy * f * s;
+    tx = clamp(tx, W - W * s, 0); ty = clamp(ty, H - H * s, 0);
+    $(img).style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+}
+
+const SCENES = ['s1', 's2', 's3', 's4', 's5', 's6', 's7', 's8'];
+let TL = null, CAPTIONS = [], BOUNDS = [];
+/**
+ * Chaque scène entre par-dessus la précédente (0,5 s de transition) ; la
+ * précédente recule légèrement. Renvoie l'heure locale de la scène ou null.
+ */
+function stage(t) {
+    BOUNDS.forEach(([a, b], i) => {
+        const el = $(SCENES[i]);
+        const next = BOUNDS[i + 1];
+        const visible = t >= a - 0.25 && (!next || t <= next[0] + 0.25);
+        el.style.display = visible ? 'block' : 'none';
+        if (!visible) return;
+        const inn = i === 0 ? 1 : E.inOut(prog(t, a - 0.25, a + 0.25));
+        const out = next ? E.inOut(prog(t, next[0] - 0.25, next[0] + 0.25)) : 0;
+        if (i === 1) {
+            // Le jaune jaillit du centre : cercle qui s'ouvre.
+            el.style.clipPath = `circle(${inn * 130}% at 50% 48%)`;
+            el.style.transform = `scale(${1 - 0.08 * out})`;
+        } else if (i === 2 || i === 6) {
+            el.style.transform = `translateY(${1920 * (1 - inn)}px) scale(${1 - 0.08 * out})`;
+        } else {
+            el.style.transform = `translateX(${1080 * (1 - inn)}px) translateX(${-260 * out}px)`;
+        }
+        el.style.filter = out > 0 ? `brightness(${1 - 0.35 * out})` : 'none';
+    });
+}
+
+// Confettis déterministes (même rendu à chaque image).
+const CONF = [];
+(function () {
+    let seed = 11;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const colors = ['#FBBF24', '#60A5FA', '#22C55E', '#FFFFFF', '#F472B6', '#FBBF24'];
+    const host = document.getElementById('confetti');
+    for (let i = 0; i < 90; i++) {
+        const d = document.createElement('div');
+        d.className = 'confetti';
+        d.style.background = colors[i % colors.length];
+        if (i % 3 === 0) { d.style.width = '26px'; d.style.height = '26px'; d.style.borderRadius = '50%'; }
+        host.appendChild(d);
+        const ang = -Math.PI / 2 + (rnd() - 0.5) * 2.4;
+        const v = 1300 + rnd() * 1300;
+        CONF.push({ el: d, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v, spin: (rnd() - 0.5) * 1400, sway: rnd() * 6, delay: rnd() * 0.12 });
+    }
+})();
+function confetti(t, t0) {
+    CONF.forEach((c) => {
+        const k = t - t0 - c.delay;
+        if (k <= 0) { c.el.style.opacity = 0; return; }
+        const drag = 1 - Math.exp(-2.2 * k);
+        const x = 540 + c.vx * drag / 2.2 + Math.sin(k * c.sway) * 30;
+        const y = 1080 + c.vy * drag / 2.2 + 260 * k * k;
+        c.el.style.opacity = clamp(3 - k);
+        c.el.style.transform = `translate(${x}px, ${y}px) rotate(${c.spin * k}deg) rotateX(${k * 540}deg)`;
+    });
+}
+
+function render(t) {
+    stage(t);
+
+    // ---------------- 1. C'est officiel (0 → 3.6)
+    if ($('s1').style.display === 'block') {
+        set('wax1', { x: -t * 14, y: -t * 9 });
+        pop('s1-badge', t, 0.25, 0.55);
+        const lp = prog(t, 0.65, 1.35);
+        set('s1-logo', { o: clamp(lp * 2.5), s: lerp(1.25, 1, E.out(lp)), extra: `translateY(${(1 - E.out(lp)) * 20}px)` });
+        $('s1-logo').style.filter = `blur(${(1 - E.out(lp)) * 12}px)`;
+        pop('s1-sub', t, 1.95, 0.55, -3);
+        const g = 0.6 + 0.4 * Math.sin(t * 3);
+        set('s1-glow', { o: clamp(prog(t, 0.6, 1.4)) * g, s: 0.9 + 0.1 * g });
+        confetti(t, 2.0);
+    }
+
+    // ---------------- 2. Gratuit (3.6 → 8.6)
+    if ($('s2').style.display === 'block') {
+        set('s2-bg', { x: -(t - 3.6) * 22 });
+        pop('s2-badge', t, 3.95, 0.5);
+        // GRATUIT tombe et percute (léger tremblement à l'impact).
+        const sp = prog(t, 5.1, 5.38);
+        const shake = t > 5.38 && t < 5.7 ? Math.sin((t - 5.38) * 90) * 9 * (1 - prog(t, 5.38, 5.7)) : 0;
+        set('s2-free', { o: clamp(sp * 3), s: lerp(2.2, 1, E.in(sp)), x: shake, y: shake * 0.6 });
+        rise('s2-who', t, 5.9, 0.5);
+        const up = prog(t, 6.6, 7.15);
+        set('s2-until', { o: clamp(up * 3), s: up === 0 ? 0.5 : lerp(0.5, 1, E.back(up)), r: -2.5 });
+        const cp = prog(t, 6.95, 7.6);
+        set('s2-cal', { o: clamp(cp * 3), y: (1 - E.back(cp)) * 260, r: lerp(18, -6, E.out(cp)) + Math.sin(t * 2.4) * 1.5 * clamp(cp) });
+    }
+
+    // ---------------- 3. Gestion (8.6 → 14)
+    if ($('s3').style.display === 'block') {
+        set('wax3', { x: -t * 10, y: -t * 6 });
+        rise('s3-h', t, 8.75, 0.55);
+        rise('s3-lap', t, 8.85, 0.7, 80);
+        zoomTo('s3-dash', t, [[8.6, 1.0, 720, 450], [10.6, 1.0, 720, 450], [11.4, 1.35, 560, 420]]);
+        $('s3-caisse').style.opacity = E.inOut(prog(t, 11.3, 11.75));
+        zoomTo('s3-caisse', t, [[11.3, 1.12, 1200, 300], [13.9, 1.32, 1250, 250]]);
+        slideIn('s3-f1', t, 9.0, -80); slideIn('s3-f2', t, 9.6, 80);
+        slideIn('s3-f3', t, 10.3, -80); slideIn('s3-f4', t, 11.0, 80);
+        pop('s3-toast', t, 12.4, 0.5);
+    }
+
+    // ---------------- 4. Dépôt (14 → 19.8)
+    if ($('s4').style.display === 'block') {
+        set('wax4', { x: -t * 10, y: -t * 6 });
+        rise('s4-h', t, 14.15, 0.55);
+        rise('s4-phone', t, 14.2, 0.7, 120);
+        pages(['s4-p1', 's4-p2', 's4-p3', 's4-p4'], [16.2, 17.15, 18.15], t);
+        tap('s4-tap', t, 15.9, 370, 700);
+        if (t > 16.4) tap('s4-tap', t, 16.95, 420, 1090);
+        if (t > 17.4) tap('s4-tap', t, 17.95, 420, 1090);
+        slideIn('s4-c1', t, 15.7, -80); slideIn('s4-c2', t, 16.7, 80);
+        slideIn('s4-c3', t, 17.6, -80); pop('s4-c4', t, 18.8, 0.5);
+    }
+
+    // ---------------- 5. Le numéro suffit (19.8 → 25.8)
+    if ($('s5').style.display === 'block') {
+        set('wax5', { x: -t * 10, y: -t * 6 });
+        rise('s5-h', t, 19.95, 0.55);
+        rise('s5-phone', t, 20.0, 0.7, 120);
+        const digits = '0708124400';
+        const n = Math.floor(clamp((t - 20.55) / 0.11, 0, 10));
+        const typed = digits.slice(0, n).replace(/(\d{2})(?=\d)/g, '$1 ');
+        const caret = n < 10 && Math.floor(t * 2.2) % 2 === 0 ? '<span class="caret"></span>' : '';
+        $('s5-num').innerHTML = n === 0 ? `${caret}<span class="ph">07 08 12 44 00</span>` : typed + caret;
+        tap('s5-tap', t, 22.0, 266, 745);
+        pages(['s5-p1', 's5-p2', 's5-p3'], [22.25, 24.05], t);
+        if (t > 23.2) tap('s5-tap', t, 23.8, 266, 788);
+        slideIn('s5-c1', t, 21.1, -80);
+        slideIn('s5-c2', t, 22.4, 80);
+    }
+
+    // ---------------- 6. Notification (25.8 → 30.2)
+    if ($('s6').style.display === 'block') {
+        const k = prog(t, 25.6, 30.4);
+        set('s6-photo', { s: 1.0 + 0.06 * k, y: -20 * k });
+        const np = prog(t, 26.35, 26.85);
+        const nout = E.in(prog(t, 28.0, 28.35));
+        set('s6-notif', { o: clamp(np * 3) * (1 - nout), y: (1 - E.back(np)) * -260 - nout * 120 });
+        const hp = E.out(prog(t, 28.25, 28.8));
+        set('s6-h', { o: hp, y: (1 - hp) * 40 });
+    }
+
+    // ---------------- 7. Rejoindre (30.2 → 35.6)
+    if ($('s7').style.display === 'block') {
+        set('wax7', { x: -t * 10, y: -t * 6 });
+        rise('s7-h', t, 30.35, 0.55);
+        slideIn('s7-1', t, 30.9, -120, 0.55);
+        slideIn('s7-2', t, 32.6, 120, 0.55);
+        slideIn('s7-3', t, 34.2, -120, 0.55);
+    }
+
+    // ---------------- 8. Fin (35.6 → 44)
+    if ($('s8').style.display === 'block') {
+        set('wax8', { x: -t * 12, y: -t * 8 });
+        rise('s8-logo', t, 35.85, 0.6);
+        const fp = prog(t, 36.6, 37.15);
+        const beat = t > 37.2 ? 1 + 0.02 * Math.max(0, Math.sin((t - 37.2) * Math.PI * 1.6)) : 1;
+        set('s8-free', { o: clamp(fp * 3), s: (fp === 0 ? 0.6 : lerp(0.6, 1, E.back(fp))) * beat, r: -1.5 });
+        rise('s8-l', t, 38.0, 0.45);
+        slideIn('s8-wa', t, 38.2, -100); slideIn('s8-mail', t, 38.6, 100);
+        rise('s8-qr', t, 39.3, 0.6, 60);
+    }
+
+    // ---------------- Sous-titres
+    const c = CAPTIONS.find((k) => t >= k.a && t < k.b);
+    const cap = $('caption-text');
+    if (c) {
+        cap.textContent = c.text;
+        const p = Math.min(prog(t, c.a, c.a + 0.18), 1 - prog(t, c.b - 0.12, c.b));
+        cap.style.opacity = p;
+        cap.style.transform = `translateY(${(1 - p) * 10}px)`;
+        cap.parentElement.style.display = 'flex';
+    } else {
+        cap.parentElement.style.display = 'none';
+    }
+}
+
+/** Découpe chaque réplique en sous-titres courts, minutés au prorata du texte. */
+function buildCaptions(timeline, repliques) {
+    const out = [];
+    const byKey = Object.fromEntries(repliques.map((r) => [r.cle, r]));
+    for (const v of timeline.voix) {
+        const r = byKey[v.cle];
+        const parts = r.texte.split(/(?<=[.:…!])\s+|(?<=,)\s+(?=[^,]{12,})/).map((s) => s.trim()).filter(Boolean);
+        const chunks = [];
+        for (const p of parts) {
+            if (chunks.length && (chunks[chunks.length - 1] + ' ' + p).length <= 46 && !/[.…:!]$/.test(chunks[chunks.length - 1])) {
+                chunks[chunks.length - 1] += ' ' + p;
+            } else chunks.push(p);
+        }
+        const total = chunks.reduce((s, c) => s + c.length, 0);
+        let a = v.debut;
+        for (const ch of chunks) {
+            const d = r.duree * ch.length / total;
+            out.push({ a, b: a + d + 0.12, text: ch.replace(/\s*:$/, '') });
+            a += d;
+        }
+    }
+    for (let i = 0; i < out.length - 1; i++) out[i].b = Math.min(out[i].b, out[i + 1].a);
+    return out;
+}
+
+window.setup = (timeline, repliques) => {
+    TL = timeline;
+    BOUNDS = timeline.scenes.map((s) => [s.debut, s.fin]);
+    CAPTIONS = buildCaptions(timeline, repliques);
+    return CAPTIONS;
+};
+window.renderAt = (t) => { render(t); return true; };
+window.ready = Promise.all([document.fonts.ready, ...Array.from(document.images).map((im) => im.complete ? 1 : new Promise((r) => { im.onload = im.onerror = r; }))]);
+</script>
+</body>
+</html>

@@ -79,7 +79,7 @@
         <div class="footer">
             Présentez ce reçu pour retirer vos vêtements.<br>
             Suivez votre commande dans l'application PressLink<br>
-            avec le code pressing <span class="code">{{ $pressing->code }}</span>.<br>
+            (presslink.org/app) avec votre numéro de téléphone.<br>
             Merci de votre confiance !
         </div>
         <div class="footer small">Imprimé le {{ now()->format('d/m/Y à H:i') }}</div>

@@ -19,6 +19,9 @@ class SitePressingsContentTest extends TestCase
 
     public function test_the_pressings_page_offers_the_free_trial_and_answers_managers(): void
     {
+        // Après l'offre de lancement : l'essai habituel.
+        $this->travelTo('2026-11-20 09:00:00');
+
         $this->get(route('site.pressings'))
             ->assertOk()
             ->assertSee('Essayer gratuitement 7 jours')
@@ -31,8 +34,22 @@ class SitePressingsContentTest extends TestCase
             ->assertDontSee('Ils utilisent PressLink');
     }
 
+    public function test_the_trial_button_announces_the_launch_offer_while_it_runs(): void
+    {
+        $this->travelTo('2026-10-26 09:00:00');
+
+        foreach ([route('site.pressings'), route('site.pricing'), '/'] as $url) {
+            $this->get($url)->assertOk()
+                ->assertSee('Essayer gratuitement jusqu&#039;au 15 novembre', false)
+                ->assertDontSee('Essayer gratuitement 7 jours');
+        }
+        $this->get(route('site.pressings'))->assertSee('Gratuit jusqu&#039;au 15 novembre pendant le lancement officiel', false);
+    }
+
     public function test_the_offers_page_and_the_home_page_offer_the_free_trial(): void
     {
+        $this->travelTo('2026-11-20 09:00:00');
+
         $this->get(route('site.pricing'))->assertOk()->assertSee('Essayer gratuitement 7 jours')->assertSee('Y a-t-il un engagement ?')->assertSee('"priceCurrency":"XOF"', false);
         $this->get('/')->assertOk()->assertSee('Essayer gratuitement 7 jours');
     }

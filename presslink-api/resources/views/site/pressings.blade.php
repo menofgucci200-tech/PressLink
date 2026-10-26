@@ -125,7 +125,7 @@
         <div class="bg-(--color-primary-tint) border border-(--color-primary)/15 rounded-3xl px-6 py-10 md:px-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
                 <h2 class="font-display text-2xl font-bold mb-1">Équipez votre pressing</h2>
-                <p class="text-(--color-text-secondary)">Essai gratuit de {{ \App\Support\PlanCatalog::trialDays() }} jours, toutes les fonctions ouvertes. <a href="{{ route('site.pricing') }}" class="font-semibold text-(--color-primary) hover:underline">Trouvez l'offre faite pour vous →</a></p>
+                <p class="text-(--color-text-secondary)">{{ \App\Support\LaunchOffer::isActive() ? 'Gratuit jusqu\'au '.\App\Support\LaunchOffer::dateLabel().' pendant le lancement officiel' : 'Essai gratuit de '.\App\Support\PlanCatalog::trialDays().' jours' }}, toutes les fonctions ouvertes. <a href="{{ route('site.pricing') }}" class="font-semibold text-(--color-primary) hover:underline">Trouvez l'offre faite pour vous →</a></p>
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
                 <x-site.trial-button />

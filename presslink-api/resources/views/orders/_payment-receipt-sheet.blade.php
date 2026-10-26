@@ -47,7 +47,7 @@
 
         <div class="footer">
             Suivez votre commande dans l'application PressLink<br>
-            avec le code pressing <span class="code">{{ $pressing->code }}</span>.<br>
+            (presslink.org/app) avec votre numéro de téléphone.<br>
             Merci de votre confiance !
         </div>
         <div class="footer small">Édité le {{ now()->format('d/m/Y à H:i') }}</div>

@@ -98,7 +98,7 @@
     <section>
         <div class="flex flex-wrap items-center justify-between gap-3 mb-1">
             <h2 class="font-semibold text-lg">Pièces et tarifs</h2>
-            <button type="button" wire:click="newPiece" class="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-(--color-primary) text-(--color-primary) text-sm font-semibold hover:bg-(--color-primary-tint)">
+            <button type="button" wire:click="newPiece" data-guide="ajouter-piece" class="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-(--color-primary) text-(--color-primary) text-sm font-semibold hover:bg-(--color-primary-tint)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Ajouter une pièce
             </button>
@@ -108,7 +108,7 @@
         @if ($showPieceForm)
             <form novalidate wire:submit="savePiece" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5 animate-step">
                 <h3 class="font-semibold mb-4">{{ $editingPieceId ? 'Modifier la pièce' : 'Nouvelle pièce' }}</h3>
-                <div class="max-w-md mb-5">
+                <div class="max-w-md mb-5" data-guide="piece-nom">
                     <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom de la pièce</label>
                     <input type="text" wire:model.live.debounce.300ms="pieceName" maxlength="100" placeholder="Ex. Chemise, Robe, Grand boubou…" autofocus
                            class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
@@ -126,7 +126,7 @@
                 </div>
                 @if (! $editingPieceId && $prestations->isNotEmpty())
                     <p class="block text-xs font-medium text-(--color-text-secondary) mb-2">Prix (FCFA) — laissez vide si la pièce n'est pas proposée pour ce service</p>
-                    <div class="flex flex-wrap gap-3 mb-5">
+                    <div class="flex flex-wrap gap-3 mb-5" data-guide="piece-prix">
                         @foreach ($prestations as $prestation)
                             <label class="flex items-center gap-2 rounded-xl border border-(--color-border) pl-2 pr-3 py-2" wire:key="np-{{ $prestation->id }}">
                                 <x-service-icon kind="service" :name="$prestation->iconKey()" :size="24"/>
@@ -138,7 +138,7 @@
                     @error('newPiecePrices.*') <p class="text-xs text-(--color-error) mb-3">{{ $message }}</p> @enderror
                 @endif
                 <div class="flex gap-2">
-                    <button type="submit" class="h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">{{ $editingPieceId ? 'Enregistrer' : 'Ajouter la pièce' }}</button>
+                    <button type="submit" data-guide="piece-enregistrer" class="h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">{{ $editingPieceId ? 'Enregistrer' : 'Ajouter la pièce' }}</button>
                     <button type="button" wire:click="cancelPiece" class="h-10 px-4 rounded-lg border border-(--color-border) text-sm font-medium hover:border-(--color-primary)">Annuler</button>
                 </div>
             </form>

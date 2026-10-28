@@ -5,7 +5,7 @@
             <p class="text-sm text-(--color-text-muted)">{{ $members->count() }} membre(s) · chacun voit et fait ce que permet son rôle.</p>
         </div>
         @if ($canManageTeam)
-            <button wire:click="$toggle('showCreateForm')" class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
+            <button wire:click="$toggle('showCreateForm')" data-guide="ajouter-membre" class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Ajouter un membre
             </button>
@@ -25,7 +25,7 @@
 
     @if ($showCreateForm && $canManageTeam)
         <form novalidate wire:submit="inviteEmployee" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-5 grid grid-cols-1 sm:grid-cols-2 gap-4 items-start animate-step">
-            <div>
+            <div data-guide="membre-identite">
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Nom et prénom</label>
                 <input type="text" wire:model="name" placeholder="Ex. Koffi Yao" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                 @error('name') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
@@ -39,7 +39,7 @@
                 </select>
                 @error('roleId') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
             </div>
-            <div>
+            <div data-guide="membre-acces">
                 <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Identifiant de connexion</label>
                 <input type="text" wire:model="login" placeholder="Ex. koffi.yao" class="w-full h-10 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                 @error('login') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
@@ -56,7 +56,7 @@
             </div>
             <div class="sm:col-span-2 flex gap-2 justify-end">
                 <button type="button" wire:click="$set('showCreateForm', false)" class="h-10 px-4 rounded-lg border border-(--color-border) text-sm font-medium">Annuler</button>
-                <button type="submit" wire:loading.attr="disabled" wire:target="inviteEmployee"
+                <button type="submit" wire:loading.attr="disabled" wire:target="inviteEmployee" data-guide="membre-creer"
                         class="h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold disabled:opacity-60">
                     <span wire:loading.remove wire:target="inviteEmployee">Créer le compte</span>
                     <span wire:loading wire:target="inviteEmployee">Création…</span>

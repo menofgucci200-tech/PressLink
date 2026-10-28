@@ -749,3 +749,58 @@ html.lenis, html.lenis body { height: auto; }
 [data-theme='dark'] .bg-\(--color-primary\).text-white:hover {
     background-color: #1d4ed8;
 }
+
+/* ===================================================================
+ * Accompagnement « Bien démarrer » (resources/js/guide.js) : l'élément à
+ * utiliser est mis en lumière, le reste de la page assombri, et une bulle
+ * explique quoi faire. La lumière laisse passer les clics vers l'élément.
+ * =================================================================== */
+.guide-spot {
+    position: fixed;
+    z-index: 90;
+    border-radius: 14px;
+    box-shadow: 0 0 0 3px var(--color-primary), 0 0 0 7px rgb(37 99 235 / 0.25);
+    pointer-events: none;
+    transition: top .25s ease, left .25s ease, width .25s ease, height .25s ease, opacity .2s ease;
+}
+.guide-voile {
+    position: fixed;
+    z-index: 89;
+    background: rgb(15 23 42 / 0.55);
+    pointer-events: none;
+}
+.guide-bulle {
+    position: fixed;
+    z-index: 91;
+    width: min(340px, calc(100vw - 24px));
+    padding: 16px 18px;
+    border-radius: 16px;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 20px 50px -12px rgb(15 23 42 / 0.45);
+    transition: top .25s ease, left .25s ease;
+}
+@media (max-width: 639px) {
+    .guide-bulle { width: auto; }
+}
+.guide-compteur { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--color-primary); margin-bottom: 4px; }
+.guide-titre { font-family: var(--font-display); font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.guide-texte { font-size: 14px; line-height: 1.5; color: var(--color-text-secondary); }
+.guide-attente { margin-top: 8px; font-size: 12.5px; font-weight: 600; color: var(--color-primary); }
+.guide-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 14px; }
+.guide-passer { font-size: 13px; font-weight: 500; color: var(--color-text-muted); }
+.guide-passer:hover { color: var(--color-text-primary); }
+.guide-suivant {
+    display: inline-flex; align-items: center; height: 38px; padding: 0 16px; border-radius: 10px;
+    background: var(--color-primary); color: #fff; font-size: 14px; font-weight: 600;
+}
+.guide-suivant:hover { background: var(--color-primary-600); }
+/* En haut à droite : les notifications (« Pièce ajoutée »…) occupent le bas. */
+.guide-fin { right: 24px; top: 76px; }
+@media (max-width: 639px) {
+    .guide-fin { left: 12px; right: 12px; top: 68px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .guide-spot, .guide-bulle { transition: none; }
+}

@@ -19,7 +19,7 @@
     </div>
 
     <form novalidate wire:submit="save" class="flex flex-col gap-6">
-        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
+        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5" data-guide="logo">
             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-4">Logo du pressing</div>
             <div class="flex items-center gap-4">
                 <div class="w-16 h-16 rounded-lg bg-(--color-bg) border border-(--color-border) flex items-center justify-center overflow-hidden">
@@ -108,7 +108,7 @@
             </div>
         </div>
 
-        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
+        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5" data-guide="horaires">
             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1">Horaires d'ouverture</div>
             @if ($untouchedDefaultHours !== null)
                 <p class="text-xs text-(--color-text-muted) mb-4">Aucun horaire enregistré : le pressing est ouvert à toute heure. Modifiez un jour pour enregistrer vos horaires.</p>
@@ -148,7 +148,7 @@
         @include('livewire.pressing._terms-and-storage')
 
         <div class="flex justify-end">
-            <button type="submit" wire:loading.attr="disabled" wire:target="save"
+            <button type="submit" wire:loading.attr="disabled" wire:target="save" data-guide="parametres-enregistrer"
                     class="h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600) disabled:opacity-60">
                 <span wire:loading.remove wire:target="save">Enregistrer</span>
                 <span wire:loading wire:target="save">Enregistrement…</span>

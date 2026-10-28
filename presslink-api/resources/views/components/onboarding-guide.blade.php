@@ -13,31 +13,31 @@
             'done' => \App\Models\ServicePrice::whereIn('service_id', $pressing->services()->select('id'))->where('price_fcfa', '>', 0)->exists(),
             'title' => 'Ajoutez vos articles et vos prix',
             'text' => 'Chemise, pantalon, costume… et le prix de chaque service.',
-            'url' => route('services.index'),
+            'url' => route('services.index', ['guide' => 'prix']),
         ],
         [
             'done' => ! empty($pressing->opening_hours),
             'title' => 'Indiquez vos horaires',
             'text' => 'Vos clients les voient dans l\'application.',
-            'url' => route('pressing.settings'),
+            'url' => route('pressing.settings', ['guide' => 'horaires']),
         ],
         [
             'done' => filled($pressing->logo_path),
             'title' => 'Ajoutez votre logo',
             'text' => 'Il apparaît sur vos reçus et dans l\'application.',
-            'url' => route('pressing.settings'),
+            'url' => route('pressing.settings', ['guide' => 'logo']),
         ],
         [
             'done' => $pressing->staff()->count() > 1,
             'title' => 'Invitez votre équipe',
             'text' => 'Chacun son accès : gérant, caissière, employé.',
-            'url' => route('team.index'),
+            'url' => route('team.index', ['guide' => 'equipe']),
         ],
         [
             'done' => $pressing->orders()->exists(),
             'title' => 'Enregistrez votre première commande',
             'text' => 'Votre client est prévenu dès qu\'elle est prête.',
-            'url' => route('orders.create'),
+            'url' => route('orders.create', ['guide' => 'commande']),
         ],
     ] : [];
 
@@ -70,7 +70,7 @@
                         @unless ($step['done'])<p class="text-xs text-(--color-text-muted)">{{ $step['text'] }}</p>@endunless
                     </div>
                     @unless ($step['done'])
-                        <a href="{{ $step['url'] }}" wire:navigate class="flex-none text-sm font-semibold text-(--color-primary) hover:underline">Faire</a>
+                        <a href="{{ $step['url'] }}" wire:navigate class="flex-none inline-flex items-center h-9 px-3.5 rounded-lg bg-(--color-primary-tint) text-sm font-semibold text-(--color-primary) hover:bg-(--color-primary) hover:text-white">Me guider</a>
                     @endunless
                 </li>
             @endforeach

@@ -162,4 +162,30 @@ class PressingSignupTest extends TestCase
         $this->artisan('presslink:trial-reminders')->assertSuccessful();
         Mail::assertSent(TrialEndingSoon::class, fn (TrialEndingSoon $mail) => $mail->daysLeft === 1);
     }
+
+    public function test_each_start_step_opens_its_page_with_a_guided_tour(): void
+    {
+        $this->fillForm()->call('register');
+
+        $dashboard = $this->get(route('dashboard'))->assertOk()->assertSee('Me guider');
+        foreach ([
+            'services?guide=prix' => ['ajouter-piece', 'piece-nom', 'piece-prix', 'piece-enregistrer'],
+            'parametres?guide=horaires' => ['horaires', 'parametres-enregistrer'],
+            'parametres?guide=logo' => ['logo', 'parametres-enregistrer'],
+            'equipe?guide=equipe' => ['ajouter-membre'],
+            'commandes/nouvelle?guide=commande' => ['commande-client', 'commande-pieces', 'commande-ticket', 'commande-valider'],
+        ] as $path => $markers) {
+            $dashboard->assertSee(url($path), false);
+
+            // Les éléments que l'accompagnement met en lumière sont bien sur la page
+            // (ceux des formulaires apparaissent à l'ouverture du formulaire).
+            $page = $this->get(url($path))->assertOk();
+            foreach ($markers as $marker) {
+                if (in_array($marker, ['piece-nom', 'piece-prix', 'piece-enregistrer'], true)) {
+                    continue;
+                }
+                $page->assertSee('data-guide="'.$marker.'"', false);
+            }
+        }
+    }
 }

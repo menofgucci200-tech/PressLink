@@ -90,7 +90,7 @@
         <div class="flex flex-col gap-5 min-w-0">
 
             {{-- 1. Le client --}}
-            <section class="bg-(--color-surface) border border-(--color-border) rounded-xl p-4 sm:p-5">
+            <section data-guide="commande-client" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-4 sm:p-5">
                 @if ($selectedCustomer)
                     <div class="flex flex-wrap items-center gap-3">
                         <span class="w-10 h-10 rounded-full bg-(--color-primary) text-white flex items-center justify-center text-sm font-semibold flex-none">
@@ -179,7 +179,7 @@
             </section>
 
             {{-- 2. Le service et les pièces --}}
-            <section x-ref="pieces" tabindex="-1" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-4 sm:p-5 outline-none">
+            <section x-ref="pieces" tabindex="-1" data-guide="commande-pieces" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-4 sm:p-5 outline-none">
                 @if ($prestations->isEmpty())
                     <div class="rounded-xl border border-dashed border-(--color-border) p-6 text-center">
                         <p class="text-sm text-(--color-text-secondary) mb-3">Aucun service n'est proposé pour l'instant.</p>
@@ -277,7 +277,7 @@
         </div>
 
         {{-- ───────────── Droite : le ticket, toujours visible ───────────── --}}
-        <aside class="max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-30 lg:sticky lg:top-20">
+        <aside data-guide="commande-ticket" class="max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-30 lg:sticky lg:top-20">
             <div class="bg-(--color-surface) border border-(--color-border) max-lg:border-x-0 max-lg:border-b-0 max-lg:rounded-t-2xl lg:rounded-xl max-lg:shadow-[0_-8px_24px_rgba(15,23,42,.12)]">
 
                 {{-- Téléphone : le résumé et le bouton Valider, sous le pouce --}}
@@ -289,7 +289,7 @@
                             <span class="block font-display text-lg font-bold tabular-nums leading-tight">{{ $fcfa($this->total) }} F</span>
                         </span>
                     </button>
-                    <button type="button" wire:click="create" wire:loading.attr="disabled" wire:target="create"
+                    <button type="button" wire:click="create" wire:loading.attr="disabled" wire:target="create" data-guide="commande-valider"
                             class="h-12 px-5 rounded-xl text-[15px] font-semibold transition-colors disabled:opacity-60 {{ $ready ? 'bg-(--color-primary) text-white' : 'bg-(--color-primary-tint) text-(--color-primary)' }}">
                         <span wire:loading.remove wire:target="create">{{ $ready ? 'Valider' : $validateLabel }}</span>
                         <span wire:loading wire:target="create">…</span>
@@ -416,7 +416,7 @@
                     @endif
 
                     {{-- L'action principale : un seul gros bouton, qui dit ce qu'il manque --}}
-                    <button type="button" wire:click="create" wire:loading.attr="disabled" wire:target="create"
+                    <button type="button" wire:click="create" wire:loading.attr="disabled" wire:target="create" data-guide="commande-valider"
                             class="max-lg:hidden mt-4 w-full py-3.5 rounded-xl text-[15px] font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-60
                                    {{ $ready ? 'bg-(--color-primary) text-white hover:bg-(--color-primary-600) shadow-sm' : 'bg-(--color-primary-tint) text-(--color-primary)' }}">
                         <span wire:loading.remove wire:target="create" class="flex items-center gap-2">

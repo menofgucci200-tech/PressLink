@@ -481,4 +481,15 @@ class GeniusPayPaymentTest extends TestCase
 
         $this->assertSame(19697, $request->fresh()->net_received_fcfa);
     }
+
+    public function test_a_signed_in_pressing_chooses_its_plan_in_its_space_from_the_public_pricing_page(): void
+    {
+        [, , $owner] = $this->pendingRenewal();
+
+        $this->get(route('site.pricing'))->assertOk()->assertDontSee('data-testid="choose-in-space"', false);
+
+        $this->actingAs($owner)->get(route('site.pricing'))->assertOk()
+            ->assertSee('data-testid="choose-in-space"', false)
+            ->assertSee(route('subscription.plans'), false);
+    }
 }

@@ -9,6 +9,8 @@
     $check = '<svg class="w-4 h-4 flex-none mt-0.5 text-(--color-primary)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
     $whatsapp = 'https://wa.me/'.ltrim((string) config('presslink.support.phone_e164'), '+').'?text=';
     $rank = fn (\App\Enums\SubscriptionPlan $plan) => array_search($plan, \App\Enums\SubscriptionPlan::cases(), true);
+    // Site : un pressing déjà client et connecté choisit (et paie) depuis son espace, pas par WhatsApp.
+    $clientPlansUrl = $mode === 'site' && auth()->user()?->currentPressing()?->subscription ? route('subscription.plans') : null;
 @endphp
 <div {{ $attributes->merge(['class' => 'grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch']) }}>
     @foreach ($plans as $item)
@@ -67,6 +69,11 @@
                             {{ $upgrade ? 'Passer à '.$item['label'] : 'Choisir '.$item['label'] }}
                         </button>
                     @endif
+                @elseif ($clientPlansUrl)
+                    <a href="{{ $clientPlansUrl }}" data-testid="choose-in-space"
+                       class="w-full h-11 rounded-xl text-sm font-semibold flex items-center justify-center transition-colors {{ $item['recommended'] ? 'bg-(--color-primary) text-white hover:bg-(--color-primary-600)' : 'border border-(--color-border) hover:border-(--color-primary) hover:text-(--color-primary)' }}">
+                        Choisir {{ $item['label'] }}
+                    </a>
                 @else
                     <a href="{{ $whatsapp.rawurlencode("Bonjour, je souhaite démarrer PressLink avec la formule {$item['label']} pour mon pressing.") }}" target="_blank" rel="noopener"
                        class="w-full h-11 rounded-xl text-sm font-semibold flex items-center justify-center transition-colors {{ $item['recommended'] ? 'bg-(--color-primary) text-white hover:bg-(--color-primary-600)' : 'border border-(--color-border) hover:border-(--color-primary) hover:text-(--color-primary)' }}">

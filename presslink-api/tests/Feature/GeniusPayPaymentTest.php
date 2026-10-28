@@ -102,14 +102,16 @@ class GeniusPayPaymentTest extends TestCase
 
         Livewire::actingAs($owner)->test(Checkout::class, ['subscriptionRequest' => $request])
             ->assertSee('Récapitulatif du paiement')
-            ->assertSee('Payer 20 000 F')
-            ->assertSee('Wave, Orange Money, MTN Mobile Money ou carte bancaire')
+            ->assertSee('Payer 20 000 F avec Wave')
+            ->assertSee('Orange Money')
+            ->assertSee('Carte bancaire')
             ->call('pay')
             ->assertRedirect('https://geniuspay.ci/checkout/SANDBOX-ABC123');
 
         Http::assertSent(fn (HttpRequest $sent) => $sent->url() === 'https://geniuspay.test/api/v1/merchant/payments'
             && $sent['amount'] === 20000
             && $sent['currency'] === 'XOF'
+            && $sent['payment_method'] === 'wave'
             && $sent->hasHeader('X-API-Key', 'pk_sandbox_test')
             && $sent['metadata']['subscription_request_id'] === $request->id
             && str_starts_with($sent['external_reference'], 'presslink-demande-'.$request->id.'-')
@@ -342,7 +344,7 @@ class GeniusPayPaymentTest extends TestCase
         Livewire::actingAs($owner)->test(Checkout::class, ['subscriptionRequest' => $request])
             ->assertSee('Jours Business non utilisés')
             ->assertSee('− '.number_format($credit, 0, ',', ' ').' F')
-            ->assertSee('Payer '.number_format($expected, 0, ',', ' ').' F');
+            ->assertSee('Payer '.number_format($expected, 0, ',', ' ').' F avec Wave');
 
         $request->confirmOnlinePayment(['status' => 'completed', 'amount' => $expected]);
 
@@ -383,5 +385,52 @@ class GeniusPayPaymentTest extends TestCase
         Livewire::actingAs($owner)->test(Checkout::class, ['subscriptionRequest' => $request]);
 
         $this->assertGreaterThan($before, $request->fresh()->amount_fcfa, 'moins de jours restants, moins de déduction');
+    }
+
+    public function test_orange_money_asks_for_the_paying_number_and_sends_it_to_geniuspay(): void
+    {
+        [, , $owner, $request] = $this->pendingRenewal();
+        $this->fakeCheckout();
+
+        Livewire::actingAs($owner)->test(Checkout::class, ['subscriptionRequest' => $request])
+            ->set('method', 'orange_money')
+            ->assertSee('Numéro Orange Money qui paie')
+            ->set('phone', '')
+            ->call('pay')
+            ->assertHasErrors('phone')
+            ->set('phone', '07 08 12 44 00')
+            ->call('pay')
+            ->assertHasNoErrors()
+            ->assertRedirect('https://geniuspay.ci/checkout/SANDBOX-ABC123');
+
+        Http::assertSent(fn (HttpRequest $sent) => $sent['payment_method'] === 'orange_money' && $sent['customer']['phone'] === '+2250708124400');
+        $this->assertSame('orange_money', $request->fresh()->payment_method);
+    }
+
+    public function test_the_operator_page_is_used_when_geniuspay_returns_one(): void
+    {
+        [, , $owner, $request] = $this->pendingRenewal();
+        Http::fake([
+            'geniuspay.test/api/v1/merchant/payments' => Http::response(['success' => true, 'data' => [
+                'reference' => 'MTX-WAVE1', 'checkout_url' => 'https://geniuspay.ci/checkout/MTX-WAVE1', 'payment_url' => 'https://pay.wave.com/c/abc',
+            ]], 201),
+        ]);
+
+        Livewire::actingAs($owner)->test(Checkout::class, ['subscriptionRequest' => $request])
+            ->call('pay')
+            ->assertRedirect('https://pay.wave.com/c/abc');
+    }
+
+    public function test_choosing_another_method_opens_a_new_payment(): void
+    {
+        [, , $owner, $request] = $this->pendingRenewal();
+        $this->fakeCheckout();
+
+        $component = Livewire::actingAs($owner)->test(Checkout::class, ['subscriptionRequest' => $request]);
+        $component->call('pay');
+        $component->set('method', 'card')->call('pay');
+
+        Http::assertSentCount(2);
+        $this->assertSame('card', $request->fresh()->payment_method);
     }
 }

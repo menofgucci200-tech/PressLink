@@ -29,10 +29,11 @@ class GeniusPay
     }
 
     /**
-     * Crée un paiement et renvoie la transaction (reference, checkout_url, status…).
-     * `external_reference` sert aussi de clé d'idempotence chez GeniusPay.
+     * Crée un paiement et renvoie la transaction (reference, checkout_url, payment_url…).
+     * `external_reference` sert aussi de clé d'idempotence chez GeniusPay ; avec
+     * `payment_method`, `payment_url` mène directement chez l'opérateur.
      *
-     * @param  array{amount: int, description: string, external_reference: string, success_url: string, error_url: string, customer?: array<string, string>, metadata?: array<string, mixed>}  $payment
+     * @param  array{amount: int, description: string, external_reference: string, success_url: string, error_url: string, payment_method?: string, customer?: array<string, string>, metadata?: array<string, mixed>}  $payment
      * @return array<string, mixed>
      *
      * @throws RuntimeException
@@ -42,7 +43,7 @@ class GeniusPay
         $response = self::client()->post('/payments', $payment + ['currency' => 'XOF']);
         $data = $response->json('data');
 
-        if (! $response->successful() || ! is_array($data) || blank($data['reference'] ?? null) || blank($data['checkout_url'] ?? null)) {
+        if (! $response->successful() || ! is_array($data) || blank($data['reference'] ?? null) || (blank($data['checkout_url'] ?? null) && blank($data['payment_url'] ?? null))) {
             throw new RuntimeException('GeniusPay : création du paiement impossible ('.$response->status().' '.($response->json('error.code') ?? $response->json('message') ?? '').').');
         }
 

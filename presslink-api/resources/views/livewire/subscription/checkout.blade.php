@@ -10,7 +10,7 @@
     </a>
 
     <h1 class="font-display text-2xl font-bold mb-1">Récapitulatif du paiement</h1>
-    <p class="text-sm text-(--color-text-muted) mb-6">Vérifiez votre choix, puis payez sur la page sécurisée de GeniusPay.</p>
+    <p class="text-sm text-(--color-text-muted) mb-6">Vérifiez votre choix, puis choisissez comment payer.</p>
 
     @if ($echec)
         <div class="mb-5 p-4 rounded-xl bg-(--color-warning-tint) text-(--color-warning-text) text-sm" role="status" data-testid="checkout-not-confirmed">
@@ -73,16 +73,58 @@
     </div>
 
     @if ($payable)
+        @php
+            $badges = [
+                'wave' => ['bg-[#1DC8FF] text-slate-900', 'W'],
+                'orange_money' => ['bg-[#FF7900] text-white', 'OM'],
+                'mtn_money' => ['bg-[#FFCC00] text-slate-900', 'MTN'],
+                'moov_money' => ['bg-[#0066B3] text-white', 'Moov'],
+                'card' => ['bg-slate-800 text-white', null],
+            ];
+            $methodLabel = \App\Models\SubscriptionRequest::ONLINE_METHODS[$method] ?? 'Wave';
+            $needsPhone = in_array($method, \App\Models\SubscriptionRequest::PHONE_METHODS, true);
+        @endphp
+        <fieldset class="mb-4">
+            <legend class="text-sm font-semibold mb-2">Payer avec</legend>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" role="radiogroup">
+                @foreach (\App\Models\SubscriptionRequest::ONLINE_METHODS as $code => $label)
+                    <label wire:key="method-{{ $code }}" data-testid="method-{{ $code }}"
+                           class="flex items-center gap-2.5 min-h-12 px-3 py-2 rounded-xl border bg-(--color-surface) cursor-pointer text-sm font-semibold transition-colors {{ $method === $code ? 'border-(--color-primary) ring-2 ring-(--color-primary)/20' : 'border-(--color-border) hover:border-(--color-primary)/50' }}">
+                        <input type="radio" wire:model.live="method" value="{{ $code }}" class="sr-only">
+                        <span class="flex-none inline-flex items-center justify-center w-9 h-9 rounded-lg text-[11px] font-extrabold tracking-tight {{ $badges[$code][0] }}" aria-hidden="true">
+                            @if ($badges[$code][1])
+                                {{ $badges[$code][1] }}
+                            @else
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                            @endif
+                        </span>
+                        <span class="min-w-0">{{ $label }}</span>
+                    </label>
+                @endforeach
+            </div>
+            @error('method') <p class="text-xs text-(--color-error) mt-1.5">{{ $message }}</p> @enderror
+        </fieldset>
+
+        @if ($needsPhone)
+            <div class="mb-4">
+                <label for="checkout-phone" class="block text-sm font-semibold mb-1.5">Numéro {{ $methodLabel }} qui paie</label>
+                <input id="checkout-phone" type="tel" inputmode="tel" autocomplete="tel" wire:model="phone" placeholder="07 00 00 00 00"
+                       class="w-full h-12 px-3 rounded-xl border border-(--color-border) bg-(--color-surface) text-base tabular-nums focus:outline-none focus:border-(--color-primary)">
+                <p class="text-xs text-(--color-text-muted) mt-1">Vous validerez le paiement sur ce téléphone.</p>
+                @error('phone') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+            </div>
+        @endif
+
         @if ($inProgress)
-            <p class="mb-3 text-sm text-(--color-text-secondary)">Paiement commencé le {{ $request->payment_started_at->format('d/m à H:i') }} : vous pouvez le reprendre.</p>
+            <p class="mb-3 text-sm text-(--color-text-secondary)">Paiement commencé le {{ $request->payment_started_at->format('d/m à H:i') }}{{ $request->payment_method && isset(\App\Models\SubscriptionRequest::ONLINE_METHODS[$request->payment_method]) ? ' avec '.\App\Models\SubscriptionRequest::ONLINE_METHODS[$request->payment_method] : '' }} : vous pouvez le reprendre.</p>
         @endif
         <button type="button" wire:click="pay" wire:loading.attr="disabled" data-testid="checkout-pay"
                 class="w-full min-h-13 px-6 py-2 rounded-xl bg-(--color-primary) text-white font-bold hover:bg-(--color-primary-600) disabled:opacity-60 flex flex-col items-center justify-center leading-tight">
-            <span wire:loading.remove wire:target="pay">{{ $inProgress ? 'Reprendre le paiement' : 'Payer '.$fcfa($request->amount_fcfa).' F' }}</span>
-            <span wire:loading wire:target="pay">Ouverture de la page de paiement…</span>
+            <span wire:loading.remove wire:target="pay">{{ $inProgress && $request->payment_method === $method ? 'Reprendre le paiement' : 'Payer '.$fcfa($request->amount_fcfa).' F avec '.$methodLabel }}</span>
+            <span wire:loading wire:target="pay">Ouverture du paiement {{ $methodLabel }}…</span>
         </button>
         <p class="mt-3 text-center text-xs text-(--color-text-muted)">
-            Wave, Orange Money, MTN Mobile Money ou carte bancaire, sur la page sécurisée de GeniusPay.
+            {{ $method === 'card' ? 'Vous saisissez votre carte sur la page sécurisée de notre prestataire de paiement, GeniusPay.' : 'Vous validez le paiement chez '.$methodLabel.', par l\'intermédiaire de notre prestataire GeniusPay.' }}
             Votre demande s'active dès que le paiement est confirmé.
         </p>
     @else

@@ -6,6 +6,7 @@ use App\Enums\Feature;
 use App\Enums\SubscriptionPlan;
 use App\Enums\SubscriptionStatus;
 use App\Support\GeniusPay;
+use App\Support\PhoneNumber;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -45,6 +46,22 @@ class SubscriptionRequest extends Model
 
     /** Commandes en plus proposées par défaut pour le mois en cours : [nombre, prix]. */
     public const DEFAULT_ORDER_PACKS = [[50, 1_000], [100, 1_500], [500, 3_500]];
+
+    /**
+     * Moyens de paiement en ligne proposés sur le récapitulatif (codes GeniusPay).
+     *
+     * @var array<string, string>
+     */
+    public const ONLINE_METHODS = [
+        'wave' => 'Wave',
+        'orange_money' => 'Orange Money',
+        'mtn_money' => 'MTN MoMo',
+        'moov_money' => 'Moov Money',
+        'card' => 'Carte bancaire',
+    ];
+
+    /** Moyens qui demandent le numéro du payeur (validation sur son téléphone). */
+    public const PHONE_METHODS = ['orange_money', 'mtn_money', 'moov_money'];
 
     /** Durée de vie d'une page de paiement GeniusPay (24 h), avec une marge. */
     public const ONLINE_PAYMENT_HOURS = 23;
@@ -377,15 +394,20 @@ class SubscriptionRequest extends Model
     }
 
     /**
-     * Adresse de la page de paiement GeniusPay de cette demande : celle déjà
-     * ouverte tant qu'elle est valable (un seul paiement par demande), sinon une
-     * nouvelle. Le montant est celui de la demande, calculé par le serveur.
+     * Adresse où envoyer le pressing pour payer : la page déjà ouverte pour ce
+     * moyen tant qu'elle est valable (un seul paiement par demande), sinon une
+     * nouvelle. Avec un moyen choisi (Wave, Orange Money…), le pressing va
+     * directement chez l'opérateur ; sans, il choisit sur la page GeniusPay.
+     * Le montant est celui de la demande, calculé par le serveur.
+     *
+     * @param  string|null  $method  code de ONLINE_METHODS
+     * @param  string|null  $phone  numéro du payeur (Mobile Money)
      *
      * @throws RuntimeException GeniusPay injoignable ou paiement refusé
      */
-    public function startOnlinePayment(string $returnUrl): string
+    public function startOnlinePayment(string $returnUrl, ?string $method = null, ?string $phone = null): string
     {
-        if ($this->hasOnlinePaymentInProgress() && $this->payment_checkout_url) {
+        if ($this->hasOnlinePaymentInProgress() && $this->payment_checkout_url && $this->payment_method === $method) {
             return $this->payment_checkout_url;
         }
 
@@ -398,17 +420,22 @@ class SubscriptionRequest extends Model
             'external_reference' => 'presslink-demande-'.$this->id.'-'.now()->timestamp,
             'success_url' => $returnUrl,
             'error_url' => $returnUrl,
-            'customer' => array_filter(['name' => $pressing->name, 'email' => $this->requester?->email]),
+            'payment_method' => $method,
+            'customer' => array_filter(['name' => $pressing->name, 'email' => $this->requester?->email, 'phone' => $phone ? PhoneNumber::normalize($phone) : null]),
             'metadata' => ['subscription_request_id' => $this->id, 'pressing_id' => $pressing->id],
         ]));
 
+        // Mode direct : la page de l'opérateur (payment_url) ; sinon la page GeniusPay.
+        $url = $transaction['payment_url'] ?? $transaction['checkout_url'];
+
         $this->update([
             'payment_reference' => $transaction['reference'],
-            'payment_checkout_url' => $transaction['checkout_url'],
+            'payment_checkout_url' => $url,
             'payment_started_at' => now(),
+            'payment_method' => $method,
         ]);
 
-        return $transaction['checkout_url'];
+        return $url;
     }
 
     /**

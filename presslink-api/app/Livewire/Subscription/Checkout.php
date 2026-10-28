@@ -5,7 +5,11 @@ namespace App\Livewire\Subscription;
 use App\Enums\Permission;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\SubscriptionRequest;
+use App\Rules\IvorianPhone;
+use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -21,6 +25,12 @@ class Checkout extends Component
     use ShowsToasts;
 
     public SubscriptionRequest $subscriptionRequest;
+
+    /** Moyen de paiement choisi sur le récapitulatif (code de SubscriptionRequest::ONLINE_METHODS). */
+    public string $method = 'wave';
+
+    /** Numéro du payeur, demandé pour Orange Money, MTN et Moov (prérempli). */
+    public string $phone = '';
 
     /** Retour d'un paiement non confirmé (échec, abandon ou confirmation en attente). */
     #[Url(except: false)]
@@ -41,6 +51,12 @@ class Checkout extends Component
 
         // La déduction des jours restants baisse chaque jour : montant à jour.
         $subscriptionRequest->refreshPlanChangeAmount();
+
+        // Le moyen déjà choisi pour cette demande, et le numéro connu du pressing.
+        if (array_key_exists((string) $subscriptionRequest->payment_method, SubscriptionRequest::ONLINE_METHODS)) {
+            $this->method = $subscriptionRequest->payment_method;
+        }
+        $this->phone = PhoneNumber::national(auth()->user()->phone ?: $subscriptionRequest->pressing->phone);
     }
 
     public function pay(): void
@@ -54,8 +70,24 @@ class Checkout extends Component
             return;
         }
 
+        $this->resetErrorBag();
+        $needsPhone = in_array($this->method, SubscriptionRequest::PHONE_METHODS, true);
+        // Le numéro est vérifié au format international ; le champ garde la saisie du pressing.
+        Validator::make(
+            ['method' => $this->method, 'phone' => $this->phone === '' ? '' : PhoneNumber::normalize($this->phone)],
+            [
+                'method' => ['required', Rule::in(array_keys(SubscriptionRequest::ONLINE_METHODS))],
+                'phone' => $needsPhone ? ['required', new IvorianPhone] : ['nullable'],
+            ],
+            ['phone.required' => 'Indiquez le numéro '.(SubscriptionRequest::ONLINE_METHODS[$this->method] ?? 'Mobile Money').' qui va payer.'],
+        )->validate();
+
         try {
-            $checkoutUrl = $request->startOnlinePayment(route('subscription.payment.return', $request));
+            $checkoutUrl = $request->startOnlinePayment(
+                route('subscription.payment.return', $request),
+                $this->method,
+                $needsPhone ? PhoneNumber::normalize($this->phone) : null,
+            );
         } catch (RuntimeException $e) {
             Log::error($e->getMessage(), ['request' => $request->id]);
             $this->toast('Le paiement en ligne est indisponible pour le moment. Réessayez dans quelques minutes.', 'error');

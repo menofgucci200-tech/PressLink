@@ -28,6 +28,7 @@ use App\Livewire\Admin\Site\Index as AdminSiteIndex;
 use App\Livewire\Admin\Users\Index as AdminUsersIndex;
 use App\Livewire\Auth\AdminLogin;
 use App\Livewire\Auth\Login;
+use App\Livewire\Auth\PressingSignup;
 use App\Livewire\Cash\Index as CashIndex;
 use App\Livewire\Clients\Index as ClientsIndex;
 use App\Livewire\Clients\Show as ClientsShow;
@@ -93,6 +94,7 @@ Route::get('/emails/desabonnement/{customer}', function (Customer $customer) {
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');
+    Route::get('/inscription', PressingSignup::class)->name('signup');
     Route::get('/admin/connexion', AdminLogin::class)->name('admin.login');
 });
 

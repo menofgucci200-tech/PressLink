@@ -84,7 +84,7 @@ class LaunchOfferTest extends TestCase
         $this->get(route('site.clients'))->assertOk()->assertDontSee('PressLink est gratuit pour les pressings');
     }
 
-    public function test_new_pressings_stay_on_trial_until_the_end_of_the_offer(): void
+    public function test_new_pressings_get_a_week_of_trial_after_the_end_of_the_offer(): void
     {
         $this->travelTo('2026-10-26 09:00:00');
         $this->actingAs(User::factory()->create(['is_super_admin' => true]));
@@ -95,8 +95,9 @@ class LaunchOfferTest extends TestCase
             ->call('create');
 
         $subscription = Subscription::where('pressing_id', Pressing::where('name', 'Pressing du Lancement')->value('id'))->firstOrFail();
-        $this->assertSame('2026-11-15 23:59:59', $subscription->trial_ends_at->format('Y-m-d H:i:s'));
-        $this->assertSame('2026-11-15 23:59:59', $subscription->current_period_ends_at->format('Y-m-d H:i:s'));
+        // Gratuit jusqu'au 15 novembre, puis la semaine d'essai pour choisir sa formule.
+        $this->assertSame('2026-11-22 23:59:59', $subscription->trial_ends_at->format('Y-m-d H:i:s'));
+        $this->assertSame('2026-11-22 23:59:59', $subscription->current_period_ends_at->format('Y-m-d H:i:s'));
     }
 
     public function test_pressings_created_after_the_offer_get_the_usual_trial(): void

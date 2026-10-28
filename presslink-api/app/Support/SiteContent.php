@@ -41,10 +41,10 @@ class SiteContent
     public static function reassurances(): array
     {
         return [
-            ['title' => 'Sans engagement', 'text' => 'Vous payez une période à la fois, au mois ou à l\'année, par lien Wave. Rien n\'est prélevé automatiquement.'],
+            ['title' => 'Sans engagement', 'text' => 'Vous payez une période à la fois, au mois ou à l\'année, '.(GeniusPay::isConfigured() ? 'en ligne (Wave, Orange Money, MTN, Moov ou carte)' : 'par lien Wave').'. Rien n\'est prélevé automatiquement.'],
             ['title' => 'Aucun matériel à acheter', 'text' => 'Le téléphone, la tablette ou l\'ordinateur que vous avez déjà suffit. Les reçus partent sur WhatsApp ou s\'impriment.'],
             ['title' => 'Même quand Internet coupe', 'text' => 'Avec Business et Premium, le comptoir continue hors connexion et tout s\'envoie au retour du réseau.'],
-            ['title' => 'Une équipe à Abidjan', 'text' => 'Nous créons votre espace et vous aidons à le mettre en place. Support par téléphone et WhatsApp.'],
+            ['title' => 'Une équipe à Abidjan', 'text' => 'Vous vous inscrivez en 2 minutes, nous vous appelons pour vous aider à démarrer. Support par téléphone et WhatsApp.'],
         ];
     }
 

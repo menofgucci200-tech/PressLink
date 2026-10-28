@@ -104,9 +104,9 @@
                 @endif
 
                 <div class="flex flex-wrap gap-3">
-                    <a href="{{ $join }}" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2.5 min-h-13 py-2 px-6 rounded-xl bg-[#22C55E] text-white font-bold hover:brightness-95 shadow-lg shadow-black/20 sm:whitespace-nowrap">
-                        <img src="{{ asset('images/whatsapp.png') }}" alt="" width="26" height="26" class="w-6.5 h-6.5 rounded-full ring-2 ring-white/70">
+                    <a href="{{ route('signup') }}" class="inline-flex items-center justify-center gap-2.5 min-h-13 py-2 px-6 rounded-xl bg-[#22C55E] text-white font-bold hover:brightness-95 shadow-lg shadow-black/20 sm:whitespace-nowrap">
                         {{ $offer ? 'Inscrire mon pressing gratuitement' : 'Inscrire mon pressing' }}
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                     </a>
                     <a href="{{ $appUrl }}" class="inline-flex items-center justify-center h-13 px-6 rounded-xl border border-white/30 font-semibold hover:bg-white/10 whitespace-nowrap">
                         Je suis client →
@@ -136,7 +136,7 @@
         <div class="grid md:grid-cols-3 gap-5" data-motion="cascade">
             @foreach (array_values(array_filter([
                 $offer ? ['🎁', 'Gratuit jusqu\'au '.$until, 'Toutes les fonctions pendant le lancement, sans rien payer. Vous voyez par vous-même ce que PressLink change au quotidien.'] : null,
-                ['🤝', 'Accompagné pas à pas', 'Démonstration et mise en place avec l\'équipe PressLink. Une question ? Un appel ou un message WhatsApp suffit.'],
+                ['🤝', 'Accompagné pas à pas', 'Inscription en 2 minutes, puis notre équipe vous appelle pour vous aider à démarrer. Une question ? Un appel ou un message WhatsApp suffit.'],
                 ['🔔', 'Moins d\'appels, moins d\'attente', 'Vos clients sont prévenus automatiquement quand leur commande est prête : fini les « c\'est prêt ? » et les passages pour rien.'],
                 $offer ? null : ['📈', 'Votre activité en un coup d\'œil', 'Encaissé du jour, commandes en cours, retards : le tableau de bord vous dit l\'essentiel dès l\'ouverture.'],
             ])) as [$icon, $heading, $text])
@@ -287,8 +287,8 @@
             </div>
             <ol class="grid md:grid-cols-3 gap-5" data-motion="cascade">
                 @foreach ([
-                    ['Écrivez-nous', 'Sur WhatsApp ou par téléphone au '.$supportPhoneDisplay.'. Dites-nous le nom de votre pressing et votre quartier.'],
-                    ['On met en place votre espace', 'Avec vous : votre pressing, vos tarifs et votre équipe. On vous montre tout.'],
+                    ['Inscrivez votre pressing', 'En 2 minutes sur ce site : le nom de votre pressing, votre commune et votre numéro. Ou sur WhatsApp au '.$supportPhoneDisplay.'.'],
+                    ['On vous aide à démarrer', 'Notre équipe vous appelle : vos tarifs, vos horaires et votre équipe. On vous montre tout.'],
                     [$offer ? 'Vous travaillez, gratuitement' : 'Vous démarrez', $offer ? 'Vous enregistrez vos premières commandes, sans rien payer jusqu\'au '.$until.'.' : 'Vous enregistrez vos premières commandes et vos clients sont prévenus.'],
                 ] as $i => [$heading, $text])
                     <li class="relative bg-(--color-surface) border border-(--color-border) rounded-2xl p-6">
@@ -313,15 +313,18 @@
                     @if ($offer)
                         PressLink est gratuit jusqu'au <strong class="text-white">{{ $until }}</strong> : plus que {{ $daysLeft }} {{ $daysLeft > 1 ? 'jours' : 'jour' }} pour en profiter.
                     @else
-                        L'équipe PressLink vous montre l'outil et met en place votre espace avec vous.
+                        Inscrivez-vous en 2 minutes : notre équipe vous appelle pour vous aider à démarrer.
                     @endif
                 </p>
                 <p class="mt-4 text-sm text-[#DBEAFE]">{{ $supportPhoneDisplay }} · {{ config('presslink.support.email') }}</p>
             </div>
             <div class="relative flex flex-col gap-3">
-                <a href="{{ $join }}" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2.5 min-h-13 py-2 px-6 rounded-xl bg-white text-(--color-primary-600) font-bold hover:bg-[#EFF6FF]">
-                    <img src="{{ asset('images/whatsapp.png') }}" alt="" width="26" height="26" class="w-6.5 h-6.5 rounded-full">
+                <a href="{{ route('signup') }}" class="inline-flex items-center justify-center gap-2.5 min-h-13 py-2 px-6 rounded-xl bg-white text-(--color-primary-600) font-bold hover:bg-[#EFF6FF]">
                     {{ $offer ? 'Inscrire mon pressing gratuitement' : 'Inscrire mon pressing' }}
+                </a>
+                <a href="{{ $join }}" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2.5 h-13 px-6 rounded-xl border border-white/40 font-semibold hover:bg-white/10">
+                    <img src="{{ asset('images/whatsapp.png') }}" alt="" width="22" height="22" class="w-5.5 h-5.5 rounded-full">
+                    Être accompagné sur WhatsApp
                 </a>
                 <a href="tel:{{ $supportPhoneE164 }}" class="inline-flex items-center justify-center h-13 px-6 rounded-xl border border-white/40 font-semibold hover:bg-white/10">Appeler le {{ $supportPhoneDisplay }}</a>
             </div>

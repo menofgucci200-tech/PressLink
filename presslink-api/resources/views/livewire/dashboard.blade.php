@@ -48,6 +48,8 @@
             </div>
         </div>
 
+        <x-onboarding-guide :pressing="$pressing" />
+
         <div class="flex items-center gap-2 mb-4 flex-wrap">
             @foreach (['today' => "Aujourd'hui", '7d' => '7 jours', '30d' => '30 jours', 'custom' => 'Personnalisé'] as $value => $label)
                 <button type="button" wire:click="setPeriod('{{ $value }}')"

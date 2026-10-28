@@ -66,7 +66,11 @@ class LandingController extends Controller
         return [
             [
                 'question' => 'Comment essayer PressLink dans mon pressing ?',
-                'answer' => "Écrivez-nous sur WhatsApp avec le nom de votre pressing et votre commune : nous créons votre espace et vous accompagnons pour le mettre en place. L'essai gratuit dure {$days} jours, avec toutes les fonctions ouvertes, sans paiement à l'avance.",
+                'answer' => 'Inscrivez votre pressing en 2 minutes sur presslink.org/inscription : son nom, votre commune et votre numéro. Votre espace est prêt tout de suite, et notre équipe vous appelle pour vous aider à le mettre en place. '
+                    .(LaunchOffer::isActive()
+                        ? 'Pendant le lancement, PressLink est gratuit jusqu\'au '.LaunchOffer::dateLabel().', puis vous avez une semaine pour choisir votre formule'
+                        : "L'essai gratuit dure {$days} jours")
+                    .', avec toutes les fonctions ouvertes, sans paiement à l\'avance.',
             ],
             [
                 'question' => 'Faut-il acheter du matériel ?',

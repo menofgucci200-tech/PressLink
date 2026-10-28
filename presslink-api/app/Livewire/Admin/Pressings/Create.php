@@ -3,13 +3,10 @@
 namespace App\Livewire\Admin\Pressings;
 
 use App\Enums\PressingRole;
-use App\Enums\SubscriptionPlan;
-use App\Enums\SubscriptionStatus;
 use App\Models\Pressing;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Rules\IvorianPhone;
-use App\Support\LaunchOffer;
 use App\Support\PhoneNumber;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -191,22 +188,7 @@ class Create extends Component
 
     private function createTrialSubscription(Pressing $pressing): void
     {
-        // Durée d'essai réglée par le Super Admin, et au moins jusqu'à la fin
-        // de l'offre de lancement.
-        $trialEndsAt = now()->addDays(Subscription::trialDays());
-        if (LaunchOffer::isActive() && LaunchOffer::endsAt()->greaterThan($trialEndsAt)) {
-            $trialEndsAt = LaunchOffer::endsAt();
-        }
-
-        Subscription::create([
-            'pressing_id' => $pressing->id,
-            'plan' => SubscriptionPlan::Starter,
-            'status' => SubscriptionStatus::Trialing,
-            'orders_limit' => SubscriptionPlan::Starter->ordersLimit(),
-            'trial_ends_at' => $trialEndsAt,
-            'current_period_starts_at' => now(),
-            'current_period_ends_at' => $trialEndsAt,
-        ]);
+        Subscription::startTrialFor($pressing);
     }
 
     #[Layout('layouts.admin', ['active' => 'pressings', 'title' => 'Nouveau pressing'])]

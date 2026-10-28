@@ -25,7 +25,8 @@ class SitePressingsContentTest extends TestCase
         $this->get(route('site.pressings'))
             ->assertOk()
             ->assertSee('Essayer gratuitement 7 jours')
-            ->assertSee('via WhatsApp')
+            ->assertSee('en 2 minutes')
+            ->assertSee(route('signup'), false)
             ->assertSee('Abidjan')
             ->assertSee('Se lancer sans risque')
             ->assertSee('Faut-il acheter du matériel ?')
@@ -40,7 +41,8 @@ class SitePressingsContentTest extends TestCase
 
         foreach ([route('site.pressings'), route('site.pricing'), '/'] as $url) {
             $this->get($url)->assertOk()
-                ->assertSee('Essayer gratuitement jusqu&#039;au 15 novembre', false)
+                // Fin du lancement (15 novembre) + la semaine pour choisir sa formule.
+                ->assertSee('Essayer gratuitement jusqu&#039;au 22 novembre', false)
                 ->assertDontSee('Essayer gratuitement 7 jours');
         }
         $this->get(route('site.pressings'))->assertSee('Gratuit jusqu&#039;au 15 novembre pendant le lancement officiel', false);

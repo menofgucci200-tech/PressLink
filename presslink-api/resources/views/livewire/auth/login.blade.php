@@ -43,9 +43,8 @@
             @include('livewire.auth._form', ['dark' => false])
 
             <div class="mt-8 rounded-xl border border-(--color-border) bg-(--color-surface) lg:bg-(--color-bg) p-4 text-sm text-(--color-text-secondary)">
-                Mot de passe oublié ou pas encore de compte ?
-                <a href="{{ route('site.contact') }}" class="font-semibold text-(--color-primary) hover:underline">Contactez PressLink</a>
-                ou demandez à l'administrateur de votre pressing.
+                Pas encore de compte ? <a href="{{ route('signup') }}" class="font-semibold text-(--color-primary) hover:underline">Inscrire mon pressing gratuitement</a>
+                <span class="block mt-1">Mot de passe oublié ? <a href="{{ route('site.contact') }}" class="font-semibold text-(--color-primary) hover:underline">Contactez PressLink</a> ou demandez à l'administrateur de votre pressing.</span>
             </div>
 
             <div class="mt-4">

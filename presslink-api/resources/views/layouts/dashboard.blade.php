@@ -306,6 +306,18 @@
                     @endif
                 @endif
 
+                @if ($subscription?->isInTrial() && $subscription->trial_ends_at && $can(\App\Enums\Permission::SubscriptionManage) && ! in_array($active ?? null, ['subscription'], true))
+                    @php $trialDaysLeft = max(0, (int) ceil(now()->diffInDays($subscription->trial_ends_at, false))); @endphp
+                    <div @class([
+                        'px-4 sm:px-6 lg:px-8 py-2 text-[13px] font-medium flex flex-wrap items-center gap-x-3 gap-y-1',
+                        'bg-(--color-warning-tint) text-(--color-warning-text)' => $trialDaysLeft <= 3,
+                        'bg-(--color-info-tint) text-(--color-info)' => $trialDaysLeft > 3,
+                    ]) role="status" data-testid="trial-banner">
+                        <span>Essai gratuit : {{ $trialDaysLeft <= 1 ? 'dernier jour' : 'encore '.$trialDaysLeft.' jours' }}, jusqu'au {{ $subscription->trial_ends_at->format('d/m/Y') }}.</span>
+                        <a href="{{ route('subscription.plans') }}" wire:navigate class="font-semibold underline">Choisir ma formule</a>
+                    </div>
+                @endif
+
                 <main id="contenu" tabindex="-1" class="flex-1 min-w-0 overflow-x-clip p-4 sm:p-6 lg:p-8 max-lg:pb-24 outline-none">
                     {{ $slot }}
                 </main>

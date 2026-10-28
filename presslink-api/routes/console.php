@@ -16,3 +16,6 @@ Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3')
 
 // Rapport mensuel des groupes de pressings, le 1er du mois au matin.
 Schedule::command('presslink:send-group-reports')->monthlyOn(1, '07:00');
+
+// Rappels de fin d'essai gratuit (3 jours puis 1 jour avant).
+Schedule::command('presslink:trial-reminders')->dailyAt('09:00');

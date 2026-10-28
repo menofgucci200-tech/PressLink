@@ -4,11 +4,14 @@ namespace App\Models;
 
 use App\Casts\SubscriptionPlanCast;
 use App\Enums\Feature;
+use App\Enums\SubscriptionPlan;
 use App\Enums\SubscriptionStatus;
+use App\Support\LaunchOffer;
 use Database\Factories\SubscriptionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -89,6 +92,35 @@ class Subscription extends Model
     public static function trialDays(): int
     {
         return max(0, (int) Setting::read('trial_days', 7));
+    }
+
+    /**
+     * Fin de l'essai d'un pressing créé aujourd'hui : la durée d'essai (7 jours
+     * par défaut) comptée à partir de la fin de l'offre de lancement tant qu'elle
+     * court (gratuit jusqu'au 15 novembre, puis une semaine pour choisir), sinon
+     * à partir d'aujourd'hui.
+     */
+    public static function trialEndsAtForNewPressing(): Carbon
+    {
+        $from = LaunchOffer::isActive() ? LaunchOffer::endsAt()->copy() : now();
+
+        return $from->addDays(self::trialDays());
+    }
+
+    /** Essai gratuit d'un nouveau pressing (formule Starter, toutes les fonctions ouvertes). */
+    public static function startTrialFor(Pressing $pressing): self
+    {
+        $trialEndsAt = self::trialEndsAtForNewPressing();
+
+        return self::create([
+            'pressing_id' => $pressing->id,
+            'plan' => SubscriptionPlan::Starter,
+            'status' => SubscriptionStatus::Trialing,
+            'orders_limit' => SubscriptionPlan::Starter->ordersLimit(),
+            'trial_ends_at' => $trialEndsAt,
+            'current_period_starts_at' => now(),
+            'current_period_ends_at' => $trialEndsAt,
+        ]);
     }
 
     public function hasAddon(Feature $feature): bool

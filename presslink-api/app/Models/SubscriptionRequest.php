@@ -5,10 +5,12 @@ namespace App\Models;
 use App\Enums\Feature;
 use App\Enums\SubscriptionPlan;
 use App\Enums\SubscriptionStatus;
+use App\Support\GeniusPay;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 /**
@@ -17,6 +19,8 @@ use RuntimeException;
  * formule ou le renouvellement de l'abonnement. Pas d'API de paiement :
  * l'équipe PressLink envoie un lien de paiement (Wave Business) du montant
  * demandé, puis active la demande depuis la fiche du pressing une fois payé.
+ * Quand GeniusPay est configuré, le pressing peut aussi payer en ligne : la
+ * demande s'active alors dès que GeniusPay confirme le paiement.
  */
 class SubscriptionRequest extends Model
 {
@@ -41,7 +45,10 @@ class SubscriptionRequest extends Model
     /** Commandes en plus proposées par défaut pour le mois en cours : [nombre, prix]. */
     public const DEFAULT_ORDER_PACKS = [[50, 1_000], [100, 1_500], [500, 3_500]];
 
-    protected $fillable = ['pressing_id', 'requested_by', 'kind', 'feature', 'plan', 'extra_orders', 'cycle', 'amount_fcfa', 'payment_link', 'status', 'decline_reason', 'handled_at', 'handled_by'];
+    /** Durée de vie d'une page de paiement GeniusPay (24 h), avec une marge. */
+    public const ONLINE_PAYMENT_HOURS = 23;
+
+    protected $fillable = ['pressing_id', 'requested_by', 'kind', 'feature', 'plan', 'extra_orders', 'cycle', 'amount_fcfa', 'payment_link', 'payment_reference', 'payment_checkout_url', 'payment_started_at', 'paid_online_at', 'payment_method', 'status', 'decline_reason', 'handled_at', 'handled_by'];
 
     protected function casts(): array
     {
@@ -51,6 +58,8 @@ class SubscriptionRequest extends Model
             'extra_orders' => 'integer',
             'amount_fcfa' => 'integer',
             'handled_at' => 'datetime',
+            'payment_started_at' => 'datetime',
+            'paid_online_at' => 'datetime',
         ];
     }
 
@@ -120,11 +129,13 @@ class SubscriptionRequest extends Model
      * Active ce qui a été demandé sur l'abonnement du pressing (après paiement).
      * Une seule fois : un double clic ou un second onglet ne l'applique pas deux fois.
      *
+     * @param  bool  $byCurrentUser  false = activation automatique (paiement en ligne) : personne n'est noté comme l'ayant traitée
+     *
      * @throws RuntimeException demande déjà traitée, ou renouvellement d'une formule qui a changé depuis
      */
-    public function apply(): void
+    public function apply(bool $byCurrentUser = true): void
     {
-        DB::transaction(function () {
+        DB::transaction(function () use ($byCurrentUser) {
             $locked = self::whereKey($this->id)->lockForUpdate()->first();
             if ($locked === null || ! $locked->isPending()) {
                 throw new RuntimeException('Cette demande a déjà été traitée.');
@@ -142,7 +153,7 @@ class SubscriptionRequest extends Model
                 };
             }
 
-            $locked->update(['status' => self::DONE, 'handled_at' => now(), 'handled_by' => auth()->id()]);
+            $locked->update(['status' => self::DONE, 'handled_at' => now(), 'handled_by' => $byCurrentUser ? auth()->id() : null]);
         });
 
         $this->refresh();
@@ -227,6 +238,101 @@ class SubscriptionRequest extends Model
             'handled_at' => now(),
             'handled_by' => auth()->id(),
         ]);
+    }
+
+    /** Le pressing peut payer cette demande en ligne (GeniusPay configuré, montant connu). */
+    public function canBePaidOnline(): bool
+    {
+        return $this->isPending() && GeniusPay::isConfigured() && (int) $this->amount_fcfa >= GeniusPay::MIN_AMOUNT;
+    }
+
+    /** Une page de paiement en ligne a été ouverte et n'a pas encore expiré. */
+    public function hasOnlinePaymentInProgress(): bool
+    {
+        return $this->payment_reference !== null && $this->paid_online_at === null
+            && $this->payment_started_at?->isAfter(now()->subHours(self::ONLINE_PAYMENT_HOURS)) === true;
+    }
+
+    /**
+     * Adresse de la page de paiement GeniusPay de cette demande : celle déjà
+     * ouverte tant qu'elle est valable (un seul paiement par demande), sinon une
+     * nouvelle. Le montant est celui de la demande, calculé par le serveur.
+     *
+     * @throws RuntimeException GeniusPay injoignable ou paiement refusé
+     */
+    public function startOnlinePayment(string $returnUrl): string
+    {
+        if ($this->hasOnlinePaymentInProgress() && $this->payment_checkout_url) {
+            return $this->payment_checkout_url;
+        }
+
+        $pressing = $this->pressing;
+        $transaction = GeniusPay::createPayment(array_filter([
+            'amount' => (int) $this->amount_fcfa,
+            'description' => mb_substr('PressLink · '.$pressing->name.' · '.$this->label(), 0, 500),
+            'external_reference' => 'presslink-demande-'.$this->id.'-'.now()->timestamp,
+            'success_url' => $returnUrl,
+            'error_url' => $returnUrl,
+            'customer' => array_filter(['name' => $pressing->name, 'email' => $this->requester?->email]),
+            'metadata' => ['subscription_request_id' => $this->id, 'pressing_id' => $pressing->id],
+        ]));
+
+        $this->update([
+            'payment_reference' => $transaction['reference'],
+            'payment_checkout_url' => $transaction['checkout_url'],
+            'payment_started_at' => now(),
+        ]);
+
+        return $transaction['checkout_url'];
+    }
+
+    /**
+     * Paiement confirmé par GeniusPay (notification signée ou vérification au
+     * retour du pressing) : la demande s'active, une seule fois. Ignoré si le
+     * paiement n'est pas réussi, si le montant ne correspond pas ou s'il vient
+     * de l'autre environnement (test ou réel).
+     *
+     * @param  array<string, mixed>  $transaction
+     * @return bool true si cet appel a activé la demande
+     */
+    public function confirmOnlinePayment(array $transaction, ?string $environment = null): bool
+    {
+        if (($transaction['status'] ?? null) !== 'completed') {
+            return false;
+        }
+
+        $environment ??= $transaction['environment'] ?? null;
+        if ($environment !== null && $environment !== GeniusPay::environment()) {
+            Log::warning('GeniusPay : paiement d\'un autre environnement ignoré.', ['request' => $this->id, 'environment' => $environment]);
+
+            return false;
+        }
+
+        if ((int) ($transaction['amount'] ?? 0) !== (int) $this->amount_fcfa) {
+            Log::warning('GeniusPay : montant différent de la demande, paiement non activé.', ['request' => $this->id, 'amount' => $transaction['amount'] ?? null, 'expected' => $this->amount_fcfa]);
+
+            return false;
+        }
+
+        try {
+            $this->apply(byCurrentUser: false);
+            $activated = true;
+        } catch (RuntimeException $e) {
+            // Déjà activée (notification reçue deux fois), ou à voir par l'équipe
+            // (demande refusée entre-temps, formule changée) : le paiement reste noté.
+            $activated = false;
+            if (! $this->fresh()->isPayment() || $this->paid_online_at === null) {
+                Log::warning('GeniusPay : paiement reçu pour une demande non activable.', ['request' => $this->id, 'reason' => $e->getMessage()]);
+            }
+        }
+
+        $this->forceFill([
+            'paid_online_at' => $this->paid_online_at ?? now(),
+            'payment_method' => $transaction['payment_method'] ?? $transaction['gateway'] ?? $this->payment_method,
+            'payment_reference' => $this->payment_reference ?? ($transaction['reference'] ?? null),
+        ])->save();
+
+        return $activated;
     }
 
     /** Payée et activée, avec un montant : une ligne de l'historique des paiements. */

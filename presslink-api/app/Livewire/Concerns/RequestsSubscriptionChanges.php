@@ -8,11 +8,15 @@ use App\Enums\Permission;
 use App\Enums\SubscriptionPlan;
 use App\Models\Pressing;
 use App\Models\SubscriptionRequest;
+use App\Support\GeniusPay;
+use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 /**
  * Demandes faites depuis les pages Abonnement et Formules : option, commandes
- * en plus, autre formule, renouvellement. L'équipe PressLink répond avec un
- * lien de paiement, puis active la demande une fois payée.
+ * en plus, autre formule, renouvellement. Le pressing paie en ligne (GeniusPay)
+ * et la demande s'active d'elle-même ; sans paiement en ligne, l'équipe
+ * PressLink répond avec un lien de paiement, puis active la demande une fois payée.
  */
 trait RequestsSubscriptionChanges
 {
@@ -63,16 +67,47 @@ trait RequestsSubscriptionChanges
 
     public function cancelRequest(int $requestId): void
     {
-        $this->subscriptionPressing()->subscriptionRequests()->pending()->findOrFail($requestId)->delete();
+        $request = $this->subscriptionPressing()->subscriptionRequests()->pending()->findOrFail($requestId);
+
+        // Un paiement en ligne peut encore aboutir : la demande doit rester là pour être activée.
+        if ($request->hasOnlinePaymentInProgress()) {
+            $this->toast('Un paiement en ligne est en cours pour cette demande : elle ne peut pas être annulée pour l\'instant.', 'warning');
+
+            return;
+        }
+
+        $request->delete();
         $this->toast('Demande annulée.');
+    }
+
+    /** Ouvre la page de paiement GeniusPay de la demande (Wave, Orange Money, MTN, carte). */
+    public function payOnline(int $requestId): void
+    {
+        $request = $this->subscriptionPressing()->subscriptionRequests()->pending()->findOrFail($requestId);
+        abort_unless($request->canBePaidOnline(), 422);
+
+        try {
+            $checkoutUrl = $request->startOnlinePayment(route('subscription.payment.return', $request));
+        } catch (RuntimeException $e) {
+            Log::error($e->getMessage(), ['request' => $request->id]);
+            $this->toast('Le paiement en ligne est indisponible pour le moment. Réessayez dans quelques minutes.', 'error');
+
+            return;
+        }
+
+        $this->redirect($checkoutUrl);
     }
 
     private function sendRequest(Pressing $pressing, string $kind, ?Feature $feature = null, ?SubscriptionPlan $plan = null, ?int $orders = null, ?string $cycle = null): void
     {
         $request = (new RequestSubscriptionChange)->handle($pressing, auth()->user(), $kind, $feature, $plan, $orders, $cycle);
 
-        $this->toast($request === null
-            ? 'Cette demande est déjà envoyée : l\'équipe PressLink vous envoie le lien de paiement.'
-            : 'Demande envoyée : l\'équipe PressLink vous envoie un lien de paiement Wave, puis active votre demande.', $request === null ? 'info' : 'success');
+        $online = $request?->canBePaidOnline() ?? false;
+
+        $this->toast(match (true) {
+            $request === null => 'Cette demande est déjà envoyée : vous la retrouvez dans « Demandes en cours ».',
+            $online => 'Demande envoyée : payez-la en ligne dans « Demandes en cours », elle s\'active dès le paiement confirmé.',
+            default => 'Demande envoyée : l\'équipe PressLink vous envoie un lien de paiement Wave, puis active votre demande.',
+        }, $request === null ? 'info' : 'success');
     }
 }

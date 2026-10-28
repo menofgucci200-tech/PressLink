@@ -66,7 +66,7 @@
                                 @if ($request->decline_reason) <div class="text-xs text-(--color-text-muted)">Motif : {{ $request->decline_reason }}</div> @endif
                             </td>
                             <td class="px-5 py-3 whitespace-nowrap text-right font-semibold tabular-nums">{{ $tab === 'paiements' ? ($request->amount_fcfa !== null ? number_format($request->amount_fcfa, 0, ',', ' ').' F' : '—') : '' }}</td>
-                            <td class="px-5 py-3 whitespace-nowrap text-xs text-(--color-text-muted)">{{ $request->handler?->name ?? '—' }}</td>
+                            <td class="px-5 py-3 whitespace-nowrap text-xs text-(--color-text-muted)">{{ $request->handler?->name ?? ($request->paid_online_at ? 'Payé en ligne' : '—') }}</td>
                         </tr>
                     @endforeach
                 </tbody>

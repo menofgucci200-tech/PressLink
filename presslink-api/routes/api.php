@@ -6,8 +6,14 @@ use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\OrderIssueController;
 use App\Http\Controllers\Api\V1\PressingController;
+use App\Http\Controllers\GeniusPayController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+// Notification signée de GeniusPay (paiement en ligne des demandes d'abonnement).
+Route::post('/webhooks/geniuspay', [GeniusPayController::class, 'webhook'])
+    ->middleware('throttle:120,1')
+    ->name('webhooks.geniuspay');
 
 Route::prefix('v1')->group(function () {
     Route::get('/user', function (Request $request) {

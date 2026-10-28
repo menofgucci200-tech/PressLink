@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminExportController;
+use App\Http\Controllers\GeniusPayController;
 use App\Http\Controllers\GroupExportController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OfflineCounterController;
@@ -175,6 +176,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/parametres', PressingSettings::class)->name('pressing.settings');
         Route::get('/abonnement', SubscriptionShow::class)->name('subscription.show');
         Route::get('/abonnement/formules', SubscriptionPlans::class)->name('subscription.plans');
+        Route::get('/abonnement/paiement/{subscriptionRequest}/retour', [GeniusPayController::class, 'return'])->name('subscription.payment.return');
         Route::get('/support', SupportShow::class)->name('support');
 
         // Comptoir hors connexion (page gardée sur le PC, données, envoi).

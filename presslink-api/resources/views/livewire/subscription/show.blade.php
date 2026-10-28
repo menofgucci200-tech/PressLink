@@ -224,20 +224,32 @@
                                 <div class="text-xs text-(--color-text-muted)">
                                     Demandé le {{ $request->created_at->format('d/m/Y') }}
                                     @if ($request->amount_fcfa !== null) · <span class="font-semibold text-(--color-text-primary) tabular-nums">{{ number_format($request->amount_fcfa, 0, ',', ' ') }} F à payer</span>@endif
-                                    @unless ($request->payment_link) · lien de paiement à venir @endunless
+                                    @if ($request->hasOnlinePaymentInProgress())
+                                        · <span class="text-(--color-text-secondary)">paiement en ligne commencé le {{ $request->payment_started_at->format('d/m à H:i') }}</span>
+                                    @elseif (! $request->payment_link && ! $request->canBePaidOnline())
+                                        · lien de paiement à venir
+                                    @endif
                                 </div>
                             </div>
-                            @if ($request->payment_link)
+                            @if ($request->canBePaidOnline())
+                                <button type="button" wire:click="payOnline({{ $request->id }})" wire:loading.attr="disabled" data-testid="pay-online"
+                                        class="inline-flex flex-col items-center justify-center min-h-10 px-4 py-1 rounded-lg bg-(--color-primary) text-white text-sm font-semibold leading-tight hover:bg-(--color-primary-600) disabled:opacity-60">
+                                    <span>{{ $request->hasOnlinePaymentInProgress() ? 'Reprendre le paiement' : 'Payer en ligne' }}</span>
+                                    <span class="text-[11px] font-medium opacity-85">Wave, Orange Money, MTN, carte</span>
+                                </button>
+                            @elseif ($request->payment_link)
                                 <a href="{{ $request->payment_link }}" target="_blank" rel="noopener noreferrer"
                                    class="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-[#1DC8FF] text-slate-900 text-sm font-semibold hover:brightness-95">
                                     Payer avec Wave
                                 </a>
                             @endif
-                            <button type="button" wire:click="cancelRequest({{ $request->id }})" wire:confirm="Annuler cette demande ?" class="text-(--color-text-muted) hover:text-(--color-error) text-xs font-medium">Annuler</button>
+                            @unless ($request->hasOnlinePaymentInProgress())
+                                <button type="button" wire:click="cancelRequest({{ $request->id }})" wire:confirm="Annuler cette demande ?" class="text-(--color-text-muted) hover:text-(--color-error) text-xs font-medium">Annuler</button>
+                            @endunless
                         </li>
                     @endforeach
                 </ul>
-                <p class="mt-3 text-xs text-(--color-text-muted)">Une fois le paiement fait, l'équipe PressLink active votre demande.</p>
+                <p class="mt-3 text-xs text-(--color-text-muted)">{{ \App\Support\GeniusPay::isConfigured() ? 'Payée en ligne, votre demande s\'active dès que le paiement est confirmé.' : 'Une fois le paiement fait, l\'équipe PressLink active votre demande.' }}</p>
             </div>
         @endif
 
@@ -264,7 +276,7 @@
                 <ul class="divide-y divide-(--color-border)">
                     @foreach ($payments as $payment)
                         <li class="flex items-center justify-between gap-3 py-2.5 text-sm">
-                            <span><span class="text-(--color-text-muted) tabular-nums">{{ $payment->handled_at?->format('d/m/Y') }}</span> · {{ $payment->label() }}</span>
+                            <span><span class="text-(--color-text-muted) tabular-nums">{{ $payment->handled_at?->format('d/m/Y') }}</span> · {{ $payment->label() }}@if ($payment->paid_online_at) <span class="text-xs text-(--color-text-muted)">· payé en ligne</span>@endif</span>
                             <span class="font-semibold tabular-nums whitespace-nowrap">{{ number_format($payment->amount_fcfa, 0, ',', ' ') }} F</span>
                         </li>
                     @endforeach
@@ -273,7 +285,11 @@
         @endif
 
         <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 text-sm text-(--color-text-muted)">
-            Après votre demande, l'équipe PressLink vous envoie un lien de paiement Wave, puis active la demande dès le paiement reçu.
+            @if (\App\Support\GeniusPay::isConfigured())
+                Après votre demande, payez-la en ligne (Wave, Orange Money, MTN ou carte) : elle s'active dès que le paiement est confirmé.
+            @else
+                Après votre demande, l'équipe PressLink vous envoie un lien de paiement Wave, puis active la demande dès le paiement reçu.
+            @endif
         </div>
     @endif
 </div>

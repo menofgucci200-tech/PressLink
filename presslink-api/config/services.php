@@ -41,6 +41,17 @@ return [
         'site_verification' => env('GOOGLE_SITE_VERIFICATION', '-p_mpG-fLnmC1h9wfvAwIEAOT3GEdXL7SoUghpxpJtk'),
     ],
 
+    // Paiement en ligne des demandes d'abonnement (Wave, Orange Money, MTN,
+    // carte). Sans clés, le paiement en ligne est masqué : l'équipe envoie
+    // un lien Wave comme avant. Clés de test : pk_sandbox_ / sk_sandbox_.
+    'geniuspay' => [
+        'base_url' => env('GENIUSPAY_BASE_URL', 'https://geniuspay.ci/api/v1/merchant'),
+        'sandbox' => (bool) env('GENIUSPAY_SANDBOX', true),
+        'api_key' => env('GENIUSPAY_API_KEY'),
+        'api_secret' => env('GENIUSPAY_API_SECRET'),
+        'webhook_secret' => env('GENIUSPAY_WEBHOOK_SECRET'),
+    ],
+
     'onesignal' => [
         // Vides en dev/pilote : les notifications sont loguées au lieu
         // d'être réellement envoyées (cf. App\Notifications\Channels\OneSignalChannel).

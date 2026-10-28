@@ -20,6 +20,13 @@
                     class="h-8 px-3 rounded-lg border border-(--color-border) text-xs font-semibold hover:border-(--color-error) hover:text-(--color-error)">Refuser</button>
         </span>
     </div>
+    @if ($request->paid_online_at)
+        <p class="mb-2.5 rounded-lg bg-(--color-warning-tint) text-(--color-warning-text) px-3 py-2 text-xs font-medium">
+            Payé en ligne le {{ $request->paid_online_at->format('d/m/Y à H:i') }} (GeniusPay, réf. {{ $request->payment_reference }}) mais pas activé automatiquement : vérifiez la demande, puis activez-la ou remboursez le pressing.
+        </p>
+    @elseif ($request->hasOnlinePaymentInProgress())
+        <p class="mb-2.5 text-xs text-(--color-text-muted)">Paiement en ligne commencé le {{ $request->payment_started_at->format('d/m/Y à H:i') }} : la demande s'activera seule dès le paiement confirmé.</p>
+    @endif
     <form x-show="refusing" x-cloak wire:submit="declineRequest({{ $request->id }})" class="mb-2.5 grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-2 items-start">
         <div>
             <input type="text" wire:model="declineReasons.{{ $request->id }}" maxlength="500" aria-label="Motif du refus"

@@ -59,7 +59,11 @@
     <x-plans.compare :plans="$plans" :current="$current" class="mb-6" />
 
     <p class="text-sm text-(--color-text-muted)">
-        Après votre demande, l'équipe PressLink vous envoie un lien de paiement Wave du montant de la formule. Votre nouvelle formule s'applique dès le paiement reçu.
+        @if (\App\Support\GeniusPay::isConfigured())
+            Après votre demande, payez-la en ligne depuis la page <a href="{{ route('subscription.show') }}" wire:navigate class="font-semibold text-(--color-primary) hover:underline">Abonnement</a> (Wave, Orange Money, MTN ou carte) : votre nouvelle formule s'applique dès le paiement confirmé.
+        @else
+            Après votre demande, l'équipe PressLink vous envoie un lien de paiement Wave du montant de la formule. Votre nouvelle formule s'applique dès le paiement reçu.
+        @endif
         Une seule fonction vous manque ? Ajoutez-la en option depuis la page <a href="{{ route('subscription.show') }}#options" wire:navigate class="font-semibold text-(--color-primary) hover:underline">Abonnement</a>.
     </p>
 </div>

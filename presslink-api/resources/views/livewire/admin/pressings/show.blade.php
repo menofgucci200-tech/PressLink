@@ -316,7 +316,7 @@
                             <td class="px-5 py-3 whitespace-nowrap text-xs font-medium {{ $handled->status === \App\Models\SubscriptionRequest::DONE ? 'text-(--color-success-text)' : 'text-(--color-error)' }}">
                                 {{ $handled->status === \App\Models\SubscriptionRequest::DONE ? 'Payé, activé' : 'Refusé' }}
                             </td>
-                            <td class="px-5 py-3 whitespace-nowrap text-xs text-(--color-text-muted)">{{ $handled->handler?->name }}</td>
+                            <td class="px-5 py-3 whitespace-nowrap text-xs text-(--color-text-muted)">{{ $handled->handler?->name ?? ($handled->paid_online_at ? 'Payé en ligne' : '') }}</td>
                         </tr>
                     @endforeach
                 </tbody>

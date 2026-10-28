@@ -49,6 +49,9 @@
                         <th class="text-left font-semibold px-5 py-3">Pressing</th>
                         <th class="text-left font-semibold px-5 py-3">Demande</th>
                         <th class="text-right font-semibold px-5 py-3">{{ $tab === 'paiements' ? 'Montant' : '' }}</th>
+                        @if ($tab === 'paiements')
+                            <th class="text-right font-semibold px-5 py-3">Net reçu</th>
+                        @endif
                         <th class="text-left font-semibold px-5 py-3">Par</th>
                     </tr>
                 </thead>
@@ -65,7 +68,24 @@
                                 {{ $request->label() }}
                                 @if ($request->decline_reason) <div class="text-xs text-(--color-text-muted)">Motif : {{ $request->decline_reason }}</div> @endif
                             </td>
-                            <td class="px-5 py-3 whitespace-nowrap text-right font-semibold tabular-nums">{{ $tab === 'paiements' ? ($request->amount_fcfa !== null ? number_format($request->amount_fcfa, 0, ',', ' ').' F' : '—') : '' }}</td>
+                            <td class="px-5 py-3 whitespace-nowrap text-right font-semibold tabular-nums">
+                                {{ $tab === 'paiements' ? ($request->amount_fcfa !== null ? number_format($request->amount_fcfa, 0, ',', ' ').' F' : '—') : '' }}
+                                @if ($tab === 'paiements' && $request->payment_fee_fcfa)
+                                    <div class="text-xs font-normal text-(--color-text-muted)">+ {{ number_format($request->payment_fee_fcfa, 0, ',', ' ') }} F de frais payés</div>
+                                @endif
+                            </td>
+                            @if ($tab === 'paiements')
+                                <td class="px-5 py-3 whitespace-nowrap text-right tabular-nums" data-testid="net-received">
+                                    @if ($request->net_received_fcfa !== null)
+                                        <span class="font-semibold">{{ number_format($request->net_received_fcfa, 0, ',', ' ') }} F</span>
+                                        @if ($request->gateway_fees_fcfa !== null)
+                                            <div class="text-xs text-(--color-text-muted)">frais retenus {{ number_format($request->gateway_fees_fcfa, 0, ',', ' ') }} F</div>
+                                        @endif
+                                    @else
+                                        <span class="text-(--color-text-muted)">{{ $request->paid_online_at ? 'en attente' : '—' }}</span>
+                                    @endif
+                                </td>
+                            @endif
                             <td class="px-5 py-3 whitespace-nowrap text-xs text-(--color-text-muted)">{{ $request->handler?->name ?? ($request->paid_online_at ? 'Payé en ligne' : '—') }}</td>
                         </tr>
                     @endforeach

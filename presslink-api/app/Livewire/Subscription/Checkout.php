@@ -145,6 +145,9 @@ class Checkout extends Component
             // Jours restants qui valent plus que le prix choisi (montée au mois depuis l'année, par exemple).
             'creditCapped' => $credit > 0 && SubscriptionRequest::unusedCredit($subscription) > $credit,
             'upgrade' => $request->isPlanUpgrade(),
+            // Frais de l'opérateur choisi, payés par le pressing en plus du prix.
+            'fee' => $request->canBePaidOnline() ? SubscriptionRequest::paymentFeeFor($request->amount_fcfa, $this->method) : 0,
+            'feeRate' => SubscriptionRequest::paymentFeeRates()[$this->method] ?? 0,
         ]);
     }
 }

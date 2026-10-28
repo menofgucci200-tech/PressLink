@@ -83,6 +83,21 @@
                 </div>
             </div>
 
+            <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5" data-testid="payment-fee-rates">
+                <h2 class="font-display text-base font-bold mb-1">Frais de paiement en ligne</h2>
+                <p class="text-sm text-(--color-text-muted) mb-3">Frais de l'opérateur ajoutés au prix et payés par le pressing, en % (0 = PressLink les prend en charge). Ajustez-les d'après les frais réels retenus, visibles dans « Demandes et paiements ».</p>
+                <div class="space-y-2">
+                    @foreach (\App\Models\SubscriptionRequest::ONLINE_METHODS as $code => $label)
+                        <div class="flex items-center gap-3">
+                            <label class="flex-1 text-sm" for="fee-{{ $code }}">{{ $label }}</label>
+                            <input id="fee-{{ $code }}" type="number" min="0" max="{{ \App\Models\SubscriptionRequest::MAX_PAYMENT_FEE_RATE }}" step="0.1" wire:model="paymentFeeRates.{{ $code }}" class="w-24 h-9 px-3 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm tabular-nums focus:outline-none focus:border-(--color-primary)">
+                            <span class="text-sm text-(--color-text-muted)">%</span>
+                        </div>
+                        @error("paymentFeeRates.{$code}") <p class="text-xs text-(--color-error)">{{ $message }}</p> @enderror
+                    @endforeach
+                </div>
+            </div>
+
             <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
                 <h2 class="font-display text-base font-bold mb-1">Commandes en plus</h2>
                 <p class="text-sm text-(--color-text-muted) mb-3">Proposées sur la page Abonnement, valables jusqu'à la fin du mois.</p>

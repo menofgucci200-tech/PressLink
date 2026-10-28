@@ -286,7 +286,7 @@
                     @foreach ($payments as $payment)
                         <li class="flex items-center justify-between gap-3 py-2.5 text-sm">
                             <span><span class="text-(--color-text-muted) tabular-nums">{{ $payment->handled_at?->format('d/m/Y') }}</span> · {{ $payment->label() }}@if ($payment->paid_online_at) <span class="text-xs text-(--color-text-muted)">· payé en ligne</span>@endif</span>
-                            <span class="font-semibold tabular-nums whitespace-nowrap">{{ number_format($payment->amount_fcfa, 0, ',', ' ') }} F</span>
+                            <span class="font-semibold tabular-nums whitespace-nowrap">{{ number_format($payment->paid_amount_fcfa ?? $payment->amount_fcfa, 0, ',', ' ') }} F</span>
                         </li>
                     @endforeach
                 </ul>

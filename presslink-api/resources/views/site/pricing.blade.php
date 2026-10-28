@@ -3,7 +3,7 @@
     $fcfa = fn (?int $amount) => \App\Support\PlanCatalog::fcfa($amount);
     $questions = [
         ['Comment payer ?', \App\Support\GeniusPay::isConfigured()
-            ? 'Choisissez votre formule depuis votre espace et payez en ligne, au mois ou à l\'année : Wave, Orange Money, MTN Mobile Money ou carte bancaire. Votre formule est activée dès le paiement confirmé.'
+            ? 'Choisissez votre formule depuis votre espace et payez en ligne, au mois ou à l\'année : Wave, Orange Money, MTN, Moov ou carte bancaire. Les frais de l\'opérateur s\'ajoutent au prix et vous sont indiqués avant de payer. Votre formule est activée dès le paiement confirmé.'
             : 'Choisissez votre formule : nous vous envoyons un lien de paiement Wave du montant de la formule, au mois ou à l\'année. Votre espace est activé dès le paiement reçu.'],
         ['Puis-je essayer avant de payer ?', "Oui : l'essai gratuit dure {$trialDays} jours, avec toutes les fonctions ouvertes. Ensuite, vous gardez les fonctions de la formule choisie."],
         ['Puis-je changer de formule ?', 'Oui, à tout moment, depuis la page Abonnement de votre espace pressing : vous y voyez ce que vous gagnez à passer à la formule supérieure.'],

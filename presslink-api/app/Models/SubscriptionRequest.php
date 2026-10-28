@@ -63,10 +63,19 @@ class SubscriptionRequest extends Model
     /** Moyens qui demandent le numéro du payeur (validation sur son téléphone). */
     public const PHONE_METHODS = ['orange_money', 'mtn_money', 'moov_money'];
 
+    /**
+     * Frais de l'opérateur ajoutés au prix, en % (réglables par le Super Admin) :
+     * estimation tirée de l'exemple publié par GeniusPay (environ 150 F sur 10 000 F).
+     */
+    public const DEFAULT_PAYMENT_FEE_RATE = 1.5;
+
+    /** Plafond des frais acceptés sur un paiement (%), contrôle du montant reçu. */
+    public const MAX_PAYMENT_FEE_RATE = 10;
+
     /** Durée de vie d'une page de paiement GeniusPay (24 h), avec une marge. */
     public const ONLINE_PAYMENT_HOURS = 23;
 
-    protected $fillable = ['pressing_id', 'requested_by', 'kind', 'feature', 'plan', 'extra_orders', 'cycle', 'amount_fcfa', 'payment_link', 'payment_reference', 'payment_checkout_url', 'payment_started_at', 'paid_online_at', 'payment_method', 'status', 'decline_reason', 'handled_at', 'handled_by'];
+    protected $fillable = ['pressing_id', 'requested_by', 'kind', 'feature', 'plan', 'extra_orders', 'cycle', 'amount_fcfa', 'payment_link', 'payment_reference', 'payment_checkout_url', 'payment_started_at', 'paid_online_at', 'payment_method', 'payment_fee_fcfa', 'paid_amount_fcfa', 'gateway_fees_fcfa', 'net_received_fcfa', 'status', 'decline_reason', 'handled_at', 'handled_by'];
 
     protected function casts(): array
     {
@@ -78,6 +87,10 @@ class SubscriptionRequest extends Model
             'handled_at' => 'datetime',
             'payment_started_at' => 'datetime',
             'paid_online_at' => 'datetime',
+            'payment_fee_fcfa' => 'integer',
+            'paid_amount_fcfa' => 'integer',
+            'gateway_fees_fcfa' => 'integer',
+            'net_received_fcfa' => 'integer',
         ];
     }
 
@@ -380,6 +393,29 @@ class SubscriptionRequest extends Model
         ]);
     }
 
+    /**
+     * Taux des frais de l'opérateur, par moyen de paiement (%).
+     *
+     * @return array<string, float>
+     */
+    public static function paymentFeeRates(): array
+    {
+        $saved = Setting::read('payment_fee_rates');
+        $saved = is_array($saved) ? $saved : [];
+
+        return collect(self::ONLINE_METHODS)
+            ->mapWithKeys(fn (string $label, string $code) => [$code => (float) ($saved[$code] ?? self::DEFAULT_PAYMENT_FEE_RATE)])
+            ->all();
+    }
+
+    /** Frais de l'opérateur payés par le pressing, arrondis aux 5 F supérieurs (0 sans moyen choisi). */
+    public static function paymentFeeFor(?int $amount, ?string $method): int
+    {
+        $rate = $method === null ? 0.0 : (self::paymentFeeRates()[$method] ?? 0.0);
+
+        return $amount === null || $rate <= 0 ? 0 : (int) (ceil($amount * $rate / 100 / 5) * 5);
+    }
+
     /** Le pressing peut payer cette demande en ligne (GeniusPay configuré, montant connu). */
     public function canBePaidOnline(): bool
     {
@@ -412,10 +448,11 @@ class SubscriptionRequest extends Model
         }
 
         $this->refreshPlanChangeAmount();
+        $fee = self::paymentFeeFor($this->amount_fcfa, $method);
 
         $pressing = $this->pressing;
         $transaction = GeniusPay::createPayment(array_filter([
-            'amount' => (int) $this->amount_fcfa,
+            'amount' => (int) $this->amount_fcfa + $fee,
             'description' => mb_substr('PressLink · '.$pressing->name.' · '.$this->label(), 0, 500),
             'external_reference' => 'presslink-demande-'.$this->id.'-'.now()->timestamp,
             'success_url' => $returnUrl,
@@ -433,6 +470,7 @@ class SubscriptionRequest extends Model
             'payment_checkout_url' => $url,
             'payment_started_at' => now(),
             'payment_method' => $method,
+            'payment_fee_fcfa' => $fee,
         ]);
 
         return $url;
@@ -473,8 +511,11 @@ class SubscriptionRequest extends Model
             return false;
         }
 
-        if ((int) ($transaction['amount'] ?? 0) !== (int) $this->amount_fcfa) {
-            Log::warning('GeniusPay : montant différent de la demande, paiement non activé.', ['request' => $this->id, 'amount' => $transaction['amount'] ?? null, 'expected' => $this->amount_fcfa]);
+        // Le prix de la demande, plus les frais de l'opérateur payés par le pressing.
+        $paid = (int) ($transaction['amount'] ?? 0);
+        $price = (int) $this->amount_fcfa;
+        if ($paid < $price || $paid > $price + (int) ceil($price * self::MAX_PAYMENT_FEE_RATE / 100)) {
+            Log::warning('GeniusPay : montant différent de la demande, paiement non activé.', ['request' => $this->id, 'amount' => $transaction['amount'] ?? null, 'expected' => $price]);
 
             return false;
         }
@@ -491,10 +532,23 @@ class SubscriptionRequest extends Model
             }
         }
 
+        // Frais retenus par GeniusPay et net reçu : dans la transaction, sinon demandés à GeniusPay.
+        if (! isset($transaction['fees'], $transaction['net_amount']) && filled($transaction['reference'] ?? $this->payment_reference)) {
+            try {
+                $transaction += GeniusPay::findPayment($transaction['reference'] ?? $this->payment_reference) ?? [];
+            } catch (\Throwable $e) {
+                Log::info('GeniusPay : frais du paiement non récupérés.', ['request' => $this->id, 'error' => $e->getMessage()]);
+            }
+        }
+
         $this->forceFill([
             'paid_online_at' => $this->paid_online_at ?? now(),
             'payment_method' => $transaction['payment_method'] ?? $transaction['gateway'] ?? $this->payment_method,
             'payment_reference' => $this->payment_reference ?? ($transaction['reference'] ?? null),
+            'paid_amount_fcfa' => $paid,
+            'payment_fee_fcfa' => $paid - $price,
+            'gateway_fees_fcfa' => isset($transaction['fees']) ? (int) $transaction['fees'] : $this->gateway_fees_fcfa,
+            'net_received_fcfa' => isset($transaction['net_amount']) ? (int) $transaction['net_amount'] : $this->net_received_fcfa,
         ])->save();
 
         return $activated;

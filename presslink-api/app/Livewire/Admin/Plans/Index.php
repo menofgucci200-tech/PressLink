@@ -16,7 +16,7 @@ use Livewire\Component;
 /**
  * Formules et prix — Super Admin : prix mensuel et annuel, commandes par
  * mois et fonctions incluses de chaque formule ; durée de l'essai gratuit ;
- * prix des options et des commandes en plus.
+ * prix des options et des commandes en plus ; frais de paiement en ligne.
  */
 class Index extends Component
 {
@@ -38,6 +38,9 @@ class Index extends Component
 
     /** @var list<array{count: string, price: string}> */
     public array $orderPacks = [];
+
+    /** @var array<string, string> moyen de paiement en ligne => frais de l'opérateur payés par le pressing (%) */
+    public array $paymentFeeRates = [];
 
     public function mount(): void
     {
@@ -66,6 +69,7 @@ class Index extends Component
             $this->optionPrices[$feature->value] = $text($feature->priceFcfa());
         }
         $this->orderPacks = array_map(fn (array $pack) => ['count' => (string) $pack['count'], 'price' => $text($pack['price'])], SubscriptionRequest::orderPacks());
+        $this->paymentFeeRates = array_map(fn (float $rate) => (string) $rate, SubscriptionRequest::paymentFeeRates());
     }
 
     public function addPack(): void
@@ -96,6 +100,7 @@ class Index extends Component
             'orderPacks' => ['array'],
             'orderPacks.*.count' => ['required', 'integer', 'min:1', 'distinct'],
             'orderPacks.*.price' => ['nullable', 'integer', 'min:0'],
+            'paymentFeeRates.*' => ['required', 'numeric', 'min:0', 'max:'.SubscriptionRequest::MAX_PAYMENT_FEE_RATE],
         ], [
             'orderPacks.*.count.required' => 'Indiquez un nombre de commandes.',
             'orderPacks.*.count.distinct' => 'Deux lignes ont le même nombre de commandes.',
@@ -114,6 +119,9 @@ class Index extends Component
         Setting::write('launch_offer', trim($this->launchOffer));
         Setting::write('block_after_period_end', $this->blockAfterPeriodEnd);
         Setting::write('option_prices', array_map($number, $this->optionPrices));
+        Setting::write('payment_fee_rates', collect(SubscriptionRequest::ONLINE_METHODS)
+            ->mapWithKeys(fn (string $label, string $code) => [$code => round((float) ($this->paymentFeeRates[$code] ?? 0), 2)])
+            ->all());
         Setting::write('order_packs', collect($this->orderPacks)
             ->map(fn (array $pack) => ['count' => (int) $pack['count'], 'price' => $number($pack['price'])])
             ->sortBy('count')->values()->all());

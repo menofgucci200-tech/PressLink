@@ -52,24 +52,6 @@
                 @endif
             </ul>
         </div>
-        @if ($credit > 0)
-            <dl class="px-5 sm:px-6 py-3 border-t border-(--color-border) text-sm space-y-1.5">
-                <div class="flex justify-between gap-3">
-                    <dt class="text-(--color-text-secondary)">Formule {{ $request->plan?->label() }} ({{ $request->cycle === \App\Models\SubscriptionRequest::ANNUAL ? '1 an' : '1 mois' }})</dt>
-                    <dd class="tabular-nums">{{ $fcfa($planPrice) }} F</dd>
-                </div>
-                <div class="flex justify-between gap-3">
-                    <dt class="text-(--color-text-secondary)">Jours {{ $subscription->plan->label() }} non utilisés</dt>
-                    <dd class="tabular-nums text-(--color-success-text)">− {{ $fcfa($credit) }} F</dd>
-                </div>
-            </dl>
-        @endif
-        <div class="flex items-center justify-between gap-3 px-5 sm:px-6 py-4 bg-(--color-bg) border-t border-(--color-border)">
-            <span class="text-sm font-semibold">À payer</span>
-            <span class="font-display text-2xl font-extrabold tabular-nums" data-testid="checkout-amount">
-                {{ $request->amount_fcfa !== null ? $fcfa($request->amount_fcfa).' F' : 'Montant à confirmer' }}
-            </span>
-        </div>
     </div>
 
     @if ($payable)
@@ -115,17 +97,55 @@
             </div>
         @endif
 
+    @endif
+
+    <div class="bg-(--color-surface) border border-(--color-border) rounded-2xl overflow-hidden mb-4" data-testid="checkout-total">
+        @if ($credit > 0 || $fee > 0)
+            <dl class="px-5 sm:px-6 py-3 text-sm space-y-1.5">
+                @if ($credit > 0)
+                    <div class="flex justify-between gap-3">
+                        <dt class="text-(--color-text-secondary)">Formule {{ $request->plan?->label() }} ({{ $request->cycle === \App\Models\SubscriptionRequest::ANNUAL ? '1 an' : '1 mois' }})</dt>
+                        <dd class="tabular-nums">{{ $fcfa($planPrice) }} F</dd>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                        <dt class="text-(--color-text-secondary)">Jours {{ $subscription->plan->label() }} non utilisés</dt>
+                        <dd class="tabular-nums text-(--color-success-text)">− {{ $fcfa($credit) }} F</dd>
+                    </div>
+                @else
+                    <div class="flex justify-between gap-3">
+                        <dt class="text-(--color-text-secondary)">{{ $request->label() }}</dt>
+                        <dd class="tabular-nums">{{ $fcfa($request->amount_fcfa) }} F</dd>
+                    </div>
+                @endif
+                @if ($fee > 0)
+                    <div class="flex justify-between gap-3" data-testid="checkout-fee">
+                        <dt class="text-(--color-text-secondary)">Frais de l'opérateur {{ \App\Models\SubscriptionRequest::ONLINE_METHODS[$method] ?? '' }} ({{ rtrim(rtrim(number_format($feeRate, 2, ',', ' '), '0'), ',') }} %)</dt>
+                        <dd class="tabular-nums">+ {{ $fcfa($fee) }} F</dd>
+                    </div>
+                @endif
+            </dl>
+        @endif
+        <div class="flex items-center justify-between gap-3 px-5 sm:px-6 py-4 bg-(--color-bg) {{ $credit > 0 || $fee > 0 ? 'border-t border-(--color-border)' : '' }}">
+            <span class="text-sm font-semibold">À payer</span>
+            <span class="font-display text-2xl font-extrabold tabular-nums" data-testid="checkout-amount">
+                {{ $request->amount_fcfa !== null ? $fcfa($request->amount_fcfa + $fee).' F' : 'Montant à confirmer' }}
+            </span>
+        </div>
+    </div>
+
+    @if ($payable)
         @if ($inProgress)
             <p class="mb-3 text-sm text-(--color-text-secondary)">Paiement commencé le {{ $request->payment_started_at->format('d/m à H:i') }}{{ $request->payment_method && isset(\App\Models\SubscriptionRequest::ONLINE_METHODS[$request->payment_method]) ? ' avec '.\App\Models\SubscriptionRequest::ONLINE_METHODS[$request->payment_method] : '' }} : vous pouvez le reprendre.</p>
         @endif
         <button type="button" wire:click="pay" wire:loading.attr="disabled" data-testid="checkout-pay"
                 class="w-full min-h-13 px-6 py-2 rounded-xl bg-(--color-primary) text-white font-bold hover:bg-(--color-primary-600) disabled:opacity-60 flex flex-col items-center justify-center leading-tight">
-            <span wire:loading.remove wire:target="pay">{{ $inProgress && $request->payment_method === $method ? 'Reprendre le paiement' : 'Payer '.$fcfa($request->amount_fcfa).' F avec '.$methodLabel }}</span>
+            <span wire:loading.remove wire:target="pay">{{ $inProgress && $request->payment_method === $method ? 'Reprendre le paiement' : 'Payer '.$fcfa($request->amount_fcfa + $fee).' F avec '.$methodLabel }}</span>
             <span wire:loading wire:target="pay">Ouverture du paiement {{ $methodLabel }}…</span>
         </button>
         <p class="mt-3 text-center text-xs text-(--color-text-muted)">
             {{ $method === 'card' ? 'Vous saisissez votre carte sur la page sécurisée de notre prestataire de paiement, GeniusPay.' : 'Vous validez le paiement chez '.$methodLabel.', par l\'intermédiaire de notre prestataire GeniusPay.' }}
             Votre demande s'active dès que le paiement est confirmé.
+            @if ($fee > 0) Les frais de l'opérateur sont à la charge du payeur. @endif
         </p>
     @else
         <div class="p-4 rounded-xl bg-(--color-info-tint) text-(--color-info) text-sm">

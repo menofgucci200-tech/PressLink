@@ -9,6 +9,7 @@ use App\Livewire\Subscription\Checkout;
 use App\Livewire\Subscription\Plans;
 use App\Livewire\Subscription\Show as SubscriptionShow;
 use App\Models\Pressing;
+use App\Models\Setting;
 use App\Models\Subscription;
 use App\Models\SubscriptionRequest;
 use App\Models\User;
@@ -41,6 +42,9 @@ class GeniusPayPaymentTest extends TestCase
             'services.geniuspay.api_secret' => 'sk_sandbox_test',
             'services.geniuspay.webhook_secret' => self::SECRET,
         ]);
+
+        // Aucun appel réel à GeniusPay pendant les tests.
+        Http::preventStrayRequests();
     }
 
     /** @return array{0: Pressing, 1: Subscription, 2: User, 3: SubscriptionRequest} */
@@ -102,14 +106,15 @@ class GeniusPayPaymentTest extends TestCase
 
         Livewire::actingAs($owner)->test(Checkout::class, ['subscriptionRequest' => $request])
             ->assertSee('Récapitulatif du paiement')
-            ->assertSee('Payer 20 000 F avec Wave')
+            ->assertSee('Payer 20 300 F avec Wave')
+            ->assertSee("Frais de l'opérateur Wave (1,5 %)", false)
             ->assertSee('Orange Money')
             ->assertSee('Carte bancaire')
             ->call('pay')
             ->assertRedirect('https://geniuspay.ci/checkout/SANDBOX-ABC123');
 
         Http::assertSent(fn (HttpRequest $sent) => $sent->url() === 'https://geniuspay.test/api/v1/merchant/payments'
-            && $sent['amount'] === 20000
+            && $sent['amount'] === 20300
             && $sent['currency'] === 'XOF'
             && $sent['payment_method'] === 'wave'
             && $sent->hasHeader('X-API-Key', 'pk_sandbox_test')
@@ -344,7 +349,7 @@ class GeniusPayPaymentTest extends TestCase
         Livewire::actingAs($owner)->test(Checkout::class, ['subscriptionRequest' => $request])
             ->assertSee('Jours Business non utilisés')
             ->assertSee('− '.number_format($credit, 0, ',', ' ').' F')
-            ->assertSee('Payer '.number_format($expected, 0, ',', ' ').' F avec Wave');
+            ->assertSee('Payer '.number_format($expected + SubscriptionRequest::paymentFeeFor($expected, 'wave'), 0, ',', ' ').' F avec Wave');
 
         $request->confirmOnlinePayment(['status' => 'completed', 'amount' => $expected]);
 
@@ -432,5 +437,48 @@ class GeniusPayPaymentTest extends TestCase
 
         Http::assertSentCount(2);
         $this->assertSame('card', $request->fresh()->payment_method);
+    }
+
+    public function test_the_operator_fee_follows_the_rate_set_by_the_super_admin(): void
+    {
+        [, , $owner, $request] = $this->pendingRenewal();
+        Setting::write('payment_fee_rates', ['wave' => 1, 'orange_money' => 0]);
+
+        Livewire::actingAs($owner)->test(Checkout::class, ['subscriptionRequest' => $request])
+            ->assertSee('+ 200 F')
+            ->assertSee('Payer 20 200 F avec Wave')
+            ->set('method', 'orange_money')
+            ->assertDontSee("Frais de l'opérateur", false)
+            ->assertSee('Payer 20 000 F avec Orange Money');
+    }
+
+    public function test_the_fees_kept_by_geniuspay_and_the_net_received_are_recorded(): void
+    {
+        [, , , $request] = $this->pendingRenewal();
+        $request->update(['payment_reference' => 'SANDBOX-ABC123', 'payment_started_at' => now(), 'payment_fee_fcfa' => 300]);
+
+        $this->postWebhook(['reference' => 'SANDBOX-ABC123', 'amount' => 20300, 'status' => 'completed', 'fees' => 603, 'net_amount' => 19697])->assertOk();
+
+        $request->refresh();
+        $this->assertSame(SubscriptionRequest::DONE, $request->status);
+        $this->assertSame(20300, $request->paid_amount_fcfa);
+        $this->assertSame(300, $request->payment_fee_fcfa);
+        $this->assertSame(603, $request->gateway_fees_fcfa);
+        $this->assertSame(19697, $request->net_received_fcfa);
+    }
+
+    public function test_missing_fees_are_asked_to_geniuspay(): void
+    {
+        [, , , $request] = $this->pendingRenewal();
+        $request->update(['payment_reference' => 'SANDBOX-ABC123', 'payment_started_at' => now()]);
+        Http::fake([
+            'geniuspay.test/api/v1/merchant/payments/SANDBOX-ABC123' => Http::response(['success' => true, 'data' => [
+                'reference' => 'SANDBOX-ABC123', 'amount' => 20300, 'status' => 'completed', 'fees' => 603, 'net_amount' => 19697,
+            ]]),
+        ]);
+
+        $this->postWebhook(['reference' => 'SANDBOX-ABC123', 'amount' => 20300, 'status' => 'completed'])->assertOk();
+
+        $this->assertSame(19697, $request->fresh()->net_received_fcfa);
     }
 }

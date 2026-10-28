@@ -56,12 +56,12 @@
 
     @if ($payable)
         @php
-            $badges = [
-                'wave' => ['bg-[#1DC8FF] text-slate-900', 'W'],
-                'orange_money' => ['bg-[#FF7900] text-white', 'OM'],
-                'mtn_money' => ['bg-[#FFCC00] text-slate-900', 'MTN'],
-                'moov_money' => ['bg-[#0066B3] text-white', 'Moov'],
-                'card' => ['bg-slate-800 text-white', null],
+            // Logos des opérateurs (public/images/paiement) ; la carte est dessinée (Visa, Mastercard).
+            $logos = [
+                'wave' => 'images/paiement/wave.webp',
+                'orange_money' => 'images/paiement/orange-money.webp',
+                'mtn_money' => 'images/paiement/mtn-momo.webp',
+                'moov_money' => 'images/paiement/moov-money.webp',
             ];
             $methodLabel = \App\Models\SubscriptionRequest::ONLINE_METHODS[$method] ?? 'Wave';
             $needsPhone = in_array($method, \App\Models\SubscriptionRequest::PHONE_METHODS, true);
@@ -73,14 +73,16 @@
                     <label wire:key="method-{{ $code }}" data-testid="method-{{ $code }}"
                            class="flex items-center gap-2.5 min-h-12 px-3 py-2 rounded-xl border bg-(--color-surface) cursor-pointer text-sm font-semibold transition-colors {{ $method === $code ? 'border-(--color-primary) ring-2 ring-(--color-primary)/20' : 'border-(--color-border) hover:border-(--color-primary)/50' }}">
                         <input type="radio" wire:model.live="method" value="{{ $code }}" class="sr-only">
-                        <span class="flex-none inline-flex items-center justify-center w-9 h-9 rounded-lg text-[11px] font-extrabold tracking-tight {{ $badges[$code][0] }}" aria-hidden="true">
-                            @if ($badges[$code][1])
-                                {{ $badges[$code][1] }}
-                            @else
-                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-                            @endif
-                        </span>
-                        <span class="min-w-0">{{ $label }}</span>
+                        @if (isset($logos[$code]))
+                            <img src="{{ asset($logos[$code]) }}" alt="" width="40" height="40" loading="lazy"
+                                 class="flex-none w-10 h-10 rounded-lg object-contain {{ $code === 'orange_money' ? 'bg-white ring-1 ring-black/10' : '' }}">
+                        @else
+                            <span class="flex-none inline-flex flex-col items-center justify-center gap-0.5 w-10 h-10 rounded-lg bg-white ring-1 ring-black/10" aria-hidden="true">
+                                <svg viewBox="0 0 40 13" class="w-7"><text x="20" y="11" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="900" font-style="italic" fill="#1A1F71">VISA</text></svg>
+                                <svg viewBox="0 0 30 18" class="w-5"><circle cx="11" cy="9" r="8" fill="#EB001B"/><circle cx="19" cy="9" r="8" fill="#F79E1B"/><path d="M15 2.07a8 8 0 0 1 0 13.86 8 8 0 0 1 0-13.86z" fill="#FF5F00"/></svg>
+                            </span>
+                        @endif
+                        <span class="min-w-0 leading-tight">{{ $label }}@if ($code === 'card')<span class="block text-[11px] font-medium text-(--color-text-muted)">Visa, Mastercard</span>@endif</span>
                     </label>
                 @endforeach
             </div>

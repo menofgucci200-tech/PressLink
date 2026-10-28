@@ -35,7 +35,12 @@ class Checkout extends Component
                 ? 'Cette demande est déjà payée et activée.'
                 : 'Cette demande a été refusée : vous pouvez en faire une nouvelle.', 'info');
             $this->redirectRoute('subscription.show', navigate: true);
+
+            return;
         }
+
+        // La déduction des jours restants baisse chaque jour : montant à jour.
+        $subscriptionRequest->refreshPlanChangeAmount();
     }
 
     public function pay(): void
@@ -93,10 +98,21 @@ class Checkout extends Component
     {
         $request = $this->subscriptionRequest;
 
+        $subscription = $request->pressing->subscription;
+        $planPrice = $request->kind === SubscriptionRequest::KIND_PLAN && $request->plan !== null
+            ? ($request->cycle === SubscriptionRequest::ANNUAL ? $request->plan->annualPriceFcfa() : $request->plan->monthlyPriceFcfa())
+            : null;
+        $credit = $planPrice !== null && $request->amount_fcfa !== null ? max(0, $planPrice - $request->amount_fcfa) : 0;
+
         return view('livewire.subscription.checkout', [
             'request' => $request,
-            'subscription' => $request->pressing->subscription,
+            'subscription' => $subscription,
             'period' => $request->periodAfterPayment(),
+            'planPrice' => $planPrice,
+            'credit' => $credit,
+            // Jours restants qui valent plus que le prix choisi (montée au mois depuis l'année, par exemple).
+            'creditCapped' => $credit > 0 && SubscriptionRequest::unusedCredit($subscription) > $credit,
+            'upgrade' => $request->isPlanUpgrade(),
         ]);
     }
 }

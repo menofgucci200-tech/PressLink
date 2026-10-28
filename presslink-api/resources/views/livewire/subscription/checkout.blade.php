@@ -36,8 +36,13 @@
                     @endif
                     @if ($request->kind === \App\Models\SubscriptionRequest::KIND_PLAN)
                         <li>La formule {{ $request->plan?->label() }} s'applique dès le paiement confirmé.</li>
-                        @if (! $period['after_trial'] && $subscription?->status === \App\Enums\SubscriptionStatus::Active && $subscription->current_period_ends_at?->isFuture())
-                            <li class="text-(--color-warning-text)" data-testid="checkout-replaces-period">Elle remplace votre période {{ $subscription->plan->label() }} payée jusqu'au {{ $subscription->current_period_ends_at->format('d/m/Y') }}.</li>
+                        @if ($credit > 0)
+                            <li data-testid="checkout-credit">Les jours non utilisés de votre formule {{ $subscription->plan->label() }} (payée jusqu'au {{ $subscription->current_period_ends_at->format('d/m/Y') }}) sont déduits du prix.</li>
+                            @if ($creditCapped)
+                                <li class="text-(--color-warning-text)">Vos jours restants valent plus qu'un mois de {{ $request->plan?->label() }} : choisissez le paiement à l'année pour en profiter entièrement.</li>
+                            @endif
+                        @elseif (! $upgrade && ! $period['after_trial'] && $subscription?->status === \App\Enums\SubscriptionStatus::Active && $subscription->current_period_ends_at?->isPast() === false && $period['starts_at']->isFuture())
+                            <li data-testid="checkout-downgrade">Vous ne perdez aucun jour payé : votre nouvelle période commence le {{ $period['starts_at']->format('d/m/Y') }}, à la fin de votre période {{ $subscription->plan->label() }}.</li>
                         @endif
                     @endif
                 @elseif ($request->kind === \App\Models\SubscriptionRequest::KIND_OPTION)
@@ -47,6 +52,18 @@
                 @endif
             </ul>
         </div>
+        @if ($credit > 0)
+            <dl class="px-5 sm:px-6 py-3 border-t border-(--color-border) text-sm space-y-1.5">
+                <div class="flex justify-between gap-3">
+                    <dt class="text-(--color-text-secondary)">Formule {{ $request->plan?->label() }} ({{ $request->cycle === \App\Models\SubscriptionRequest::ANNUAL ? '1 an' : '1 mois' }})</dt>
+                    <dd class="tabular-nums">{{ $fcfa($planPrice) }} F</dd>
+                </div>
+                <div class="flex justify-between gap-3">
+                    <dt class="text-(--color-text-secondary)">Jours {{ $subscription->plan->label() }} non utilisés</dt>
+                    <dd class="tabular-nums text-(--color-success-text)">− {{ $fcfa($credit) }} F</dd>
+                </div>
+            </dl>
+        @endif
         <div class="flex items-center justify-between gap-3 px-5 sm:px-6 py-4 bg-(--color-bg) border-t border-(--color-border)">
             <span class="text-sm font-semibold">À payer</span>
             <span class="font-display text-2xl font-extrabold tabular-nums" data-testid="checkout-amount">

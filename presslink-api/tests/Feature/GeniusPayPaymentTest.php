@@ -244,7 +244,7 @@ class GeniusPayPaymentTest extends TestCase
         $requests = $pressing->subscriptionRequests()->where('kind', SubscriptionRequest::KIND_PLAN)->get();
         $this->assertCount(1, $requests);
         $this->assertSame(SubscriptionRequest::ANNUAL, $requests->first()->cycle);
-        $this->assertSame(SubscriptionPlan::Business->annualPriceFcfa(), $requests->first()->amount_fcfa);
+        $this->assertSame(SubscriptionRequest::planChangePrice($pressing->subscription, SubscriptionPlan::Business, SubscriptionRequest::ANNUAL)['amount'], $requests->first()->amount_fcfa);
     }
 
     public function test_a_pressing_in_free_trial_keeps_its_free_days_when_it_pays(): void
@@ -310,5 +310,78 @@ class GeniusPayPaymentTest extends TestCase
         [, , $otherOwner] = $this->pendingRenewal();
 
         $this->actingAs($otherOwner)->get(route('subscription.checkout', $request))->assertForbidden();
+    }
+
+    /** @return array{0: Pressing, 1: Subscription, 2: User} Business payé au mois, à mi-période (15 jours faits, 15 restants). */
+    private function businessHalfway(): array
+    {
+        $this->travelTo('2026-11-20 10:00:00');
+        $pressing = Pressing::factory()->create();
+        $subscription = Subscription::factory()->for($pressing)->active(SubscriptionPlan::Business)->create([
+            'billing_cycle' => SubscriptionRequest::MONTHLY,
+            'current_period_starts_at' => now()->subDays(15),
+            'current_period_ends_at' => now()->addDays(15),
+        ]);
+        $owner = User::factory()->create();
+        $pressing->staff()->attach($owner, ['role' => PressingRole::Admin->value, 'is_active' => true]);
+
+        return [$pressing, $subscription, $owner];
+    }
+
+    public function test_an_upgrade_deducts_the_unused_paid_days_and_starts_today(): void
+    {
+        [$pressing, $subscription, $owner] = $this->businessHalfway();
+        // 15 jours restants au tarif journalier de Business (30 000 F ÷ 365/12 jours), à la centaine inférieure.
+        $credit = (int) (floor(SubscriptionPlan::Business->monthlyPriceFcfa() * 15 / (365 / 12) / 100) * 100);
+        $expected = SubscriptionPlan::Premium->monthlyPriceFcfa() - $credit;
+
+        Livewire::actingAs($owner)->test(Plans::class)->call('requestPlan', SubscriptionPlan::Premium->value, SubscriptionRequest::MONTHLY);
+        $request = $pressing->subscriptionRequests()->firstOrFail();
+        $this->assertSame($expected, $request->amount_fcfa);
+
+        Livewire::actingAs($owner)->test(Checkout::class, ['subscriptionRequest' => $request])
+            ->assertSee('Jours Business non utilisés')
+            ->assertSee('− '.number_format($credit, 0, ',', ' ').' F')
+            ->assertSee('Payer '.number_format($expected, 0, ',', ' ').' F');
+
+        $request->confirmOnlinePayment(['status' => 'completed', 'amount' => $expected]);
+
+        $subscription->refresh();
+        $this->assertSame(SubscriptionPlan::Premium, $subscription->plan);
+        $this->assertTrue($subscription->current_period_starts_at->equalTo(now()));
+        $this->assertTrue($subscription->current_period_ends_at->equalTo(now()->addMonthNoOverflow()));
+    }
+
+    public function test_a_downgrade_keeps_every_paid_day_and_starts_after_the_paid_period(): void
+    {
+        [$pressing, $subscription, $owner] = $this->businessHalfway();
+        $paidUntil = $subscription->current_period_ends_at->copy();
+
+        Livewire::actingAs($owner)->test(Plans::class)->call('requestPlan', SubscriptionPlan::Starter->value, SubscriptionRequest::MONTHLY);
+        $request = $pressing->subscriptionRequests()->firstOrFail();
+        $this->assertSame(SubscriptionPlan::Starter->monthlyPriceFcfa(), $request->amount_fcfa, 'prix plein, pas de déduction');
+
+        Livewire::actingAs($owner)->test(Checkout::class, ['subscriptionRequest' => $request])
+            ->assertSee('Vous ne perdez aucun jour payé')
+            ->assertSee($paidUntil->format('d/m/Y'));
+
+        $request->confirmOnlinePayment(['status' => 'completed', 'amount' => $request->amount_fcfa]);
+
+        $subscription->refresh();
+        $this->assertTrue($subscription->current_period_starts_at->equalTo($paidUntil));
+        $this->assertTrue($subscription->current_period_ends_at->equalTo($paidUntil->copy()->addMonthNoOverflow()));
+    }
+
+    public function test_the_deduction_is_updated_when_the_pressing_comes_back_later(): void
+    {
+        [$pressing, , $owner] = $this->businessHalfway();
+        Livewire::actingAs($owner)->test(Plans::class)->call('requestPlan', SubscriptionPlan::Premium->value, SubscriptionRequest::MONTHLY);
+        $request = $pressing->subscriptionRequests()->firstOrFail();
+        $before = $request->amount_fcfa;
+
+        $this->travel(5)->days();
+        Livewire::actingAs($owner)->test(Checkout::class, ['subscriptionRequest' => $request]);
+
+        $this->assertGreaterThan($before, $request->fresh()->amount_fcfa, 'moins de jours restants, moins de déduction');
     }
 }

@@ -75,7 +75,10 @@ class PlansPageTest extends TestCase
         $request = SubscriptionRequest::sole();
         $this->assertSame(SubscriptionPlan::Premium, $request->plan);
         $this->assertSame('annual', $request->cycle);
-        $this->assertSame(SubscriptionPlan::Premium->annualPriceFcfa(), $request->amount_fcfa);
+        // Prix Premium à l'année, moins les jours Starter payés et pas encore utilisés.
+        $credit = SubscriptionRequest::unusedCredit($pressing->subscription);
+        $this->assertGreaterThan(0, $credit);
+        $this->assertSame(SubscriptionPlan::Premium->annualPriceFcfa() - $credit, $request->amount_fcfa);
         $this->assertSame($pressing->id, $request->pressing_id);
     }
 

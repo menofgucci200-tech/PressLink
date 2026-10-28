@@ -161,14 +161,95 @@ class SubscriptionRequest extends Model
     }
 
     /**
-     * Nouvelle formule payée : elle s'applique tout de suite, pour la durée
-     * payée (un mois ou un an à partir d'aujourd'hui), et l'abonnement est actif
-     * (même s'il était en essai ou expiré).
+     * Nouvelle formule payée, appliquée tout de suite et l'abonnement actif
+     * (même s'il était en essai ou expiré). Montée en gamme : la nouvelle période
+     * part d'aujourd'hui (les jours restants ont été déduits du prix). Descente :
+     * la nouvelle période commence à la fin de la période déjà payée.
      */
     private function changePlan(Subscription $subscription): void
     {
-        $subscription->update(['plan' => $this->plan, 'orders_limit' => $this->plan->ordersLimit()]);
-        $this->openPaidPeriod($subscription, extend: false);
+        ['starts_at' => $startsAt, 'ends_at' => $endsAt] = $this->paidPeriod($subscription, extend: false);
+
+        $subscription->update([
+            'plan' => $this->plan,
+            'orders_limit' => $this->plan->ordersLimit(),
+            'status' => SubscriptionStatus::Active,
+            'billing_cycle' => $this->cycle === self::ANNUAL ? self::ANNUAL : self::MONTHLY,
+            'current_period_starts_at' => $startsAt,
+            'current_period_ends_at' => $endsAt,
+        ]);
+    }
+
+    /** Rang de la formule (Starter < Business < Premium). */
+    private static function planRank(?SubscriptionPlan $plan): int
+    {
+        return $plan === null ? -1 : (int) array_search($plan, SubscriptionPlan::cases(), true);
+    }
+
+    /** Passage à une formule supérieure à la formule actuelle. */
+    public function isPlanUpgrade(): bool
+    {
+        return $this->kind === self::KIND_PLAN && self::planRank($this->plan) > self::planRank($this->pressing->subscription?->plan);
+    }
+
+    /** Période payée en cours et pas encore terminée (hors essai gratuit). */
+    private static function hasPaidTimeLeft(?Subscription $subscription): bool
+    {
+        return $subscription !== null && $subscription->status === SubscriptionStatus::Active
+            && $subscription->current_period_ends_at?->isFuture() === true;
+    }
+
+    /**
+     * Valeur des jours payés non utilisés (F CFA, arrondie à la centaine
+     * inférieure) : le temps qui reste, au tarif journalier de la formule
+     * actuelle (prix du mois ÷ 365/12 jours, ou prix de l'année ÷ 365 jours).
+     * Une période prolongée plusieurs fois compte pour tout son temps restant.
+     */
+    public static function unusedCredit(?Subscription $subscription): int
+    {
+        if (! self::hasPaidTimeLeft($subscription)) {
+            return 0;
+        }
+
+        $annual = $subscription->billing_cycle === self::ANNUAL;
+        $price = (int) ($annual ? $subscription->plan->annualPriceFcfa() : $subscription->plan->monthlyPriceFcfa());
+        $cycleSeconds = ($annual ? 365 : 365 / 12) * 86400;
+        $start = $subscription->current_period_starts_at;
+        $left = max(0, ($start?->isFuture() ? $start : now())->diffInSeconds($subscription->current_period_ends_at));
+
+        return (int) (floor($price * $left / $cycleSeconds / 100) * 100);
+    }
+
+    /**
+     * Prix d'un changement de formule. Montée en gamme pendant une période
+     * payée : les jours restants sont déduits (au plus jusqu'au montant minimum
+     * d'un paiement en ligne). Descente ou essai : prix plein.
+     *
+     * @return array{price: ?int, credit: int, amount: ?int}
+     */
+    public static function planChangePrice(?Subscription $subscription, SubscriptionPlan $plan, ?string $cycle): array
+    {
+        $price = $cycle === self::ANNUAL ? $plan->annualPriceFcfa() : $plan->monthlyPriceFcfa();
+        $upgrade = self::planRank($plan) > self::planRank($subscription?->plan);
+        $credit = ($price !== null && $upgrade) ? min(self::unusedCredit($subscription), max(0, $price - GeniusPay::MIN_AMOUNT)) : 0;
+
+        return ['price' => $price, 'credit' => $credit, 'amount' => $price === null ? null : $price - $credit];
+    }
+
+    /**
+     * Montant à jour d'un changement de formule pas encore en paiement : la
+     * déduction baisse chaque jour, elle est recalculée avant d'afficher ou de payer.
+     */
+    public function refreshPlanChangeAmount(): void
+    {
+        if ($this->kind !== self::KIND_PLAN || $this->plan === null || ! $this->isPending() || $this->hasOnlinePaymentInProgress()) {
+            return;
+        }
+
+        $amount = self::planChangePrice($this->pressing->subscription, $this->plan, $this->cycle)['amount'];
+        if ($amount !== $this->amount_fcfa) {
+            $this->update(['amount_fcfa' => $amount]);
+        }
     }
 
     /** Abonnement payé pour un mois (ou un an) de plus, sur la même formule. */
@@ -207,8 +288,14 @@ class SubscriptionRequest extends Model
         $add = fn (Carbon $from) => $this->cycle === self::ANNUAL ? $from->copy()->addYear() : $from->copy()->addMonthNoOverflow();
         $end = $subscription->current_period_ends_at;
 
-        if ($extend && $subscription->status === SubscriptionStatus::Active && $end !== null && $end->isFuture()) {
+        if ($extend && self::hasPaidTimeLeft($subscription)) {
             return ['starts_at' => $subscription->current_period_starts_at ?? now(), 'ends_at' => $add($end), 'after_trial' => false];
+        }
+
+        // Formule inférieure : rien de ce qui est payé n'est perdu, la nouvelle période suit.
+        if (! $extend && $this->kind === self::KIND_PLAN && self::hasPaidTimeLeft($subscription)
+            && self::planRank($this->plan) < self::planRank($subscription->plan)) {
+            return ['starts_at' => $end->copy(), 'ends_at' => $add($end), 'after_trial' => false];
         }
 
         if ($subscription->isInTrial() && $subscription->trial_ends_at !== null) {
@@ -246,7 +333,7 @@ class SubscriptionRequest extends Model
         return match ($kind) {
             self::KIND_OPTION => $feature?->priceFcfa(),
             self::KIND_ORDERS => collect(self::orderPacks())->firstWhere('count', $orders)['price'] ?? null,
-            self::KIND_PLAN => $planPrice($plan),
+            self::KIND_PLAN => $plan === null ? null : self::planChangePrice($subscription, $plan, $cycle)['amount'],
             self::KIND_RENEWAL => $planPrice($subscription?->plan),
             default => null,
         };
@@ -301,6 +388,8 @@ class SubscriptionRequest extends Model
         if ($this->hasOnlinePaymentInProgress() && $this->payment_checkout_url) {
             return $this->payment_checkout_url;
         }
+
+        $this->refreshPlanChangeAmount();
 
         $pressing = $this->pressing;
         $transaction = GeniusPay::createPayment(array_filter([

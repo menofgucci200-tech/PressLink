@@ -45,6 +45,7 @@ use App\Livewire\Orders\Index as OrdersIndex;
 use App\Livewire\Orders\Show as OrdersShow;
 use App\Livewire\Pressing\Settings as PressingSettings;
 use App\Livewire\Services\Index as ServicesIndex;
+use App\Livewire\Subscription\Checkout as SubscriptionCheckout;
 use App\Livewire\Subscription\Plans as SubscriptionPlans;
 use App\Livewire\Subscription\Show as SubscriptionShow;
 use App\Livewire\Support\Show as SupportShow;
@@ -176,6 +177,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/parametres', PressingSettings::class)->name('pressing.settings');
         Route::get('/abonnement', SubscriptionShow::class)->name('subscription.show');
         Route::get('/abonnement/formules', SubscriptionPlans::class)->name('subscription.plans');
+        Route::get('/abonnement/paiement/{subscriptionRequest}', SubscriptionCheckout::class)->name('subscription.checkout');
         Route::get('/abonnement/paiement/{subscriptionRequest}/retour', [GeniusPayController::class, 'return'])->name('subscription.payment.return');
         Route::get('/support', SupportShow::class)->name('support');
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\GeniusPay;
 use App\Support\LaunchOffer;
 use App\Support\PlanCatalog;
 use Illuminate\Http\RedirectResponse;
@@ -77,7 +78,9 @@ class LandingController extends Controller
             ],
             [
                 'question' => 'Y a-t-il un engagement ?',
-                'answer' => "Non. Vous payez une période à la fois, au mois ou à l'année, par un lien de paiement Wave. Rien n'est prélevé automatiquement, et vous pouvez changer d'offre à tout moment.",
+                'answer' => 'Non. Vous payez une période à la fois, au mois ou à l\'année, '
+                    .(GeniusPay::isConfigured() ? 'en ligne depuis votre espace (Wave, Orange Money, MTN ou carte)' : 'par un lien de paiement Wave')
+                    .'. Rien n\'est prélevé automatiquement, et vous pouvez changer d\'offre à tout moment.',
             ],
             [
                 'question' => 'Quels moyens de paiement puis-je enregistrer pour mes clients ?',

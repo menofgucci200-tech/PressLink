@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Enums\PressingRole;
 use App\Enums\SubscriptionPlan;
 use App\Enums\SubscriptionStatus;
+use App\Livewire\Subscription\Checkout;
+use App\Livewire\Subscription\Plans;
 use App\Livewire\Subscription\Show as SubscriptionShow;
 use App\Models\Pressing;
 use App\Models\Subscription;
@@ -13,6 +15,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Testing\TestResponse;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -95,9 +98,13 @@ class GeniusPayPaymentTest extends TestCase
         $this->fakeCheckout();
 
         Livewire::actingAs($owner)->test(SubscriptionShow::class)
-            ->assertSee('Payer en ligne')
-            ->assertSee('Wave, Orange Money, MTN, carte')
-            ->call('payOnline', $request->id)
+            ->assertSee(route('subscription.checkout', $request), false);
+
+        Livewire::actingAs($owner)->test(Checkout::class, ['subscriptionRequest' => $request])
+            ->assertSee('Récapitulatif du paiement')
+            ->assertSee('Payer 20 000 F')
+            ->assertSee('Wave, Orange Money, MTN Mobile Money ou carte bancaire')
+            ->call('pay')
             ->assertRedirect('https://geniuspay.ci/checkout/SANDBOX-ABC123');
 
         Http::assertSent(fn (HttpRequest $sent) => $sent->url() === 'https://geniuspay.test/api/v1/merchant/payments'
@@ -118,9 +125,9 @@ class GeniusPayPaymentTest extends TestCase
         [, , $owner, $request] = $this->pendingRenewal();
         $this->fakeCheckout();
 
-        $component = Livewire::actingAs($owner)->test(SubscriptionShow::class);
-        $component->call('payOnline', $request->id);
-        $component->call('payOnline', $request->id)->assertRedirect('https://geniuspay.ci/checkout/SANDBOX-ABC123');
+        $component = Livewire::actingAs($owner)->test(Checkout::class, ['subscriptionRequest' => $request]);
+        $component->call('pay');
+        $component->call('pay')->assertRedirect('https://geniuspay.ci/checkout/SANDBOX-ABC123');
 
         Http::assertSentCount(1);
     }
@@ -132,7 +139,7 @@ class GeniusPayPaymentTest extends TestCase
         $request->update(['payment_link' => 'https://pay.wave.com/m/test']);
 
         Livewire::actingAs($owner)->test(SubscriptionShow::class)
-            ->assertDontSee('Payer en ligne')
+            ->assertDontSee(route('subscription.checkout', $request), false)
             ->assertSee('Payer avec Wave');
     }
 
@@ -209,7 +216,99 @@ class GeniusPayPaymentTest extends TestCase
         $request->update(['payment_reference' => 'SANDBOX-ABC123', 'payment_started_at' => now()]);
 
         Livewire::actingAs($owner)->test(SubscriptionShow::class)->call('cancelRequest', $request->id);
+        Livewire::actingAs($owner)->test(Checkout::class, ['subscriptionRequest' => $request])->call('cancel');
 
         $this->assertNotNull($request->fresh());
+    }
+
+    public function test_choosing_a_higher_plan_goes_straight_to_the_payment_summary(): void
+    {
+        Mail::fake();
+        [$pressing, , $owner] = $this->pendingRenewal();
+
+        Livewire::actingAs($owner)->test(Plans::class)
+            ->call('requestPlan', SubscriptionPlan::Business->value, SubscriptionRequest::MONTHLY)
+            ->assertRedirect(route('subscription.checkout', $pressing->subscriptionRequests()->where('kind', SubscriptionRequest::KIND_PLAN)->firstOrFail()));
+
+        Mail::assertNothingSent();
+    }
+
+    public function test_choosing_the_same_plan_again_reuses_the_request_and_follows_the_new_cycle(): void
+    {
+        [$pressing, , $owner] = $this->pendingRenewal();
+        $component = Livewire::actingAs($owner)->test(Plans::class);
+
+        $component->call('requestPlan', SubscriptionPlan::Business->value, SubscriptionRequest::MONTHLY);
+        $component->call('requestPlan', SubscriptionPlan::Business->value, SubscriptionRequest::ANNUAL);
+
+        $requests = $pressing->subscriptionRequests()->where('kind', SubscriptionRequest::KIND_PLAN)->get();
+        $this->assertCount(1, $requests);
+        $this->assertSame(SubscriptionRequest::ANNUAL, $requests->first()->cycle);
+        $this->assertSame(SubscriptionPlan::Business->annualPriceFcfa(), $requests->first()->amount_fcfa);
+    }
+
+    public function test_a_pressing_in_free_trial_keeps_its_free_days_when_it_pays(): void
+    {
+        $pressing = Pressing::factory()->create();
+        $subscription = Subscription::factory()->for($pressing)->create([
+            'plan' => SubscriptionPlan::Starter,
+            'status' => SubscriptionStatus::Trialing,
+            'trial_ends_at' => now()->addDays(10)->endOfDay(),
+        ]);
+        $owner = User::factory()->create();
+        $pressing->staff()->attach($owner, ['role' => PressingRole::Admin->value, 'is_active' => true]);
+
+        Livewire::actingAs($owner)->test(Plans::class)->call('requestPlan', SubscriptionPlan::Business->value, SubscriptionRequest::MONTHLY);
+        $request = $pressing->subscriptionRequests()->firstOrFail();
+        $trialEnd = $subscription->trial_ends_at->copy();
+
+        Livewire::actingAs($owner)->test(Checkout::class, ['subscriptionRequest' => $request])
+            ->assertSee('Votre essai gratuit continue jusqu')
+            ->assertSee($trialEnd->format('d/m/Y'))
+            ->assertSee($trialEnd->copy()->addMonthNoOverflow()->format('d/m/Y'));
+
+        $request->confirmOnlinePayment(['status' => 'completed', 'amount' => $request->amount_fcfa]);
+
+        $subscription->refresh();
+        $this->assertSame(SubscriptionPlan::Business, $subscription->plan);
+        $this->assertTrue($subscription->current_period_starts_at->equalTo($trialEnd));
+        $this->assertTrue($subscription->current_period_ends_at->equalTo($trialEnd->copy()->addMonthNoOverflow()));
+    }
+
+    public function test_an_unconfirmed_payment_brings_the_pressing_back_to_the_summary(): void
+    {
+        [, , $owner, $request] = $this->pendingRenewal();
+        $request->update(['payment_reference' => 'SANDBOX-ABC123', 'payment_started_at' => now()]);
+        Http::fake([
+            'geniuspay.test/api/v1/merchant/payments/SANDBOX-ABC123' => Http::response(['success' => true, 'data' => [
+                'reference' => 'SANDBOX-ABC123', 'amount' => 20000, 'status' => 'failed',
+            ]]),
+        ]);
+
+        $this->actingAs($owner)->get(route('subscription.payment.return', $request))
+            ->assertRedirect(route('subscription.checkout', ['subscriptionRequest' => $request, 'echec' => 1]));
+
+        $this->assertTrue($request->fresh()->isPending());
+        $this->assertNull($request->fresh()->payment_reference, 'un paiement refusé ne se reprend pas : le prochain « Payer » en ouvre un nouveau');
+        $this->assertFalse($request->fresh()->hasOnlinePaymentInProgress());
+    }
+
+    public function test_a_failed_payment_notification_frees_the_request_for_a_new_payment(): void
+    {
+        [, , , $request] = $this->pendingRenewal();
+        $request->update(['payment_reference' => 'SANDBOX-ABC123', 'payment_checkout_url' => 'https://geniuspay.ci/checkout/SANDBOX-ABC123', 'payment_started_at' => now()]);
+
+        $this->postWebhook(['reference' => 'SANDBOX-ABC123', 'amount' => 20000, 'status' => 'failed'], event: 'payment.failed')->assertOk();
+
+        $this->assertNull($request->fresh()->payment_checkout_url);
+        $this->assertTrue($request->fresh()->isPending());
+    }
+
+    public function test_another_pressing_cannot_open_the_payment_summary(): void
+    {
+        [, , , $request] = $this->pendingRenewal();
+        [, , $otherOwner] = $this->pendingRenewal();
+
+        $this->actingAs($otherOwner)->get(route('subscription.checkout', $request))->assertForbidden();
     }
 }

@@ -53,6 +53,11 @@
                 @if ($mode === 'espace')
                     @if ($isCurrent)
                         <div class="h-11 rounded-xl bg-(--color-bg) text-(--color-text-secondary) text-sm font-semibold flex items-center justify-center">Votre formule actuelle</div>
+                    @elseif (in_array($plan->value, $pendingPlans, true) && \App\Support\GeniusPay::isConfigured())
+                        <button type="button" wire:click="requestPlan('{{ $plan->value }}', $wire.cycle ?? 'monthly')" wire:loading.attr="disabled"
+                                class="w-full h-11 rounded-xl text-sm font-semibold bg-(--color-primary) text-white hover:bg-(--color-primary-600)">
+                            Finir le paiement
+                        </button>
                     @elseif (in_array($plan->value, $pendingPlans, true))
                         <div class="h-11 rounded-xl bg-(--color-info-tint) text-(--color-info) text-sm font-semibold flex items-center justify-center">Demande envoyée</div>
                     @else

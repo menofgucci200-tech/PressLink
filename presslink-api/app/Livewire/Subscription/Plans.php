@@ -13,7 +13,8 @@ use Livewire\Component;
 /**
  * Page Formules de l'espace pressing : les trois formules côte à côte, la
  * formule actuelle, ce que le pressing gagne à passer au-dessus, et la
- * demande de changement (payée par lien Wave, puis activée par PressLink).
+ * demande de changement : payée en ligne depuis le récapitulatif (GeniusPay),
+ * sinon par lien Wave envoyé puis activée par PressLink.
  */
 class Plans extends Component
 {

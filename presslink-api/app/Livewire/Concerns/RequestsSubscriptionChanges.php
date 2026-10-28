@@ -8,9 +8,6 @@ use App\Enums\Permission;
 use App\Enums\SubscriptionPlan;
 use App\Models\Pressing;
 use App\Models\SubscriptionRequest;
-use App\Support\GeniusPay;
-use Illuminate\Support\Facades\Log;
-use RuntimeException;
 
 /**
  * Demandes faites depuis les pages Abonnement et Formules : option, commandes
@@ -80,34 +77,19 @@ trait RequestsSubscriptionChanges
         $this->toast('Demande annulée.');
     }
 
-    /** Ouvre la page de paiement GeniusPay de la demande (Wave, Orange Money, MTN, carte). */
-    public function payOnline(int $requestId): void
-    {
-        $request = $this->subscriptionPressing()->subscriptionRequests()->pending()->findOrFail($requestId);
-        abort_unless($request->canBePaidOnline(), 422);
-
-        try {
-            $checkoutUrl = $request->startOnlinePayment(route('subscription.payment.return', $request));
-        } catch (RuntimeException $e) {
-            Log::error($e->getMessage(), ['request' => $request->id]);
-            $this->toast('Le paiement en ligne est indisponible pour le moment. Réessayez dans quelques minutes.', 'error');
-
-            return;
-        }
-
-        $this->redirect($checkoutUrl);
-    }
-
     private function sendRequest(Pressing $pressing, string $kind, ?Feature $feature = null, ?SubscriptionPlan $plan = null, ?int $orders = null, ?string $cycle = null): void
     {
         $request = (new RequestSubscriptionChange)->handle($pressing, auth()->user(), $kind, $feature, $plan, $orders, $cycle);
 
-        $online = $request?->canBePaidOnline() ?? false;
+        // Paiement en ligne : directement au récapitulatif, puis à la page de paiement.
+        if ($request?->canBePaidOnline()) {
+            $this->redirectRoute('subscription.checkout', $request, navigate: true);
 
-        $this->toast(match (true) {
-            $request === null => 'Cette demande est déjà envoyée : vous la retrouvez dans « Demandes en cours ».',
-            $online => 'Demande envoyée : payez-la en ligne dans « Demandes en cours », elle s\'active dès le paiement confirmé.',
-            default => 'Demande envoyée : l\'équipe PressLink vous envoie un lien de paiement Wave, puis active votre demande.',
-        }, $request === null ? 'info' : 'success');
+            return;
+        }
+
+        $this->toast($request === null || ! $request->wasRecentlyCreated
+            ? 'Cette demande est déjà envoyée : l\'équipe PressLink vous envoie le lien de paiement.'
+            : 'Demande envoyée : l\'équipe PressLink vous envoie un lien de paiement Wave, puis active votre demande.', $request === null || ! $request->wasRecentlyCreated ? 'info' : 'success');
     }
 }

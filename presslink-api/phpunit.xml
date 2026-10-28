@@ -33,5 +33,10 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <!-- Paiement en ligne désactivé par défaut (les tests GeniusPay le règlent eux-mêmes) -->
+        <env name="GENIUSPAY_API_KEY" value="" force="true"/>
+        <env name="GENIUSPAY_API_SECRET" value="" force="true"/>
+        <env name="GENIUSPAY_WEBHOOK_SECRET" value="" force="true"/>
+        <env name="GENIUSPAY_SANDBOX" value="true" force="true"/>
     </php>
 </phpunit>

@@ -25,7 +25,7 @@
                 <p>
                     @if ($subscription->status === \App\Enums\SubscriptionStatus::Trialing && $subscription->trial_ends_at?->isPast())
                         Votre période d'essai s'est terminée le {{ $subscription->trial_ends_at->format('d/m/Y') }}.
-                        Contactez PressLink pour choisir votre formule.
+                        <a href="{{ route('subscription.plans') }}" wire:navigate class="font-semibold underline">Choisir ma formule</a>
                     @elseif ($subscription->periodEnded())
                         Votre période payée s'est terminée le {{ $subscription->current_period_ends_at->format('d/m/Y') }}.
                         <a href="#renouveler" class="font-semibold underline">Renouveler mon abonnement</a>
@@ -33,7 +33,8 @@
                         Les {{ number_format($subscription->ordersLimitThisMonth(), 0, ',', ' ') }} commandes de ce mois sont utilisées. Le compteur repart à zéro le {{ $nextReset }}.
                         <a href="#commandes-en-plus" class="font-semibold underline">Ajouter des commandes ce mois-ci</a>
                     @else
-                        Votre abonnement est {{ mb_strtolower($subscription->status->label()) }}. Contactez PressLink pour le renouveler.
+                        Votre abonnement est {{ mb_strtolower($subscription->status->label()) }}.
+                        <a href="#renouveler" class="font-semibold underline">Renouveler mon abonnement</a>
                     @endif
                 </p>
             </div>
@@ -113,16 +114,20 @@
             </div>
         </div>
 
-        {{-- Renouveler : l'équipe PressLink envoie le lien de paiement Wave --}}
+        {{-- Renouveler : paiement en ligne (récapitulatif puis GeniusPay), sinon lien Wave envoyé par l'équipe --}}
         @php
             $monthly = $subscription->plan->monthlyPriceFcfa();
             $annual = $subscription->plan->annualPriceFcfa();
-            $renewalPending = $pendingRequests->contains('kind', \App\Models\SubscriptionRequest::KIND_RENEWAL);
+            $renewalPending = $pendingRequests->contains('kind', \App\Models\SubscriptionRequest::KIND_RENEWAL) && ! \App\Support\GeniusPay::isConfigured();
         @endphp
         <div id="renouveler" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5 mb-6 scroll-mt-20">
             <h2 class="font-display text-base font-bold mb-1">Payer ou renouveler mon abonnement</h2>
             <p class="text-sm text-(--color-text-muted) mb-4">
-                Formule {{ $subscription->plan->label() }}. Vous recevez un lien de paiement Wave ; la période est prolongée dès le paiement reçu.
+                @if (\App\Support\GeniusPay::isConfigured())
+                    Formule {{ $subscription->plan->label() }}. Payez en ligne (Wave, Orange Money, MTN ou carte) : la période est prolongée dès le paiement confirmé.
+                @else
+                    Formule {{ $subscription->plan->label() }}. Vous recevez un lien de paiement Wave ; la période est prolongée dès le paiement reçu.
+                @endif
             </p>
             @if ($renewalPending)
                 <span class="inline-flex items-center h-9 px-3 rounded-lg bg-(--color-info-tint) text-(--color-info) text-sm font-medium">Demande envoyée : voir « Demandes en cours » ci-dessous</span>
@@ -192,6 +197,11 @@
                                 <span class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-(--color-info-tint) text-(--color-info) text-xs font-semibold">Ouverte pendant l'essai</span>
                             @elseif ($addon)
                                 <span class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-(--color-success-tint) text-(--color-success-text) text-xs font-semibold">✓ Option active</span>
+                            @elseif ($pending && \App\Support\GeniusPay::isConfigured())
+                                <button type="button" wire:click="requestOption('{{ $feature->value }}')" wire:loading.attr="disabled"
+                                        class="inline-flex items-center h-9 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
+                                    Finir le paiement
+                                </button>
                             @elseif ($pending)
                                 <span class="inline-flex items-center h-8 px-3 rounded-full bg-(--color-info-tint) text-(--color-info) text-xs font-semibold">Demande envoyée</span>
                             @else
@@ -232,11 +242,10 @@
                                 </div>
                             </div>
                             @if ($request->canBePaidOnline())
-                                <button type="button" wire:click="payOnline({{ $request->id }})" wire:loading.attr="disabled" data-testid="pay-online"
-                                        class="inline-flex flex-col items-center justify-center min-h-10 px-4 py-1 rounded-lg bg-(--color-primary) text-white text-sm font-semibold leading-tight hover:bg-(--color-primary-600) disabled:opacity-60">
-                                    <span>{{ $request->hasOnlinePaymentInProgress() ? 'Reprendre le paiement' : 'Payer en ligne' }}</span>
-                                    <span class="text-[11px] font-medium opacity-85">Wave, Orange Money, MTN, carte</span>
-                                </button>
+                                <a href="{{ route('subscription.checkout', $request) }}" wire:navigate data-testid="pay-online"
+                                   class="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
+                                    {{ $request->hasOnlinePaymentInProgress() ? 'Reprendre le paiement' : 'Payer' }}
+                                </a>
                             @elseif ($request->payment_link)
                                 <a href="{{ $request->payment_link }}" target="_blank" rel="noopener noreferrer"
                                    class="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-[#1DC8FF] text-slate-900 text-sm font-semibold hover:brightness-95">

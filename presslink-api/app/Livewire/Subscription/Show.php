@@ -13,9 +13,10 @@ use Livewire\Component;
 
 /**
  * Page Abonnement du dashboard pressing (RB-09) : formule, commandes du
- * mois, fonctions incluses et options, renouvellement. Le pressing DEMANDE ;
- * l'équipe PressLink lui envoie un lien de paiement (Wave), puis active la
- * demande depuis la fiche du pressing. Comparer les formules : page Formules.
+ * mois, fonctions incluses et options, renouvellement. Chaque choix mène au
+ * récapitulatif puis au paiement en ligne (GeniusPay) ; sans paiement en ligne,
+ * l'équipe PressLink envoie un lien Wave puis active la demande. Comparer les
+ * formules : page Formules.
  */
 class Show extends Component
 {

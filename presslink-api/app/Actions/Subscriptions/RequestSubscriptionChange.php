@@ -9,6 +9,7 @@ use App\Mail\SubscriptionRequested;
 use App\Models\Pressing;
 use App\Models\SubscriptionRequest;
 use App\Models\User;
+use App\Support\GeniusPay;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
@@ -19,7 +20,11 @@ use Throwable;
  * l'e-mail qui prévient l'équipe PressLink. Une demande identique déjà en
  * attente n'est pas dupliquée (sauf commandes en plus).
  *
- * @return SubscriptionRequest|null null si une demande identique attend déjà
+ * Avec le paiement en ligne (GeniusPay), la demande identique en attente est
+ * reprise (mise à jour si le pressing passe du mois à l'année) pour qu'il la
+ * paie ; l'équipe n'est prévenue que si elle doit intervenir (prix non fixé).
+ *
+ * @return SubscriptionRequest|null null si une demande identique attend déjà (sans paiement en ligne)
  */
 class RequestSubscriptionChange
 {
@@ -33,14 +38,26 @@ class RequestSubscriptionChange
             ? ($cycle === SubscriptionRequest::ANNUAL ? SubscriptionRequest::ANNUAL : SubscriptionRequest::MONTHLY)
             : null;
 
-        $alreadyPending = $pressing->subscriptionRequests()->pending()
+        $amount = SubscriptionRequest::priceFor($kind, $subscription, $feature, $plan, $orders, $cycle);
+
+        $alreadyPending = $kind === SubscriptionRequest::KIND_ORDERS ? null : $pressing->subscriptionRequests()->pending()
             ->where('kind', $kind)
             ->when($feature !== null, fn ($q) => $q->where('feature', $feature->value))
             ->when($kind === SubscriptionRequest::KIND_PLAN, fn ($q) => $q->where('plan', $plan?->value))
-            ->exists();
+            ->latest('id')
+            ->first();
 
-        if ($alreadyPending && $kind !== SubscriptionRequest::KIND_ORDERS) {
-            return null;
+        if ($alreadyPending !== null) {
+            if (! GeniusPay::isConfigured()) {
+                return null;
+            }
+
+            // Pas de paiement en cours : la demande suit le dernier choix (mois ou année).
+            if (! $alreadyPending->hasOnlinePaymentInProgress() && $alreadyPending->cycle !== $cycle) {
+                $alreadyPending->update(['cycle' => $cycle, 'amount_fcfa' => $amount]);
+            }
+
+            return $alreadyPending;
         }
 
         $request = $pressing->subscriptionRequests()->create([
@@ -50,11 +67,11 @@ class RequestSubscriptionChange
             'plan' => $plan,
             'extra_orders' => $orders,
             'cycle' => $cycle,
-            'amount_fcfa' => SubscriptionRequest::priceFor($kind, $subscription, $feature, $plan, $orders, $cycle),
+            'amount_fcfa' => $amount,
             'status' => SubscriptionRequest::PENDING,
         ]);
 
-        if (SitePageController::canSendMail()) {
+        if (! $request->canBePaidOnline() && SitePageController::canSendMail()) {
             try {
                 Mail::to(config('presslink.support.email'))->send(new SubscriptionRequested($request));
             } catch (Throwable $e) {

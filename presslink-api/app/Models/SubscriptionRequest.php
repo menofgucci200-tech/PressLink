@@ -9,6 +9,7 @@ use App\Support\GeniusPay;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -180,23 +181,58 @@ class SubscriptionRequest extends Model
         $this->openPaidPeriod($subscription, extend: true);
     }
 
-    /**
-     * Période payée. En prolongation d'une période active pas encore finie, la
-     * fin est repoussée d'un mois (ou d'un an) ; sinon la période part d'aujourd'hui.
-     */
+    /** Période payée ouverte sur l'abonnement (voir paidPeriod). */
     private function openPaidPeriod(Subscription $subscription, bool $extend): void
     {
-        $annual = $this->cycle === self::ANNUAL;
-        $end = $subscription->current_period_ends_at;
-        $ongoing = $extend && $subscription->status === SubscriptionStatus::Active && $end !== null && $end->isFuture();
-        $from = $ongoing ? $end->copy() : now();
+        ['starts_at' => $startsAt, 'ends_at' => $endsAt] = $this->paidPeriod($subscription, $extend);
 
         $subscription->update([
             'status' => SubscriptionStatus::Active,
-            'billing_cycle' => $annual ? self::ANNUAL : self::MONTHLY,
-            'current_period_starts_at' => $ongoing ? ($subscription->current_period_starts_at ?? now()) : now(),
-            'current_period_ends_at' => $annual ? $from->addYear() : $from->addMonthNoOverflow(),
+            'billing_cycle' => $this->cycle === self::ANNUAL ? self::ANNUAL : self::MONTHLY,
+            'current_period_starts_at' => $startsAt,
+            'current_period_ends_at' => $endsAt,
         ]);
+    }
+
+    /**
+     * Période que paie cette demande. En prolongation d'une période active pas
+     * encore finie, la fin est repoussée d'un mois (ou d'un an). Pendant un essai
+     * gratuit, la période payée commence à la fin de l'essai : le pressing ne
+     * perd aucun jour gratuit. Sinon, elle part d'aujourd'hui.
+     *
+     * @return array{starts_at: Carbon, ends_at: Carbon, after_trial: bool}
+     */
+    private function paidPeriod(Subscription $subscription, bool $extend): array
+    {
+        $add = fn (Carbon $from) => $this->cycle === self::ANNUAL ? $from->copy()->addYear() : $from->copy()->addMonthNoOverflow();
+        $end = $subscription->current_period_ends_at;
+
+        if ($extend && $subscription->status === SubscriptionStatus::Active && $end !== null && $end->isFuture()) {
+            return ['starts_at' => $subscription->current_period_starts_at ?? now(), 'ends_at' => $add($end), 'after_trial' => false];
+        }
+
+        if ($subscription->isInTrial() && $subscription->trial_ends_at !== null) {
+            return ['starts_at' => $subscription->trial_ends_at->copy(), 'ends_at' => $add($subscription->trial_ends_at), 'after_trial' => true];
+        }
+
+        return ['starts_at' => now(), 'ends_at' => $add(now()), 'after_trial' => false];
+    }
+
+    /**
+     * Ce que le paiement ouvrira (formule ou renouvellement), pour l'annoncer
+     * avant de payer ; null pour une option ou des commandes en plus.
+     *
+     * @return array{starts_at: Carbon, ends_at: Carbon, after_trial: bool}|null
+     */
+    public function periodAfterPayment(): ?array
+    {
+        $subscription = $this->pressing->subscription;
+
+        if ($subscription === null || ! in_array($this->kind, [self::KIND_PLAN, self::KIND_RENEWAL], true)) {
+            return null;
+        }
+
+        return $this->paidPeriod($subscription, extend: $this->kind === self::KIND_RENEWAL);
     }
 
     /**
@@ -284,6 +320,19 @@ class SubscriptionRequest extends Model
         ]);
 
         return $transaction['checkout_url'];
+    }
+
+    /**
+     * Paiement refusé, annulé ou expiré chez GeniusPay : sa page ne peut pas être
+     * réutilisée, le prochain « Payer » en ouvrira une nouvelle.
+     */
+    public function forgetFailedOnlinePayment(?string $reference = null): void
+    {
+        if ($this->paid_online_at !== null || ($reference !== null && $reference !== $this->payment_reference)) {
+            return;
+        }
+
+        $this->update(['payment_reference' => null, 'payment_checkout_url' => null, 'payment_started_at' => null]);
     }
 
     /**

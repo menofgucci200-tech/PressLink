@@ -29,11 +29,17 @@ class GeniusPayController extends Controller
         $event = json_decode($payload, true);
         $transaction = is_array($event) ? ($event['data']['transaction'] ?? null) : null;
 
-        if (($event['event'] ?? null) !== 'payment.success' || ! is_array($transaction)) {
+        if (! is_array($transaction) || ! in_array($event['event'] ?? null, ['payment.success', 'payment.failed', 'payment.cancelled'], true)) {
             return response()->json(['received' => true]);
         }
 
         $subscriptionRequest = $this->requestFor($transaction);
+
+        if ($event['event'] !== 'payment.success') {
+            $subscriptionRequest?->forgetFailedOnlinePayment($transaction['reference'] ?? null);
+
+            return response()->json(['received' => true]);
+        }
 
         if ($subscriptionRequest === null) {
             Log::warning('GeniusPay : paiement reçu sans demande correspondante.', ['reference' => $transaction['reference'] ?? null]);
@@ -48,8 +54,8 @@ class GeniusPayController extends Controller
 
     /**
      * Retour du pressing depuis la page de paiement : on demande à GeniusPay où
-     * en est le paiement (sans attendre la notification) puis on revient à la
-     * page Abonnement avec le bon message.
+     * en est le paiement (sans attendre la notification). Payé : page Abonnement ;
+     * sinon, retour au récapitulatif pour réessayer.
      */
     public function return(SubscriptionRequest $subscriptionRequest): RedirectResponse
     {
@@ -59,18 +65,23 @@ class GeniusPayController extends Controller
 
         if ($subscriptionRequest->isPending() && $subscriptionRequest->payment_reference) {
             $transaction = GeniusPay::findPayment($subscriptionRequest->payment_reference);
-            if ($transaction !== null) {
+            if (in_array($transaction['status'] ?? null, ['failed', 'cancelled', 'expired'], true)) {
+                $subscriptionRequest->forgetFailedOnlinePayment($transaction['reference'] ?? $subscriptionRequest->payment_reference);
+            } elseif ($transaction !== null) {
                 $subscriptionRequest->confirmOnlinePayment($transaction);
             }
         }
 
         $subscriptionRequest->refresh();
 
-        [$type, $message] = match (true) {
-            $subscriptionRequest->paid_online_at !== null && $subscriptionRequest->isPayment() => ['success', 'Paiement reçu : votre demande « '.$subscriptionRequest->label().' » est activée.'],
-            $subscriptionRequest->paid_online_at !== null => ['info', 'Paiement reçu : l\'équipe PressLink finalise votre demande.'],
-            default => ['warning', 'Paiement non confirmé pour le moment. S\'il a abouti, votre demande s\'activera d\'elle-même dans quelques minutes ; sinon, réessayez.'],
-        };
+        // Pas encore confirmé (échec, abandon, ou confirmation en route) : retour au récapitulatif.
+        if ($subscriptionRequest->paid_online_at === null && $subscriptionRequest->isPending()) {
+            return redirect()->route('subscription.checkout', ['subscriptionRequest' => $subscriptionRequest, 'echec' => 1]);
+        }
+
+        [$type, $message] = $subscriptionRequest->isPayment()
+            ? ['success', 'Paiement reçu : « '.$subscriptionRequest->label().' » est activé.']
+            : ['info', 'Paiement reçu : l\'équipe PressLink finalise votre demande.'];
 
         return redirect()->route('subscription.show')->with('toast', ['type' => $type, 'message' => $message]);
     }

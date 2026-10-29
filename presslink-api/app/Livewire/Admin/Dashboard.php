@@ -12,6 +12,7 @@ use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderIssue;
+use App\Models\PaymentAttempt;
 use App\Models\Pressing;
 use App\Models\SandboxTrial;
 use App\Models\Subscription;
@@ -185,55 +186,66 @@ class Dashboard extends Component
     }
 
     /**
-     * Encaissements de PressLink sur la période (abonnements, options,
-     * commandes en plus) : payés en ligne (GeniusPay, avec frais et net reçu)
-     * ou enregistrés à la main par l'équipe, et demandes encore à traiter.
+     * Paiements reçus par PressLink sur la période (abonnements, options,
+     * commandes en plus), d'après l'historique des tentatives : encaissé en
+     * ligne (GeniusPay) et à la main, taux de réussite, échecs, détail par
+     * moyen de paiement et par pressing, derniers paiements, et demandes
+     * encore à traiter.
      *
      * @param  Builder<Pressing>  $pressingIds  sous-requête des pressings filtrés
-     * @return array{online: array{count: int, collected: int, fees: int, net: int}, manual: array{count: int, collected: int}, pending: array{count: int, amount: int}, byMethod: list<array{label: string, count: int, collected: int, fees: int, net: int, share: float}>}
+     * @return array<string, mixed>
      */
     private function payments(Builder $pressingIds, ?Carbon $since): array
     {
-        $paid = fn () => SubscriptionRequest::query()
+        $attempts = fn () => PaymentAttempt::query()
             ->whereIn('pressing_id', $pressingIds)
-            ->where('status', SubscriptionRequest::DONE)
-            ->where('amount_fcfa', '>', 0);
+            ->when($since, fn ($q) => $q->where('started_at', '>=', $since));
 
-        $online = $paid()->whereNotNull('paid_online_at')
-            ->when($since, fn ($q) => $q->where('paid_online_at', '>=', $since))
-            ->get(['payment_method', 'amount_fcfa', 'paid_amount_fcfa', 'gateway_fees_fcfa', 'net_received_fcfa']);
-        $collected = fn (SubscriptionRequest $r) => (int) ($r->paid_amount_fcfa ?? $r->amount_fcfa);
-        $fees = fn (SubscriptionRequest $r) => (int) ($r->gateway_fees_fcfa ?? 0);
-        $net = fn (SubscriptionRequest $r) => (int) ($r->net_received_fcfa ?? $collected($r) - $fees($r));
+        $online = $attempts()->online()->get();
+        $manual = $attempts()->where('channel', PaymentAttempt::MANUAL)->paid()->get();
+        $paidOnline = $online->where('status', PaymentAttempt::PAID);
 
-        $manual = $paid()->whereNull('paid_online_at')
-            ->when($since, fn ($q) => $q->where('handled_at', '>=', $since));
-        $manualCount = (clone $manual)->count();
-        $manualCollected = (int) (clone $manual)->sum('amount_fcfa');
+        // Payés, échoués (refusés, abandonnés, expirés), en cours, taux de réussite et montants d'un groupe de tentatives.
+        $stats = function ($rows): array {
+            $paid = $rows->where('status', PaymentAttempt::PAID);
+            $failed = $rows->filter(fn (PaymentAttempt $a) => $a->isFailure())->count();
 
-        $onlineCollected = (int) $online->sum($collected);
-        $byMethod = $online->groupBy(fn (SubscriptionRequest $r) => $r->payment_method ?? 'autre')
-            ->map(fn ($rows, string $method) => [
-                'label' => SubscriptionRequest::ONLINE_METHODS[$method] ?? ucfirst(str_replace('_', ' ', $method)),
-                'count' => $rows->count(),
-                'collected' => (int) $rows->sum($collected),
-                'fees' => (int) $rows->sum($fees),
-                'net' => (int) $rows->sum($net),
-            ])
-            ->sortByDesc('collected')
+            return [
+                'attempts' => $rows->count(),
+                'paid' => $paid->count(),
+                'failed' => $failed,
+                'pending' => $rows->where('status', PaymentAttempt::PENDING)->count(),
+                'rate' => $paid->count() + $failed > 0 ? round($paid->count() / ($paid->count() + $failed) * 100, 1) : null,
+                'collected' => (int) $paid->sum(fn (PaymentAttempt $a) => $a->collectedFcfa()),
+                'fees' => (int) $paid->sum(fn (PaymentAttempt $a) => (int) $a->gateway_fees_fcfa),
+                'net' => (int) $paid->sum(fn (PaymentAttempt $a) => $a->netFcfa()),
+            ];
+        };
+
+        $byMethod = $online->groupBy(fn (PaymentAttempt $a) => $a->payment_method ?? 'autre')
+            ->map(fn ($rows) => ['label' => $rows->first()->methodLabel(), ...$stats($rows)])
+            ->sortByDesc('attempts')
             ->values();
-        if ($manualCount > 0) {
-            $byMethod->push(['label' => 'Enregistré par l\'équipe (virement, espèces…)', 'count' => $manualCount, 'collected' => $manualCollected, 'fees' => 0, 'net' => $manualCollected]);
+        if ($manual->isNotEmpty()) {
+            $byMethod->push(['label' => 'Enregistré par l\'équipe', ...$stats($manual), 'manual' => true]);
         }
-        $total = max(1, $onlineCollected + $manualCollected);
+
+        $byPressing = $online->groupBy('pressing_id')
+            ->map(fn ($rows, $pressingId) => ['pressing_id' => (int) $pressingId, 'name' => $rows->first()->pressing_name, ...$stats($rows)])
+            ->sortByDesc('attempts')
+            ->take(10)
+            ->values();
 
         $pending = SubscriptionRequest::pending()->whereIn('pressing_id', $pressingIds);
+        $onlineStats = $stats($online);
 
         return [
-            'online' => ['count' => $online->count(), 'collected' => $onlineCollected, 'fees' => (int) $online->sum($fees), 'net' => (int) $online->sum($net)],
-            'manual' => ['count' => $manualCount, 'collected' => $manualCollected],
+            'online' => [...$onlineStats, 'count' => $paidOnline->count()],
+            'manual' => ['count' => $manual->count(), 'collected' => (int) $manual->sum(fn (PaymentAttempt $a) => $a->collectedFcfa())],
             'pending' => ['count' => (clone $pending)->count(), 'amount' => (int) (clone $pending)->sum('amount_fcfa')],
-            'byMethod' => $byMethod->map(fn (array $row) => [...$row, 'share' => round($row['collected'] / $total * 100, 1)])->all(),
+            'byMethod' => $byMethod->all(),
+            'byPressing' => $byPressing->all(),
+            'recent' => $attempts()->with('subscriptionRequest')->latest('started_at')->orderByDesc('id')->take(8)->get(),
         ];
     }
 

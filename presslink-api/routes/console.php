@@ -22,3 +22,6 @@ Schedule::command('presslink:trial-reminders')->dailyAt('09:00');
 
 // Pressings de test arrivés à expiration : supprimés avec leurs données fictives.
 Schedule::command('presslink:purge-sandboxes')->hourly();
+
+// Paiements en ligne restés en cours au-delà de la durée d'une page de paiement : « Expiré ».
+Schedule::command('presslink:expire-payments')->hourly();

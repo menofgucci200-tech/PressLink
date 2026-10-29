@@ -33,29 +33,37 @@
     $select = 'h-9 px-2.5 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm focus:outline-none focus:border-(--color-primary)';
     $change = fn (?int $pct) => $pct === null ? '' : '<span class="font-semibold '.($pct >= 0 ? 'text-(--color-success-text)' : 'text-(--color-error)').'" title="Par rapport à la période précédente de même durée">'.($pct >= 0 ? '↑' : '↓').' '.abs($pct).' %</span> ';
 
+    $plural = fn (int $n, string $word) => $n.' '.$word.($n > 1 ? 's' : '');
+    $rate = fn (?float $value) => $value === null ? '—' : number_format($value, 1, ',', ' ').' %';
+    $online = $payments['online'];
     $kpiRows = [
         [
-            ['label' => 'Encaissé en ligne', 'value' => $fcfa($payments['online']['collected']).' F CFA',
-                'sub' => $payments['online']['count'].' paiement'.($payments['online']['count'] > 1 ? 's' : '').' · net reçu '.$fcfa($payments['online']['net']).' F'],
+            ['label' => 'Encaissé en ligne', 'value' => $fcfa($online['collected']).' F CFA',
+                'sub' => $plural($online['count'], 'paiement').' · net reçu '.$fcfa($online['net']).' F'],
             ['label' => 'Encaissé manuel', 'value' => $fcfa($payments['manual']['collected']).' F CFA',
-                'sub' => $payments['manual']['count'].' paiement'.($payments['manual']['count'] > 1 ? 's' : '').' enregistré'.($payments['manual']['count'] > 1 ? 's' : '').' par l\'équipe'],
+                'sub' => $plural($payments['manual']['count'], 'paiement').' enregistré'.($payments['manual']['count'] > 1 ? 's' : '').' par l\'équipe'],
+            ['label' => 'Taux de réussite', 'value' => $rate($online['rate']),
+                'sub' => $fcfa($online['paid']).' payés sur '.$fcfa($online['paid'] + $online['failed']).' tentatives'.($online['pending'] > 0 ? ' · '.$online['pending'].' en cours' : '')],
+            ['label' => 'Paiements échoués', 'value' => $fcfa($online['failed']), 'sub' => 'en ligne, refusés, abandonnés ou expirés',
+                'link' => $online['failed'] > 0 ? ['url' => route('admin.payments.index', array_filter(['statut' => 'echoue', 'du' => $periodFrom])), 'label' => 'Voir les paiements échoués', 'tone' => 'warning'] : null],
+        ],
+        [
             ['label' => 'Revenu mensuel récurrent', 'value' => $fcfa($monthlyRecurringRevenue).' F CFA',
-                'sub' => $payingPressings.' abonnement'.($payingPressings > 1 ? 's' : '').' actif'.($payingPressings > 1 ? 's' : '').' · '.$fcfa($monthlyRecurringRevenue * 12).' F / an'],
+                'sub' => $plural($payingPressings, 'abonnement').' actif'.($payingPressings > 1 ? 's' : '').' · '.$fcfa($monthlyRecurringRevenue * 12).' F / an'],
             ['label' => 'Demandes à traiter', 'value' => $fcfa($payments['pending']['count']),
                 'sub' => $payments['pending']['amount'] > 0 ? $fcfa($payments['pending']['amount']).' F en attente de paiement' : 'abonnements, options et commandes en plus',
                 'link' => $payments['pending']['count'] > 0 ? ['url' => route('admin.requests.index'), 'label' => 'Voir les demandes'] : null],
-        ],
-        [
             ['label' => 'Pressings actifs', 'value' => $fcfa($activePressings),
                 'sub' => ($newPressings ? '+'.$newPressings.' '.$periodLabel.' · ' : '').$suspendedPressings.' suspendu'.($suspendedPressings > 1 ? 's' : ''),
                 'link' => ['url' => route('admin.pressings.index', array_filter(['status' => 'active', 'ville' => $city])), 'label' => 'Voir les pressings']],
             ['label' => 'Clients', 'value' => $fcfa($totalClients),
                 'sub' => $newClients !== null ? '+'.$newClients.' '.$periodLabel : 'inscrits sur la plateforme',
                 'link' => ['url' => route('admin.clients.index'), 'label' => 'Voir les clients']],
-            ['label' => 'Commandes', 'value' => $fcfa($totalOrders), 'html' => $change($ordersChangePct), 'sub' => $periodLabel,
-                'link' => ['url' => $ordersListUrl, 'label' => 'Voir les commandes']],
-            ['label' => 'Volume traité par les pressings', 'value' => $fcfa($orderVolume).' F CFA', 'html' => $change($volumeChangePct), 'sub' => 'commandes non annulées, '.$periodLabel],
         ],
+    ];
+    $paymentTone = [
+        \App\Models\PaymentAttempt::PAID => 'bg-(--color-success-tint) text-(--color-success-text)',
+        \App\Models\PaymentAttempt::PENDING => 'bg-(--color-info-tint) text-(--color-info)',
     ];
 @endphp
 
@@ -106,7 +114,7 @@
                         <p class="mt-1 text-2xl font-semibold tabular-nums">{{ $kpi['value'] }}</p>
                         <p class="text-xs text-(--color-text-muted)">{!! $kpi['html'] ?? '' !!}{{ $kpi['sub'] }}</p>
                         @if (! empty($kpi['link']))
-                            <a href="{{ $kpi['link']['url'] }}" wire:navigate class="inline-block mt-1 text-xs font-medium text-(--color-primary) underline underline-offset-2 hover:no-underline">{{ $kpi['link']['label'] }}</a>
+                            <a href="{{ $kpi['link']['url'] }}" wire:navigate @class(['inline-block mt-1 text-xs font-medium underline underline-offset-2 hover:no-underline', 'text-(--color-warning-text)' => ($kpi['link']['tone'] ?? null) === 'warning', 'text-(--color-primary)' => ($kpi['link']['tone'] ?? null) !== 'warning'])>{{ $kpi['link']['label'] }}</a>
                         @endif
                     </div>
                 @endforeach
@@ -117,7 +125,14 @@
     {{-- ===== Commandes par jour + pressings les plus actifs ===== --}}
     <div class="grid gap-4 xl:grid-cols-3">
         <div class="{{ $card }} xl:col-span-2 flex flex-col">
-            <h2 class="{{ $cardTitle }}">Commandes créées ({{ $periodLabel }})</h2>
+            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 mb-3">
+                <h2 class="text-sm font-medium text-(--color-text-muted)">Commandes créées ({{ $periodLabel }})</h2>
+                <p class="text-xs text-(--color-text-muted)">
+                    <span class="font-semibold text-(--color-text-primary) tabular-nums">{{ $plural($totalOrders, 'commande') }}</span> {!! $change($ordersChangePct) !!}
+                    · <span class="font-semibold text-(--color-text-primary) tabular-nums">{{ $fcfa($orderVolume) }} F</span> traités {!! $change($volumeChangePct) !!}
+                    · <a href="{{ $ordersListUrl }}" wire:navigate class="text-(--color-primary) hover:underline">Voir les commandes</a>
+                </p>
+            </div>
             @php
                 $bars = $chart['bars'];
                 $labelEvery = max(1, (int) ceil(count($bars) / 12));
@@ -176,37 +191,113 @@
         </div>
     </div>
 
-    {{-- ===== Encaissements par moyen de paiement ===== --}}
+    {{-- ===== Réussite par moyen de paiement ===== --}}
     <div class="{{ $card }}">
-        <h2 class="{{ $cardTitle }}">Encaissements par moyen de paiement ({{ $periodLabel }})</h2>
+        <h2 class="{{ $cardTitle }}">Réussite par moyen de paiement ({{ $periodLabel }})</h2>
         @if (empty($payments['byMethod']))
-            <p class="py-6 text-center text-sm text-(--color-text-muted)">Aucun encaissement sur cette période.</p>
+            <p class="py-6 text-center text-sm text-(--color-text-muted)">Aucun paiement sur cette période.</p>
         @else
-            <div class="overflow-x-auto"><table class="w-full min-w-[640px] text-sm">
+            <div class="overflow-x-auto"><table class="w-full min-w-[760px] text-sm">
                 <thead>
                     <tr class="text-left text-(--color-text-muted)">
                         <th class="py-1 pr-4 font-semibold">Moyen de paiement</th>
-                        <th class="py-1 pr-4 font-semibold text-right">Paiements</th>
+                        <th class="py-1 pr-4 font-semibold text-right">Payés</th>
+                        <th class="py-1 pr-4 font-semibold text-right">Échoués</th>
+                        <th class="py-1 pr-4 font-semibold text-right">En cours</th>
+                        <th class="py-1 pr-4 font-semibold text-right">Taux de réussite</th>
                         <th class="py-1 pr-4 font-semibold text-right">Encaissé</th>
                         <th class="py-1 pr-4 font-semibold text-right">Frais GeniusPay</th>
-                        <th class="py-1 pr-4 font-semibold text-right">Net reçu</th>
-                        <th class="py-1 font-semibold text-right">Part</th>
+                        <th class="py-1 font-semibold text-right">Net reçu</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($payments['byMethod'] as $row)
+                        @php $manualRow = $row['manual'] ?? false; @endphp
                         <tr class="border-t border-(--color-border)">
                             <td class="py-2 pr-4 font-medium">{{ $row['label'] }}</td>
-                            <td class="py-2 pr-4 text-right tabular-nums">{{ $fcfa($row['count']) }}</td>
+                            <td class="py-2 pr-4 text-right tabular-nums">{{ $fcfa($row['paid']) }}</td>
+                            <td class="py-2 pr-4 text-right tabular-nums">{{ $manualRow ? '—' : $fcfa($row['failed']) }}</td>
+                            <td class="py-2 pr-4 text-right tabular-nums">{{ $manualRow ? '—' : $fcfa($row['pending']) }}</td>
+                            <td class="py-2 pr-4 text-right tabular-nums font-medium">{{ $manualRow ? '—' : $rate($row['rate']) }}</td>
                             <td class="py-2 pr-4 text-right tabular-nums">{{ $fcfa($row['collected']) }} F</td>
                             <td class="py-2 pr-4 text-right tabular-nums text-(--color-text-muted)">{{ $row['fees'] > 0 ? $fcfa($row['fees']).' F' : '—' }}</td>
-                            <td class="py-2 pr-4 text-right tabular-nums font-semibold">{{ $fcfa($row['net']) }} F</td>
-                            <td class="py-2 text-right tabular-nums">{{ number_format($row['share'], 1, ',', ' ') }} %</td>
+                            <td class="py-2 text-right tabular-nums font-semibold">{{ $fcfa($row['net']) }} F</td>
                         </tr>
                     @endforeach
                 </tbody>
             </table></div>
         @endif
+    </div>
+
+    {{-- ===== Réussite par pressing + derniers paiements ===== --}}
+    <div class="grid gap-4 xl:grid-cols-2">
+        <div class="{{ $card }}">
+            <h2 class="{{ $cardTitle }}">Réussite par pressing (paiements en ligne)</h2>
+            @if (empty($payments['byPressing']))
+                <p class="py-6 text-center text-sm text-(--color-text-muted)">Aucun paiement en ligne sur cette période.</p>
+            @else
+                <div class="overflow-x-auto"><table class="w-full min-w-[520px] text-sm">
+                    <thead>
+                        <tr class="text-left text-(--color-text-muted)">
+                            <th class="py-1 pr-4 font-semibold">Pressing</th>
+                            <th class="py-1 pr-4 font-semibold text-right">Payés</th>
+                            <th class="py-1 pr-4 font-semibold text-right">Échoués</th>
+                            <th class="py-1 pr-4 font-semibold text-right">Taux</th>
+                            <th class="py-1 font-semibold text-right">Encaissé</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($payments['byPressing'] as $row)
+                            <tr class="border-t border-(--color-border)">
+                                <td class="py-2 pr-4 max-w-56">
+                                    <a href="{{ route('admin.payments.index', array_filter(['pressing' => $row['pressing_id'], 'du' => $periodFrom])) }}" wire:navigate class="block truncate font-medium hover:underline">{{ $row['name'] }}</a>
+                                </td>
+                                <td class="py-2 pr-4 text-right tabular-nums">{{ $fcfa($row['paid']) }}</td>
+                                <td class="py-2 pr-4 text-right tabular-nums">{{ $fcfa($row['failed']) }}</td>
+                                <td @class(['py-2 pr-4 text-right tabular-nums font-medium', 'text-(--color-error)' => $row['rate'] !== null && $row['rate'] < 50])>{{ $rate($row['rate']) }}</td>
+                                <td class="py-2 text-right tabular-nums whitespace-nowrap">{{ $fcfa($row['collected']) }} F</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table></div>
+            @endif
+        </div>
+
+        <div class="{{ $card }}">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-sm font-medium text-(--color-text-muted)">Derniers paiements</h2>
+                <a href="{{ route('admin.payments.index') }}" wire:navigate class="text-xs font-medium text-(--color-primary) hover:underline">Voir tous les paiements</a>
+            </div>
+            @if ($payments['recent']->isEmpty())
+                <p class="py-6 text-center text-sm text-(--color-text-muted)">Aucun paiement sur cette période.</p>
+            @else
+                <div class="overflow-x-auto"><table class="w-full min-w-[520px] text-sm">
+                    <thead>
+                        <tr class="text-left text-(--color-text-muted)">
+                            <th class="py-1 pr-4 font-semibold">Référence</th>
+                            <th class="py-1 pr-4 font-semibold">Pressing</th>
+                            <th class="py-1 pr-4 font-semibold text-right">Montant</th>
+                            <th class="py-1 font-semibold">Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($payments['recent'] as $payment)
+                            <tr class="border-t border-(--color-border) align-top">
+                                <td class="py-2 pr-4">
+                                    <a href="{{ route('admin.payments.index', ['search' => $payment->reference]) }}" wire:navigate class="font-mono font-semibold whitespace-nowrap hover:underline">{{ $payment->reference }}</a>
+                                    <span class="block text-xs text-(--color-text-muted) whitespace-nowrap">{{ $payment->started_at->format('d/m H:i') }} · {{ $payment->methodLabel() }}</span>
+                                </td>
+                                <td class="py-2 pr-4 max-w-40"><span class="block truncate">{{ $payment->pressing_name }}</span></td>
+                                <td class="py-2 pr-4 text-right tabular-nums whitespace-nowrap">{{ $fcfa($payment->collectedFcfa()) }} F</td>
+                                <td class="py-2">
+                                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap {{ $paymentTone[$payment->status] ?? 'bg-(--color-error-tint) text-(--color-error)' }}">{{ $payment->statusLabel() }}</span>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table></div>
+            @endif
+        </div>
     </div>
 
     {{-- ===== À surveiller · Abonnements · Pressings récents ===== --}}

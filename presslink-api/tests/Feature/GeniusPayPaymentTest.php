@@ -8,6 +8,7 @@ use App\Enums\SubscriptionStatus;
 use App\Livewire\Subscription\Checkout;
 use App\Livewire\Subscription\Plans;
 use App\Livewire\Subscription\Show as SubscriptionShow;
+use App\Models\PaymentAttempt;
 use App\Models\Pressing;
 use App\Models\Setting;
 use App\Models\Subscription;
@@ -119,7 +120,7 @@ class GeniusPayPaymentTest extends TestCase
             && $sent['payment_method'] === 'wave'
             && $sent->hasHeader('X-API-Key', 'pk_sandbox_test')
             && $sent['metadata']['subscription_request_id'] === $request->id
-            && str_starts_with($sent['external_reference'], 'presslink-demande-'.$request->id.'-')
+            && $sent['external_reference'] === PaymentAttempt::where('subscription_request_id', $request->id)->value('reference')
             && $sent['success_url'] === route('subscription.payment.return', $request));
 
         $request->refresh();

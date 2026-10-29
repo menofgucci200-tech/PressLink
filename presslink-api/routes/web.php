@@ -18,6 +18,7 @@ use App\Livewire\Admin\Administrators\Index as AdminAdministratorsIndex;
 use App\Livewire\Admin\Clients\Index as AdminClientsIndex;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Admin\Orders\Index as AdminOrdersIndex;
+use App\Livewire\Admin\Payments\Index as AdminPaymentsIndex;
 use App\Livewire\Admin\Plans\Index as AdminPlansIndex;
 use App\Livewire\Admin\Pressings\Create as AdminPressingsCreate;
 use App\Livewire\Admin\Pressings\Index as AdminPressingsIndex;
@@ -203,6 +204,7 @@ Route::middleware(['auth', HandleSandboxPressing::class])->group(function () {
         Route::get('/pressings/nouveau', AdminPressingsCreate::class)->name('pressings.create');
         Route::get('/pressings/{pressing}', AdminPressingsShow::class)->name('pressings.show');
         Route::get('/commandes', AdminOrdersIndex::class)->name('orders.index');
+        Route::get('/paiements', AdminPaymentsIndex::class)->name('payments.index');
         Route::get('/clients', AdminClientsIndex::class)->name('clients.index');
         Route::get('/administrateurs', AdminAdministratorsIndex::class)->name('administrators.index');
         Route::get('/utilisateurs', AdminUsersIndex::class)->name('users.index');

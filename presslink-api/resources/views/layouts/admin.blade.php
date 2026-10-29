@@ -28,7 +28,8 @@
                     $navItem('pressings', 'admin.pressings.index', 'Pressings'),
                     $navItem('orders', 'admin.orders.index', 'Commandes'),
                     $navItem('clients', 'admin.clients.index', 'Clients'),
-                    $navItem('requests', 'admin.requests.index', 'Demandes et paiements', \App\Models\SubscriptionRequest::pending()->count()),
+                    $navItem('payments', 'admin.payments.index', 'Paiements'),
+                    $navItem('requests', 'admin.requests.index', 'Demandes à traiter', \App\Models\SubscriptionRequest::pending()->count()),
                 ],
                 'Comptes' => [
                     $navItem('administrators', 'admin.administrators.index', 'Administrateurs'),

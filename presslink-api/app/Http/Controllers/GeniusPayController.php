@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Permission;
+use App\Models\PaymentAttempt;
 use App\Models\SubscriptionRequest;
 use App\Support\GeniusPay;
 use Illuminate\Http\JsonResponse;
@@ -36,7 +37,11 @@ class GeniusPayController extends Controller
         $subscriptionRequest = $this->requestFor($transaction);
 
         if ($event['event'] !== 'payment.success') {
-            $subscriptionRequest?->forgetFailedOnlinePayment($transaction['reference'] ?? null);
+            $subscriptionRequest?->forgetFailedOnlinePayment(
+                $transaction['reference'] ?? null,
+                $event['event'] === 'payment.cancelled' ? PaymentAttempt::CANCELLED : PaymentAttempt::FAILED,
+                self::failureReason($transaction),
+            );
 
             return response()->json(['received' => true]);
         }
@@ -66,7 +71,15 @@ class GeniusPayController extends Controller
         if ($subscriptionRequest->isPending() && $subscriptionRequest->payment_reference) {
             $transaction = GeniusPay::findPayment($subscriptionRequest->payment_reference);
             if (in_array($transaction['status'] ?? null, ['failed', 'cancelled', 'expired'], true)) {
-                $subscriptionRequest->forgetFailedOnlinePayment($transaction['reference'] ?? $subscriptionRequest->payment_reference);
+                $subscriptionRequest->forgetFailedOnlinePayment(
+                    $transaction['reference'] ?? $subscriptionRequest->payment_reference,
+                    match ($transaction['status']) {
+                        'cancelled' => PaymentAttempt::CANCELLED,
+                        'expired' => PaymentAttempt::EXPIRED,
+                        default => PaymentAttempt::FAILED,
+                    },
+                    self::failureReason($transaction),
+                );
             } elseif ($transaction !== null) {
                 $subscriptionRequest->confirmOnlinePayment($transaction);
             }
@@ -104,5 +117,21 @@ class GeniusPayController extends Controller
         $id = $transaction['metadata']['subscription_request_id'] ?? null;
 
         return is_numeric($id) ? SubscriptionRequest::find((int) $id) : null;
+    }
+
+    /**
+     * Motif d'échec donné par GeniusPay, s'il y en a un (solde insuffisant…).
+     *
+     * @param  array<string, mixed>  $transaction
+     */
+    private static function failureReason(array $transaction): ?string
+    {
+        foreach (['failure_reason', 'error_message', 'status_message', 'message'] as $key) {
+            if (is_string($transaction[$key] ?? null) && trim($transaction[$key]) !== '') {
+                return trim($transaction[$key]);
+            }
+        }
+
+        return null;
     }
 }

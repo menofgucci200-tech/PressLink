@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
+use Throwable;
 
 /**
  * Demande faite par un pressing depuis sa page Abonnement : une option (une
@@ -188,6 +189,11 @@ class SubscriptionRequest extends Model
         });
 
         $this->refresh();
+
+        // Validée à la main par l'équipe avec un montant : un paiement de l'historique.
+        if ($byCurrentUser && $this->isPayment() && $this->paid_online_at === null) {
+            PaymentAttempt::recordManual($this);
+        }
     }
 
     /**
@@ -447,20 +453,36 @@ class SubscriptionRequest extends Model
             return $this->payment_checkout_url;
         }
 
+        // Le pressing change de moyen de paiement : la page précédente est abandonnée.
+        if ($this->hasOnlinePaymentInProgress() && $this->payment_reference) {
+            $this->forgetFailedOnlinePayment($this->payment_reference, PaymentAttempt::CANCELLED, 'Autre moyen de paiement choisi');
+        }
+
         $this->refreshPlanChangeAmount();
         $fee = self::paymentFeeFor($this->amount_fcfa, $method);
 
+        // Chaque tentative a sa référence PressLink, donnée aussi à GeniusPay.
+        $attempt = PaymentAttempt::startOnline($this, $method, $fee);
         $pressing = $this->pressing;
-        $transaction = GeniusPay::createPayment(array_filter([
-            'amount' => (int) $this->amount_fcfa + $fee,
-            'description' => mb_substr('PressLink · '.$pressing->name.' · '.$this->label(), 0, 500),
-            'external_reference' => 'presslink-demande-'.$this->id.'-'.now()->timestamp,
-            'success_url' => $returnUrl,
-            'error_url' => $returnUrl,
-            'payment_method' => $method,
-            'customer' => array_filter(['name' => $pressing->name, 'email' => $this->requester?->email, 'phone' => $phone ? PhoneNumber::normalize($phone) : null]),
-            'metadata' => ['subscription_request_id' => $this->id, 'pressing_id' => $pressing->id],
-        ]));
+
+        try {
+            $transaction = GeniusPay::createPayment(array_filter([
+                'amount' => (int) $this->amount_fcfa + $fee,
+                'description' => mb_substr('PressLink · '.$pressing->name.' · '.$this->label(), 0, 500),
+                'external_reference' => $attempt->reference,
+                'success_url' => $returnUrl,
+                'error_url' => $returnUrl,
+                'payment_method' => $method,
+                'customer' => array_filter(['name' => $pressing->name, 'email' => $this->requester?->email, 'phone' => $phone ? PhoneNumber::normalize($phone) : null]),
+                'metadata' => ['subscription_request_id' => $this->id, 'pressing_id' => $pressing->id, 'presslink_reference' => $attempt->reference],
+            ]));
+        } catch (Throwable $e) {
+            $attempt->markFailed(PaymentAttempt::FAILED, 'Page de paiement non créée par GeniusPay : '.$e->getMessage());
+
+            throw $e;
+        }
+
+        $attempt->update(['gateway_reference' => $transaction['reference'], 'environment' => $transaction['environment'] ?? GeniusPay::environment()]);
 
         // Mode direct : la page de l'opérateur (payment_url) ; sinon la page GeniusPay.
         $url = $transaction['payment_url'] ?? $transaction['checkout_url'];
@@ -477,11 +499,20 @@ class SubscriptionRequest extends Model
     }
 
     /**
-     * Paiement refusé, annulé ou expiré chez GeniusPay : sa page ne peut pas être
-     * réutilisée, le prochain « Payer » en ouvrira une nouvelle.
+     * Paiement refusé, annulé ou expiré chez GeniusPay : la tentative est notée
+     * dans l'historique (avec le motif), et sa page ne peut pas être réutilisée,
+     * le prochain « Payer » en ouvrira une nouvelle.
+     *
+     * @param  string  $status  PaymentAttempt::FAILED, CANCELLED ou EXPIRED
      */
-    public function forgetFailedOnlinePayment(?string $reference = null): void
+    public function forgetFailedOnlinePayment(?string $reference = null, string $status = PaymentAttempt::FAILED, ?string $reason = null): void
     {
+        $gatewayReference = $reference ?? $this->payment_reference;
+        if ($gatewayReference !== null) {
+            PaymentAttempt::where('gateway_reference', $gatewayReference)->where('status', PaymentAttempt::PENDING)
+                ->get()->each->markFailed($status, $reason);
+        }
+
         if ($this->paid_online_at !== null || ($reference !== null && $reference !== $this->payment_reference)) {
             return;
         }
@@ -516,6 +547,9 @@ class SubscriptionRequest extends Model
         $price = (int) $this->amount_fcfa;
         if ($paid < $price || $paid > $price + (int) ceil($price * self::MAX_PAYMENT_FEE_RATE / 100)) {
             Log::warning('GeniusPay : montant différent de la demande, paiement non activé.', ['request' => $this->id, 'amount' => $transaction['amount'] ?? null, 'expected' => $price]);
+            PaymentAttempt::where('gateway_reference', $transaction['reference'] ?? $this->payment_reference)->update([
+                'failure_reason' => 'Montant reçu ('.number_format($paid, 0, ',', ' ').' F) différent du prix : à vérifier par l\'équipe',
+            ]);
 
             return false;
         }
@@ -536,7 +570,7 @@ class SubscriptionRequest extends Model
         if (! isset($transaction['fees'], $transaction['net_amount']) && filled($transaction['reference'] ?? $this->payment_reference)) {
             try {
                 $transaction += GeniusPay::findPayment($transaction['reference'] ?? $this->payment_reference) ?? [];
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 Log::info('GeniusPay : frais du paiement non récupérés.', ['request' => $this->id, 'error' => $e->getMessage()]);
             }
         }
@@ -551,7 +585,37 @@ class SubscriptionRequest extends Model
             'net_received_fcfa' => isset($transaction['net_amount']) ? (int) $transaction['net_amount'] : $this->net_received_fcfa,
         ])->save();
 
+        $this->recordPaidAttempt($transaction, $environment);
+
         return $activated;
+    }
+
+    /**
+     * La tentative de ce paiement passe à « Payé » dans l'historique (même si un
+     * échec avait été noté avant : l'argent est reçu). Un paiement sans
+     * tentative connue (démarré avant l'historique) y est ajouté.
+     *
+     * @param  array<string, mixed>  $transaction
+     */
+    private function recordPaidAttempt(array $transaction, ?string $environment): void
+    {
+        $gatewayReference = $transaction['reference'] ?? $this->payment_reference;
+        $attempt = $gatewayReference !== null
+            ? PaymentAttempt::where('gateway_reference', $gatewayReference)->latest('id')->first()
+            : null;
+        $attempt ??= tap(PaymentAttempt::startOnline($this, $this->payment_method, (int) $this->payment_fee_fcfa))
+            ->update(['gateway_reference' => $gatewayReference]);
+
+        $attempt->update([
+            'status' => PaymentAttempt::PAID,
+            'payment_method' => $this->payment_method ?? $attempt->payment_method,
+            'paid_amount_fcfa' => $this->paid_amount_fcfa,
+            'gateway_fees_fcfa' => $this->gateway_fees_fcfa,
+            'net_received_fcfa' => $this->net_received_fcfa,
+            'environment' => $environment ?? $attempt->environment ?? GeniusPay::environment(),
+            'failure_reason' => null,
+            'completed_at' => $attempt->status === PaymentAttempt::PAID ? $attempt->completed_at : now(),
+        ]);
     }
 
     /** Payée et activée, avec un montant : une ligne de l'historique des paiements. */

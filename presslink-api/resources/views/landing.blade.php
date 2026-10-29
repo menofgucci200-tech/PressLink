@@ -112,7 +112,8 @@
                         Je suis client →
                     </a>
                 </div>
-                <p class="mt-5 text-sm text-[#94A3B8]">Mise en place avec l'équipe PressLink · Sur ordinateur, tablette ou téléphone · Appel ou WhatsApp : {{ $supportPhoneDisplay }}</p>
+                <p class="mt-4 text-sm text-[#CBD5E1]">Pas encore décidé ? <a href="{{ route('sandbox.start') }}" class="font-semibold text-white underline underline-offset-2 hover:no-underline">Tester avec un pressing fictif</a>, sans inscription.</p>
+                <p class="mt-3 text-sm text-[#94A3B8]">Mise en place avec l'équipe PressLink · Sur ordinateur, tablette ou téléphone · Appel ou WhatsApp : {{ $supportPhoneDisplay }}</p>
             </div>
 
             <div class="relative max-w-xl mx-auto w-full pb-10 lg:pb-0" aria-hidden="true">
@@ -322,6 +323,7 @@
                 <a href="{{ route('signup') }}" class="inline-flex items-center justify-center gap-2.5 min-h-13 py-2 px-6 rounded-xl bg-white text-(--color-primary-600) font-bold hover:bg-[#EFF6FF]">
                     {{ $offer ? 'Inscrire mon pressing gratuitement' : 'Inscrire mon pressing' }}
                 </a>
+                <a href="{{ route('sandbox.start') }}" class="inline-flex items-center justify-center h-13 px-6 rounded-xl border border-white/40 font-semibold hover:bg-white/10">Tester avec un pressing fictif</a>
                 <a href="{{ $join }}" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2.5 h-13 px-6 rounded-xl border border-white/40 font-semibold hover:bg-white/10">
                     <img src="{{ asset('images/whatsapp.png') }}" alt="" width="22" height="22" class="w-5.5 h-5.5 rounded-full">
                     Être accompagné sur WhatsApp

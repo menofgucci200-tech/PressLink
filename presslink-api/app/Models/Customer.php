@@ -4,7 +4,9 @@ namespace App\Models;
 
 use App\Actions\Auth\ResetPasswordToDefault;
 use App\Enums\Gender;
+use App\Support\PhoneNumber;
 use Database\Factories\CustomerFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -38,6 +40,7 @@ class Customer extends Authenticatable
         'first_name',
         'last_name',
         'phone',
+        'sandbox_pressing_id',
         'password',
         'must_change_password',
         'gender',
@@ -67,7 +70,41 @@ class Customer extends Authenticatable
             'email_notifications' => 'boolean',
             'is_active' => 'boolean',
             'must_change_password' => 'boolean',
+            'sandbox_pressing_id' => 'integer',
         ];
+    }
+
+    /**
+     * Clients du fichier d'un pressing : ses clients fictifs pour un pressing
+     * de test, les vrais clients sinon (voir Pressing::customerDirectoryId).
+     *
+     * @param  Builder<Customer>  $query
+     */
+    public function scopeInDirectoryOf(Builder $query, Pressing $pressing): void
+    {
+        $query->where('sandbox_pressing_id', $pressing->customerDirectoryId());
+    }
+
+    /**
+     * Vrais clients : ni les clients fictifs d'un pressing de test, ni ceux
+     * de la démo (numéros +225 00…). Pour l'application et la console.
+     *
+     * @param  Builder<Customer>  $query
+     */
+    public function scopeReal(Builder $query): void
+    {
+        $query->where('sandbox_pressing_id', 0)->where('phone', 'not like', PhoneNumber::DEMO_RANGE.'%');
+    }
+
+    /**
+     * Comptes que l'application client peut retrouver par numéro : tous sauf
+     * les clients fictifs des pressings de test.
+     *
+     * @param  Builder<Customer>  $query
+     */
+    public function scopeOutsideSandboxes(Builder $query): void
+    {
+        $query->where('sandbox_pressing_id', 0);
     }
 
     public function fullName(): string

@@ -306,6 +306,17 @@
                     @endif
                 @endif
 
+                @if ($pressing?->isSandbox())
+                    @php
+                        $sandboxLeft = now()->diff($pressing->sandbox_expires_at);
+                        $sandboxLeftLabel = $sandboxLeft->days >= 1 ? $sandboxLeft->days.' j '.$sandboxLeft->h.' h' : max(1, $sandboxLeft->h).' h';
+                    @endphp
+                    <div class="px-4 sm:px-6 lg:px-8 py-2 text-[13px] font-medium flex flex-wrap items-center gap-x-3 gap-y-1 bg-(--color-warning-tint) text-(--color-warning-text)" role="status" data-testid="sandbox-banner">
+                        <span><span class="font-bold">Pressing de test</span> : clients et commandes fictifs, aucun message n'est envoyé. Effacé dans {{ $sandboxLeftLabel }}.</span>
+                        <a href="{{ route('sandbox.convert') }}" class="font-semibold underline">Créer mon vrai compte</a>
+                    </div>
+                @endif
+
                 @if ($subscription?->isInTrial() && $subscription->trial_ends_at && $can(\App\Enums\Permission::SubscriptionManage) && ! in_array($active ?? null, ['subscription'], true))
                     @php $trialDaysLeft = max(0, (int) ceil(now()->diffInDays($subscription->trial_ends_at, false))); @endphp
                     <div @class([

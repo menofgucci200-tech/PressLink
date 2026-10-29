@@ -26,7 +26,7 @@ class UpdateCustomerPhoneRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'string', new IvorianPhone, Rule::unique('customers', 'phone')->ignore($this->user()->id)],
+            'phone' => ['required', 'string', new IvorianPhone, Rule::unique('customers', 'phone')->where('sandbox_pressing_id', 0)->ignore($this->user()->id)],
             'current_password' => ['required', 'string'],
         ];
     }

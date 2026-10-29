@@ -1,6 +1,6 @@
 @php
     $isSuspended = $pressing && $pressing->status === \App\Enums\PressingStatus::Suspended;
-    $isOpen = $pressing && ! $isSuspended && $pressing->isOpenNow();
+    $isOpen = $pressing && ! $isSuspended && $pressing->acceptsCustomers(); // la démo et les tests restent ouverts
     $isExceptional = $isOpen && $pressing->isExceptionallyOpen();
     $statusLabel = $isSuspended ? 'Suspendu' : ($isExceptional ? 'Ouvert (exceptionnel)' : ($isOpen ? 'Ouvert' : 'Fermé'));
     $statusBg = $isSuspended ? 'bg-(--color-error-tint)' : ($isExceptional ? 'bg-(--color-warning-tint)' : ($isOpen ? 'bg-(--color-success-tint)' : 'bg-(--color-bg)'));

@@ -95,7 +95,8 @@ class Index extends Component
      */
     public static function filteredQuery(array $filters): Builder
     {
-        $query = Pressing::query()
+        // Les pressings de test des visiteurs ont leur propre encart (vue globale).
+        $query = Pressing::withoutSandboxes()
             ->with('subscription')
             ->withCount(['staff', 'customers', 'orders'])
             ->withCount(['orders as recent_orders_count' => fn ($q) => $q->where('created_at', '>=', now()->subDays(self::RECENT_DAYS))])
@@ -144,7 +145,7 @@ class Index extends Component
             'statusCounts' => Pressing::withoutDemo()->selectRaw('status, COUNT(*) as aggregate')->groupBy('status')->pluck('aggregate', 'status'),
             'subscriptionCounts' => Pressing::withoutDemo()->join('subscriptions', 'subscriptions.pressing_id', '=', 'pressings.id')
                 ->selectRaw('subscriptions.status, COUNT(*) as aggregate')->groupBy('subscriptions.status')->pluck('aggregate', 'status'),
-            'cities' => Pressing::whereNotNull('city')->distinct()->orderBy('city')->pluck('city'),
+            'cities' => Pressing::withoutSandboxes()->whereNotNull('city')->distinct()->orderBy('city')->pluck('city'),
             'subscriptionStatuses' => SubscriptionStatus::cases(),
             'hasFilters' => collect($this->filters())->except('sort')->filter()->isNotEmpty() || $this->sort !== 'recent',
         ]);

@@ -122,7 +122,7 @@ class Index extends Component
         $this->validate([
             'form.first_name' => ['required', 'string', 'max:100'],
             'form.last_name' => ['required', 'string', 'max:100'],
-            'form.phone' => ['required', 'string', new IvorianPhone, Rule::unique('customers', 'phone')->ignore($editing?->id)],
+            'form.phone' => ['required', 'string', new IvorianPhone, Rule::unique('customers', 'phone')->where('sandbox_pressing_id', 0)->ignore($editing?->id)],
             'form.email' => ['nullable', 'email', 'max:255'],
             'form.pressing_id' => ['nullable', 'integer', 'exists:pressings,id'],
         ], [
@@ -255,7 +255,8 @@ class Index extends Component
     {
         $activeSince = now()->subDays(self::ACTIVE_WITHIN_DAYS);
 
-        $query = Customer::query()
+        // Les clients fictifs des pressings de test n'apparaissent jamais dans la console.
+        $query = Customer::outsideSandboxes()
             ->with('pressings:id,name')
             ->withCount(['pressings', 'orders'])
             ->withSum(['orders as total_spent' => fn ($q) => $q->where('status', '!=', OrderStatus::Annulee->value)], 'total_fcfa')
@@ -308,15 +309,15 @@ class Index extends Component
         return view('livewire.admin.clients.index', [
             'customers' => self::filteredQuery($this->filters())->paginate(20),
             'summary' => [
-                'total' => Customer::count(),
-                'new' => Customer::where('created_at', '>=', $activeSince)->count(),
-                'active' => Customer::whereHas('orders', fn ($q) => $q->where('created_at', '>=', $activeSince))->count(),
-                'never' => Customer::whereDoesntHave('orders')->count(),
-                'disabled' => Customer::where('is_active', false)->count(),
+                'total' => Customer::real()->count(),
+                'new' => Customer::real()->where('created_at', '>=', $activeSince)->count(),
+                'active' => Customer::real()->whereHas('orders', fn ($q) => $q->where('created_at', '>=', $activeSince))->count(),
+                'never' => Customer::real()->whereDoesntHave('orders')->count(),
+                'disabled' => Customer::real()->where('is_active', false)->count(),
             ],
-            'pressings' => Pressing::orderBy('name')->get(['id', 'name']),
+            'pressings' => Pressing::withoutSandboxes()->orderBy('name')->get(['id', 'name']),
             'selectedCustomer' => $this->selectedCustomerId
-                ? Customer::withCount('orders')
+                ? Customer::outsideSandboxes()->withCount('orders')
                     ->withSum(['orders as total_spent' => fn ($q) => $q->where('status', '!=', OrderStatus::Annulee->value)], 'total_fcfa')
                     ->with([
                         'pressings' => fn ($q) => $q->orderByPivot('joined_at', 'desc'),

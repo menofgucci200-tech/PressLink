@@ -215,7 +215,7 @@ class Create extends Component
 
         $this->validate(['newPhone' => ['required', 'string', new IvorianPhone]]);
 
-        $known = Customer::where('phone', $this->newPhone)->first();
+        $known = Customer::inDirectoryOf($pressing)->where('phone', $this->newPhone)->first();
 
         if ($known !== null) {
             // Déjà dans le fichier de ce pressing : on le choisit directement.
@@ -239,6 +239,7 @@ class Create extends Component
         $customer = DB::transaction(function () use ($pressing) {
             $customer = Customer::create([
                 'phone' => $this->newPhone,
+                'sandbox_pressing_id' => $pressing->customerDirectoryId(),
                 'first_name' => $this->newFirstName,
                 'last_name' => $this->newLastName,
             ]);
@@ -262,7 +263,7 @@ class Create extends Component
         }
 
         // Le client confirmé doit être celui du numéro saisi (jamais un autre id).
-        $customer = Customer::whereKey($this->knownCustomerId)->where('phone', PhoneNumber::normalize($this->newPhone))->firstOrFail();
+        $customer = Customer::inDirectoryOf($this->pressing())->whereKey($this->knownCustomerId)->where('phone', PhoneNumber::normalize($this->newPhone))->firstOrFail();
         $this->pressing()->customers()->syncWithoutDetaching([$customer->id => ['joined_at' => now()]]);
 
         $this->pickCreatedCustomer($customer);

@@ -2,7 +2,13 @@
 
 namespace App\Livewire\Auth;
 
+use App\Actions\Group\SyncCatalog;
 use App\Actions\Pressings\SignUpPressing;
+use App\Actions\Sandbox\DeleteSandbox;
+use App\Models\ActivityLog;
+use App\Models\Pressing;
+use App\Models\SandboxTrial;
+use App\Models\User;
 use App\Rules\IvorianPhone;
 use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\Auth;
@@ -10,12 +16,17 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
  * Inscription d'un pressing depuis le site, en deux étapes : le pressing,
  * puis le compte du gérant. Le compte est créé avec un essai gratuit et le
  * gérant arrive connecté sur son tableau de bord.
+ *
+ * Depuis un pressing de test (route sandbox.convert), le formulaire est
+ * pré-rempli : le vrai pressing reprend les articles et les prix du test,
+ * puis le pressing de test et ses données fictives sont supprimés.
  */
 class PressingSignup extends Component
 {
@@ -44,6 +55,30 @@ class PressingSignup extends Component
 
     /** Champ invisible : rempli seulement par les robots. */
     public string $website = '';
+
+    /** Pressing de test d'où vient le visiteur (création du vrai compte depuis le test). */
+    #[Locked]
+    public ?int $sandboxPressingId = null;
+
+    public function mount(): void
+    {
+        if (! auth()->check()) {
+            return;
+        }
+
+        $sandbox = auth()->user()->currentPressing();
+        if ($sandbox === null || ! $sandbox->isSandbox()) {
+            $this->redirectRoute('dashboard', navigate: true);
+
+            return;
+        }
+
+        $contact = SandboxTrial::where('pressing_id', $sandbox->id)->value('contact_phone');
+        $this->sandboxPressingId = $sandbox->id;
+        $this->pressingName = $sandbox->name;
+        $this->pressingPhone = $contact ? PhoneNumber::national($contact) : '';
+        $this->ownerPhone = $this->pressingPhone;
+    }
 
     public function next(): void
     {
@@ -84,11 +119,42 @@ class PressingSignup extends Component
             'password' => $this->password,
         ]);
 
+        $fromSandbox = $this->sandboxPressingId !== null && $this->convertSandbox($owner);
+
         Auth::login($owner, remember: true);
+        session()->forget('active_pressing_id');
         session()->regenerate();
-        session()->flash('toast', ['type' => 'success', 'message' => 'Bienvenue sur PressLink ! Votre pressing est prêt : suivez le guide de démarrage.']);
+        session()->flash('toast', ['type' => 'success', 'message' => $fromSandbox
+            ? 'Bienvenue sur PressLink ! Votre pressing est prêt, avec les articles et les prix de votre test.'
+            : 'Bienvenue sur PressLink ! Votre pressing est prêt : suivez le guide de démarrage.']);
 
         $this->redirect(route('dashboard'), navigate: false);
+    }
+
+    /**
+     * Le vrai pressing reprend les articles et les prix du test ; le test est
+     * noté « devenu client », puis le pressing de test et ses données fictives
+     * (clients, commandes, comptes de test) sont supprimés.
+     */
+    private function convertSandbox(User $owner): bool
+    {
+        $sandbox = Pressing::find($this->sandboxPressingId);
+        if ($sandbox === null || ! $sandbox->isSandbox() || ! auth()->user()?->belongsToPressing($sandbox)) {
+            return false;
+        }
+
+        $pressing = $owner->pressings()->firstOrFail();
+        // Le journal du nouveau pressing démarre propre : pas de trace « repris du test ».
+        ActivityLog::withoutLogging(fn () => app(SyncCatalog::class)->handle($sandbox, $pressing));
+
+        SandboxTrial::where('pressing_id', $sandbox->id)->update([
+            'converted_pressing_id' => $pressing->id,
+            'converted_at' => now(),
+        ]);
+
+        app(DeleteSandbox::class)->handle($sandbox);
+
+        return true;
     }
 
     /** Les numéros sont vérifiés au format international ; les champs gardent la saisie. */

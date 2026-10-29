@@ -232,7 +232,7 @@ class OpeningHoursTest extends TestCase
 
     public function test_the_demo_pressing_stays_open_at_any_hour(): void
     {
-        $this->pressing->update(['code' => ResetDemoPressing::PRESSING_CODE]);
+        $this->pressing->update(['code' => ResetDemoPressing::PRESSING_CODE, 'is_demo' => true]);
         $this->closeShop();
 
         $this->assertTrue($this->pressing->acceptsCustomers());

@@ -38,6 +38,11 @@ abstract class OrderNotification extends Notification implements ShouldQueueAfte
      */
     public function via(mixed $notifiable): array
     {
+        // Pressing de test : clients fictifs, rien ne part (ni push, ni e-mail).
+        if ($this->order->pressing?->isSandbox()) {
+            return [];
+        }
+
         $channels = ['database', OneSignalChannel::class];
 
         if ($this->sendsEmail() && method_exists($notifiable, 'wantsOrderEmails') && $notifiable->wantsOrderEmails()) {

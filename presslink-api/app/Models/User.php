@@ -9,6 +9,7 @@ use App\Enums\PressingRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -255,6 +256,16 @@ class User extends Authenticatable
      * ce qui garde le comportement mono-pressing transparent pour un
      * membre du staff qui n'a qu'un seul pressing.
      */
+    /**
+     * Exclut les comptes des pressings de test (gérant et équipe fictifs).
+     *
+     * @param  Builder<User>  $query
+     */
+    public function scopeOutsideSandboxes(Builder $query): void
+    {
+        $query->whereDoesntHave('pressings', fn (Builder $q) => $q->whereNotNull('sandbox_expires_at'));
+    }
+
     public function currentPressing(): ?Pressing
     {
         $activeId = session('active_pressing_id');

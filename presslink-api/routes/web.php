@@ -11,6 +11,7 @@ use App\Http\Controllers\PublicReceiptController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SitePageController;
 use App\Http\Middleware\EnsureUserHasPressing;
+use App\Http\Middleware\HandleSandboxPressing;
 use App\Livewire\Account\Settings as AccountSettings;
 use App\Livewire\Activity\Index as ActivityIndex;
 use App\Livewire\Admin\Administrators\Index as AdminAdministratorsIndex;
@@ -29,6 +30,7 @@ use App\Livewire\Admin\Users\Index as AdminUsersIndex;
 use App\Livewire\Auth\AdminLogin;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\PressingSignup;
+use App\Livewire\Auth\SandboxStart;
 use App\Livewire\Cash\Index as CashIndex;
 use App\Livewire\Clients\Index as ClientsIndex;
 use App\Livewire\Clients\Show as ClientsShow;
@@ -95,11 +97,15 @@ Route::get('/emails/desabonnement/{customer}', function (Customer $customer) {
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');
     Route::get('/inscription', PressingSignup::class)->name('signup');
+    // « Découvrir avec un pressing fictif » : test de quelques jours, données fictives.
+    Route::get('/tester', SandboxStart::class)->name('sandbox.start');
     Route::get('/admin/connexion', AdminLogin::class)->name('admin.login');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', HandleSandboxPressing::class])->group(function () {
     Route::get('/tableau-de-bord', Dashboard::class)->name('dashboard');
+    // Depuis un pressing de test : créer son vrai compte en gardant ses articles et ses prix.
+    Route::get('/test/creer-mon-compte', PressingSignup::class)->name('sandbox.convert');
 
     Route::get('/vue-ensemble', function () {
         session()->forget('active_pressing_id');

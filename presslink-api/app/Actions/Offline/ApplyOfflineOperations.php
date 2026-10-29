@@ -185,12 +185,13 @@ class ApplyOfflineOperations
         )->validate();
 
         // Même numéro déjà connu (créé ailleurs entre-temps) : une seule fiche.
-        $customer = Customer::where('phone', $phone)->first();
+        $customer = Customer::inDirectoryOf($pressing)->where('phone', $phone)->first();
         $merged = $customer !== null;
 
         DB::transaction(function () use (&$customer, $pressing, $phone, $operation) {
             $customer ??= Customer::create([
                 'phone' => $phone,
+                'sandbox_pressing_id' => $pressing->customerDirectoryId(),
                 'first_name' => trim((string) $operation['first_name']),
                 'last_name' => trim((string) $operation['last_name']),
             ]);

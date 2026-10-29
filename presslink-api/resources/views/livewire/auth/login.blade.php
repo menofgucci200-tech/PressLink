@@ -44,6 +44,7 @@
 
             <div class="mt-8 rounded-xl border border-(--color-border) bg-(--color-surface) lg:bg-(--color-bg) p-4 text-sm text-(--color-text-secondary)">
                 Pas encore de compte ? <a href="{{ route('signup') }}" class="font-semibold text-(--color-primary) hover:underline">Inscrire mon pressing gratuitement</a>
+                <span class="block mt-1">Envie de voir d'abord ? <a href="{{ route('sandbox.start') }}" class="font-semibold text-(--color-primary) hover:underline">Tester avec un pressing fictif</a></span>
                 <span class="block mt-1">Mot de passe oublié ? <a href="{{ route('site.contact') }}" class="font-semibold text-(--color-primary) hover:underline">Contactez PressLink</a> ou demandez à l'administrateur de votre pressing.</span>
             </div>
 

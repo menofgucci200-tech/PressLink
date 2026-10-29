@@ -13,6 +13,7 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderIssue;
 use App\Models\Pressing;
+use App\Models\SandboxTrial;
 use App\Models\Subscription;
 use App\Models\SubscriptionRequest;
 use App\Models\User;
@@ -170,6 +171,14 @@ class Dashboard extends Component
             'administrators' => User::whereHas('pressings', fn ($q) => $q->withoutDemo()->where('pressing_users.role', 'admin')
                 ->where('pressing_users.is_active', true))->orderBy('name')->get(),
             'demoExists' => ResetDemoPressing::exists(),
+            'sandboxTrials' => [
+                'startedThisWeek' => SandboxTrial::where('created_at', '>=', now()->subDays(7))->count(),
+                'convertedThisWeek' => SandboxTrial::where('converted_at', '>=', now()->subDays(7))->count(),
+                'running' => SandboxTrial::whereNull('converted_at')->whereNotNull('pressing_id')->where('expires_at', '>', now())->count(),
+                'total' => SandboxTrial::count(),
+                'convertedTotal' => SandboxTrial::whereNotNull('converted_at')->count(),
+                'recent' => SandboxTrial::with('convertedPressing:id,name')->latest()->orderByDesc('id')->take(10)->get(),
+            ],
         ]);
     }
 

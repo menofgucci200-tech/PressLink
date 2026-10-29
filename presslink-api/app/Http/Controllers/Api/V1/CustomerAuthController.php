@@ -25,7 +25,7 @@ class CustomerAuthController extends Controller
 {
     public function checkPhone(CheckPhoneRequest $request): JsonResponse
     {
-        $customer = Customer::where('phone', $request->string('phone')->toString())->first();
+        $customer = Customer::outsideSandboxes()->where('phone', $request->string('phone')->toString())->first();
 
         // Compte ouvert par un pressing, en attente du client.
         if ($customer !== null && ! $customer->hasAppAccount()) {
@@ -46,7 +46,7 @@ class CustomerAuthController extends Controller
 
     public function login(LoginCustomerRequest $request): JsonResponse
     {
-        $customer = Customer::where('phone', $request->string('phone')->toString())->first();
+        $customer = Customer::outsideSandboxes()->where('phone', $request->string('phone')->toString())->first();
 
         if ($customer === null || ! Hash::check($request->string('password')->toString(), $customer->password)) {
             return response()->json([
@@ -83,7 +83,7 @@ class CustomerAuthController extends Controller
         // Un pressing l'a déjà enregistré : il réclame ce compte (et ses
         // commandes). Les informations qu'il confirme l'emportent sur celles
         // saisies par le pressing.
-        $pending = Customer::where('phone', $request->string('phone')->toString())->whereNull('password')->first();
+        $pending = Customer::outsideSandboxes()->where('phone', $request->string('phone')->toString())->whereNull('password')->first();
 
         if ($pending !== null && ! $pending->is_active) {
             return response()->json(['message' => EnsureCustomerIsActive::MESSAGE], 403);

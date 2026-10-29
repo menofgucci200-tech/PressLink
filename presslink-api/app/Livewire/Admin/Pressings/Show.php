@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Pressings;
 
 use App\Actions\Auth\ResetPasswordToDefault;
+use App\Actions\Pressings\ErasePressingData;
 use App\Enums\ActivityAction;
 use App\Enums\Feature;
 use App\Enums\PressingRole;
@@ -66,6 +67,12 @@ class Show extends Component
 
     /** Code du pressing ressaisi pour confirmer la suppression. */
     public string $deleteConfirmation = '';
+
+    /** @var list<string> données à effacer (clés de ErasePressingData::PARTS) */
+    public array $eraseParts = [];
+
+    /** Code du pressing ressaisi pour confirmer l'effacement de données. */
+    public string $eraseConfirmation = '';
 
     public function mount(Pressing $pressing): void
     {
@@ -152,6 +159,32 @@ class Show extends Component
 
         $this->flashToast("Le pressing « {$name} » a été supprimé.");
         $this->redirectRoute('admin.pressings.index', navigate: true);
+    }
+
+    /**
+     * Efface une partie des données du pressing (commandes, clients, caisse,
+     * articles, journal) en gardant le pressing, son équipe et son abonnement.
+     */
+    public function eraseData(ErasePressingData $erase): void
+    {
+        abort_unless(auth()->user()->is_super_admin, 403);
+
+        $this->validate(['eraseParts' => ['required', 'array', 'min:1'], 'eraseParts.*' => [Rule::in(array_keys(ErasePressingData::PARTS))]], [
+            'eraseParts.required' => 'Cochez au moins un type de données à effacer.',
+            'eraseParts.min' => 'Cochez au moins un type de données à effacer.',
+        ]);
+
+        if (trim($this->eraseConfirmation) !== $this->pressing->code) {
+            $this->addError('eraseConfirmation', 'Saisissez exactement le code '.$this->pressing->code.' pour confirmer.');
+
+            return;
+        }
+
+        $counts = $erase->handle($this->pressing, $this->eraseParts);
+        $this->reset(['eraseParts', 'eraseConfirmation']);
+
+        $summary = collect($counts)->map(fn (int $count, string $part) => "{$count} {$part}")->implode(', ');
+        $this->toast("Données effacées : {$summary}.");
     }
 
     public function resetStaffPassword(int $userId): void

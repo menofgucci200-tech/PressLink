@@ -25,7 +25,7 @@ class RegisterCustomerRequest extends FormRequest
     {
         return [
             // Un compte ouvert par un pressing (sans mot de passe) peut être réclamé.
-            'phone' => ['required', 'string', new IvorianPhone, Rule::unique('customers', 'phone')->whereNotNull('password')],
+            'phone' => ['required', 'string', new IvorianPhone, Rule::unique('customers', 'phone')->where('sandbox_pressing_id', 0)->whereNotNull('password')],
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'gender' => ['required', Rule::enum(Gender::class)],
@@ -37,7 +37,7 @@ class RegisterCustomerRequest extends FormRequest
     /** Compte ouvert par un pressing pour ce numéro, s'il existe. */
     private function pendingCustomerId(): ?int
     {
-        return Customer::where('phone', (string) $this->input('phone'))->whereNull('password')->value('id');
+        return Customer::outsideSandboxes()->where('phone', (string) $this->input('phone'))->whereNull('password')->value('id');
     }
 
     public function messages(): array

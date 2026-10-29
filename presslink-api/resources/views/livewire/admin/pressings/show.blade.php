@@ -324,6 +324,54 @@
         @endif
     </div>
 
+    {{-- Effacer des données (données d'essai saisies avant le vrai démarrage…) sans supprimer le pressing --}}
+    @php
+        $eraseCounts = [
+            \App\Actions\Pressings\ErasePressingData::ORDERS => $pressing->orders_count,
+            \App\Actions\Pressings\ErasePressingData::CUSTOMERS => $pressing->customers_count,
+            \App\Actions\Pressings\ErasePressingData::CATALOG => $pressing->services_count,
+        ];
+    @endphp
+    <div class="mt-6 border border-(--color-warning-text)/25 rounded-xl p-5" x-data="{ open: @js($errors->has('eraseParts') || $errors->has('eraseConfirmation')) }" data-testid="erase-data">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="max-w-xl">
+                <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-warning-text) mb-1">Effacer des données</div>
+                <p class="text-sm text-(--color-text-secondary)">
+                    Par exemple les commandes et les clients d'essai saisis avant le vrai démarrage. Le pressing, son équipe, ses réglages et son abonnement restent ;
+                    l'effacement est définitif et inscrit au journal du pressing.
+                </p>
+            </div>
+            <button type="button" @click="open = !open" class="h-9 px-3.5 rounded-lg border border-(--color-warning-text)/30 text-sm font-semibold text-(--color-warning-text) hover:bg-(--color-warning-tint)">Choisir les données…</button>
+        </div>
+        <form novalidate x-show="open" x-cloak wire:submit="eraseData" class="mt-4 space-y-4">
+            <fieldset class="grid gap-2 sm:grid-cols-2">
+                <legend class="sr-only">Données à effacer</legend>
+                @foreach (\App\Actions\Pressings\ErasePressingData::PARTS as $part => $partLabel)
+                    <label class="flex items-start gap-2.5 rounded-lg border border-(--color-border) px-3 py-2.5 text-sm cursor-pointer hover:border-(--color-warning-text)/40">
+                        <input type="checkbox" wire:model="eraseParts" value="{{ $part }}" class="mt-0.5 w-4 h-4 rounded border-(--color-border)">
+                        <span>
+                            {{ $partLabel }}
+                            @isset($eraseCounts[$part]) <span class="text-(--color-text-muted) tabular-nums">· {{ $eraseCounts[$part] }}</span> @endisset
+                            @if ($part === \App\Actions\Pressings\ErasePressingData::CUSTOMERS)
+                                <span class="block text-xs text-(--color-text-muted)">Efface aussi leurs commandes. Un client présent ailleurs ou inscrit dans l'application garde son compte.</span>
+                            @endif
+                        </span>
+                    </label>
+                @endforeach
+            </fieldset>
+            @error('eraseParts') <p class="text-xs text-(--color-error)">{{ $message }}</p> @enderror
+            <div class="flex flex-wrap items-start gap-3">
+                <div>
+                    <input type="text" wire:model="eraseConfirmation" placeholder="Saisissez {{ $pressing->code }}" autocomplete="off" aria-label="Code du pressing pour confirmer"
+                           class="h-10 px-3 rounded-lg border border-(--color-border) text-sm font-mono focus:outline-none focus:border-(--color-warning-text)">
+                    @error('eraseConfirmation') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
+                </div>
+                <button type="submit" wire:loading.attr="disabled" wire:target="eraseData"
+                        class="h-10 px-4 rounded-lg border border-(--color-warning-text)/40 bg-(--color-warning-tint) text-(--color-warning-text) text-sm font-semibold hover:brightness-95 disabled:opacity-60">Effacer définitivement</button>
+            </div>
+        </form>
+    </div>
+
     <div class="mt-6 border border-(--color-error)/30 rounded-xl p-5" x-data="{ open: false }">
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div class="max-w-xl">

@@ -21,6 +21,7 @@
                         Consulter nos offres
                     </a>
                 </div>
+                <p class="mt-4 text-sm text-slate-300">Pas encore décidé ? <a href="{{ route('sandbox.start') }}" class="font-semibold text-white underline underline-offset-2 hover:no-underline">Tester avec un pressing fictif</a>, sans inscription.</p>
             </div>
             <ul class="grid sm:grid-cols-2 gap-3" data-motion="cascade">
                 @foreach (\App\Support\PlanCatalog::ESSENTIALS as $feature)

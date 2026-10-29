@@ -88,7 +88,7 @@ class Index extends Component
         $term = trim($this->search);
 
         if ($this->type === 'customers') {
-            return Customer::query()
+            return Customer::outsideSandboxes()
                 ->with('pressings:id,name')
                 ->when($term !== '', fn ($q) => $q->where(fn ($q) => $q->where('first_name', 'like', "%{$term}%")
                     ->orWhere('last_name', 'like', "%{$term}%")
@@ -99,7 +99,7 @@ class Index extends Component
                 ->paginate(20);
         }
 
-        return User::query()
+        return User::outsideSandboxes()
             ->where('is_super_admin', $this->type === 'admins')
             ->with('pressings:id,name')
             ->when($term !== '', fn ($q) => $q->where(fn ($q) => $q->where('name', 'like', "%{$term}%")
@@ -117,13 +117,13 @@ class Index extends Component
         return view('livewire.admin.users.index', [
             'accounts' => $this->accounts(),
             'counts' => [
-                'staff' => User::where('is_super_admin', false)->count(),
-                'customers' => Customer::count(),
+                'staff' => User::outsideSandboxes()->where('is_super_admin', false)->count(),
+                'customers' => Customer::outsideSandboxes()->count(),
                 'admins' => User::where('is_super_admin', true)->count(),
             ],
             'mustChangeCount' => $this->type === 'customers'
-                ? Customer::where('must_change_password', true)->count()
-                : User::where('is_super_admin', $this->type === 'admins')->where('must_change_password', true)->count(),
+                ? Customer::outsideSandboxes()->where('must_change_password', true)->count()
+                : User::outsideSandboxes()->where('is_super_admin', $this->type === 'admins')->where('must_change_password', true)->count(),
             'defaultPassword' => ResetPasswordToDefault::DEFAULT_PASSWORD,
         ]);
     }

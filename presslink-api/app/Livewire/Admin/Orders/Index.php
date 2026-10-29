@@ -103,7 +103,8 @@ class Index extends Component
      */
     public static function filteredQuery(array $filters, bool $withStatus = true): Builder
     {
-        $query = Order::query();
+        // Ni la démo ni les pressings de test : leurs commandes sont fictives.
+        $query = Order::query()->whereIn('pressing_id', Pressing::withoutDemo()->select('id'));
 
         if ($term = trim((string) ($filters['search'] ?? ''))) {
             $query->where(fn ($q) => $q->where('order_number', 'like', "%{$term}%")
@@ -176,7 +177,7 @@ class Index extends Component
             'volume' => (int) (clone $filtered)->where('status', '!=', OrderStatus::Annulee->value)->sum('total_fcfa'),
             'statusCounts' => $statusCounts,
             'statuses' => OrderStatus::cases(),
-            'pressings' => Pressing::orderBy('name')->get(['id', 'name']),
+            'pressings' => Pressing::withoutDemo()->orderBy('name')->get(['id', 'name']),
             'selectedOrder' => $this->selectedOrderId
                 ? Order::with([
                     'pressing:id,name,code,phone',

@@ -49,7 +49,7 @@ class Index extends Component
         abort_unless(auth()->user()->is_super_admin, 403);
 
         if ($this->pressingId === '' || Pressing::find((int) $this->pressingId) === null) {
-            $this->pressingId = (string) (Pressing::orderBy('name')->value('id') ?? '');
+            $this->pressingId = (string) (Pressing::withoutSandboxes()->orderBy('name')->value('id') ?? '');
         }
     }
 
@@ -123,7 +123,7 @@ class Index extends Component
             ActivityLog::record($pressing->id, ActivityAction::RolesChanged, "Rôle « {$role->name} » modifié par l'équipe PressLink (".count($permissions).' accès)');
             $this->toast("Rôle « {$role->name} » enregistré.");
         } else {
-            $targets = $this->applyToAll ? Pressing::orderBy('name')->get() : collect([$pressing]);
+            $targets = $this->applyToAll ? Pressing::withoutSandboxes()->orderBy('name')->get() : collect([$pressing]);
             $created = 0;
 
             foreach ($targets as $target) {
@@ -204,7 +204,7 @@ class Index extends Component
         $members = $pressing?->staff()->orderBy('name')->get() ?? collect();
 
         return view('livewire.admin.roles.index', [
-            'pressings' => Pressing::orderBy('name')->get(['id', 'name']),
+            'pressings' => Pressing::withoutSandboxes()->orderBy('name')->get(['id', 'name']),
             'pressing' => $pressing,
             'roles' => $roles,
             'members' => $members,

@@ -94,7 +94,7 @@ class Index extends Component
         abort_unless(ServiceIcons::has('service', $this->icon), 422);
 
         $pressings = $this->target === 'all'
-            ? Pressing::all()
+            ? Pressing::withoutSandboxes()->get()
             : Pressing::whereIn('id', array_map('intval', $this->pressingIds))->get();
 
         $created = $reactivated = $already = 0;
@@ -153,7 +153,7 @@ class Index extends Component
     {
         return view('livewire.admin.services.index', [
             'catalog' => $this->catalog(),
-            'pressings' => Pressing::orderBy('name')->get(['id', 'name']),
+            'pressings' => Pressing::withoutSandboxes()->orderBy('name')->get(['id', 'name']),
             'icons' => ServiceIcons::options('service'),
         ]);
     }

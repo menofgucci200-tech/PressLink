@@ -326,6 +326,49 @@
         @endif
     </div>
 
+    {{-- Tests découverte : pressings fictifs lancés depuis le site (hors statistiques) --}}
+    <div class="mt-8 bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden" data-testid="sandbox-trials">
+        <div class="flex flex-wrap items-start justify-between gap-4 px-5 py-4 border-b border-(--color-border)">
+            <div class="max-w-2xl">
+                <h2 class="font-semibold text-sm">Tests découverte</h2>
+                <p class="text-sm text-(--color-text-secondary) mt-0.5">Pressings fictifs lancés depuis la page « Tester » ({{ \App\Actions\Sandbox\StartSandbox::DAYS }} jours, effacés ensuite). Ils n'entrent dans aucun chiffre ci-dessus.</p>
+            </div>
+            <dl class="flex gap-6 text-sm">
+                <div><dt class="text-(--color-text-muted)">Lancés (7 j)</dt><dd class="font-display text-xl font-bold tabular-nums">{{ $sandboxTrials['startedThisWeek'] }}</dd></div>
+                <div><dt class="text-(--color-text-muted)">Devenus clients (7 j)</dt><dd class="font-display text-xl font-bold tabular-nums text-(--color-success-text)">{{ $sandboxTrials['convertedThisWeek'] }}</dd></div>
+                <div><dt class="text-(--color-text-muted)">En cours</dt><dd class="font-display text-xl font-bold tabular-nums">{{ $sandboxTrials['running'] }}</dd></div>
+                <div><dt class="text-(--color-text-muted)">Depuis le début</dt><dd class="font-display text-xl font-bold tabular-nums">{{ $sandboxTrials['convertedTotal'] }}<span class="text-sm font-medium text-(--color-text-muted)"> / {{ $sandboxTrials['total'] }}</span></dd></div>
+            </dl>
+        </div>
+        @if ($sandboxTrials['recent']->isEmpty())
+            <div class="px-5 py-10 text-center text-sm text-(--color-text-muted)">Aucun test lancé pour l'instant.</div>
+        @else
+            <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
+                <thead class="text-left text-xs text-(--color-text-muted)">
+                    <tr><th class="px-5 py-2.5 font-medium">Pressing</th><th class="px-5 py-2.5 font-medium">WhatsApp</th><th class="px-5 py-2.5 font-medium">Lancé le</th><th class="px-5 py-2.5 font-medium text-right">Statut</th></tr>
+                </thead>
+                <tbody>
+                    @foreach ($sandboxTrials['recent'] as $trial)
+                        <tr class="border-t border-(--color-border)">
+                            <td class="px-5 py-3 font-medium">{{ $trial->pressing_name }}</td>
+                            <td class="px-5 py-3">
+                                <a href="https://wa.me/{{ ltrim($trial->contact_phone, '+') }}" target="_blank" rel="noopener" class="tabular-nums text-(--color-primary) hover:underline">{{ \App\Support\PhoneNumber::format($trial->contact_phone) }}</a>
+                            </td>
+                            <td class="px-5 py-3 text-(--color-text-secondary)">{{ $trial->created_at->format('d/m/Y H:i') }}</td>
+                            <td class="px-5 py-3 text-right">
+                                @if ($trial->isConverted() && $trial->convertedPressing)
+                                    <a href="{{ route('admin.pressings.show', $trial->convertedPressing) }}" wire:navigate class="text-xs font-semibold text-(--color-success-text) hover:underline">Devenu client · {{ $trial->convertedPressing->name }}</a>
+                                @else
+                                    <span @class(['text-xs font-medium', 'text-(--color-success-text)' => $trial->isConverted(), 'text-(--color-info)' => $trial->isRunning(), 'text-(--color-text-muted)' => ! $trial->isConverted() && ! $trial->isRunning()])>{{ $trial->statusLabel() }}</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table></div>
+        @endif
+    </div>
+
     {{-- Environnement de démo (comptes fictifs en production pour les démonstrations) --}}
     <div class="mt-8 bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
         <div class="flex flex-wrap items-start justify-between gap-4">

@@ -103,8 +103,8 @@ class Index extends Component
 
         return view('livewire.admin.administrators.index', [
             'administrators' => $query->orderBy('name')->paginate(20),
-            'pressings' => Pressing::orderBy('name')->get(),
-            'pressingsWithoutAdmin' => Pressing::whereDoesntHave('staff', fn ($q) => $q->where('pressing_users.role', PressingRole::Admin->value)
+            'pressings' => Pressing::withoutSandboxes()->orderBy('name')->get(),
+            'pressingsWithoutAdmin' => Pressing::withoutSandboxes()->whereDoesntHave('staff', fn ($q) => $q->where('pressing_users.role', PressingRole::Admin->value)
                 ->where('pressing_users.is_active', true))->orderBy('name')->get(),
         ]);
     }

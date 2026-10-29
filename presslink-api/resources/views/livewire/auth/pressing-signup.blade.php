@@ -50,6 +50,11 @@
             <h1 class="font-display text-3xl font-bold tracking-tight text-(--color-text-primary) mb-1.5">
                 {{ $step === 1 ? 'Votre pressing' : 'Votre compte' }}
             </h1>
+            @if ($sandboxPressingId && $step === 1)
+                <div class="mb-5 rounded-xl border border-(--color-primary)/20 bg-(--color-primary-tint) p-3.5 text-sm text-(--color-text-primary)" data-testid="sandbox-convert-note">
+                    Vos <span class="font-semibold">articles et vos prix</span> du test sont repris dans votre vrai pressing. Les clients et les commandes fictifs, eux, sont effacés.
+                </div>
+            @endif
             <p class="text-(--color-text-secondary) mb-7">
                 @if ($step === 1)
                     Essai gratuit jusqu'au <span class="font-semibold text-(--color-text-primary)">{{ $trialEnd->translatedFormat('j F') }}</span>, rien à payer pour commencer.
@@ -137,7 +142,12 @@
             </form>
 
             <div class="mt-8 rounded-xl border border-(--color-border) bg-(--color-surface) lg:bg-(--color-bg) p-4 text-sm text-(--color-text-secondary)">
-                Déjà inscrit ? <a href="{{ route('login') }}" class="font-semibold text-(--color-primary) hover:underline">Se connecter</a>
+                @if ($sandboxPressingId)
+                    Pas encore décidé ? <a href="{{ route('dashboard') }}" class="font-semibold text-(--color-primary) hover:underline">Revenir à mon pressing de test</a>
+                @else
+                    Déjà inscrit ? <a href="{{ route('login') }}" class="font-semibold text-(--color-primary) hover:underline">Se connecter</a>
+                    <span class="block mt-1">Pas encore décidé ? <a href="{{ route('sandbox.start') }}" class="font-semibold text-(--color-primary) hover:underline">Tester avec un pressing fictif</a></span>
+                @endif
                 <span class="block mt-1">Vous préférez être accompagné ? <a href="{{ $whatsapp }}" target="_blank" rel="noopener" class="font-semibold text-(--color-primary) hover:underline">Écrivez-nous sur WhatsApp</a></span>
             </div>
         </div>

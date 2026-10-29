@@ -40,6 +40,7 @@ enum ActivityAction: string
     case CatalogSynced = 'catalog_synced';
     case SettingsChanged = 'settings_changed';
     case SettingsSynced = 'settings_synced';
+    case DataErased = 'data_erased';
     case ExceptionalOpening = 'exceptional_opening';
 
     // Équipe
@@ -71,6 +72,7 @@ enum ActivityAction: string
             self::CatalogSynced => 'Tarifs harmonisés',
             self::SettingsChanged => 'Paramètres modifiés',
             self::SettingsSynced => 'Paramètres harmonisés',
+            self::DataErased => 'Données effacées',
             self::ExceptionalOpening => 'Ouverture exceptionnelle',
             self::TeamChanged => 'Équipe modifiée',
             self::RolesChanged => 'Rôles modifiés',
@@ -88,7 +90,7 @@ enum ActivityAction: string
             self::PaymentRecorded, self::PaymentRefunded, self::PaymentRemoved => 'payments',
             self::CustomerAdded => 'customers',
             self::CashClosed, self::CashReopened, self::CashExpenseRecorded, self::CashExpenseRemoved => 'cash',
-            self::CatalogChanged, self::CatalogSynced, self::SettingsChanged, self::SettingsSynced, self::ExceptionalOpening => 'settings',
+            self::CatalogChanged, self::CatalogSynced, self::SettingsChanged, self::SettingsSynced, self::DataErased, self::ExceptionalOpening => 'settings',
             self::TeamChanged, self::RolesChanged, self::StaffLogin => 'team',
         };
     }
@@ -116,7 +118,7 @@ enum ActivityAction: string
     {
         return in_array($this, [
             self::OrderCancelled, self::RecoveredUnpaid, self::PaymentRefunded, self::PaymentRemoved, self::StorageFeeWaived,
-            self::CashReopened, self::CashExpenseRemoved, self::ExceptionalOpening, self::RolesChanged,
+            self::CashReopened, self::CashExpenseRemoved, self::ExceptionalOpening, self::RolesChanged, self::DataErased,
         ], true);
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Actions\Demo\ResetDemoPressing;
 use App\Enums\Feature;
 use App\Enums\PressingRole;
 use App\Enums\PressingStatus;
@@ -40,6 +39,8 @@ class Pressing extends Model
         'exceptional_open_until',
         'show_pricing_to_customers',
         'status',
+        'is_demo',
+        'sandbox_expires_at',
     ];
 
     protected $appends = ['logo_url'];
@@ -56,6 +57,8 @@ class Pressing extends Model
             'exceptional_open_until' => 'datetime',
             'show_pricing_to_customers' => 'boolean',
             'status' => PressingStatus::class,
+            'is_demo' => 'boolean',
+            'sandbox_expires_at' => 'datetime',
         ];
     }
 
@@ -81,13 +84,43 @@ class Pressing extends Model
     }
 
     /**
-     * Exclut le pressing de démonstration (statistiques de la console).
+     * Exclut la démo DM-0001 et les pressings de test (statistiques de la console).
      *
      * @param  Builder<Pressing>  $query
      */
     public function scopeWithoutDemo(Builder $query): void
     {
-        $query->where('code', '!=', ResetDemoPressing::PRESSING_CODE);
+        $query->where('is_demo', false);
+    }
+
+    /**
+     * Exclut les pressings de test des visiteurs (listes et choix de la console).
+     *
+     * @param  Builder<Pressing>  $query
+     */
+    public function scopeWithoutSandboxes(Builder $query): void
+    {
+        $query->whereNull('sandbox_expires_at');
+    }
+
+    /** Pressing de test d'un visiteur (« Découvrir avec un pressing fictif »). */
+    public function isSandbox(): bool
+    {
+        return $this->sandbox_expires_at !== null;
+    }
+
+    public function sandboxHasExpired(): bool
+    {
+        return $this->isSandbox() && $this->sandbox_expires_at->isPast();
+    }
+
+    /**
+     * Fichier clients où chercher et créer les clients de ce pressing : celui
+     * du pressing de test (ses clients fictifs), ou 0 pour les vrais clients.
+     */
+    public function customerDirectoryId(): int
+    {
+        return $this->isSandbox() ? $this->id : 0;
     }
 
     /**
@@ -97,7 +130,8 @@ class Pressing extends Model
      */
     public static function findByPublicCode(string $saisie): ?self
     {
-        $exact = self::where('code', mb_strtoupper(trim($saisie)))->first();
+        // Un pressing de test ne se rejoint jamais depuis l'application client.
+        $exact = self::withoutSandboxes()->where('code', mb_strtoupper(trim($saisie)))->first();
         if ($exact !== null) {
             return $exact;
         }
@@ -107,7 +141,7 @@ class Pressing extends Model
             return null;
         }
 
-        return self::whereRaw("REPLACE(REPLACE(UPPER(code), '-', ''), ' ', '') = ?", [$compact])->first();
+        return self::withoutSandboxes()->whereRaw("REPLACE(REPLACE(UPPER(code), '-', ''), ' ', '') = ?", [$compact])->first();
     }
 
     public static function generateUniqueCode(): string
@@ -155,12 +189,12 @@ class Pressing extends Model
 
     /**
      * Le pressing accueille-t-il des clients en ce moment (commandes,
-     * paiements, remises, annulations, nouveaux clients) ? Le pressing de
-     * démonstration reste toujours ouvert, pour être essayé à toute heure.
+     * paiements, remises, annulations, nouveaux clients) ? La démo et les
+     * pressings de test restent toujours ouverts, pour être essayés à toute heure.
      */
     public function acceptsCustomers(): bool
     {
-        return $this->code === ResetDemoPressing::PRESSING_CODE || $this->isOpenNow();
+        return $this->is_demo || $this->isOpenNow();
     }
 
     /**

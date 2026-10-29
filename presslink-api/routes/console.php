@@ -19,3 +19,6 @@ Schedule::command('presslink:send-group-reports')->monthlyOn(1, '07:00');
 
 // Rappels de fin d'essai gratuit (3 jours puis 1 jour avant).
 Schedule::command('presslink:trial-reminders')->dailyAt('09:00');
+
+// Pressings de test arrivés à expiration : supprimés avec leurs données fictives.
+Schedule::command('presslink:purge-sandboxes')->hourly();

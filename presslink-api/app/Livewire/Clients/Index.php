@@ -85,7 +85,7 @@ class Index extends Component
 
         $this->validate(['phone' => ['required', 'string', new IvorianPhone]]);
 
-        $known = Customer::where('phone', $this->phone)->first();
+        $known = Customer::inDirectoryOf($pressing)->where('phone', $this->phone)->first();
 
         if ($known !== null && $pressing->customers()->whereKey($known->id)->exists()) {
             $this->errorMessage = $known->fullName().' fait déjà partie de vos clients.';
@@ -108,7 +108,7 @@ class Index extends Component
         ]);
 
         DB::transaction(function () use ($pressing) {
-            $customer = Customer::create(['phone' => $this->phone, 'first_name' => $this->firstName, 'last_name' => $this->lastName]);
+            $customer = Customer::create(['phone' => $this->phone, 'sandbox_pressing_id' => $pressing->customerDirectoryId(), 'first_name' => $this->firstName, 'last_name' => $this->lastName]);
             $pressing->customers()->attach($customer->id, ['joined_at' => now()]);
         });
 
@@ -120,8 +120,8 @@ class Index extends Component
     public function confirmKnownCustomer(): void
     {
         // Le client confirmé doit être celui du numéro saisi (jamais un autre id).
-        $customer = Customer::whereKey($this->knownCustomerId)->where('phone', PhoneNumber::normalize($this->phone))->firstOrFail();
         $pressing = auth()->user()->currentPressing();
+        $customer = Customer::inDirectoryOf($pressing)->whereKey($this->knownCustomerId)->where('phone', PhoneNumber::normalize($this->phone))->firstOrFail();
         abort_unless(auth()->user()->may(Permission::OrdersCreate, $pressing), 403);
 
         if (! $pressing->acceptsCustomers()) {

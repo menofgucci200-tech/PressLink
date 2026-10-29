@@ -81,6 +81,7 @@ class Dashboard extends Component
             'today' => now()->startOfDay(),
             '7' => now()->subDays(7),
             '30' => now()->subDays(30),
+            '90' => now()->subDays(90),
             'month' => now()->startOfMonth(),
             default => null,
         };
@@ -170,6 +171,7 @@ class Dashboard extends Component
             'cities' => Pressing::withoutDemo()->whereNotNull('city')->distinct()->orderBy('city')->pluck('city'),
             'administrators' => User::whereHas('pressings', fn ($q) => $q->withoutDemo()->where('pressing_users.role', 'admin')
                 ->where('pressing_users.is_active', true))->orderBy('name')->get(),
+            'payments' => $this->payments($pressingIds, $since),
             'demoExists' => ResetDemoPressing::exists(),
             'sandboxTrials' => [
                 'startedThisWeek' => SandboxTrial::where('created_at', '>=', now()->subDays(7))->count(),
@@ -180,6 +182,59 @@ class Dashboard extends Component
                 'recent' => SandboxTrial::with('convertedPressing:id,name')->latest()->orderByDesc('id')->take(10)->get(),
             ],
         ]);
+    }
+
+    /**
+     * Encaissements de PressLink sur la période (abonnements, options,
+     * commandes en plus) : payés en ligne (GeniusPay, avec frais et net reçu)
+     * ou enregistrés à la main par l'équipe, et demandes encore à traiter.
+     *
+     * @param  Builder<Pressing>  $pressingIds  sous-requête des pressings filtrés
+     * @return array{online: array{count: int, collected: int, fees: int, net: int}, manual: array{count: int, collected: int}, pending: array{count: int, amount: int}, byMethod: list<array{label: string, count: int, collected: int, fees: int, net: int, share: float}>}
+     */
+    private function payments(Builder $pressingIds, ?Carbon $since): array
+    {
+        $paid = fn () => SubscriptionRequest::query()
+            ->whereIn('pressing_id', $pressingIds)
+            ->where('status', SubscriptionRequest::DONE)
+            ->where('amount_fcfa', '>', 0);
+
+        $online = $paid()->whereNotNull('paid_online_at')
+            ->when($since, fn ($q) => $q->where('paid_online_at', '>=', $since))
+            ->get(['payment_method', 'amount_fcfa', 'paid_amount_fcfa', 'gateway_fees_fcfa', 'net_received_fcfa']);
+        $collected = fn (SubscriptionRequest $r) => (int) ($r->paid_amount_fcfa ?? $r->amount_fcfa);
+        $fees = fn (SubscriptionRequest $r) => (int) ($r->gateway_fees_fcfa ?? 0);
+        $net = fn (SubscriptionRequest $r) => (int) ($r->net_received_fcfa ?? $collected($r) - $fees($r));
+
+        $manual = $paid()->whereNull('paid_online_at')
+            ->when($since, fn ($q) => $q->where('handled_at', '>=', $since));
+        $manualCount = (clone $manual)->count();
+        $manualCollected = (int) (clone $manual)->sum('amount_fcfa');
+
+        $onlineCollected = (int) $online->sum($collected);
+        $byMethod = $online->groupBy(fn (SubscriptionRequest $r) => $r->payment_method ?? 'autre')
+            ->map(fn ($rows, string $method) => [
+                'label' => SubscriptionRequest::ONLINE_METHODS[$method] ?? ucfirst(str_replace('_', ' ', $method)),
+                'count' => $rows->count(),
+                'collected' => (int) $rows->sum($collected),
+                'fees' => (int) $rows->sum($fees),
+                'net' => (int) $rows->sum($net),
+            ])
+            ->sortByDesc('collected')
+            ->values();
+        if ($manualCount > 0) {
+            $byMethod->push(['label' => 'Enregistré par l\'équipe (virement, espèces…)', 'count' => $manualCount, 'collected' => $manualCollected, 'fees' => 0, 'net' => $manualCollected]);
+        }
+        $total = max(1, $onlineCollected + $manualCollected);
+
+        $pending = SubscriptionRequest::pending()->whereIn('pressing_id', $pressingIds);
+
+        return [
+            'online' => ['count' => $online->count(), 'collected' => $onlineCollected, 'fees' => (int) $online->sum($fees), 'net' => (int) $online->sum($net)],
+            'manual' => ['count' => $manualCount, 'collected' => $manualCollected],
+            'pending' => ['count' => (clone $pending)->count(), 'amount' => (int) (clone $pending)->sum('amount_fcfa')],
+            'byMethod' => $byMethod->map(fn (array $row) => [...$row, 'share' => round($row['collected'] / $total * 100, 1)])->all(),
+        ];
     }
 
     private function changePct(int $current, ?int $previous): ?int

@@ -229,6 +229,6 @@ class AccountSettingsTest extends TestCase
             ->get(route('admin.dashboard'))
             ->assertOk()
             ->assertSee('Mon profil')
-            ->assertSee('Se déconnecter');
+            ->assertSee('Déconnexion');
     }
 }

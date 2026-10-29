@@ -3,10 +3,12 @@
     $periodLabel = match ($period) {
         'today' => "aujourd'hui",
         '7' => 'sur 7 jours',
+        '90' => 'sur 90 jours',
         'month' => 'ce mois-ci',
         'all' => 'depuis le début',
         default => 'sur 30 jours',
     };
+    $periods = ['today' => "Aujourd'hui", '7' => '7 jours', '30' => '30 jours', '90' => '90 jours', 'all' => 'Tout'];
     $filterKey = $period.'-'.$city.'-'.$administratorId;
     $tones = [
         'error' => ['bg' => 'var(--color-error-tint)', 'fg' => 'var(--color-error)'],
@@ -18,141 +20,135 @@
     $periodFrom = match ($period) {
         'today' => now()->toDateString(),
         '7' => now()->subDays(7)->toDateString(),
+        '90' => now()->subDays(90)->toDateString(),
         'month' => now()->startOfMonth()->toDateString(),
         'all' => null,
         default => now()->subDays(30)->toDateString(),
     };
     $ordersListUrl = route('admin.orders.index', array_filter(['du' => $periodFrom]));
+
+    // Styles communs : cartes blanches bordées, titres discrets, chiffres en gros.
+    $card = 'rounded-xl border border-(--color-border) bg-(--color-surface) p-4 shadow-sm';
+    $cardTitle = 'mb-3 text-sm font-medium text-(--color-text-muted)';
+    $select = 'h-9 px-2.5 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm focus:outline-none focus:border-(--color-primary)';
+    $change = fn (?int $pct) => $pct === null ? '' : '<span class="font-semibold '.($pct >= 0 ? 'text-(--color-success-text)' : 'text-(--color-error)').'" title="Par rapport à la période précédente de même durée">'.($pct >= 0 ? '↑' : '↓').' '.abs($pct).' %</span> ';
+
+    $kpiRows = [
+        [
+            ['label' => 'Encaissé en ligne', 'value' => $fcfa($payments['online']['collected']).' F CFA',
+                'sub' => $payments['online']['count'].' paiement'.($payments['online']['count'] > 1 ? 's' : '').' · net reçu '.$fcfa($payments['online']['net']).' F'],
+            ['label' => 'Encaissé manuel', 'value' => $fcfa($payments['manual']['collected']).' F CFA',
+                'sub' => $payments['manual']['count'].' paiement'.($payments['manual']['count'] > 1 ? 's' : '').' enregistré'.($payments['manual']['count'] > 1 ? 's' : '').' par l\'équipe'],
+            ['label' => 'Revenu mensuel récurrent', 'value' => $fcfa($monthlyRecurringRevenue).' F CFA',
+                'sub' => $payingPressings.' abonnement'.($payingPressings > 1 ? 's' : '').' actif'.($payingPressings > 1 ? 's' : '').' · '.$fcfa($monthlyRecurringRevenue * 12).' F / an'],
+            ['label' => 'Demandes à traiter', 'value' => $fcfa($payments['pending']['count']),
+                'sub' => $payments['pending']['amount'] > 0 ? $fcfa($payments['pending']['amount']).' F en attente de paiement' : 'abonnements, options et commandes en plus',
+                'link' => $payments['pending']['count'] > 0 ? ['url' => route('admin.requests.index'), 'label' => 'Voir les demandes'] : null],
+        ],
+        [
+            ['label' => 'Pressings actifs', 'value' => $fcfa($activePressings),
+                'sub' => ($newPressings ? '+'.$newPressings.' '.$periodLabel.' · ' : '').$suspendedPressings.' suspendu'.($suspendedPressings > 1 ? 's' : ''),
+                'link' => ['url' => route('admin.pressings.index', array_filter(['status' => 'active', 'ville' => $city])), 'label' => 'Voir les pressings']],
+            ['label' => 'Clients', 'value' => $fcfa($totalClients),
+                'sub' => $newClients !== null ? '+'.$newClients.' '.$periodLabel : 'inscrits sur la plateforme',
+                'link' => ['url' => route('admin.clients.index'), 'label' => 'Voir les clients']],
+            ['label' => 'Commandes', 'value' => $fcfa($totalOrders), 'html' => $change($ordersChangePct), 'sub' => $periodLabel,
+                'link' => ['url' => $ordersListUrl, 'label' => 'Voir les commandes']],
+            ['label' => 'Volume traité par les pressings', 'value' => $fcfa($orderVolume).' F CFA', 'html' => $change($volumeChangePct), 'sub' => 'commandes non annulées, '.$periodLabel],
+        ],
+    ];
 @endphp
 
-<div>
-    <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 mb-6">
+<div class="space-y-6">
+    {{-- ===== Titre, filtres et période ===== --}}
+    <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-            <h1 class="font-display text-2xl font-bold mb-1">Vue globale</h1>
+            <h1 class="text-2xl font-semibold">Tableau de bord</h1>
             <p class="text-sm text-(--color-text-muted)">{{ ucfirst(now()->translatedFormat('l j F Y')) }}</p>
         </div>
-        <a href="{{ route('admin.pressings.create') }}" wire:navigate class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            Nouveau pressing
-        </a>
-    </div>
-
-    <div class="flex flex-wrap items-center gap-3 mb-6">
-        <select wire:model.live="period" class="h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm focus:outline-none focus:border-(--color-primary)">
-            <option value="today">Aujourd'hui</option>
-            <option value="7">7 derniers jours</option>
-            <option value="30">30 derniers jours</option>
-            <option value="month">Ce mois-ci</option>
-            <option value="all">Toute la période</option>
-        </select>
-        <select wire:model.live="city" class="h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm focus:outline-none focus:border-(--color-primary)">
-            <option value="">Toutes les villes</option>
-            @foreach ($cities as $c)
-                <option value="{{ $c }}">{{ $c }}</option>
-            @endforeach
-        </select>
-        <select wire:model.live="administratorId" class="h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm focus:outline-none focus:border-(--color-primary)">
-            <option value="">Tous les administrateurs</option>
-            @foreach ($administrators as $admin)
-                <option value="{{ $admin->id }}">{{ $admin->name }}</option>
-            @endforeach
-        </select>
-        @if ($city !== '' || $administratorId !== '' || $period !== '30')
-            <button wire:click="resetFilters" class="text-xs font-medium text-(--color-text-muted) hover:text-(--color-primary) underline">
-                Réinitialiser les filtres
-            </button>
-        @endif
-        <span wire:loading.delay class="text-xs text-(--color-text-muted)">Mise à jour…</span>
-    </div>
-
-    {{-- ===== Indicateurs clés ===== --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6 loading-dim rounded-xl"
-         wire:loading.delay.class="is-loading" wire:target="period, city, administratorId, resetFilters">
-        <div wire:key="kpi-mrr-{{ $filterKey }}" class="rounded-xl p-5 text-white animate-step sm:col-span-2 xl:col-span-1 dark:ring-1 dark:ring-(--color-border)" style="background:#0f172a;">
-            <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Revenu mensuel récurrent</div>
-            <div class="flex items-baseline gap-1.5 mt-2.5">
-                <div class="text-3xl font-bold tracking-tight tabular-nums" data-count="{{ $monthlyRecurringRevenue }}" data-count-key="admin-mrr">{{ $fcfa($monthlyRecurringRevenue) }}</div>
-                <div class="text-sm font-semibold text-(--color-text-muted)">F</div>
+        <div class="flex flex-wrap items-center gap-2">
+            <span wire:loading.delay class="text-xs text-(--color-text-muted)">Mise à jour…</span>
+            <select wire:model.live="city" aria-label="Ville" class="{{ $select }}">
+                <option value="">Toutes les villes</option>
+                @foreach ($cities as $c)
+                    <option value="{{ $c }}">{{ $c }}</option>
+                @endforeach
+            </select>
+            <select wire:model.live="administratorId" aria-label="Administrateur" class="{{ $select }}">
+                <option value="">Tous les administrateurs</option>
+                @foreach ($administrators as $admin)
+                    <option value="{{ $admin->id }}">{{ $admin->name }}</option>
+                @endforeach
+            </select>
+            @if ($city !== '' || $administratorId !== '' || $period !== '30')
+                <button wire:click="resetFilters" class="text-xs font-medium text-(--color-text-muted) hover:text-(--color-primary) underline">Réinitialiser</button>
+            @endif
+            <div class="inline-flex max-w-full overflow-x-auto rounded-lg border border-(--color-border) bg-(--color-surface) p-0.5" role="group" aria-label="Période">
+                @foreach ($periods as $value => $label)
+                    <button type="button" wire:click="$set('period', '{{ $value }}')" aria-pressed="{{ $period === (string) $value ? 'true' : 'false' }}"
+                            @class(['rounded-md px-3 py-1 text-sm whitespace-nowrap', 'bg-(--color-primary) text-white' => $period === (string) $value, 'hover:bg-(--color-bg)' => $period !== (string) $value])>{{ $label }}</button>
+                @endforeach
             </div>
-            <div class="text-xs text-(--color-text-muted) mt-1.5">
-                <div>{{ $payingPressings }} {{ $payingPressings > 1 ? 'abonnements actifs' : 'abonnement actif' }}</div>
-                <div class="whitespace-nowrap">soit {{ $fcfa($monthlyRecurringRevenue * 12) }} F / an</div>
-            </div>
-        </div>
-
-        @php
-            $kpis = [
-                [
-                    'key' => 'volume', 'label' => 'Volume traité', 'value' => $fcfa($orderVolume), 'raw' => $orderVolume, 'unit' => 'F',
-                    'change' => $volumeChangePct, 'sub' => 'commandes non annulées, '.$periodLabel,
-                    'href' => $ordersListUrl, 'cta' => 'Voir les commandes',
-                ],
-                [
-                    'key' => 'orders', 'label' => 'Commandes', 'value' => $fcfa($totalOrders), 'raw' => $totalOrders, 'unit' => null,
-                    'change' => $ordersChangePct, 'sub' => $periodLabel,
-                    'href' => $ordersListUrl, 'cta' => 'Voir les commandes',
-                ],
-                [
-                    'key' => 'pressings', 'label' => 'Pressings actifs', 'value' => $activePressings, 'raw' => $activePressings, 'unit' => null, 'change' => null,
-                    'sub' => ($newPressings ? '+'.$newPressings.' '.$periodLabel.' · ' : '').$suspendedPressings.' suspendu'.($suspendedPressings > 1 ? 's' : ''),
-                    'href' => route('admin.pressings.index', array_filter(['status' => 'active', 'ville' => $city])), 'cta' => 'Voir les pressings',
-                ],
-                [
-                    'key' => 'clients', 'label' => 'Clients', 'value' => $fcfa($totalClients), 'raw' => $totalClients, 'unit' => null, 'change' => null,
-                    'sub' => $newClients !== null ? '+'.$newClients.' '.$periodLabel : 'inscrits sur la plateforme',
-                    'href' => route('admin.clients.index'), 'cta' => 'Voir les clients',
-                ],
-            ];
-        @endphp
-        @foreach ($kpis as $kpi)
-            <a href="{{ $kpi['href'] }}" wire:navigate wire:key="kpi-{{ $kpi['key'] }}-{{ $filterKey }}"
-               class="kpi-link block bg-(--color-surface) border border-(--color-border) rounded-xl p-5 animate-step" style="animation-delay:{{ ($loop->index + 1) * 50 }}ms">
-                <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">{{ $kpi['label'] }}</div>
-                <div class="flex items-baseline gap-1.5 mt-2.5">
-                    <div class="text-3xl font-bold tracking-tight tabular-nums" data-count="{{ $kpi['raw'] }}" data-count-key="admin-{{ $kpi['key'] }}">{{ $kpi['value'] }}</div>
-                    @if ($kpi['unit'])
-                        <div class="text-sm font-semibold text-(--color-text-muted)">{{ $kpi['unit'] }}</div>
-                    @endif
-                </div>
-                <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs mt-1.5">
-                    @if ($kpi['change'] !== null)
-                        <span class="font-semibold {{ $kpi['change'] >= 0 ? 'text-(--color-success-text)' : 'text-(--color-error)' }}"
-                              title="Par rapport à la période précédente de même durée">
-                            {{ $kpi['change'] >= 0 ? '↑' : '↓' }} {{ abs($kpi['change']) }} %
-                        </span>
-                    @endif
-                    <span class="text-(--color-text-muted)">{{ $kpi['sub'] }}</span>
-                </div>
-                <div class="kpi-cta mt-2 text-xs font-semibold text-(--color-primary)">{{ $kpi['cta'] }} →</div>
+            <a href="{{ route('admin.pressings.create') }}" wire:navigate class="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Nouveau pressing
             </a>
+        </div>
+    </div>
+
+    {{-- ===== Indicateurs : encaissements, puis activité des pressings ===== --}}
+    <div class="space-y-4 loading-dim rounded-xl" wire:loading.delay.class="is-loading" wire:target="period, city, administratorId, resetFilters">
+        @foreach ($kpiRows as $row)
+            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                @foreach ($row as $kpi)
+                    <div wire:key="kpi-{{ $loop->parent->index }}-{{ $loop->index }}-{{ $filterKey }}" class="{{ $card }}">
+                        <p class="text-sm text-(--color-text-muted)">{{ $kpi['label'] }}</p>
+                        <p class="mt-1 text-2xl font-semibold tabular-nums">{{ $kpi['value'] }}</p>
+                        <p class="text-xs text-(--color-text-muted)">{!! $kpi['html'] ?? '' !!}{{ $kpi['sub'] }}</p>
+                        @if (! empty($kpi['link']))
+                            <a href="{{ $kpi['link']['url'] }}" wire:navigate class="inline-block mt-1 text-xs font-medium text-(--color-primary) underline underline-offset-2 hover:no-underline">{{ $kpi['link']['label'] }}</a>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
         @endforeach
     </div>
 
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
-        {{-- ===== Activité ===== --}}
-        <div class="xl:col-span-2 bg-(--color-surface) border border-(--color-border) rounded-xl p-5 flex flex-col">
-            <div class="flex items-baseline justify-between gap-3 mb-5">
-                <h2 class="font-semibold text-sm">Commandes créées</h2>
-                <span class="text-xs text-(--color-text-muted)">{{ ucfirst($periodLabel) }}</span>
-            </div>
-            @php $bars = $chart['bars']; $labelEvery = max(1, (int) ceil(count($bars) / 8)); @endphp
+    {{-- ===== Commandes par jour + pressings les plus actifs ===== --}}
+    <div class="grid gap-4 xl:grid-cols-3">
+        <div class="{{ $card }} xl:col-span-2 flex flex-col">
+            <h2 class="{{ $cardTitle }}">Commandes créées ({{ $periodLabel }})</h2>
+            @php
+                $bars = $chart['bars'];
+                $labelEvery = max(1, (int) ceil(count($bars) / 12));
+                // Graduation « ronde » de l'axe : 1, 2 ou 5 × 10^n par palier, quatre paliers.
+                $rawStep = max(1, $chart['max'] / 4);
+                $magnitude = 10 ** floor(log10($rawStep));
+                $step = collect([1, 2, 5, 10])->map(fn ($m) => $m * $magnitude)->first(fn ($s) => $s >= $rawStep);
+                $axisTop = $step * 4;
+            @endphp
             @if ($totalOrders === 0)
-                <div class="flex-1 min-h-[180px] flex items-center justify-center text-sm text-(--color-text-muted)">Aucune commande sur cette période.</div>
+                <div class="flex-1 min-h-[220px] flex items-center justify-center text-sm text-(--color-text-muted)">Aucune commande sur cette période.</div>
             @else
-                <div wire:key="chart-{{ $filterKey }}" class="flex-1 flex items-end gap-[3px] sm:gap-1 min-h-[180px]">
-                    @foreach ($bars as $bar)
-                        <a href="{{ route('admin.orders.index', ['du' => $bar['from'], 'au' => $bar['to']]) }}" wire:navigate
-                           aria-label="{{ $bar['label'] }} : {{ $bar['count'] }} commande{{ $bar['count'] > 1 ? 's' : '' }}"
-                           class="group relative flex-1 h-full flex items-end {{ $bar['count'] === 0 ? 'pointer-events-none' : '' }}">
-                            <div class="w-full rounded-t-[3px] bg-(--color-primary) group-hover:bg-(--color-primary-600) animate-step"
-                                 style="height:{{ $bar['count'] > 0 ? max(3, round($bar['count'] / $chart['max'] * 100)) : 1 }}%;{{ $bar['count'] === 0 ? 'background:var(--color-border);' : '' }}animation-delay:{{ min($loop->index * 15, 450) }}ms"></div>
-                            <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[11px] font-medium text-white z-10">
-                                {{ $bar['label'] }} · {{ $bar['count'] }} commande{{ $bar['count'] > 1 ? 's' : '' }} · voir
-                            </div>
-                        </a>
-                    @endforeach
+                <div wire:key="chart-{{ $filterKey }}" class="relative h-56 pl-10">
+                    @for ($i = 0; $i <= 4; $i++)
+                        <div class="absolute left-10 right-0 border-t border-dashed border-(--color-border)" style="bottom:{{ $i * 25 }}%"></div>
+                        <div class="absolute left-0 w-8 text-right text-[11px] text-(--color-text-muted) tabular-nums translate-y-1/2" style="bottom:{{ $i * 25 }}%">{{ $fcfa((int) ($step * $i)) }}</div>
+                    @endfor
+                    <div class="absolute inset-y-0 left-10 right-0 flex items-end gap-[3px] sm:gap-1">
+                        @foreach ($bars as $bar)
+                            <a href="{{ route('admin.orders.index', ['du' => $bar['from'], 'au' => $bar['to']]) }}" wire:navigate
+                               aria-label="{{ $bar['label'] }} : {{ $bar['count'] }} commande{{ $bar['count'] > 1 ? 's' : '' }}"
+                               class="group relative flex-1 h-full flex items-end {{ $bar['count'] === 0 ? 'pointer-events-none' : '' }}">
+                                <div class="w-full rounded-t-[3px] bg-(--color-primary) group-hover:bg-(--color-primary-600)" style="height:{{ $bar['count'] > 0 ? max(1, round($bar['count'] / $axisTop * 100, 1)) : 0 }}%"></div>
+                                <div class="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[11px] font-medium text-white z-10">
+                                    {{ $bar['label'] }} · {{ $bar['count'] }} commande{{ $bar['count'] > 1 ? 's' : '' }} · voir
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
                 </div>
-                <div class="flex gap-[3px] sm:gap-1 mt-2 text-[10.5px] text-(--color-text-muted) tabular-nums">
+                <div class="flex gap-[3px] sm:gap-1 mt-2 pl-10 text-[11px] text-(--color-text-muted) tabular-nums">
                     @foreach ($bars as $bar)
                         <div class="flex-1 min-w-0 text-center overflow-visible whitespace-nowrap">{{ $loop->index % $labelEvery === 0 ? $bar['label'] : '' }}</div>
                     @endforeach
@@ -160,16 +156,70 @@
             @endif
         </div>
 
-        {{-- ===== À surveiller ===== --}}
-        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden flex flex-col">
-            <div class="flex items-center justify-between px-5 py-4 border-b border-(--color-border)">
-                <h2 class="font-semibold text-sm">À surveiller</h2>
+        <div class="{{ $card }}">
+            <h2 class="{{ $cardTitle }}">Pressings les plus actifs</h2>
+            @if ($topPressings->isEmpty())
+                <p class="py-10 text-center text-sm text-(--color-text-muted)">Aucune commande sur cette période.</p>
+            @else
+                <ul class="space-y-2 text-sm">
+                    @foreach ($topPressings as $pressing)
+                        <li wire:key="top-{{ $pressing->id }}" class="flex items-center justify-between gap-2">
+                            <a href="{{ route('admin.pressings.show', $pressing) }}" wire:navigate class="min-w-0 truncate hover:underline">{{ $pressing->name }}</a>
+                            <span class="shrink-0 text-right">
+                                <span class="font-medium tabular-nums">{{ $fcfa((int) $pressing->period_volume) }} F CFA</span>
+                                <span class="block text-xs text-(--color-text-muted) tabular-nums">{{ $pressing->period_orders_count }} commande{{ $pressing->period_orders_count > 1 ? 's' : '' }}</span>
+                            </span>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </div>
+    </div>
+
+    {{-- ===== Encaissements par moyen de paiement ===== --}}
+    <div class="{{ $card }}">
+        <h2 class="{{ $cardTitle }}">Encaissements par moyen de paiement ({{ $periodLabel }})</h2>
+        @if (empty($payments['byMethod']))
+            <p class="py-6 text-center text-sm text-(--color-text-muted)">Aucun encaissement sur cette période.</p>
+        @else
+            <div class="overflow-x-auto"><table class="w-full min-w-[640px] text-sm">
+                <thead>
+                    <tr class="text-left text-(--color-text-muted)">
+                        <th class="py-1 pr-4 font-semibold">Moyen de paiement</th>
+                        <th class="py-1 pr-4 font-semibold text-right">Paiements</th>
+                        <th class="py-1 pr-4 font-semibold text-right">Encaissé</th>
+                        <th class="py-1 pr-4 font-semibold text-right">Frais GeniusPay</th>
+                        <th class="py-1 pr-4 font-semibold text-right">Net reçu</th>
+                        <th class="py-1 font-semibold text-right">Part</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($payments['byMethod'] as $row)
+                        <tr class="border-t border-(--color-border)">
+                            <td class="py-2 pr-4 font-medium">{{ $row['label'] }}</td>
+                            <td class="py-2 pr-4 text-right tabular-nums">{{ $fcfa($row['count']) }}</td>
+                            <td class="py-2 pr-4 text-right tabular-nums">{{ $fcfa($row['collected']) }} F</td>
+                            <td class="py-2 pr-4 text-right tabular-nums text-(--color-text-muted)">{{ $row['fees'] > 0 ? $fcfa($row['fees']).' F' : '—' }}</td>
+                            <td class="py-2 pr-4 text-right tabular-nums font-semibold">{{ $fcfa($row['net']) }} F</td>
+                            <td class="py-2 text-right tabular-nums">{{ number_format($row['share'], 1, ',', ' ') }} %</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table></div>
+        @endif
+    </div>
+
+    {{-- ===== À surveiller · Abonnements · Pressings récents ===== --}}
+    <div class="grid gap-4 xl:grid-cols-3">
+        <div class="{{ $card }} flex flex-col">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-sm font-medium text-(--color-text-muted)">À surveiller</h2>
                 @if ($alerts->isNotEmpty())
                     <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-(--color-error-tint) text-(--color-error)">{{ $alerts->sum('count') }}</span>
                 @endif
             </div>
             @if ($alerts->isEmpty())
-                <div class="flex-1 flex flex-col items-center justify-center gap-2 px-5 py-10 text-center">
+                <div class="flex-1 flex flex-col items-center justify-center gap-2 py-8 text-center">
                     <div class="w-10 h-10 rounded-full bg-(--color-success-tint) flex items-center justify-center">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-success-text)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
                     </div>
@@ -177,9 +227,9 @@
                     <p class="text-xs text-(--color-text-muted)">Abonnements, quotas et activité sont en ordre.</p>
                 </div>
             @else
-                <div class="divide-y divide-(--color-border)">
+                <div class="-mx-4 divide-y divide-(--color-border) border-t border-(--color-border)">
                     @foreach ($alerts as $alert)
-                        <div wire:key="alert-{{ $alert['key'] }}" x-data="{ open: false }" class="px-5 py-3.5">
+                        <div wire:key="alert-{{ $alert['key'] }}" x-data="{ open: false }" class="px-4 py-3">
                             <button type="button" @click="open = !open" class="w-full flex items-center gap-3 text-left">
                                 <span class="flex-none min-w-7 h-7 px-1.5 rounded-lg flex items-center justify-center text-xs font-bold tabular-nums"
                                       style="background:{{ $tones[$alert['tone']]['bg'] }};color:{{ $tones[$alert['tone']]['fg'] }}">{{ $alert['count'] }}</span>
@@ -205,59 +255,14 @@
                 </div>
             @endif
         </div>
-    </div>
 
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
-        {{-- ===== Top pressings ===== --}}
-        <div class="xl:col-span-2 bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden">
-            <div class="flex items-baseline justify-between px-5 py-4 border-b border-(--color-border)">
-                <h2 class="font-semibold text-sm">Pressings les plus actifs</h2>
-                <span class="text-xs text-(--color-text-muted)">{{ ucfirst($periodLabel) }}</span>
-            </div>
-            @if ($topPressings->isEmpty())
-                <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucune commande sur cette période.</div>
-            @else
-                @php $topMax = max(1, $topPressings->max('period_orders_count')); @endphp
-                <div class="overflow-x-auto"><table class="w-full min-w-[560px] whitespace-nowrap text-sm">
-                    <thead>
-                        <tr class="text-[11px] uppercase tracking-wide text-(--color-text-muted)">
-                            <th class="px-5 py-2.5 text-left font-semibold">Pressing</th>
-                            <th class="px-5 py-2.5 text-left font-semibold w-[40%]">Commandes</th>
-                            <th class="px-5 py-2.5 text-right font-semibold">Volume</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($topPressings as $pressing)
-                            <tr wire:key="top-{{ $pressing->id }}" class="border-t border-(--color-border) hover:bg-(--color-bg)" data-href="{{ route('admin.pressings.show', $pressing) }}" tabindex="0" role="link">
-                                <td class="px-5 py-3">
-                                    <div class="font-medium">{{ $pressing->name }}</div>
-                                    <div class="text-xs text-(--color-text-muted)">{{ $pressing->city ?? '—' }}</div>
-                                </td>
-                                <td class="px-5 py-3">
-                                    <div class="flex items-center gap-3">
-                                        <div class="flex-1 h-2 rounded-full bg-(--color-bg) overflow-hidden">
-                                            <div class="h-full rounded-full bg-(--color-primary)" style="width:{{ round($pressing->period_orders_count / $topMax * 100) }}%"></div>
-                                        </div>
-                                        <span class="w-10 text-right font-semibold tabular-nums">{{ $pressing->period_orders_count }}</span>
-                                    </div>
-                                </td>
-                                <td class="px-5 py-3 text-right tabular-nums">{{ $fcfa((int) $pressing->period_volume) }} F</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table></div>
-            @endif
-        </div>
-
-        {{-- ===== Abonnements ===== --}}
-        <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
-            <h2 class="font-semibold text-sm mb-4">Abonnements</h2>
+        <div class="{{ $card }}">
+            <h2 class="{{ $cardTitle }}">Abonnements</h2>
             @php
                 $planTotal = max(1, collect($planBreakdown)->sum('count'));
                 $planColors = ['#93c5fd', '#3b82f6', '#1e3a8a'];
                 $statusColors = ['trialing' => 'var(--color-info)', 'active' => 'var(--color-success)', 'expired' => 'var(--color-warning)', 'canceled' => 'var(--color-text-muted)'];
             @endphp
-            <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-2">Par formule</div>
             <div class="flex h-2.5 rounded-full overflow-hidden bg-(--color-bg) mb-3">
                 @foreach ($planBreakdown as $i => $row)
                     @if ($row['count'] > 0)
@@ -265,97 +270,93 @@
                     @endif
                 @endforeach
             </div>
-            <div class="space-y-1.5 mb-6">
+            <ul class="space-y-1 mb-4 text-sm">
                 @foreach ($planBreakdown as $i => $row)
-                    <a href="{{ route('admin.pressings.index', ['plan' => $row['key']]) }}" wire:navigate
-                       class="flex items-center gap-2 text-sm -mx-2 px-2 py-1 rounded-md hover:bg-(--color-bg) transition-colors duration-100">
-                        <span class="w-2.5 h-2.5 rounded-sm flex-none" style="background:{{ $planColors[$i] }}"></span>
-                        <span class="flex-1">{{ $row['label'] }}</span>
-                        <span class="font-semibold tabular-nums">{{ $row['count'] }}</span>
-                    </a>
+                    <li>
+                        <a href="{{ route('admin.pressings.index', ['plan' => $row['key']]) }}" wire:navigate class="flex items-center gap-2 -mx-2 px-2 py-1 rounded-md hover:bg-(--color-bg)">
+                            <span class="w-2.5 h-2.5 rounded-sm flex-none" style="background:{{ $planColors[$i] }}"></span>
+                            <span class="flex-1">{{ $row['label'] }}</span>
+                            <span class="font-medium tabular-nums">{{ $row['count'] }}</span>
+                        </a>
+                    </li>
                 @endforeach
-            </div>
-
-            <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-2">Par statut</div>
-            <div class="grid grid-cols-2 gap-2">
-                @foreach ($statusBreakdown as $row)
-                    <a href="{{ route('admin.pressings.index', ['abonnement' => $row['key']]) }}" wire:navigate
-                       class="kpi-link block rounded-lg border border-(--color-border) px-3 py-2.5">
-                        <div class="flex items-center gap-1.5 text-xs text-(--color-text-secondary)">
-                            <span class="w-2 h-2 rounded-full" style="background:{{ $statusColors[$row['key']] }}"></span>{{ $row['label'] }}
-                        </div>
-                        <div class="text-xl font-bold tabular-nums mt-0.5">{{ $row['count'] }}</div>
-                    </a>
-                @endforeach
-            </div>
-        </div>
-    </div>
-
-    {{-- ===== Pressings récents ===== --}}
-    <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-(--color-border)">
-            <h2 class="font-semibold text-sm">Pressings récents</h2>
-            <a href="{{ route('admin.pressings.index') }}" wire:navigate class="text-sm font-medium text-(--color-primary) hover:underline">Voir tout →</a>
-        </div>
-        @if ($recentPressings->isEmpty())
-            <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucun pressing pour ces filtres.</div>
-        @else
-            <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
+            </ul>
+            <table class="w-full text-sm">
+                <thead><tr class="text-left text-(--color-text-muted)"><th class="py-1 font-semibold">Statut</th><th class="py-1 font-semibold text-right">Pressings</th></tr></thead>
                 <tbody>
-                    @foreach ($recentPressings as $pressing)
-                        <tr class="border-t border-(--color-border) first:border-t-0 hover:bg-(--color-bg)" data-href="{{ route('admin.pressings.show', $pressing) }}" tabindex="0" role="link">
-                            <td class="px-5 py-3.5 font-medium">{{ $pressing->name }}</td>
-                            <td class="px-5 py-3.5 text-(--color-text-secondary)">{{ $pressing->city }}</td>
-                            <td class="px-5 py-3.5 text-(--color-text-secondary)">
-                                @if ($pressing->subscription)
-                                    {{ $pressing->subscription->plan->label() }} · {{ $pressing->subscription->status->label() }}
-                                @else
-                                    Sans abonnement
-                                @endif
+                    @foreach ($statusBreakdown as $row)
+                        <tr class="border-t border-(--color-border)">
+                            <td class="py-2">
+                                <a href="{{ route('admin.pressings.index', ['abonnement' => $row['key']]) }}" wire:navigate class="inline-flex items-center gap-2 hover:underline">
+                                    <span class="w-2 h-2 rounded-full" style="background:{{ $statusColors[$row['key']] }}"></span>{{ $row['label'] }}
+                                </a>
                             </td>
-                            <td class="px-5 py-3.5 text-(--color-text-muted)">Créé le {{ $pressing->created_at->format('d/m/Y') }}</td>
-                            <td class="px-5 py-3.5 text-right">
-                                <span class="text-xs font-medium {{ $pressing->status->value === 'active' ? 'text-(--color-success-text)' : 'text-(--color-warning-text)' }}">
-                                    {{ $pressing->status->label() }}
-                                </span>
-                            </td>
+                            <td class="py-2 text-right font-medium tabular-nums">{{ $row['count'] }}</td>
                         </tr>
                     @endforeach
                 </tbody>
-            </table></div>
-        @endif
+            </table>
+        </div>
+
+        <div class="{{ $card }}">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-sm font-medium text-(--color-text-muted)">Pressings récents</h2>
+                <a href="{{ route('admin.pressings.index') }}" wire:navigate class="text-xs font-medium text-(--color-primary) hover:underline">Voir tout</a>
+            </div>
+            @if ($recentPressings->isEmpty())
+                <p class="py-10 text-center text-sm text-(--color-text-muted)">Aucun pressing pour ces filtres.</p>
+            @else
+                <ul class="space-y-2.5 text-sm">
+                    @foreach ($recentPressings as $pressing)
+                        <li class="flex items-start justify-between gap-2">
+                            <span class="min-w-0">
+                                <a href="{{ route('admin.pressings.show', $pressing) }}" wire:navigate class="block truncate font-medium hover:underline">{{ $pressing->name }}</a>
+                                <span class="block text-xs text-(--color-text-muted) truncate">
+                                    {{ $pressing->city ?? '—' }} ·
+                                    {{ $pressing->subscription ? $pressing->subscription->plan->label().' · '.$pressing->subscription->status->label() : 'Sans abonnement' }}
+                                </span>
+                            </span>
+                            <span class="shrink-0 text-right text-xs">
+                                <span class="block text-(--color-text-muted) tabular-nums">{{ $pressing->created_at->format('d/m/Y') }}</span>
+                                <span class="font-medium {{ $pressing->status->value === 'active' ? 'text-(--color-success-text)' : 'text-(--color-warning-text)' }}">{{ $pressing->status->label() }}</span>
+                            </span>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </div>
     </div>
 
-    {{-- Tests découverte : pressings fictifs lancés depuis le site (hors statistiques) --}}
-    <div class="mt-8 bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden" data-testid="sandbox-trials">
-        <div class="flex flex-wrap items-start justify-between gap-4 px-5 py-4 border-b border-(--color-border)">
+    {{-- ===== Tests découverte : pressings fictifs lancés depuis le site (hors statistiques) ===== --}}
+    <div class="{{ $card }}" data-testid="sandbox-trials">
+        <div class="flex flex-wrap items-start justify-between gap-4 mb-3">
             <div class="max-w-2xl">
-                <h2 class="font-semibold text-sm">Tests découverte</h2>
-                <p class="text-sm text-(--color-text-secondary) mt-0.5">Pressings fictifs lancés depuis la page « Tester » ({{ \App\Actions\Sandbox\StartSandbox::DAYS }} jours, effacés ensuite). Ils n'entrent dans aucun chiffre ci-dessus.</p>
+                <h2 class="text-sm font-medium text-(--color-text-muted)">Tests découverte</h2>
+                <p class="text-xs text-(--color-text-muted) mt-0.5">Pressings fictifs lancés depuis la page « Tester » ({{ \App\Actions\Sandbox\StartSandbox::DAYS }} jours, effacés ensuite). Ils n'entrent dans aucun chiffre ci-dessus.</p>
             </div>
-            <dl class="flex gap-6 text-sm">
-                <div><dt class="text-(--color-text-muted)">Lancés (7 j)</dt><dd class="font-display text-xl font-bold tabular-nums">{{ $sandboxTrials['startedThisWeek'] }}</dd></div>
-                <div><dt class="text-(--color-text-muted)">Devenus clients (7 j)</dt><dd class="font-display text-xl font-bold tabular-nums text-(--color-success-text)">{{ $sandboxTrials['convertedThisWeek'] }}</dd></div>
-                <div><dt class="text-(--color-text-muted)">En cours</dt><dd class="font-display text-xl font-bold tabular-nums">{{ $sandboxTrials['running'] }}</dd></div>
-                <div><dt class="text-(--color-text-muted)">Depuis le début</dt><dd class="font-display text-xl font-bold tabular-nums">{{ $sandboxTrials['convertedTotal'] }}<span class="text-sm font-medium text-(--color-text-muted)"> / {{ $sandboxTrials['total'] }}</span></dd></div>
+            <dl class="flex flex-wrap gap-6 text-sm">
+                <div><dt class="text-(--color-text-muted)">Lancés (7 j)</dt><dd class="text-xl font-semibold tabular-nums">{{ $sandboxTrials['startedThisWeek'] }}</dd></div>
+                <div><dt class="text-(--color-text-muted)">Devenus clients (7 j)</dt><dd class="text-xl font-semibold tabular-nums text-(--color-success-text)">{{ $sandboxTrials['convertedThisWeek'] }}</dd></div>
+                <div><dt class="text-(--color-text-muted)">En cours</dt><dd class="text-xl font-semibold tabular-nums">{{ $sandboxTrials['running'] }}</dd></div>
+                <div><dt class="text-(--color-text-muted)">Depuis le début</dt><dd class="text-xl font-semibold tabular-nums">{{ $sandboxTrials['convertedTotal'] }}<span class="text-sm font-medium text-(--color-text-muted)"> / {{ $sandboxTrials['total'] }}</span></dd></div>
             </dl>
         </div>
         @if ($sandboxTrials['recent']->isEmpty())
-            <div class="px-5 py-10 text-center text-sm text-(--color-text-muted)">Aucun test lancé pour l'instant.</div>
+            <p class="py-6 text-center text-sm text-(--color-text-muted)">Aucun test lancé pour l'instant.</p>
         @else
             <div class="overflow-x-auto"><table class="w-full min-w-[640px] whitespace-nowrap text-sm">
-                <thead class="text-left text-xs text-(--color-text-muted)">
-                    <tr><th class="px-5 py-2.5 font-medium">Pressing</th><th class="px-5 py-2.5 font-medium">WhatsApp</th><th class="px-5 py-2.5 font-medium">Lancé le</th><th class="px-5 py-2.5 font-medium text-right">Statut</th></tr>
+                <thead>
+                    <tr class="text-left text-(--color-text-muted)"><th class="py-1 pr-4 font-semibold">Pressing</th><th class="py-1 pr-4 font-semibold">WhatsApp</th><th class="py-1 pr-4 font-semibold">Lancé le</th><th class="py-1 font-semibold text-right">Statut</th></tr>
                 </thead>
                 <tbody>
                     @foreach ($sandboxTrials['recent'] as $trial)
                         <tr class="border-t border-(--color-border)">
-                            <td class="px-5 py-3 font-medium">{{ $trial->pressing_name }}</td>
-                            <td class="px-5 py-3">
+                            <td class="py-2 pr-4 font-medium">{{ $trial->pressing_name }}</td>
+                            <td class="py-2 pr-4">
                                 <a href="https://wa.me/{{ ltrim($trial->contact_phone, '+') }}" target="_blank" rel="noopener" class="tabular-nums text-(--color-primary) hover:underline">{{ \App\Support\PhoneNumber::format($trial->contact_phone) }}</a>
                             </td>
-                            <td class="px-5 py-3 text-(--color-text-secondary)">{{ $trial->created_at->format('d/m/Y H:i') }}</td>
-                            <td class="px-5 py-3 text-right">
+                            <td class="py-2 pr-4 text-(--color-text-secondary) tabular-nums">{{ $trial->created_at->format('d/m/Y H:i') }}</td>
+                            <td class="py-2 text-right">
                                 @if ($trial->isConverted() && $trial->convertedPressing)
                                     <a href="{{ route('admin.pressings.show', $trial->convertedPressing) }}" wire:navigate class="text-xs font-semibold text-(--color-success-text) hover:underline">Devenu client · {{ $trial->convertedPressing->name }}</a>
                                 @else
@@ -369,11 +370,11 @@
         @endif
     </div>
 
-    {{-- Environnement de démo (comptes fictifs en production pour les démonstrations) --}}
-    <div class="mt-8 bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
+    {{-- ===== Environnement de démo (comptes fictifs en production pour les démonstrations) ===== --}}
+    <div class="{{ $card }}">
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div class="max-w-2xl">
-                <h2 class="font-display text-lg font-bold mb-1">Environnement de démo</h2>
+                <h2 class="text-sm font-medium text-(--color-text-muted) mb-1">Environnement de démo</h2>
                 <p class="text-sm text-(--color-text-secondary)">
                     Pressing fictif « Pressing Démo PressLink » ({{ \App\Actions\Demo\ResetDemoPressing::PRESSING_CODE }}) avec un gérant, un employé, 4 clients et des commandes à chaque statut.
                     La réinitialisation efface la démo précédente et génère un nouveau mot de passe.
@@ -382,14 +383,14 @@
             <button wire:click="resetDemo" wire:loading.attr="disabled"
                     data-confirm-title="{{ $demoExists ? 'Réinitialiser la démo' : 'Créer la démo' }}" data-confirm-label="{{ $demoExists ? 'Réinitialiser' : 'Créer la démo' }}" data-confirm-tone="{{ $demoExists ? 'warning' : 'primary' }}"
                     wire:confirm="{{ $demoExists ? 'Réinitialiser la démo ? Toutes les données de démo actuelles seront effacées.' : 'Créer le pressing de démo ?' }}"
-                    class="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">
+                    class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">
                 <span wire:loading.remove wire:target="resetDemo">{{ $demoExists ? 'Réinitialiser la démo' : 'Créer la démo' }}</span>
                 <span wire:loading wire:target="resetDemo">Préparation…</span>
             </button>
         </div>
 
         @if ($demoAccess)
-            <div class="mt-5 rounded-lg bg-(--color-success-tint) border border-(--color-success)/30 p-4 text-sm">
+            <div class="mt-4 rounded-lg bg-(--color-success-tint) border border-(--color-success)/30 p-4 text-sm">
                 <p class="font-semibold text-(--color-success-text) mb-3">Démo prête. Notez le mot de passe : il ne sera plus affiché.</p>
                 <div class="grid gap-3 sm:grid-cols-2">
                     <div>

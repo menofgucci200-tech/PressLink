@@ -12,27 +12,38 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
     </head>
-    <body class="bg-(--color-bg) text-(--color-text-primary)">
+    {{-- Fond légèrement bleuté, comme un back-office : les cartes blanches s'en détachent. --}}
+    <body class="bg-[#F1F6FA] dark:bg-(--color-bg) text-(--color-text-primary)">
         <a href="#contenu" class="skip-link">Aller au contenu</a>
         @php
             $user = auth()->user();
-            $navItem = fn (string $key, string $route, string $label, string $icon, int $badge = 0) => [
-                'key' => $key, 'route' => $route, 'label' => $label, 'icon' => $icon,
+            $navItem = fn (string $key, string $route, string $label, int $badge = 0) => [
+                'key' => $key, 'route' => $route, 'label' => $label,
                 'active' => ($active ?? null) === $key, 'badge' => $badge,
             ];
-            $navItems = [
-                $navItem('dashboard', 'admin.dashboard', 'Vue globale', 'M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z|M9 21v-6h6v6'),
-                $navItem('pressings', 'admin.pressings.index', 'Pressings', 'M3 21h18|M5 21V7l8-4v18|M19 21V11l-6-4|M9 9h.01|M9 13h.01|M9 17h.01'),
-                $navItem('orders', 'admin.orders.index', 'Commandes', 'M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z|m3.3 7 8.7 5 8.7-5|M12 22V12'),
-                $navItem('clients', 'admin.clients.index', 'Clients', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M9 11A4 4 0 1 0 9 3a4 4 0 0 0 0 8Z'),
-                $navItem('administrators', 'admin.administrators.index', 'Administrateurs', 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2|M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z|M22 21v-2a4 4 0 0 0-3-3.87|M16 3.13a4 4 0 0 1 0 7.75'),
-                $navItem('users', 'admin.users.index', 'Liste des utilisateurs', 'M8 6h13|M8 12h13|M8 18h13|M3 6h.01|M3 12h.01|M3 18h.01'),
-                $navItem('requests', 'admin.requests.index', 'Demandes et paiements', 'M2 7h20v12H2Z|M2 11h20|M6 15h4', \App\Models\SubscriptionRequest::pending()->count()),
-                $navItem('plans', 'admin.plans.index', 'Formules et prix', 'M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z|M7 7h.01'),
-                $navItem('roles', 'admin.roles.index', 'Rôles et accès', 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z|m9 12 2 2 4-4'),
-                $navItem('site', 'admin.site.index', 'Site vitrine', 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z|M2 12h20|M12 2a15 15 0 0 1 0 20|M12 2a15 15 0 0 0 0 20'),
-                $navItem('services', 'admin.services.index', 'Services', 'M8 8m-6 0a6 6 0 1 0 12 0a6 6 0 1 0-12 0|M18.09 10.37A6 6 0 1 1 10.34 18'),
+            // Console à la manière d'un back-office : barre latérale claire, liens en texte, rubriques.
+            $navSections = [
+                'Administration' => [
+                    $navItem('dashboard', 'admin.dashboard', 'Vue globale'),
+                    $navItem('pressings', 'admin.pressings.index', 'Pressings'),
+                    $navItem('orders', 'admin.orders.index', 'Commandes'),
+                    $navItem('clients', 'admin.clients.index', 'Clients'),
+                    $navItem('requests', 'admin.requests.index', 'Demandes et paiements', \App\Models\SubscriptionRequest::pending()->count()),
+                ],
+                'Comptes' => [
+                    $navItem('administrators', 'admin.administrators.index', 'Administrateurs'),
+                    $navItem('users', 'admin.users.index', 'Liste des utilisateurs'),
+                    $navItem('roles', 'admin.roles.index', 'Rôles et accès'),
+                ],
+                'Offre et site' => [
+                    $navItem('plans', 'admin.plans.index', 'Formules et prix'),
+                    $navItem('services', 'admin.services.index', 'Services'),
+                    $navItem('site', 'admin.site.index', 'Site vitrine'),
+                ],
             ];
+            $navLink = fn (bool $isActive) => 'flex items-center gap-2 rounded-r-lg border-l-4 px-3 py-2 text-sm transition-colors '.($isActive
+                ? 'border-(--color-success) bg-(--color-primary-tint) font-semibold text-(--color-primary)'
+                : 'border-transparent text-(--color-text-secondary) hover:bg-(--color-bg) hover:text-(--color-text-primary)');
         @endphp
 
         <div class="min-h-screen flex" x-data="{ menu: false }"
@@ -42,50 +53,48 @@
             {{-- Mobile/tablette : le menu devient un panneau qui glisse depuis la gauche. --}}
             <div x-show="menu" x-cloak x-transition.opacity.duration.200ms @click="menu = false"
                  class="fixed inset-0 z-30 bg-slate-900/50 lg:hidden" aria-hidden="true"></div>
-            {{-- Bureau : barre fixe à la hauteur de l'écran (collée en haut pendant le
-                 défilement), les menus du bas restent visibles en bas de l'écran. --}}
-            <aside class="fixed inset-y-0 left-0 z-40 max-lg:-translate-x-full lg:sticky lg:top-0 lg:h-screen lg:self-start lg:z-auto w-[239px] flex-none flex flex-col py-[22px] pl-5 overflow-y-auto overflow-x-hidden text-white transition-transform duration-200 ease-out app-sidebar"
+            {{-- Bureau : barre fixe à la hauteur de l'écran, collée en haut pendant le défilement. --}}
+            <aside class="fixed inset-y-0 left-0 z-40 max-lg:-translate-x-full lg:sticky lg:top-0 lg:h-screen lg:self-start lg:z-auto w-60 flex-none flex flex-col overflow-y-auto overflow-x-hidden border-r border-(--color-border) bg-(--color-surface) transition-transform duration-200 ease-out"
                    :class="menu && 'max-lg:translate-x-0!'"
                    @click="if ($event.target.closest('a')) menu = false">
-                <div class="font-display text-[21px] font-bold tracking-tight pr-1 pb-[6px]">Press<span class="text-blue-100">Link</span></div>
-                <div class="pr-5 pb-[24px] text-[11px] font-semibold uppercase tracking-wide text-blue-200">Super Admin</div>
+                <div class="flex justify-center px-4 pb-4 pt-6">
+                    <a href="{{ route('admin.dashboard') }}" wire:navigate class="flex flex-col items-center gap-1 rounded-xl border border-(--color-border) bg-(--color-surface) px-6 py-3 shadow-sm">
+                        <img src="{{ asset('images/logo-presslink.png') }}" alt="" width="44" height="44" class="w-11 h-11">
+                        <span class="font-display text-lg font-bold tracking-tight leading-none">Press<span class="text-(--color-primary)">Link</span></span>
+                        <span class="text-[9px] font-semibold uppercase tracking-widest text-(--color-text-muted)">Console super admin</span>
+                    </a>
+                </div>
 
-                <nav class="flex flex-col gap-1.5">
-                    @foreach ($navItems as $item)
-                        <a href="{{ route($item['route']) }}" wire:navigate style="--nav-i:{{ $loop->index }}" class="nav-item {{ $item['active'] ? 'nav-item-active' : '' }}">
-                            @if ($item['active'])
-                                <span class="nav-notch nav-notch-top"></span>
-                                <span class="nav-notch nav-notch-bottom"></span>
-                            @endif
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none">
-                                @foreach (explode('|', $item['icon']) as $path)
-                                    <path d="{{ $path }}"></path>
+                <nav aria-label="Console" class="flex flex-col gap-5 pb-4 pr-3">
+                    @foreach ($navSections as $section => $items)
+                        <div>
+                            <div class="px-5 pb-2 text-[11px] font-semibold uppercase tracking-widest text-(--color-text-muted)">{{ $section }}</div>
+                            <div class="flex flex-col gap-0.5">
+                                @foreach ($items as $item)
+                                    <a href="{{ route($item['route']) }}" wire:navigate @if ($item['active']) aria-current="page" @endif class="{{ $navLink($item['active']) }}">
+                                        <span class="truncate">{{ $item['label'] }}</span>
+                                        @if ($item['badge'] > 0)
+                                            <span class="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-(--color-warning-tint) text-(--color-warning-text) text-[11px] font-bold tabular-nums" aria-label="{{ $item['badge'] }} à traiter">{{ $item['badge'] }}</span>
+                                        @endif
+                                    </a>
                                 @endforeach
-                            </svg>
-                            <span class="truncate">{{ $item['label'] }}</span>
-                            @if ($item['badge'] > 0)
-                                <span class="ml-auto mr-3 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-amber-400 text-slate-900 text-[11px] font-bold tabular-nums" aria-label="{{ $item['badge'] }} à traiter">{{ $item['badge'] }}</span>
-                            @endif
-                        </a>
+                            </div>
+                        </div>
                     @endforeach
                 </nav>
 
                 <div class="flex-1"></div>
 
-                <div class="pr-5 pt-6">
-                    <div class="border-t border-white/20 pt-3.5">
-                        <a href="{{ route('account.settings') }}" wire:navigate class="nav-item {{ ($active ?? null) === 'account' ? 'nav-item-active' : '' }}">
-                            @if (($active ?? null) === 'account') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                            <span class="truncate">Mon profil</span>
-                        </a>
-                    </div>
+                <div class="border-t border-(--color-border) py-3 pr-3">
+                    <a href="{{ route('account.settings') }}" wire:navigate class="{{ $navLink(($active ?? null) === 'account') }}">
+                        <span class="truncate">Mon profil</span>
+                    </a>
                 </div>
             </aside>
 
             {{-- La page défile (pas le main) : les en-têtes de tableaux collants restent sous la barre du haut. --}}
             <div class="flex-1 min-w-0 flex flex-col" x-data="{ scrolled: window.scrollY > 4 }" @scroll.window="scrolled = window.scrollY > 4">
-                <header class="h-16 flex-none bg-(--color-surface) border-b border-(--color-border) flex items-center gap-3 px-4 sm:px-6 sticky top-0 z-10 transition-shadow duration-200"
+                <header class="flex-none bg-(--color-surface) border-b border-(--color-border) flex items-center gap-3 px-4 py-2.5 sticky top-0 z-10 transition-shadow duration-200"
                         :class="scrolled ? 'shadow-[0_4px_14px_-8px_rgba(15,23,42,.25)]' : ''">
                     <button type="button" @click="menu = true" :aria-expanded="menu" aria-label="Ouvrir le menu"
                             class="lg:hidden -ml-1 w-10 h-10 flex-none rounded-lg flex items-center justify-center text-(--color-text-secondary) hover:bg-(--color-bg)">
@@ -95,11 +104,15 @@
                     <x-palette-trigger />
                     <div class="flex-1"></div>
 
+                    <a href="{{ route('account.settings') }}" wire:navigate class="hidden sm:block text-xs font-semibold uppercase tracking-wide text-(--color-text-secondary) hover:text-(--color-primary) truncate max-w-48" title="Mon profil">{{ $user->name }}</a>
                     <x-theme-toggle />
-                    <x-profile-menu :user="$user" role="Super Administrateur" :active="($active ?? null) === 'account'" />
+                    <form novalidate method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="h-9 px-3 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm font-medium hover:border-(--color-error) hover:text-(--color-error)">Déconnexion</button>
+                    </form>
                 </header>
 
-                <main id="contenu" tabindex="-1" class="flex-1 min-w-0 overflow-x-clip p-4 sm:p-6 lg:p-8 outline-none">
+                <main id="contenu" tabindex="-1" class="flex-1 min-w-0 overflow-x-clip p-4 md:p-6 outline-none">
                     {{ $slot }}
                 </main>
             </div>

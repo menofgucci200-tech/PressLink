@@ -92,7 +92,7 @@
 
     {{-- ===== Notifications ===== --}}
     <template x-teleport="body">
-        <div class="fixed z-[110] inset-x-0 top-3 sm:top-auto sm:bottom-5 sm:right-5 sm:left-auto flex flex-col items-center sm:items-end gap-2.5 px-4 sm:px-0 pointer-events-none" aria-live="polite">
+        <div class="fixed z-[110] inset-x-0 top-3 sm:top-auto sm:bottom-24 lg:bottom-5 sm:right-5 sm:left-auto flex flex-col items-center sm:items-end gap-2.5 px-4 sm:px-0 pointer-events-none" aria-live="polite">
             <template x-for="t in toasts" :key="t.id">
                 <div x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
                      class="pointer-events-auto w-full sm:w-[380px] flex items-start gap-3 rounded-xl bg-(--color-surface) border border-(--color-border) shadow-lg px-4 py-3.5"

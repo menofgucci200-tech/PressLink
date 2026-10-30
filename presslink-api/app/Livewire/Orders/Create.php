@@ -126,6 +126,12 @@ class Create extends Component
         if ($this->prestationId === null || $this->selectedPrestation() === null) {
             $this->prestationId = $this->defaultPrestationId();
         }
+
+        // Depuis la fiche d'un client (« Nouvelle commande ») : déjà choisi.
+        $clientId = request()->query('client');
+        if (is_numeric($clientId) && $this->pressing()->customers()->where('customers.id', (int) $clientId)->where('customers.is_active', true)->exists()) {
+            $this->selectedCustomerId = (int) $clientId;
+        }
     }
 
     /** Sauvegarde du brouillon à chaque échange avec le serveur. */

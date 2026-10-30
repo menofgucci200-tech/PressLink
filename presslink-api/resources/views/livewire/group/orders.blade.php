@@ -100,7 +100,7 @@
                             </td>
                             <td class="px-5 py-3.5">
                                 <div>{{ $order->customer->fullName() }}</div>
-                                <div class="text-xs text-(--color-text-muted) tabular-nums">{{ $order->customer->phone }}</div>
+                                <div class="text-xs text-(--color-text-muted) tabular-nums">{{ \App\Support\PhoneNumber::format($order->customer->phone) }}</div>
                             </td>
                             <td class="px-5 py-3.5">
                                 <div class="flex items-center gap-2 flex-wrap">

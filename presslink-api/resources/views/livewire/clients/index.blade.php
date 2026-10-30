@@ -92,7 +92,7 @@
                                 <span class="ml-1.5 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-(--color-error-tint) text-(--color-error)" title="Compte désactivé par PressLink : le client ne peut plus se connecter à l'application.">Compte désactivé</span>
                             @endunless</td>
                             <td class="px-5 py-3.5 text-(--color-text-secondary) tabular-nums">
-                                {{ $client->phone }}
+                                {{ \App\Support\PhoneNumber::format($client->phone) }}
                                 <x-copy-button :value="$client->phone" label="Copier le téléphone" class="copy-btn--reveal ml-0.5" />
                             </td>
                             <td class="px-5 py-3.5 text-right tabular-nums">{{ $client->orders_count }}</td>

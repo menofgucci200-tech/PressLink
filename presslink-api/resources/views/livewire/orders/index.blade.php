@@ -41,7 +41,7 @@
             <x-locked-export />
             @endif
             @if (auth()->user()->may(\App\Enums\Permission::OrdersCreate))
-            <a href="{{ route('orders.create') }}" wire:navigate class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
+            <a href="{{ route('orders.create') }}" wire:navigate class="max-lg:hidden inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Nouvelle commande
             </a>
@@ -49,24 +49,34 @@
         </div>
     </div>
 
-    <div class="flex items-end gap-3 mb-5 flex-wrap">
-        <div class="relative w-full sm:w-auto sm:flex-1 sm:max-w-sm">
+    {{-- Téléphone : la recherche reste visible, dates et paiement se déplient d'un toucher --}}
+    <div class="flex items-end gap-3 mb-5 flex-wrap" x-data="{ filtres: @js($dateFrom !== '' || $dateTo !== '' || $payment !== '') }">
+        <div class="relative flex-1 min-w-0 sm:flex-1 sm:max-w-sm">
             <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Recherche</label>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="absolute left-3 top-1/2 translate-y-[3px] text-(--color-text-muted)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
             <input type="text" wire:model.live.debounce.400ms="search" placeholder="N°, client, téléphone…"
                    class="w-full h-10 pl-9 pr-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-(--color-surface)">
         </div>
-        <div>
+        <button type="button" @click="filtres = !filtres" :aria-expanded="filtres"
+                class="sm:hidden h-10 px-3 rounded-lg border border-(--color-border) text-sm font-semibold inline-flex items-center gap-1.5"
+                :class="filtres ? 'border-(--color-primary) text-(--color-primary)' : ''">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+            Filtres
+            @if ($dateFrom !== '' || $dateTo !== '' || $payment !== '')
+                <span class="w-2 h-2 rounded-full bg-(--color-primary)"></span>
+            @endif
+        </button>
+        <div class="max-sm:basis-[calc(50%-0.375rem)]" :class="filtres ? '' : 'max-sm:hidden'">
             <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Déposée à partir du</label>
-            <input type="date" wire:model.live="dateFrom" class="h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-(--color-surface)">
+            <input type="date" wire:model.live="dateFrom" class="max-sm:w-full h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-(--color-surface)">
         </div>
-        <div>
+        <div class="max-sm:basis-[calc(50%-0.375rem)]" :class="filtres ? '' : 'max-sm:hidden'">
             <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Jusqu'au</label>
-            <input type="date" wire:model.live="dateTo" class="h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-(--color-surface)">
+            <input type="date" wire:model.live="dateTo" class="max-sm:w-full h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-(--color-surface)">
         </div>
-        <div>
+        <div class="max-sm:w-full" :class="filtres ? '' : 'max-sm:hidden'">
             <label for="payment-filter" class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Paiement</label>
-            <select id="payment-filter" wire:model.live="payment" class="h-10 pl-3 pr-8 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-(--color-surface)">
+            <select id="payment-filter" wire:model.live="payment" class="max-sm:w-full h-10 pl-3 pr-8 rounded-lg border border-(--color-border) bg-(--color-bg) text-sm focus:outline-none focus:border-(--color-primary) focus:bg-(--color-surface)">
                 <option value="">Tous</option>
                 <option value="{{ \App\Models\Pressing::UNSETTLED_FILTER }}">Non soldées</option>
                 @foreach (\App\Enums\PaymentStatus::cases() as $case)
@@ -116,7 +126,7 @@
     {{-- Actions groupées sur les commandes cochées --}}
     @if ($selected !== [])
         @php $selectedCount = count($selected); @endphp
-        <div class="fixed bottom-5 inset-x-4 lg:left-[calc(239px+2rem)] lg:right-8 z-30 flex justify-center pointer-events-none">
+        <div class="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] lg:bottom-5 inset-x-4 lg:left-[calc(239px+2rem)] lg:right-8 z-30 flex justify-center pointer-events-none">
             <div class="pointer-events-auto flex flex-wrap items-center gap-2 rounded-2xl bg-slate-900 text-white shadow-2xl px-4 py-3 animate-step dark:ring-1 dark:ring-white/10"
                  role="region" aria-label="Actions sur la sélection">
                 <span class="text-sm font-semibold mr-1 tabular-nums">{{ $selectedCount }} sélectionnée{{ $selectedCount > 1 ? 's' : '' }}</span>

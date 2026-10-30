@@ -189,12 +189,17 @@
                     </div>
 
                     {{-- Pinceau : la couleur des prochaines pièces --}}
-                    <div class="flex flex-wrap items-center gap-x-3 gap-y-2 mb-4 px-3 py-2.5 rounded-xl bg-(--color-bg)">
-                        <span class="text-[13px] font-medium text-(--color-text-secondary)">
+                    {{-- Téléphone : les pastilles se déplient d'un toucher, pour laisser la place aux pièces --}}
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-2 mb-4 px-3 py-2.5 rounded-xl bg-(--color-bg)" x-data="{ pastilles: false }">
+                        <button type="button" @click="pastilles = !pastilles" class="sm:pointer-events-none flex items-center gap-2 text-[13px] font-medium text-(--color-text-secondary)" :aria-expanded="pastilles">
+                            <span x-show="activeColor" class="w-4 h-4 rounded-full border border-(--color-border)" :style="pastille(activeColor)"></span>
                             Couleur des pièces :
                             <span class="font-semibold" :class="activeColor ? 'text-(--color-text-primary)' : 'text-(--color-text-muted)'" x-text="activeColor || 'aucune'"></span>
-                        </span>
-                        @include('livewire.orders._color-swatches', ['current' => 'activeColor', 'pick' => 'choisirPinceau(%s)', 'picker' => 'pinceauDepuisSelecteur($event.target.value)'])
+                            <span class="sm:hidden text-(--color-primary) font-semibold" x-text="pastilles ? 'Fermer' : 'Choisir'"></span>
+                        </button>
+                        <div class="max-sm:w-full" :class="pastilles ? '' : 'max-sm:hidden'" @click="if ($event.target.closest('button')) pastilles = false">
+                            @include('livewire.orders._color-swatches', ['current' => 'activeColor', 'pick' => 'choisirPinceau(%s)', 'picker' => 'pinceauDepuisSelecteur($event.target.value)'])
+                        </div>
                     </div>
 
                     <p x-show="!prestationId" class="text-sm text-(--color-text-muted)">Touchez un service pour voir ses pièces et leurs prix.</p>

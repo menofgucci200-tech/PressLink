@@ -15,7 +15,7 @@
         @endforeach
     </div>
 
-    <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden w-fit max-w-full">
+    <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-hidden max-sm:w-full w-fit max-w-full">
         @if ($issues->isEmpty())
             @if ($status === 'resolved')
                 <x-empty-state icon="box" title="Aucun signalement résolu pour le moment">
@@ -27,7 +27,45 @@
                 </x-empty-state>
             @endif
         @else
-            <div class="overflow-x-auto">
+            {{-- Téléphone : une carte par signalement, le bouton « Marquer résolu » sous le pouce --}}
+            <ul class="sm:hidden divide-y divide-(--color-border)">
+                @foreach ($issues as $issue)
+                    <li wire:key="issue-card-{{ $issue->id }}" class="px-4 py-3.5">
+                        <div class="flex items-start justify-between gap-3">
+                            <span class="font-semibold">{{ $issue->category->label() }}</span>
+                            @if ($issue->status->value === 'resolved')
+                                <span class="flex-none inline-flex items-center gap-1.5 text-xs font-medium text-(--color-success-text)"><span class="w-1.5 h-1.5 rounded-full bg-(--color-success-text)"></span>Résolu</span>
+                            @else
+                                <span class="flex-none inline-flex items-center gap-1.5 text-xs font-medium text-(--color-error)"><span class="w-1.5 h-1.5 rounded-full bg-(--color-error)"></span>En attente</span>
+                            @endif
+                        </div>
+                        <div class="mt-0.5 text-xs text-(--color-text-muted)">
+                            {{ $issue->customer?->fullName() }} ·
+                            <a href="{{ route('orders.show', $issue->order) }}" wire:navigate class="font-medium text-(--color-primary) tabular-nums">{{ $issue->order->order_number }}</a>
+                        </div>
+                        @if ($issue->description)
+                            <p class="mt-2 text-sm text-(--color-text-secondary) break-words">{{ $issue->description }}</p>
+                        @endif
+                        @if ($issue->resolution_note)
+                            <p class="mt-1.5 text-xs text-(--color-text-secondary)">« {{ $issue->resolution_note }} »</p>
+                        @endif
+                        @if ($resolvingIssueId === $issue->id)
+                            <div class="mt-3">
+                                <textarea wire:model="resolutionNote" rows="2" placeholder="Comment le problème a été résolu (facultatif)"
+                                          class="w-full px-3 py-2 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)"></textarea>
+                                <div class="grid grid-cols-2 gap-2 mt-2">
+                                    <button wire:click="cancelResolving" class="h-10 rounded-lg border border-(--color-border) text-sm font-medium text-(--color-text-secondary)">Annuler</button>
+                                    <button wire:click="confirmResolve" class="h-10 rounded-lg bg-(--color-primary) text-white text-sm font-semibold">Confirmer</button>
+                                </div>
+                            </div>
+                        @elseif ($issue->status->value !== 'resolved' && auth()->user()->may(\App\Enums\Permission::IssuesManage))
+                            <button wire:click="startResolving({{ $issue->id }})" class="mt-3 w-full h-10 rounded-lg border border-(--color-primary) text-sm font-semibold text-(--color-primary)">Marquer résolu</button>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+
+            <div class="max-sm:hidden overflow-x-auto">
                 <table class="text-sm">
                     <thead>
                         <tr class="text-left text-xs text-(--color-text-muted) border-b border-(--color-border)">

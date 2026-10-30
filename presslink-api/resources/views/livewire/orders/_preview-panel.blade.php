@@ -72,7 +72,7 @@
                 </span>
                 <div class="flex-1 min-w-0">
                     <a href="{{ route('clients.show', $previewOrder->customer) }}" wire:navigate class="font-semibold hover:text-(--color-primary)">{{ $previewOrder->customer->fullName() }}</a>
-                    <div class="text-xs text-(--color-text-muted) tabular-nums flex items-center gap-0.5">{{ $previewOrder->customer->phone }} <x-copy-button :value="$previewOrder->customer->phone" label="Copier le téléphone" /></div>
+                    <div class="text-xs text-(--color-text-muted) tabular-nums flex items-center gap-0.5">{{ \App\Support\PhoneNumber::format($previewOrder->customer->phone) }} <x-copy-button :value="$previewOrder->customer->phone" label="Copier le téléphone" /></div>
                 </div>
                 <a href="tel:{{ $previewOrder->customer->phone }}" data-tooltip="Appeler" aria-label="Appeler {{ $previewOrder->customer->fullName() }}"
                    class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary)">

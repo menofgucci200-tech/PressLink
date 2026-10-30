@@ -18,12 +18,13 @@
         $chips[] = ['value' => $s->value, 'label' => $s->label(), 'count' => (int) ($counts[$s->value] ?? 0)];
     }
 @endphp
-<div {{ $attributes->merge(['class' => 'flex gap-2 flex-wrap']) }} role="group" aria-label="Filtrer par statut">
+{{-- Téléphone : une seule ligne qui défile au doigt, pour laisser la place à la liste --}}
+<div {{ $attributes->merge(['class' => 'flex gap-2 sm:flex-wrap max-sm:overflow-x-auto max-sm:-mx-4 max-sm:px-4 max-sm:pb-1 max-sm:[scrollbar-width:none]']) }} role="group" aria-label="Filtrer par statut">
     @foreach ($chips as $chip)
         @php $isActive = $current === $chip['value']; @endphp
         <button type="button" wire:click="$set('{{ $model }}', '{{ $isActive ? '' : $chip['value'] }}')" aria-pressed="{{ $isActive ? 'true' : 'false' }}"
                 style="--chip: {{ $statusColors[$chip['value']] ?? 'var(--color-primary)' }}"
-                class="inline-flex items-center gap-1.5 h-9 pl-3.5 pr-1.5 rounded-full text-[13px] font-semibold border transition-all duration-150
+                class="flex-none inline-flex items-center gap-1.5 h-9 pl-3.5 pr-1.5 rounded-full text-[13px] font-semibold border transition-all duration-150
                        {{ $isActive
                            ? 'bg-(--chip) border-(--chip) text-white shadow-[0_6px_14px_-8px_var(--chip)]'
                            : 'border-[color-mix(in_srgb,var(--chip)_30%,transparent)] bg-[color-mix(in_srgb,var(--chip)_8%,transparent)] text-(--chip) hover:bg-[color-mix(in_srgb,var(--chip)_14%,transparent)]' }}">

@@ -1,14 +1,16 @@
 <div class="max-w-4xl mx-auto">
-    <div class="flex items-center gap-3 mb-6">
+    {{-- Téléphone : le reçu (télécharger, partager, imprimer) passe sur une seconde ligne --}}
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-3 mb-6">
         <a href="{{ route('orders.index') }}" data-back aria-label="Retour" data-tooltip="Retour à la liste" data-tooltip-pos="bottom" class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center hover:border-(--color-primary)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
         </a>
-        <div>
+        <div class="min-w-0">
             <div class="font-semibold tabular-nums flex items-center gap-1">Commande {{ $order->order_number }} <x-copy-button :value="$order->order_number" label="Copier le n° de commande" /></div>
             <div class="text-xs text-(--color-text-muted)">{{ $order->customer->fullName() }}</div>
         </div>
         <div class="flex-1"></div>
         <x-status-badge :status="$order->status" />
+        <div class="flex items-center gap-2 max-sm:basis-full max-sm:justify-end">
         <x-receipt-actions label="le reçu de dépôt"
                            :download="route('orders.receipt', ['order' => $order, 'format' => 'pdf'])"
                            :share="['url' => \App\Support\ReceiptLinks::order($order), 'text' => \App\Support\ReceiptLinks::orderShareText($order), 'file' => \App\Support\ReceiptLinks::orderFileName($order), 'phone' => $order->customer->phone]" />
@@ -17,6 +19,7 @@
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><path d="M6 14h12v8H6z"></path></svg>
             Reçu
         </a>
+        </div>
     </div>
 
     @if (session('order_created'))

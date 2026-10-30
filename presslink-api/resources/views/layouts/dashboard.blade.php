@@ -73,6 +73,7 @@
         @endphp
 
         <div class="min-h-screen flex" x-data="{ menu: false }"
+             @open-nav.window="menu = true"
              @keydown.escape.window="menu = false"
              @resize.window="if (window.innerWidth >= 1024) menu = false"
              x-effect="document.body.classList.toggle('overflow-hidden', menu)">
@@ -244,7 +245,7 @@
 
             {{-- La page défile (pas le main) : les en-têtes de tableaux collants restent sous la barre du haut. --}}
             <div class="flex-1 min-w-0 flex flex-col" x-data="{ scrolled: window.scrollY > 4 }" @scroll.window="scrolled = window.scrollY > 4">
-                <header class="h-16 flex-none bg-(--color-surface) border-b border-(--color-border) flex items-center gap-3 px-4 sm:px-6 sticky top-0 z-10 transition-shadow duration-200"
+                <header class="h-16 flex-none bg-(--color-surface) border-b border-(--color-border) flex items-center gap-2 sm:gap-3 px-3 sm:px-6 sticky top-0 z-10 transition-shadow duration-200"
                         :class="scrolled ? 'shadow-[0_4px_14px_-8px_rgba(15,23,42,.25)]' : ''">
                     <button type="button" @click="menu = true" :aria-expanded="menu" aria-label="Ouvrir le menu"
                             class="lg:hidden -ml-1 w-10 h-10 flex-none rounded-lg flex items-center justify-center text-(--color-text-secondary) hover:bg-(--color-bg)">
@@ -261,7 +262,7 @@
 
                     @if ($pressing)
                         <livewire:pressing.open-status />
-                        <div class="w-px h-6 bg-(--color-border)"></div>
+                        <div class="max-sm:hidden w-px h-6 bg-(--color-border)"></div>
                     @endif
 
                     <x-theme-toggle />
@@ -336,13 +337,49 @@
         </div>
 
         <x-feedback />
-        @if ($pressing && $can(\App\Enums\Permission::OrdersCreate) && request()->routeIs('dashboard', 'orders.index', 'orders.show', 'clients.index', 'clients.show'))
-            {{-- Téléphone : l'action la plus fréquente reste sous le pouce, même après avoir défilé --}}
-            <a href="{{ route('orders.create') }}" wire:navigate.hover aria-label="Nouvelle commande"
-               class="lg:hidden fixed right-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 inline-flex items-center gap-2 h-14 pl-4 pr-5 rounded-full bg-(--color-primary) text-white text-[15px] font-semibold shadow-[0_8px_24px_rgba(37,99,235,.35)] active:scale-95 transition-transform">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                Commande
-            </a>
+        {{-- Téléphone et tablette : barre du bas, toujours sous le pouce. Les écrans du
+             quotidien à un toucher, la nouvelle commande au centre. Masquée sur l'écran
+             de commande, qui a sa propre barre (ticket et bouton Valider). --}}
+        @if ($pressing && ! $groupMode && ! request()->routeIs('orders.create'))
+            @php
+                $tabClass = fn (bool $isActive) => 'flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 h-14 text-[11px] font-semibold transition-colors '
+                    .($isActive ? 'text-(--color-primary)' : 'text-(--color-text-muted) active:text-(--color-text-primary)');
+                $tabs = array_values(array_filter([
+                    ['key' => 'dashboard', 'url' => route('dashboard'), 'label' => 'Accueil', 'icon' => 'M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z|M9 21v-6h6v6'],
+                    ['key' => 'orders', 'url' => route('orders.index'), 'label' => 'Commandes', 'icon' => 'M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z|m3.3 7 8.7 5 8.7-5|M12 22V12'],
+                    $can(\App\Enums\Permission::OrdersCreate) ? ['key' => 'new', 'url' => route('orders.create'), 'label' => 'Nouvelle', 'icon' => null] : null,
+                    ['key' => 'clients', 'url' => route('clients.index'), 'label' => 'Clients', 'icon' => 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M9 11A4 4 0 1 0 9 3a4 4 0 0 0 0 8Z'],
+                ]));
+            @endphp
+            <nav aria-label="Navigation rapide" class="lg:hidden fixed inset-x-0 bottom-0 z-20 bg-(--color-surface) border-t border-(--color-border) pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(15,23,42,.06)]">
+                <div class="flex items-stretch max-w-xl mx-auto px-1">
+                    @foreach ($tabs as $tab)
+                        @if ($tab['key'] === 'new')
+                            <a href="{{ $tab['url'] }}" wire:navigate aria-label="Nouvelle commande" class="flex-1 flex flex-col items-center justify-center h-14">
+                                <span class="-mt-5 w-14 h-14 rounded-full bg-(--color-primary) text-white flex items-center justify-center shadow-[0_6px_18px_rgba(37,99,235,.4)] ring-4 ring-(--color-surface) active:scale-95 transition-transform">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                                </span>
+                                <span class="text-[11px] font-semibold text-(--color-primary) -mt-0.5">Nouvelle</span>
+                            </a>
+                        @else
+                            <a href="{{ $tab['url'] }}" wire:navigate @if (($active ?? null) === $tab['key']) aria-current="page" @endif class="{{ $tabClass(($active ?? null) === $tab['key']) }}">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    @foreach (explode('|', $tab['icon']) as $path)<path d="{{ $path }}"></path>@endforeach
+                                </svg>
+                                <span class="truncate max-w-full">{{ $tab['label'] }}</span>
+                            </a>
+                        @endif
+                    @endforeach
+                    {{-- Le reste (caisse, services, équipe, paramètres…) : le menu complet --}}
+                    <button type="button" @click="$dispatch('open-nav')" class="{{ $tabClass(false) }} relative">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
+                        <span>Menu</span>
+                        @if ($openIssuesCount > 0)
+                            <span class="absolute top-1.5 left-1/2 ml-1.5 min-w-4 h-4 px-1 rounded-full bg-(--color-error) text-white text-[10px] font-bold flex items-center justify-center" aria-label="{{ $openIssuesCount }} signalement(s)">{{ $openIssuesCount }}</span>
+                        @endif
+                    </button>
+                </div>
+            </nav>
         @endif
         @if ($pressing)
             @php

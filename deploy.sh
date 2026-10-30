@@ -51,6 +51,10 @@ if ! command -v lftp >/dev/null 2>&1; then
   exit 1
 fi
 
+# Dossier des versions (à côté de presslink-api) et adresse du site, pour l'agent de déploiement.
+REMOTE_RELEASES="${REMOTE_RELEASES:-$(dirname "$REMOTE_API_DIR")/releases}"
+SITE_URL="${SITE_URL:-https://presslink.org}"
+KEPT_RELEASES=3
 API_DIR="$SCRIPT_DIR/presslink-api"
 APP_DIR="$SCRIPT_DIR/presslink-app"
 
@@ -85,71 +89,44 @@ deploy_backend() {
   log "Backend — build des assets (Vite)"
   (cd "$API_DIR" && npm ci && npm run build)
 
-  log "Backend — purge de vendor/composer et public/build côté serveur avant renvoi"
-  # Ces deux dossiers sont des ENSEMBLES de fichiers générés ensemble par
-  # composer/vite (les fichiers d'autoload de Composer se référencent les
-  # uns les autres par un hash de classe). Un "mirror" classique compare
-  # les dates de fichiers pour décider quoi retransférer — mais lftp
-  # réplique la date du fichier LOCAL sur le serveur au moment de l'envoi,
-  # donc si le fichier local n'a pas été retouché depuis le dernier
-  # déploiement (même si son contenu a changé, ex. hash Composer
-  # régénéré), il est vu comme "déjà à jour" et sauté : on obtient un jeu
-  # de fichiers à moitié neufs / à moitié anciens, incompatibles entre eux
-  # (exactement ce qui a cassé le site la première fois). On supprime donc
-  # ces deux dossiers avant de les renvoyer, pour forcer un envoi complet
-  # et cohérent plutôt que de se fier à la comparaison de dates.
-  lftp_run "
-    rm -rf $REMOTE_API_DIR/vendor/composer;
-    rm -rf $REMOTE_API_DIR/public/build;
-  "
-  remove_remote_caches
+  # ── Déploiement sans coupure ────────────────────────────────────────────
+  # La nouvelle version est préparée dans son propre dossier
+  # (releases/<date>) pendant que l'actuelle continue de servir les pressings,
+  # puis la production bascule d'un coup (un renommage de fichier). Le .env et
+  # storage/ restent dans $REMOTE_API_DIR, communs à toutes les versions.
+  local release archive
+  release="$(date +%Y%m%d-%H%M%S)"
+  archive="$(mktemp -d)/presslink-$release.zip"
 
-  log "Backend — envoi du code + vendor vers $REMOTE_API_DIR (SFTP, sans suppression distante)"
-  # --reverse = upload (local -> distant). Pas de --delete global : on
-  # n'efface jamais tout le reste du dossier distant automatiquement
-  # (fichiers de logs, uploads clients, etc. ne sont de toute façon pas
-  # dans ces dossiers locaux, mais mieux vaut rester prudent sur un
-  # hébergement partagé sans accès shell pour vérifier les dégâts).
-  # Pas de --ignore-time ici : comparer seulement les tailles laissait sur le
-  # serveur l'ancienne version d'un fichier modifié qui gardait la même
-  # taille (vu le 22/10 : resources/views/site/pricing.blade.php, 6 040 octets
-  # avant et après). La date est donc comparée aussi.
-  lftp_run "
-    mirror --reverse --verbose --parallel=3 \
-      --exclude-glob .env \
-      --exclude-glob .env.* \
-      --exclude-glob .git/ \
-      --exclude-glob .agents/ \
-      --exclude-glob .phpunit.cache/ \
-      --exclude-glob node_modules/ \
-      --exclude-glob storage/ \
-      --exclude-glob public/uploads/ \
-      --exclude-glob tests/ \
-      --exclude-glob load-testing/ \
-      --exclude-glob docker/ \
-      --exclude-glob bootstrap/cache/config.php \
-      --exclude-glob bootstrap/cache/routes-*.php \
-      --exclude-glob bootstrap/cache/events.php \
-      --exclude .DS_Store \
-      '$API_DIR' '$REMOTE_API_DIR';
-  "
-  # Caches effacés une seconde fois, code complet en place : la tâche planifiée
-  # (presslink:refresh-caches, chaque minute) les reconstruit avec le nouveau code.
-  remove_remote_caches
+  log "Backend — archive de la version $release"
+  (cd "$API_DIR" && zip -qr "$archive" . \
+      -x '.env' '.env.*' '.git/*' '.agents/*' '.phpunit.cache/*' 'node_modules/*' 'storage/*' \
+         'public/uploads/*' 'tests/*' 'load-testing/*' 'docker/*' 'deploy/*' \
+         'bootstrap/cache/config.php' 'bootstrap/cache/routes-*.php' 'bootstrap/cache/events.php' \
+         '*.DS_Store')
+  # Plus besoin de la version sans outils de développement en local.
+  trap - EXIT
+  restore_dev_dependencies
 
-  log "Backend — vues Blade compilées effacées (recompilées à la prochaine visite)"
-  # Une vue envoyée garde la date du fichier local : si elle est plus ancienne
-  # que la version déjà compilée sur le serveur, Laravel servirait l'ancienne.
-  # (Aucune vue compilée = rien à effacer : ce n'est pas une erreur.)
-  lftp_run "glob rm -f $REMOTE_API_DIR/storage/framework/views/*.php;" || warn "Aucune vue compilée à effacer."
+  log "Backend — agent de déploiement déposé et vérifié"
+  agent_install
+  local etat
+  etat="$(agent_call etat "")" || { agent_remove; exit 1; }
+  if [[ "$(json_get "$etat" zip)" != "1" ]]; then
+    warn "Le serveur ne sait pas décompresser les archives (extension zip absente) : déploiement annulé, rien n'a changé."
+    agent_remove
+    exit 1
+  fi
+  echo "  PHP $(json_get "$etat" php) · version en ligne : $(json_get "$etat" enLigne)"
 
-  log "Backend — copie des assets buildés vers le webroot ($REMOTE_WEBROOT/build)"
-  # index.php est servi depuis $REMOTE_WEBROOT, séparé de presslink-api/public
-  # (pas de symlink possible sans shell) : les assets statiques doivent donc
-  # être dupliqués aux deux endroits pour être servis par Apache. Même
-  # logique de purge que pour vendor/composer ci-dessus : manifest.json et
-  # les fichiers hashés vont ensemble, mieux vaut les renvoyer d'un bloc.
-  lftp_run "rm -rf $REMOTE_WEBROOT/build;"
+  log "Backend — envoi de l'archive ($(du -h "$archive" | cut -f1)) vers $REMOTE_RELEASES"
+  lftp_run "mkdir -p $REMOTE_RELEASES; put '$archive' -o $REMOTE_RELEASES/$release.zip;"
+  rm -f "$archive"
+
+  log "Backend — nouveaux assets ajoutés au webroot ($REMOTE_WEBROOT/build), sans retirer ceux en service"
+  # Les fichiers versionnés (app-XXXX.css) de la nouvelle version arrivent à
+  # côté de ceux de la version en ligne : les pages déjà ouvertes continuent
+  # de les trouver, et la nouvelle version a les siens avant la bascule.
   lftp_run "
     mirror --reverse --verbose --parallel=3 --ignore-time \
       --exclude .DS_Store \
@@ -157,6 +134,35 @@ deploy_backend() {
   "
   # Mise en cache longue des fichiers versionnés (voir presslink-api/deploy/build.htaccess).
   lftp_run "put '$API_DIR/deploy/build.htaccess' -o $REMOTE_WEBROOT/build/.htaccess;"
+
+  log "Backend — décompression de la version sur le serveur (le site reste en ligne)"
+  local depuis=0 reponse
+  while :; do
+    reponse="$(agent_call extraire "release=$release&depuis=$depuis")" || { agent_remove; exit 1; }
+    depuis="$(json_get "$reponse" suivant)"
+    echo "  $depuis / $(json_get "$reponse" total) fichiers"
+    [[ "$(json_get "$reponse" fini)" == "1" ]] && break
+  done
+
+  log "Backend — bascule sur la version $release"
+  reponse="$(agent_call activer "release=$release")" || { agent_remove; exit 1; }
+  echo "  Précédente : $(json_get "$reponse" precedente)"
+
+  log "Backend — vérification du site après la bascule"
+  if ! site_responds; then
+    warn "Le site ne répond pas correctement : retour à la version précédente."
+    agent_call revenir "" >/dev/null || warn "Retour impossible : lancez ./deploy.sh rollback."
+    agent_remove
+    exit 1
+  fi
+  echo "  Site en ligne (HTTP 200)."
+
+  log "Backend — anciennes versions supprimées (les $KEPT_RELEASES plus récentes sont gardées)"
+  while :; do
+    reponse="$(agent_call nettoyer "")" || break
+    [[ "$(json_get "$reponse" fini)" == "1" ]] && break
+  done
+  agent_remove
 
   log "Backend — fichiers statiques à la racine du webroot (SEO : robots, favicon, images de partage, QR)"
   # Le webroot ($REMOTE_WEBROOT) est une copie séparée de presslink-api/public :
@@ -192,14 +198,68 @@ deploy_backend() {
   print_followup_backend
 }
 
-# Caches de configuration, de routes et d'événements du serveur (construits par
-# la tâche planifiée presslink:refresh-caches) : effacés pour être reconstruits.
-remove_remote_caches() {
-  lftp_run "
-    rm -f $REMOTE_API_DIR/bootstrap/cache/config.php;
-    rm -f $REMOTE_API_DIR/bootstrap/cache/routes-v7.php;
-    rm -f $REMOTE_API_DIR/bootstrap/cache/events.php;
-  " || true
+# ── Agent de déploiement (presslink-api/deploy/agent.php) ──────────────────
+# Sans accès shell, ce petit script PHP fait sur le serveur ce qu'une commande
+# ferait (décompresser, basculer, revenir, nettoyer). Déposé dans le webroot
+# sous un nom aléatoire, protégé par un jeton, supprimé à la fin (et inutilisable
+# au-delà de 30 minutes).
+agent_install() {
+  AGENT_TOKEN="$(openssl rand -hex 24)"
+  AGENT_NAME="_deploiement-$(openssl rand -hex 16).php"
+  local agent_file
+  agent_file="$(mktemp)"
+  sed -e "s#__JETON__#$AGENT_TOKEN#" -e "s#__RELEASES__#$REMOTE_RELEASES#g" -e "s#__PARTAGE__#$REMOTE_API_DIR#g" \
+    "$API_DIR/deploy/agent.php" > "$agent_file"
+  lftp_run "put '$agent_file' -o $REMOTE_WEBROOT/$AGENT_NAME;"
+  rm -f "$agent_file"
+}
+
+agent_remove() {
+  [[ -n "${AGENT_NAME:-}" ]] && lftp_run "rm -f $REMOTE_WEBROOT/$AGENT_NAME;" >/dev/null 2>&1 || true
+}
+
+# agent_call <action> <paramètres> : réponse JSON sur stdout, échec si HTTP ≠ 200.
+agent_call() {
+  local corps code
+  corps="$(mktemp)"
+  code="$(curl -sS --max-time 120 -o "$corps" -w '%{http_code}' -X POST \
+    --data "jeton=$AGENT_TOKEN&action=$1${2:+&$2}" "$SITE_URL/$AGENT_NAME")" || code=000
+  if [[ "$code" != "200" ]]; then
+    warn "Agent ($1) : HTTP $code — $(cat "$corps")"
+    rm -f "$corps"
+    return 1
+  fi
+  cat "$corps"
+  rm -f "$corps"
+}
+
+# json_get <json> <clé> : valeur simple (true → 1).
+json_get() {
+  php -r '$d = json_decode($argv[1], true); $v = $d[$argv[2]] ?? ""; echo is_bool($v) ? (int) $v : $v;' "$1" "$2"
+}
+
+# Le site répond-il (page de santé et accueil) ? Trois essais, le temps que PHP voie la bascule.
+site_responds() {
+  local essai
+  for essai in 1 2 3; do
+    sleep 3
+    if [[ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$SITE_URL/up")" == "200" ]] \
+      && [[ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$SITE_URL/")" == "200" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+# ./deploy.sh rollback : revient à la version précédente, d'un coup.
+rollback_backend() {
+  agent_install
+  log "Backend — retour à la version précédente"
+  local reponse
+  reponse="$(agent_call revenir "")" || { agent_remove; exit 1; }
+  echo "  En ligne : $(json_get "$reponse" enLigne)"
+  site_responds && echo "  Site en ligne (HTTP 200)." || warn "Le site ne répond pas correctement."
+  agent_remove
 }
 
 print_followup_backend() {
@@ -208,9 +268,9 @@ print_followup_backend() {
   echo "     presslink-api/database/migrations/ depuis le dernier déploiement et"
   echo "     appliquez-les via phpMyAdmin (ou une tâche cron LWS qui lance"
   echo "     'php artisan migrate --force' si votre offre en propose une)."
-  echo "  2. Les caches de configuration et de routes ont été effacés : la tâche"
-  echo "     cron (schedule:run, chaque minute) les reconstruit avec le nouveau code"
-  echo "     dans la minute. Une modification du .env est aussi reprise dans la minute."
+  echo "  2. La nouvelle version a ses propres caches : la tâche cron (schedule:run,"
+  echo "     chaque minute) les construit dans la minute. Une modification du .env"
+  echo "     est aussi reprise dans la minute. En cas de souci : ./deploy.sh rollback."
   echo "  3. Vérifiez presslink.org dans le navigateur après quelques secondes"
   echo "     (le temps que le cache d'assets Apache/CDN éventuel se rafraîchisse)."
 }
@@ -328,12 +388,13 @@ deploy_pwa() {
 }
 
 usage() {
-  echo "Usage: $0 {backend|frontend|pwa|all}" >&2
+  echo "Usage: $0 {backend|frontend|pwa|all|rollback}" >&2
   exit 1
 }
 
 case "${1:-}" in
   backend) deploy_backend ;;
+  rollback) rollback_backend ;;
   frontend) deploy_frontend ;;
   pwa) deploy_pwa ;;
   all)

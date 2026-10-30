@@ -5,8 +5,12 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
-// Determine if the application is in maintenance mode...
-if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
+// Determine if the application is in maintenance mode... (storage/ commun à
+// toutes les versions en production : voir .presslink-shared dans bootstrap/app.php)
+$storage = is_file($sharedFile = __DIR__.'/../.presslink-shared')
+    ? rtrim(trim((string) file_get_contents($sharedFile)), '/').'/storage'
+    : __DIR__.'/../storage';
+if (file_exists($maintenance = $storage.'/framework/maintenance.php')) {
     require $maintenance;
 }
 

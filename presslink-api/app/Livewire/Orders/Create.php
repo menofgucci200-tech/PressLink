@@ -18,9 +18,11 @@ use App\Support\ReceiptLinks;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
+use Livewire\Livewire;
 use RuntimeException;
 
 /**
@@ -712,6 +714,14 @@ class Create extends Component
             return;
         }
 
+        try {
+            $this->items = $this->checkedItems();
+        } catch (RuntimeException $e) {
+            $this->errorMessage = $e->getMessage();
+
+            return;
+        }
+
         if ($this->items === []) {
             $this->dispatch('toast', type: 'error', message: 'Ajoutez au moins une pièce.');
             $this->dispatch('comptoir-focus', target: 'pieces');
@@ -767,6 +777,76 @@ class Create extends Component
             'share' => ['url' => ReceiptLinks::order($order), 'text' => ReceiptLinks::orderShareText($order), 'file' => ReceiptLinks::orderFileName($order), 'phone' => $customer->phone],
         ];
         $this->dispatch('comptoir-focus', target: 'client');
+    }
+
+    /**
+     * Le ticket composé dans le navigateur, revérifié avant d'enregistrer : les
+     * pièces, variantes et services appartiennent au pressing et sont actifs, et
+     * le prix de chaque pièce du catalogue est relu en base (seul le prix d'une
+     * « Autre pièce » vient de la saisie). Les lignes identiques sont regroupées.
+     *
+     * @return list<array<string, mixed>>
+     *
+     * @throws RuntimeException une pièce n'est plus proposée
+     */
+    private function checkedItems(): array
+    {
+        $pressing = $this->pressing();
+        $lines = array_values(array_filter(is_array($this->items) ? $this->items : [], 'is_array'));
+        $pieceIds = array_filter(array_map(fn (array $line) => is_numeric($line['service_id'] ?? null) ? (int) $line['service_id'] : null, $lines));
+        $pieces = $pressing->services()->where('is_active', true)->whereKey($pieceIds)->with(['prices', 'variants' => fn ($q) => $q->where('is_active', true)])->get()->keyBy('id');
+        $prestations = $pressing->prestations()->where('is_active', true)->get()->keyBy('id');
+
+        $checked = [];
+        foreach ($lines as $line) {
+            $quantity = (int) ($line['quantity'] ?? 0);
+            if ($quantity < 1) {
+                continue;
+            }
+
+            $prestation = is_numeric($line['prestation_id'] ?? null) ? $prestations->get((int) $line['prestation_id']) : null;
+            $color = is_string($line['color'] ?? null) && trim($line['color']) !== '' ? trim(mb_substr($line['color'], 0, 50)) : null;
+
+            if (($line['service_id'] ?? null) === null) {
+                // « Autre pièce » : nom et prix saisis au comptoir.
+                $baseName = trim(mb_substr((string) ($line['base_name'] ?? ''), 0, 150));
+                $price = $line['unit_price_fcfa'] ?? null;
+                if ($baseName === '' || ! is_numeric($price) || (int) $price < 0) {
+                    throw new RuntimeException('Une pièce du ticket n\'est pas valide : retirez-la puis ajoutez-la de nouveau.');
+                }
+                $pieceId = null;
+                $variantId = null;
+                $price = (int) $price;
+            } else {
+                $piece = $pieces->get((int) $line['service_id']);
+                $variantId = is_numeric($line['service_variant_id'] ?? null) ? (int) $line['service_variant_id'] : null;
+                $variant = $variantId !== null ? $piece?->variants->firstWhere('id', $variantId) : null;
+                $price = $piece !== null && $prestation !== null && ($variantId === null || $variant !== null) ? $piece->priceFor($prestation, $variant) : null;
+                if ($price === null) {
+                    $name = (string) ($line['base_name'] ?? 'Une pièce');
+                    throw new RuntimeException("« {$name} » n'est plus proposé à ce prix : retirez-le du ticket puis ajoutez-le de nouveau.");
+                }
+                $pieceId = $piece->id;
+                $baseName = $piece->name.($variant !== null ? ' · '.$variant->name : '');
+            }
+
+            $checked[] = [
+                'service_id' => $pieceId,
+                'service_variant_id' => $variantId,
+                'prestation_id' => $prestation?->id,
+                'prestation_name' => $prestation?->name,
+                'base_name' => $baseName,
+                'name' => $this->displayName($baseName, $prestation?->name, $color),
+                'color' => $color,
+                'unit_price_fcfa' => (int) $price,
+                'quantity' => min(self::MAX_QUANTITY, $quantity),
+            ];
+        }
+
+        $this->items = $checked;
+        $this->mergeIdenticalLines();
+
+        return $this->items;
     }
 
     private function resetOrder(): void
@@ -875,25 +955,10 @@ class Create extends Component
         $selectedCustomer = $this->selectedCustomerId ? $pressing->customers()->find($this->selectedCustomerId) : null;
         $clients = $selectedCustomer === null ? $this->searchCustomers($pressing) : collect();
         $prestations = $pressing->prestations()->where('is_active', true)->get();
-        $selectedPrestation = $prestations->firstWhere('id', $this->prestationId);
 
-        // Pièces proposées pour le service choisi (celles qui y ont un prix),
-        // les plus demandées d'abord.
-        $pieces = collect();
-        if ($selectedPrestation !== null) {
-            $usage = $this->usage()->where('prestation_id', $selectedPrestation->id)->pluck('total', 'service_id');
-            $pieces = $pressing->services()
-                ->where('is_active', true)
-                ->whereHas('prices', fn ($q) => $q->where('prestation_id', $selectedPrestation->id))
-                ->with([
-                    'variants' => fn ($q) => $q->where('is_active', true)->orderBy('name'),
-                    'prices' => fn ($q) => $q->where('prestation_id', $selectedPrestation->id),
-                ])
-                ->orderBy('name')
-                ->get()
-                ->sortByDesc(fn (Service $piece) => (int) $usage->get($piece->id, 0))
-                ->values();
-        }
+        // Le catalogue (services, pièces, prix) ne sert qu'à l'ouverture de l'écran :
+        // ensuite, le ticket se règle dans le navigateur et cette zone n'est plus redessinée.
+        [$pieceGroups, $catalogue] = Livewire::isLivewireRequest() ? [[], []] : $this->catalogue($pressing, $prestations);
 
         $lastOrder = $selectedCustomer !== null ? $this->lastOrderOf($selectedCustomer->id) : null;
 
@@ -901,11 +966,64 @@ class Create extends Component
             'clients' => $clients,
             'selectedCustomer' => $selectedCustomer,
             'prestations' => $prestations,
-            'selectedPrestation' => $selectedPrestation,
-            'pieces' => $pieces,
+            'pieceGroups' => $pieceGroups,
+            'catalogue' => $catalogue,
             'lastOrder' => $lastOrder,
             'acceptsCustomers' => $pressing->acceptsCustomers(),
             'paymentMethods' => PaymentMethod::cases(),
         ]);
+    }
+
+    /**
+     * Pièces de chaque service (celles qui y ont un prix), les plus demandées
+     * d'abord, avec leurs variantes et leurs prix : de quoi composer tout le
+     * ticket dans le navigateur.
+     *
+     * @param  Collection<int, Prestation>  $prestations
+     * @return array{0: array<int, list<array{piece: Service, from: ?int, hasVariants: bool, search: string}>>, 1: array{services: array<int, array{name: string}>, pieces: array<string, array{id: int, name: string, price: ?int, variants: list<array{id: int, name: string, price: int}>}>}}
+     */
+    private function catalogue(Pressing $pressing, Collection $prestations): array
+    {
+        $usage = $this->usage();
+        $allPieces = $pressing->services()
+            ->where('is_active', true)
+            ->with(['variants' => fn ($q) => $q->where('is_active', true)->orderBy('name'), 'prices'])
+            ->orderBy('name')
+            ->get();
+
+        $groups = [];
+        $pieces = [];
+        foreach ($prestations as $prestation) {
+            $counts = $usage->where('prestation_id', $prestation->id)->pluck('total', 'service_id');
+
+            $groups[$prestation->id] = $allPieces
+                ->filter(fn (Service $piece) => $piece->prices->contains('prestation_id', $prestation->id))
+                ->sortByDesc(fn (Service $piece) => (int) $counts->get($piece->id, 0))
+                ->values()
+                ->map(function (Service $piece) use ($prestation, &$pieces) {
+                    $prices = $piece->prices->where('prestation_id', $prestation->id);
+                    $variants = $piece->variants
+                        ->filter(fn (ServiceVariant $variant) => $prices->contains('service_variant_id', $variant->id))
+                        ->map(fn (ServiceVariant $variant) => ['id' => $variant->id, 'name' => $variant->name, 'price' => (int) $prices->firstWhere('service_variant_id', $variant->id)->price_fcfa])
+                        ->values()
+                        ->all();
+                    $base = $prices->firstWhere('service_variant_id', null)?->price_fcfa;
+
+                    $pieces["{$prestation->id}:{$piece->id}"] = ['id' => $piece->id, 'name' => $piece->name, 'price' => $base !== null ? (int) $base : null, 'variants' => $variants];
+
+                    return [
+                        'piece' => $piece,
+                        'from' => $variants !== [] ? min(array_column($variants, 'price')) : ($base !== null ? (int) $base : null),
+                        'hasVariants' => $variants !== [],
+                        'search' => Str::lower(Str::ascii($piece->name)),
+                    ];
+                })
+                ->all();
+        }
+
+        return [$groups, [
+            'services' => $prestations->mapWithKeys(fn (Prestation $prestation) => [$prestation->id => ['name' => $prestation->name]])->all(),
+            'pieces' => $pieces,
+        ]];
     }
 }

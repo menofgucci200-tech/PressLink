@@ -72,7 +72,7 @@
                             <div class="px-5 pb-2 text-[11px] font-semibold uppercase tracking-widest text-(--color-text-muted)">{{ $section }}</div>
                             <div class="flex flex-col gap-0.5">
                                 @foreach ($items as $item)
-                                    <a href="{{ route($item['route']) }}" wire:navigate @if ($item['active']) aria-current="page" @endif class="{{ $navLink($item['active']) }}">
+                                    <a href="{{ route($item['route']) }}" wire:navigate.hover @if ($item['active']) aria-current="page" @endif class="{{ $navLink($item['active']) }}">
                                         <span class="truncate">{{ $item['label'] }}</span>
                                         @if ($item['badge'] > 0)
                                             <span class="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-(--color-warning-tint) text-(--color-warning-text) text-[11px] font-bold tabular-nums" aria-label="{{ $item['badge'] }} à traiter">{{ $item['badge'] }}</span>

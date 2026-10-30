@@ -1,6 +1,7 @@
 import './feedback';
 import './synchro-hors-ligne';
 import './guide';
+import './ticket';
 
 // Raccourci ⌘K / Ctrl+K — focus le champ de recherche de la page courante
 // (chaque page qui en a besoin a la sienne, il n'y a pas de recherche

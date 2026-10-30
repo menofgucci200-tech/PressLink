@@ -1,0 +1,12 @@
+# Images du site et de l'espace pressing (/images/) — réglages Apache.
+# Déployé par `./deploy.sh backend`. Leur nom ne change pas d'une version à
+# l'autre : gardées une semaine dans le navigateur, puis revérifiées.
+
+<IfModule mod_headers.c>
+    Header set Cache-Control "public, max-age=604800"
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 7 days"
+</IfModule>

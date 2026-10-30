@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\Feature;
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\Permission;
 use App\Enums\PressingRole;
+use Closure;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -160,31 +161,55 @@ class User extends Authenticatable
         return $this->roleIn($pressing)?->name ?? 'Membre';
     }
 
-    /** Oublie les rôles mémorisés (après un changement de rôle). */
+    /** Oublie les rôles et pressings mémorisés (après un changement de rôle ou d'équipe). */
     public function forgetRoles(): void
     {
         $this->rolesByPressing = [];
         $this->subscriptionsByPressing = [];
+        $this->memo = [];
+    }
+
+    /**
+     * Réponses déjà calculées pendant la requête (pressing actif, rattachements…) :
+     * chaque page et chaque clic les demandent de nombreuses fois (menu, droits,
+     * composants) ; une seule requête SQL suffit.
+     *
+     * @var array<string, mixed>
+     */
+    private array $memo = [];
+
+    /** Requête à laquelle appartiennent les réponses mémorisées. */
+    private ?int $memoRequest = null;
+
+    private function remember(string $key, Closure $callback): mixed
+    {
+        // Nouvelle requête (même compte gardé en mémoire) : on repart de zéro.
+        $request = spl_object_id(request());
+        if ($this->memoRequest !== $request) {
+            $this->memo = [];
+            $this->memoRequest = $request;
+        }
+
+        return array_key_exists($key, $this->memo) ? $this->memo[$key] : ($this->memo[$key] = $callback());
     }
 
     /** RB-08 : un employé n'accède qu'aux pressings auxquels il est affecté. */
     public function belongsToPressing(Pressing $pressing): bool
     {
-        return $this->pressings()
+        return $this->remember('belongs.'.$pressing->id, fn () => $this->pressings()
             ->where('pressings.id', $pressing->id)
             ->wherePivot('is_active', true)
-            ->exists();
+            ->exists());
     }
 
     public function roleFor(Pressing $pressing): ?PressingRole
     {
-        $pivot = $this->pressings()
+        return $this->remember('role-for.'.$pressing->id, fn () => $this->pressings()
             ->where('pressings.id', $pressing->id)
             ->wherePivot('is_active', true)
             ->first()
-            ?->pivot;
-
-        return $pivot?->role;
+            ?->pivot
+            ?->role);
     }
 
     public function isAdminOf(Pressing $pressing): bool
@@ -200,7 +225,7 @@ class User extends Authenticatable
      */
     public function activePressings(): Collection
     {
-        return $this->pressings()->wherePivot('is_active', true)->orderBy('name')->get();
+        return $this->remember('active-pressings', fn () => $this->pressings()->wherePivot('is_active', true)->orderBy('name')->get());
     }
 
     /**
@@ -212,11 +237,11 @@ class User extends Authenticatable
      */
     public function managedPressings(): Collection
     {
-        return $this->pressings()
+        return $this->remember('managed-pressings', fn () => $this->pressings()
             ->wherePivot('is_active', true)
             ->wherePivot('role', PressingRole::Admin->value)
             ->orderBy('name')
-            ->get();
+            ->get());
     }
 
     /** @return list<int> */
@@ -238,16 +263,13 @@ class User extends Authenticatable
     /** Administre au moins deux pressings (avec ou sans la gestion de groupe). */
     public function administersSeveralPressings(): bool
     {
-        return $this->pressings()
-            ->wherePivot('is_active', true)
-            ->wherePivot('role', PressingRole::Admin->value)
-            ->count() > 1;
+        return $this->managedPressings()->count() > 1;
     }
 
     /** Un propriétaire multi-pressing voit une vue d'ensemble consolidée. */
     public function hasMultiplePressings(): bool
     {
-        return $this->pressings()->wherePivot('is_active', true)->count() > 1;
+        return $this->remember('several-pressings', fn () => $this->pressings()->wherePivot('is_active', true)->count() > 1);
     }
 
     /**
@@ -269,6 +291,12 @@ class User extends Authenticatable
     public function currentPressing(): ?Pressing
     {
         $activeId = session('active_pressing_id');
+
+        return $this->remember('current.'.($activeId ?? 'default'), fn () => $this->resolveCurrentPressing($activeId));
+    }
+
+    private function resolveCurrentPressing(mixed $activeId): ?Pressing
+    {
 
         if ($activeId !== null) {
             $selected = $this->pressings()

@@ -25,3 +25,6 @@ Schedule::command('presslink:purge-sandboxes')->hourly();
 
 // Paiements en ligne restés en cours au-delà de la durée d'une page de paiement : « Expiré ».
 Schedule::command('presslink:expire-payments')->hourly();
+
+// Caches de configuration et de routes : reconstruits après un déploiement ou une modification du .env.
+Schedule::command('presslink:refresh-caches')->everyMinute()->withoutOverlapping();

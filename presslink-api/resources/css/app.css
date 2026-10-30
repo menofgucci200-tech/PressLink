@@ -804,3 +804,34 @@ html.lenis, html.lenis body { height: auto; }
 @media (prefers-reduced-motion: reduce) {
     .guide-spot, .guide-bulle { transition: none; }
 }
+
+/* Retour immédiat sur toute action envoyée au serveur (Livewire pose
+   `data-loading` sur l'élément touché, le temps de la requête) : le bouton
+   s'estompe tout de suite, et si la réponse tarde (> 0,2 s), une barre fine
+   défile en haut de l'écran. Les enregistrements en arrière-plan (brouillon
+   du ticket) n'ont pas d'élément d'origine : ils restent invisibles. */
+:is(button, a, [role='button'], [role='tab'], [role='radio'])[data-loading] {
+    cursor: progress;
+    opacity: 0.7;
+}
+body:has([data-loading])::after {
+    content: '';
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 70;
+    height: 3px;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(90deg, transparent 0%, var(--color-primary) 50%, transparent 100%) 0 0 / 40% 100% no-repeat;
+    animation: pl-busy-show 0s 0.2s forwards, pl-busy-move 0.9s linear infinite;
+}
+@keyframes pl-busy-show {
+    to { opacity: 1; }
+}
+@keyframes pl-busy-move {
+    from { background-position: -40% 0; }
+    to { background-position: 140% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    body:has([data-loading])::after { animation: pl-busy-show 0s 0.2s forwards; background-size: 100% 100%; }
+}

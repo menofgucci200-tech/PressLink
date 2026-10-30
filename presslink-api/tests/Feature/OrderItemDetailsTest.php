@@ -97,12 +97,13 @@ class OrderItemDetailsTest extends TestCase
         $shirt = $this->shirt();
         Service::factory()->for($this->pressing)->create(['name' => 'Costume', 'price_fcfa' => 4000]);
 
+        // Chaque service a sa grille de pièces (affichée quand il est choisi).
+        $names = fn (array $groups, int $prestationId) => collect($groups[$prestationId])->map(fn (array $tile) => $tile['piece']->name)->all();
+
         Livewire::test(OrdersCreate::class)
-            ->call('selectPrestation', $this->repassage()->id)
-            ->assertSee('Chemise')
-            ->assertDontSee('Costume')
-            ->call('selectPrestation', $this->nettoyage()->id)
-            ->assertSee('Costume');
+            ->assertViewHas('pieceGroups', fn (array $groups) => in_array('Chemise', $names($groups, $this->repassage()->id), true)
+                && ! in_array('Costume', $names($groups, $this->repassage()->id), true)
+                && in_array('Costume', $names($groups, $this->nettoyage()->id), true));
     }
 
     public function test_tapping_a_piece_again_increments_its_quantity(): void
@@ -252,5 +253,42 @@ class OrderItemDetailsTest extends TestCase
                 $this->assertSame(0, $this->pressing->orders()->count());
             }
         }
+    }
+
+    public function test_the_ticket_composed_in_the_browser_is_checked_and_repriced_on_validation(): void
+    {
+        $shirt = $this->shirt();
+        $customer = Customer::factory()->create();
+        $this->pressing->customers()->attach($customer, ['joined_at' => now()]);
+        $line = fn (array $overrides) => [
+            'service_id' => $shirt->id, 'service_variant_id' => null, 'prestation_id' => $this->repassage()->id, 'prestation_name' => 'Repassage',
+            'base_name' => 'Chemise', 'name' => 'Chemise · Repassage', 'color' => null, 'unit_price_fcfa' => 500, 'quantity' => 1, ...$overrides,
+        ];
+
+        // Prix modifié dans le navigateur : le prix du catalogue est relu en base.
+        Livewire::test(OrdersCreate::class)
+            ->set('selectedCustomerId', $customer->id)
+            ->set('items', [
+                $line(['unit_price_fcfa' => 1, 'quantity' => 2, 'base_name' => 'Nom trafiqué']),
+                ['service_id' => null, 'service_variant_id' => null, 'prestation_id' => $this->nettoyage()->id, 'prestation_name' => 'Nettoyage',
+                    'base_name' => 'Nappe brodée', 'name' => 'Nappe brodée', 'color' => 'Bleu', 'unit_price_fcfa' => 2500, 'quantity' => 1],
+            ])
+            ->call('create')
+            ->assertHasNoErrors()
+            ->assertSet('errorMessage', null);
+
+        $order = $this->pressing->orders()->with('items')->sole();
+        $this->assertSame(3500, (int) $order->total_fcfa);
+        $this->assertSame(['Chemise · Repassage', 'Nappe brodée · Nettoyage · Bleu'], $order->items->pluck('name')->all());
+        $this->assertSame([500, 2500], $order->items->pluck('unit_price_fcfa')->map(fn ($p) => (int) $p)->all());
+
+        // Pièce d'un autre pressing ou plus proposée pour ce service : refusée, rien n'est créé.
+        $foreign = Service::factory()->create(['name' => 'Ailleurs']);
+        Livewire::test(OrdersCreate::class)
+            ->set('selectedCustomerId', $customer->id)
+            ->set('items', [$line(['service_id' => $foreign->id, 'base_name' => 'Ailleurs'])])
+            ->call('create')
+            ->assertSet('errorMessage', "« Ailleurs » n'est plus proposé à ce prix : retirez-le du ticket puis ajoutez-le de nouveau.");
+        $this->assertSame(1, $this->pressing->orders()->count());
     }
 }

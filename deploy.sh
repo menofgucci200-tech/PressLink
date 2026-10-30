@@ -102,6 +102,7 @@ deploy_backend() {
     rm -rf $REMOTE_API_DIR/vendor/composer;
     rm -rf $REMOTE_API_DIR/public/build;
   "
+  remove_remote_caches
 
   log "Backend — envoi du code + vendor vers $REMOTE_API_DIR (SFTP, sans suppression distante)"
   # --reverse = upload (local -> distant). Pas de --delete global : on
@@ -126,9 +127,15 @@ deploy_backend() {
       --exclude-glob tests/ \
       --exclude-glob load-testing/ \
       --exclude-glob docker/ \
+      --exclude-glob bootstrap/cache/config.php \
+      --exclude-glob bootstrap/cache/routes-*.php \
+      --exclude-glob bootstrap/cache/events.php \
       --exclude .DS_Store \
       '$API_DIR' '$REMOTE_API_DIR';
   "
+  # Caches effacés une seconde fois, code complet en place : la tâche planifiée
+  # (presslink:refresh-caches, chaque minute) les reconstruit avec le nouveau code.
+  remove_remote_caches
 
   log "Backend — vues Blade compilées effacées (recompilées à la prochaine visite)"
   # Une vue envoyée garde la date du fichier local : si elle est plus ancienne
@@ -148,6 +155,8 @@ deploy_backend() {
       --exclude .DS_Store \
       '$API_DIR/public/build' '$REMOTE_WEBROOT/build';
   "
+  # Mise en cache longue des fichiers versionnés (voir presslink-api/deploy/build.htaccess).
+  lftp_run "put '$API_DIR/deploy/build.htaccess' -o $REMOTE_WEBROOT/build/.htaccess;"
 
   log "Backend — fichiers statiques à la racine du webroot (SEO : robots, favicon, images de partage, QR)"
   # Le webroot ($REMOTE_WEBROOT) est une copie séparée de presslink-api/public :
@@ -178,8 +187,19 @@ deploy_backend() {
         '$API_DIR/public/$static_dir' '$REMOTE_WEBROOT/$static_dir';
     "
   done
+  lftp_run "put '$API_DIR/deploy/images.htaccess' -o $REMOTE_WEBROOT/images/.htaccess;"
 
   print_followup_backend
+}
+
+# Caches de configuration, de routes et d'événements du serveur (construits par
+# la tâche planifiée presslink:refresh-caches) : effacés pour être reconstruits.
+remove_remote_caches() {
+  lftp_run "
+    rm -f $REMOTE_API_DIR/bootstrap/cache/config.php;
+    rm -f $REMOTE_API_DIR/bootstrap/cache/routes-v7.php;
+    rm -f $REMOTE_API_DIR/bootstrap/cache/events.php;
+  " || true
 }
 
 print_followup_backend() {
@@ -188,10 +208,9 @@ print_followup_backend() {
   echo "     presslink-api/database/migrations/ depuis le dernier déploiement et"
   echo "     appliquez-les via phpMyAdmin (ou une tâche cron LWS qui lance"
   echo "     'php artisan migrate --force' si votre offre en propose une)."
-  echo "  2. Si un comportement semble figé après coup (config/route cachés),"
-  echo "     ce projet ne cache pas config/route en prod pour l'instant — donc"
-  echo "     rien à vider normalement. Sinon, contactez le support LWS pour"
-  echo "     vider bootstrap/cache/*.php à la main."
+  echo "  2. Les caches de configuration et de routes ont été effacés : la tâche"
+  echo "     cron (schedule:run, chaque minute) les reconstruit avec le nouveau code"
+  echo "     dans la minute. Une modification du .env est aussi reprise dans la minute."
   echo "  3. Vérifiez presslink.org dans le navigateur après quelques secondes"
   echo "     (le temps que le cache d'assets Apache/CDN éventuel se rafraîchisse)."
 }

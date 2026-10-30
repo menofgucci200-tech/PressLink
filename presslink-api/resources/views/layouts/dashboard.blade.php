@@ -132,7 +132,7 @@
 
                 <nav class="flex flex-col gap-1.5">
                     @foreach ($groupMode ? $groupNavItems : $navItems as $item)
-                        <a href="{{ $item['url'] ?? route($item['route']) }}" wire:navigate style="--nav-i:{{ $loop->index }}" class="nav-item {{ $item['active'] ? 'nav-item-active' : '' }}">
+                        <a href="{{ $item['url'] ?? route($item['route']) }}" wire:navigate.hover style="--nav-i:{{ $loop->index }}" class="nav-item {{ $item['active'] ? 'nav-item-active' : '' }}">
                             @if ($item['active'])
                                 <span class="nav-notch nav-notch-top"></span>
                                 <span class="nav-notch nav-notch-bottom"></span>
@@ -157,28 +157,28 @@
                     @if (! $groupMode)
                         @php $active = $active ?? null; @endphp
                         @if ($can(\App\Enums\Permission::CatalogManage))
-                        <a href="{{ route('services.index') }}" wire:navigate style="--nav-i:4" class="nav-item {{ $active === 'services' ? 'nav-item-active' : '' }}">
+                        <a href="{{ route('services.index') }}" wire:navigate.hover style="--nav-i:4" class="nav-item {{ $active === 'services' ? 'nav-item-active' : '' }}">
                             @if ($active === 'services') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><circle cx="8" cy="8" r="6"></circle><path d="M18.09 10.37A6 6 0 1 1 10.34 18"></path></svg>
                             <span class="truncate">Services</span>
                         </a>
                         @endif
                         @if ($can(\App\Enums\Permission::TeamManage) || $can(\App\Enums\Permission::RolesManage))
-                        <a href="{{ route('team.index') }}" wire:navigate style="--nav-i:5" class="nav-item {{ $active === 'team' ? 'nav-item-active' : '' }}">
+                        <a href="{{ route('team.index') }}" wire:navigate.hover style="--nav-i:5" class="nav-item {{ $active === 'team' ? 'nav-item-active' : '' }}">
                             @if ($active === 'team') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                             <span class="truncate">Équipe</span>
                         </a>
                         @endif
                         @if ($can(\App\Enums\Permission::SettingsManage))
-                        <a href="{{ route('pressing.settings') }}" wire:navigate style="--nav-i:6" class="nav-item {{ $active === 'settings' ? 'nav-item-active' : '' }}">
+                        <a href="{{ route('pressing.settings') }}" wire:navigate.hover style="--nav-i:6" class="nav-item {{ $active === 'settings' ? 'nav-item-active' : '' }}">
                             @if ($active === 'settings') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"></path></svg>
                             <span class="truncate">Paramètres</span>
                         </a>
                         @endif
                         @if ($can(\App\Enums\Permission::ActivityView))
-                        <a href="{{ route('activity.index') }}" wire:navigate style="--nav-i:7" class="nav-item {{ $active === 'activity' ? 'nav-item-active' : '' }}">
+                        <a href="{{ route('activity.index') }}" wire:navigate.hover style="--nav-i:7" class="nav-item {{ $active === 'activity' ? 'nav-item-active' : '' }}">
                             @if ($active === 'activity') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><path d="M12 8v4l3 3"/><path d="M3.05 11a9 9 0 1 1 .5 4"/><path d="M3 4v5h5"/></svg>
                             <span class="truncate">Journal</span>
@@ -222,18 +222,18 @@
                     <div class="border-t border-white/20 pt-3.5 flex flex-col gap-1.5">
                         <x-install-button />
                         @if ($can(\App\Enums\Permission::SubscriptionManage))
-                            <a href="{{ route('subscription.show') }}" wire:navigate class="nav-item {{ ($active ?? null) === 'subscription' ? 'nav-item-active' : '' }}">
+                            <a href="{{ route('subscription.show') }}" wire:navigate.hover class="nav-item {{ ($active ?? null) === 'subscription' ? 'nav-item-active' : '' }}">
                                 @if (($active ?? null) === 'subscription') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" class="flex-none"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
                                 <span class="truncate">Abonnement</span>
                             </a>
                         @endif
-                        <a href="{{ route('account.settings') }}" wire:navigate class="nav-item {{ ($active ?? null) === 'account' ? 'nav-item-active' : '' }}">
+                        <a href="{{ route('account.settings') }}" wire:navigate.hover class="nav-item {{ ($active ?? null) === 'account' ? 'nav-item-active' : '' }}">
                             @if (($active ?? null) === 'account') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                             <span class="truncate">Profil</span>
                         </a>
-                        <a href="{{ route('support') }}" wire:navigate class="nav-item {{ ($active ?? null) === 'support' ? 'nav-item-active' : '' }}">
+                        <a href="{{ route('support') }}" wire:navigate.hover class="nav-item {{ ($active ?? null) === 'support' ? 'nav-item-active' : '' }}">
                             @if (($active ?? null) === 'support') <span class="nav-notch nav-notch-top"></span><span class="nav-notch nav-notch-bottom"></span> @endif
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="flex-none"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"></path></svg>
                             <span class="truncate">Support</span>
@@ -338,7 +338,7 @@
         <x-feedback />
         @if ($pressing && $can(\App\Enums\Permission::OrdersCreate) && request()->routeIs('dashboard', 'orders.index', 'orders.show', 'clients.index', 'clients.show'))
             {{-- Téléphone : l'action la plus fréquente reste sous le pouce, même après avoir défilé --}}
-            <a href="{{ route('orders.create') }}" wire:navigate aria-label="Nouvelle commande"
+            <a href="{{ route('orders.create') }}" wire:navigate.hover aria-label="Nouvelle commande"
                class="lg:hidden fixed right-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 inline-flex items-center gap-2 h-14 pl-4 pr-5 rounded-full bg-(--color-primary) text-white text-[15px] font-semibold shadow-[0_8px_24px_rgba(37,99,235,.35)] active:scale-95 transition-transform">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
                 Commande

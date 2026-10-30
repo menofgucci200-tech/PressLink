@@ -117,17 +117,20 @@
             @endif
             <div class="flex flex-col gap-2.5">
                 @foreach ($days as $day)
-                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-                        <label class="w-24 text-sm font-medium flex-none">{{ $dayLabels[$day] }}</label>
-                        <label class="flex items-center gap-1.5 text-xs text-(--color-text-secondary) flex-none w-24">
-                            <input type="checkbox" wire:model="openingHours.{{ $day }}.closed" class="rounded border-(--color-border)">
+                    {{-- Téléphone : le jour et « Fermé » sur une ligne, les deux heures en dessous, pleine largeur --}}
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 max-sm:pb-2.5 max-sm:border-b max-sm:border-(--color-border) max-sm:last:border-0" x-data="{ ferme: @js((bool) $openingHours[$day]['closed']) }">
+                        <label class="max-sm:flex-1 w-24 text-sm font-medium flex-none">{{ $dayLabels[$day] }}</label>
+                        <label class="flex items-center gap-2 text-sm sm:text-xs text-(--color-text-secondary) flex-none sm:w-24 cursor-pointer">
+                            <input type="checkbox" wire:model="openingHours.{{ $day }}.closed" x-model="ferme" class="w-5 h-5 sm:w-4 sm:h-4 rounded border-(--color-border)">
                             Fermé
                         </label>
-                        <input type="time" wire:model="openingHours.{{ $day }}.open" @disabled($openingHours[$day]['closed'])
-                               class="h-9 px-2.5 rounded-lg border border-(--color-border) text-sm disabled:opacity-40">
-                        <span class="text-(--color-text-muted)">—</span>
-                        <input type="time" wire:model="openingHours.{{ $day }}.close" @disabled($openingHours[$day]['closed'])
-                               class="h-9 px-2.5 rounded-lg border border-(--color-border) text-sm disabled:opacity-40">
+                        <div class="max-sm:basis-full flex items-center gap-2" :class="ferme && 'opacity-40'">
+                            <input type="time" wire:model="openingHours.{{ $day }}.open" :disabled="ferme" aria-label="{{ $dayLabels[$day] }} : ouverture"
+                                   class="max-sm:flex-1 h-10 sm:h-9 px-2.5 rounded-lg border border-(--color-border) text-sm">
+                            <span class="text-(--color-text-muted)">—</span>
+                            <input type="time" wire:model="openingHours.{{ $day }}.close" :disabled="ferme" aria-label="{{ $dayLabels[$day] }} : fermeture"
+                                   class="max-sm:flex-1 h-10 sm:h-9 px-2.5 rounded-lg border border-(--color-border) text-sm">
+                        </div>
                         @error("openingHours.{$day}.close") <p class="basis-full text-xs text-(--color-error)">{{ $message }}</p> @enderror
                     </div>
                 @endforeach
@@ -137,7 +140,7 @@
         <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-4">Grille tarifaire</div>
             <label class="flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" wire:model="showPricingToCustomers" class="mt-0.5 rounded border-(--color-border)">
+                <input type="checkbox" wire:model="showPricingToCustomers" class="mt-0.5 w-5 h-5 sm:w-4 sm:h-4 flex-none rounded border-(--color-border)">
                 <span class="text-sm">
                     Afficher ma grille tarifaire à mes clients
                     <span class="block text-xs text-(--color-text-muted) mt-0.5">Vos clients pourront consulter les prix de vos services depuis l'application mobile, sur la fiche de votre pressing.</span>
@@ -147,9 +150,10 @@
 
         @include('livewire.pressing._terms-and-storage')
 
-        <div class="flex justify-end">
+        {{-- Téléphone et tablette : « Enregistrer » reste visible en bas de l'écran pendant le défilement --}}
+        <div class="flex justify-end max-lg:sticky max-lg:bottom-[calc(4.75rem+env(safe-area-inset-bottom))] max-lg:z-10 max-lg:-mx-1 max-lg:p-1 max-lg:rounded-xl max-lg:bg-(--color-bg)/90 max-lg:backdrop-blur">
             <button type="submit" wire:loading.attr="disabled" wire:target="save" data-guide="parametres-enregistrer"
-                    class="h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600) disabled:opacity-60">
+                    class="max-lg:w-full max-lg:h-12 h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600) disabled:opacity-60">
                 <span wire:loading.remove wire:target="save">Enregistrer</span>
                 <span wire:loading wire:target="save">Enregistrement…</span>
             </button>

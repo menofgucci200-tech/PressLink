@@ -24,13 +24,23 @@
     </div>
 
     {{-- Filtres --}}
-    <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-4 mb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_auto_auto] gap-3 items-end">
-        <div class="relative sm:col-span-2 lg:col-span-1">
-            <label for="activity-search" class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Rechercher</label>
-            <input id="activity-search" type="search" wire:model.live.debounce.300ms="search" placeholder="N° de commande, client, montant…"
-                   class="w-full h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm">
+    {{-- Téléphone : la recherche reste visible, les autres filtres se déplient d'un toucher --}}
+    <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-4 mb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_auto_auto] gap-3 items-end"
+         x-data="{ filtres: @js($userId !== '' || $category !== '' || $from !== '' || $to !== '' || $sensitiveOnly) }">
+        <div class="relative sm:col-span-2 lg:col-span-1 max-sm:flex max-sm:items-end max-sm:gap-2">
+            <div class="flex-1">
+                <label for="activity-search" class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Rechercher</label>
+                <input id="activity-search" type="search" wire:model.live.debounce.300ms="search" placeholder="N° de commande, client, montant…"
+                       class="w-full h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm">
+            </div>
+            <button type="button" @click="filtres = !filtres" :aria-expanded="filtres"
+                    class="sm:hidden h-10 px-3 rounded-lg border border-(--color-border) text-sm font-semibold inline-flex items-center gap-1.5"
+                    :class="filtres ? 'border-(--color-primary) text-(--color-primary)' : ''">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+                Filtres
+            </button>
         </div>
-        <div>
+        <div :class="filtres ? '' : 'max-sm:hidden'">
             <label for="activity-member" class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Membre</label>
             <select id="activity-member" wire:model.live="userId" class="w-full h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm">
                 <option value="">Toute l'équipe</option>
@@ -40,7 +50,7 @@
                 <option value="systeme">Clients et système</option>
             </select>
         </div>
-        <div>
+        <div :class="filtres ? '' : 'max-sm:hidden'">
             <label for="activity-category" class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Type</label>
             <select id="activity-category" wire:model.live="category" class="w-full h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm">
                 <option value="">Toutes les actions</option>
@@ -49,16 +59,16 @@
                 @endforeach
             </select>
         </div>
-        <div>
+        <div :class="filtres ? '' : 'max-sm:hidden'">
             <label class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Période</label>
             <div class="flex items-center gap-1.5">
-                <input type="date" wire:model.live="from" aria-label="Du" max="{{ today()->toDateString() }}" class="h-10 px-2 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm">
+                <input type="date" wire:model.live="from" aria-label="Du" max="{{ today()->toDateString() }}" class="max-sm:flex-1 max-sm:min-w-0 h-10 px-2 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm">
                 <span class="text-(--color-text-muted)">→</span>
-                <input type="date" wire:model.live="to" aria-label="Au" max="{{ today()->toDateString() }}" class="h-10 px-2 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm">
+                <input type="date" wire:model.live="to" aria-label="Au" max="{{ today()->toDateString() }}" class="max-sm:flex-1 max-sm:min-w-0 h-10 px-2 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm">
             </div>
         </div>
-        <label class="inline-flex items-center gap-2 h-10 text-sm select-none whitespace-nowrap">
-            <input type="checkbox" wire:model.live="sensitiveOnly" class="w-4 h-4 accent-(--color-primary)"> Sensibles
+        <label class="inline-flex items-center gap-2 h-10 text-sm select-none whitespace-nowrap" :class="filtres ? '' : 'max-sm:hidden'">
+            <input type="checkbox" wire:model.live="sensitiveOnly" class="w-5 h-5 sm:w-4 sm:h-4 accent-(--color-primary)"> Sensibles
         </label>
     </div>
 

@@ -14,7 +14,7 @@
 <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
     <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-3">Droit de magasinage</div>
     <label class="flex items-start gap-3 cursor-pointer">
-        <input type="checkbox" wire:model.live="storageFeeEnabled" class="mt-0.5 rounded border-(--color-border)">
+        <input type="checkbox" wire:model.live="storageFeeEnabled" class="mt-0.5 w-5 h-5 sm:w-4 sm:h-4 flex-none rounded border-(--color-border)">
         <span class="text-sm">
             Facturer le magasinage des commandes prêtes non retirées
             <span class="block text-xs text-(--color-text-muted) mt-0.5">Le montant s'ajoute automatiquement à la remise de la commande. Le client le voit dans l'application et sur la fiche du pressing.</span>

@@ -128,17 +128,17 @@
                     <p class="block text-xs font-medium text-(--color-text-secondary) mb-2">Prix (FCFA) — laissez vide si la pièce n'est pas proposée pour ce service</p>
                     <div class="flex flex-wrap gap-3 mb-5" data-guide="piece-prix">
                         @foreach ($prestations as $prestation)
-                            <label class="flex items-center gap-2 rounded-xl border border-(--color-border) pl-2 pr-3 py-2" wire:key="np-{{ $prestation->id }}">
+                            <label class="max-sm:w-full flex items-center gap-2 rounded-xl border border-(--color-border) pl-2 pr-3 py-2" wire:key="np-{{ $prestation->id }}">
                                 <x-service-icon kind="service" :name="$prestation->iconKey()" :size="24"/>
-                                <span class="text-sm font-medium">{{ $prestation->name }}</span>
+                                <span class="max-sm:flex-1 text-sm font-medium">{{ $prestation->name }}</span>
                                 <input type="number" min="0" wire:model="newPiecePrices.{{ $prestation->id }}" placeholder="—" class="w-24 h-9 px-2 text-right tabular-nums rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
                             </label>
                         @endforeach
                     </div>
                     @error('newPiecePrices.*') <p class="text-xs text-(--color-error) mb-3">{{ $message }}</p> @enderror
                 @endif
-                <div class="flex gap-2">
-                    <button type="submit" data-guide="piece-enregistrer" class="h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">{{ $editingPieceId ? 'Enregistrer' : 'Ajouter la pièce' }}</button>
+                <div class="flex gap-2 max-sm:flex-col-reverse">
+                    <button type="submit" data-guide="piece-enregistrer" class="max-sm:h-12 h-10 px-5 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">{{ $editingPieceId ? 'Enregistrer' : 'Ajouter la pièce' }}</button>
                     <button type="button" wire:click="cancelPiece" class="h-10 px-4 rounded-lg border border-(--color-border) text-sm font-medium hover:border-(--color-primary)">Annuler</button>
                 </div>
             </form>
@@ -153,7 +153,84 @@
                 Ajoutez d'abord au moins un service pour fixer les prix de vos pièces.
             </div>
         @else
-            <div class="bg-(--color-surface) border border-(--color-border) rounded-xl overflow-x-auto">
+            {{-- Téléphone et tablette : une carte par pièce, un prix par service, les uns sous les autres
+                 (deux cartes par ligne sur tablette). La grille complète ne tient que sur grand écran. --}}
+            <div class="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
+                @foreach ($pieces as $piece)
+                    @php
+                        $activeVariants = $piece->variants->where('is_active', true);
+                        $hasVariants = $activeVariants->isNotEmpty();
+                    @endphp
+                    <div wire:key="piece-card-{{ $piece->id }}" class="bg-(--color-surface) border border-(--color-border) rounded-xl {{ $piece->is_active ? '' : 'opacity-55' }}" x-data="{ actions: false }">
+                        <div class="flex items-center gap-3 px-4 pt-3.5 pb-2">
+                            <x-service-icon kind="piece" :name="$piece->iconKey()" :size="34"/>
+                            <div class="min-w-0 flex-1">
+                                <div class="font-semibold truncate">{{ $piece->name }}</div>
+                                @if (! $piece->is_active)
+                                    <div class="text-xs text-(--color-warning-text) font-medium">Désactivée</div>
+                                @elseif ($hasVariants)
+                                    <div class="text-xs text-(--color-text-muted)">{{ $activeVariants->count() }} variante{{ $activeVariants->count() > 1 ? 's' : '' }}</div>
+                                @endif
+                            </div>
+                            <button type="button" @click="actions = !actions" :aria-expanded="actions" aria-label="Actions sur {{ $piece->name }}"
+                                    class="w-10 h-10 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary)">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+                            </button>
+                        </div>
+                        <div x-show="actions" x-cloak class="grid grid-cols-2 gap-2 px-4 pb-3">
+                            <button type="button" wire:click="editPiece({{ $piece->id }})" class="h-10 rounded-lg border border-(--color-border) text-sm font-medium">Modifier</button>
+                            <button type="button" wire:click="newVariant({{ $piece->id }})" class="h-10 rounded-lg border border-(--color-border) text-sm font-medium">+ Variante</button>
+                            <button type="button" wire:click="togglePiece({{ $piece->id }})" class="h-10 rounded-lg border border-(--color-border) text-sm font-medium">{{ $piece->is_active ? 'Désactiver' : 'Réactiver' }}</button>
+                            <button type="button" wire:click="deletePiece({{ $piece->id }})"
+                                    data-confirm-title="Supprimer cette pièce" data-confirm-label="Supprimer" data-confirm-tone="danger"
+                                    wire:confirm="Supprimer la pièce « {{ $piece->name }} » et tous ses prix ? Si elle figure déjà dans des commandes, elle sera seulement désactivée."
+                                    class="h-10 rounded-lg border border-(--color-error)/30 text-sm font-medium text-(--color-error)">Supprimer</button>
+                        </div>
+                        <div class="border-t border-(--color-border) divide-y divide-(--color-border)">
+                            @if (! $hasVariants)
+                                @foreach ($prestations as $prestation)
+                                    <div class="flex items-center gap-3 px-4 py-2 {{ $prestation->is_active ? '' : 'opacity-50' }}" wire:key="mcell-{{ $piece->id }}-0-{{ $prestation->id }}">
+                                        <x-service-icon kind="service" :name="$prestation->iconKey()" :size="24"/>
+                                        <span class="flex-1 text-sm">{{ $prestation->name }}</span>
+                                        @include('livewire.services._price-input', ['piece' => $piece, 'variant' => null, 'prestation' => $prestation, 'value' => $prices[$piece->id][0][$prestation->id] ?? null])
+                                    </div>
+                                @endforeach
+                            @endif
+                            @foreach ($piece->variants as $variant)
+                                <div class="px-4 py-2.5 bg-(--color-bg)/60 {{ $variant->is_active ? '' : 'opacity-55' }}" wire:key="mvariant-{{ $variant->id }}">
+                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                        <span class="text-sm font-semibold">{{ $variant->name }}@if (! $variant->is_active) <span class="text-xs text-(--color-warning-text) font-medium"> · désactivée</span>@endif</span>
+                                        <button type="button" wire:click="deleteVariant({{ $variant->id }})" aria-label="Supprimer {{ $variant->name }}"
+                                                data-confirm-title="Supprimer cette variante" data-confirm-label="Supprimer" data-confirm-tone="danger"
+                                                wire:confirm="Supprimer la variante « {{ $variant->name }} » ? Si elle figure déjà dans des commandes, elle sera seulement désactivée."
+                                                class="text-xs font-medium text-(--color-text-muted) hover:text-(--color-error)">Supprimer</button>
+                                    </div>
+                                    @foreach ($prestations as $prestation)
+                                        <div class="flex items-center gap-3 py-1 {{ $prestation->is_active ? '' : 'opacity-50' }}" wire:key="mcell-{{ $piece->id }}-{{ $variant->id }}-{{ $prestation->id }}">
+                                            <x-service-icon kind="service" :name="$prestation->iconKey()" :size="22"/>
+                                            <span class="flex-1 text-sm">{{ $prestation->name }}</span>
+                                            @include('livewire.services._price-input', ['piece' => $piece, 'variant' => $variant, 'prestation' => $prestation, 'value' => $prices[$piece->id][$variant->id][$prestation->id] ?? null])
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endforeach
+                            @if ($variantFormPieceId === $piece->id)
+                                <form novalidate wire:submit="saveVariant" class="px-4 py-3 flex flex-col gap-2" wire:key="mvariant-form-{{ $piece->id }}">
+                                    <input type="text" wire:model="variantName" maxlength="100" placeholder="Nom de la variante (ex. Manche longue)" autofocus
+                                           class="w-full h-11 px-3 rounded-lg border border-(--color-border) text-sm focus:outline-none focus:border-(--color-primary)">
+                                    @error('variantName') <p class="text-xs text-(--color-error)">{{ $message }}</p> @enderror
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <button type="button" wire:click="cancelVariant" class="h-10 rounded-lg border border-(--color-border) text-sm">Annuler</button>
+                                        <button type="submit" class="h-10 rounded-lg bg-(--color-primary) text-white text-sm font-semibold">Ajouter</button>
+                                    </div>
+                                </form>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="max-lg:hidden bg-(--color-surface) border border-(--color-border) rounded-xl overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-(--color-border) text-left">

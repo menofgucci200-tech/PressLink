@@ -70,7 +70,61 @@
         @if ($members->isEmpty())
             <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucun membre pour le moment.</div>
         @else
-            <div class="overflow-x-auto"><table class="w-full min-w-[680px] whitespace-nowrap text-sm">
+            {{-- Téléphone : une carte par membre, rôle et actions à portée de pouce --}}
+            <ul class="sm:hidden divide-y divide-(--color-border)">
+                @foreach ($members as $member)
+                    @php
+                        $memberRole = $memberRoles[$member->id];
+                        $canManage = $manageable[$member->id] && $canManageTeam;
+                    @endphp
+                    <li wire:key="member-card-{{ $member->id }}" class="px-4 py-3.5" x-data="{ actions: false }">
+                        <div class="flex items-center gap-3">
+                            <x-user-avatar :user="$member" class="w-10 h-10 text-xs rounded-full" />
+                            <div class="min-w-0 flex-1">
+                                <div class="font-semibold truncate">{{ $member->name }} @if ($member->id === auth()->id())<span class="text-(--color-text-muted) font-normal">(vous)</span>@endif</div>
+                                <div class="text-xs text-(--color-text-muted) truncate"><span class="font-mono">{{ $member->login }}</span>@if ($member->phone) · <span class="tabular-nums">{{ \App\Support\PhoneNumber::format($member->phone) }}</span>@endif</div>
+                            </div>
+                            <span class="flex-none text-xs font-medium {{ $member->pivot->is_active ? 'text-(--color-success-text)' : 'text-(--color-text-muted)' }}">{{ $member->pivot->is_active ? 'Actif' : 'Retiré' }}</span>
+                        </div>
+                        <div class="mt-2.5 flex items-center gap-2">
+                            @if ($canManage)
+                                <select wire:change="changeRole({{ $member->id }}, $event.target.value)" aria-label="Rôle de {{ $member->name }}"
+                                        class="flex-1 h-10 pl-2.5 pr-8 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm">
+                                    @foreach ($assignableRoles as $role)
+                                        <option value="{{ $role->id }}" @selected($memberRole?->id === $role->id)>{{ $role->name }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" @click="actions = !actions" :aria-expanded="actions" aria-label="Autres actions pour {{ $member->name }}"
+                                        class="w-10 h-10 flex-none rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary)">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+                                </button>
+                            @else
+                                <span class="inline-flex items-center gap-1.5 text-sm font-medium">{{ $memberRole?->name ?? '—' }}</span>
+                            @endif
+                        </div>
+                        @if ($canManage)
+                            <div x-show="actions" x-cloak class="mt-2 grid {{ $member->pivot->is_active ? 'grid-cols-2' : 'grid-cols-1' }} gap-2">
+                                @if ($member->pivot->is_active)
+                                    <button wire:click="resetMemberPassword({{ $member->id }})"
+                                            data-confirm-title="Réinitialiser le mot de passe" data-confirm-label="Réinitialiser" data-confirm-tone="warning"
+                                            wire:confirm="Le mot de passe de {{ $member->name }} sera réinitialisé à {{ \App\Actions\Auth\ResetPasswordToDefault::DEFAULT_PASSWORD }} et ses sessions ouvertes seront fermées. Après la réinitialisation, il doit changer son mot de passe pour sécuriser son compte."
+                                            class="h-10 rounded-lg border border-(--color-border) text-sm font-medium">Mot de passe</button>
+                                @endif
+                                <button wire:click="toggleActive({{ $member->id }})"
+                                        data-confirm-title="{{ $member->pivot->is_active ? 'Retirer de l\'équipe' : 'Réactiver le membre' }}"
+                                        data-confirm-label="{{ $member->pivot->is_active ? 'Retirer' : 'Réactiver' }}"
+                                        data-confirm-tone="{{ $member->pivot->is_active ? 'danger' : 'primary' }}"
+                                        wire:confirm="{{ $member->pivot->is_active ? 'Retirer '.$member->name.' de l\'équipe ? Il ne pourra plus se connecter à l\'espace du pressing. Vous pourrez le réactiver plus tard.' : 'Réactiver '.$member->name.' ? Il retrouvera l\'accès à l\'espace du pressing avec ses identifiants habituels.' }}"
+                                        class="h-10 rounded-lg border text-sm font-medium {{ $member->pivot->is_active ? 'border-(--color-error)/30 text-(--color-error)' : 'border-(--color-primary) text-(--color-primary)' }}">
+                                    {{ $member->pivot->is_active ? 'Retirer' : 'Réactiver' }}
+                                </button>
+                            </div>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+
+            <div class="max-sm:hidden overflow-x-auto"><table class="w-full min-w-[680px] whitespace-nowrap text-sm">
                 <thead>
                     <tr class="bg-(--color-bg) text-left">
                         <th class="px-5 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Membre</th>

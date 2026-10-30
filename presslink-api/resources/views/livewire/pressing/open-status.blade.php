@@ -15,7 +15,7 @@
         <span class="w-1.5 h-1.5 rounded-full {{ $statusDot }}"></span>
         {{-- Téléphone : « Ouvert » / « Fermé », sans la précision qui ferait déborder l'en-tête --}}
         <span class="text-xs font-semibold {{ $statusText }} sm:hidden">{{ $isSuspended ? 'Suspendu' : ($isOpen ? 'Ouvert' : 'Fermé') }}</span>
-        <span class="text-xs font-semibold {{ $statusText }} max-sm:hidden">{{ $statusLabel }}</span>
+        <span class="text-xs font-semibold whitespace-nowrap {{ $statusText }} max-sm:hidden">{{ $statusLabel }}</span>
         @if ($canToggle)
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" class="{{ $statusText }}"><path d="m6 9 6 6 6-6"/></svg>
         @endif

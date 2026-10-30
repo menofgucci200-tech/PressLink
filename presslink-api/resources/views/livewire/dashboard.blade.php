@@ -163,14 +163,27 @@
                         @endif
                     </div>
                 @else
-                    <div class="overflow-x-auto loading-rows">
-                        <div class="min-w-[620px]">
-                            <div class="grid grid-cols-[100px_minmax(140px,1fr)_140px_110px_96px_24px] items-center px-5 py-2.5 border-y border-(--color-border) text-[10.5px] font-semibold tracking-wide text-(--color-text-muted) uppercase">
+                    <div class="sm:overflow-x-auto loading-rows">
+                        <div class="sm:min-w-[620px]">
+                            <div class="max-sm:hidden grid grid-cols-[100px_minmax(140px,1fr)_140px_110px_96px_24px] items-center px-5 py-2.5 border-y border-(--color-border) text-[10.5px] font-semibold tracking-wide text-(--color-text-muted) uppercase">
                                 <div>N°</div><div>Client</div><div>Statut</div><div class="text-right">Total</div><div class="text-right">Dépôt</div><div></div>
                             </div>
                             @foreach ($recent as $order)
+                                {{-- Téléphone : client et montant en tête, n°, date et statut dessous --}}
+                                <a href="{{ route('orders.show', $order) }}" wire:navigate class="sm:hidden flex items-center gap-3 px-4 py-3 border-t border-(--color-border) active:bg-(--color-bg)">
+                                    <span class="min-w-0 flex-1">
+                                        <span class="flex items-baseline justify-between gap-3">
+                                            <span class="text-sm font-semibold truncate">{{ $order->customer->fullName() }}</span>
+                                            <span class="flex-none text-sm font-bold tabular-nums">{{ number_format($order->total_fcfa, 0, ',', ' ') }} F</span>
+                                        </span>
+                                        <span class="mt-1 flex items-center justify-between gap-3">
+                                            <span class="text-xs text-(--color-text-muted) tabular-nums truncate">{{ $order->order_number }} · {{ $order->dropped_off_at->diffForHumans(['short' => true]) }}</span>
+                                            <x-status-badge :status="$order->status" />
+                                        </span>
+                                    </span>
+                                </a>
                                 <a href="{{ route('orders.show', $order) }}" wire:navigate
-                                   class="grid grid-cols-[100px_minmax(140px,1fr)_140px_110px_96px_24px] items-center px-5 py-[15px] border-b border-(--color-border) last:border-b-0 hover:bg-(--color-bg) transition-colors duration-100">
+                                   class="max-sm:hidden grid grid-cols-[100px_minmax(140px,1fr)_140px_110px_96px_24px] items-center px-5 py-[15px] border-b border-(--color-border) last:border-b-0 hover:bg-(--color-bg) transition-colors duration-100">
                                     <div class="text-sm font-semibold truncate">{{ $order->order_number }}</div>
                                     <div class="flex items-center gap-2.5 min-w-0">
                                         <span class="w-[26px] h-[26px] flex-none rounded-lg bg-(--color-bg) text-(--color-text-secondary) text-[10px] font-bold flex items-center justify-center">
@@ -200,7 +213,8 @@
                 @endif
             </div>
 
-            <div class="flex flex-col gap-5">
+            {{-- Téléphone et tablette : « À traiter aujourd'hui » passe avant la liste, c'est ce qui guide la journée --}}
+            <div class="flex flex-col gap-5 max-xl:order-first">
                 <div class="bg-(--color-surface) border border-(--color-border) rounded-xl px-[18px] py-[17px]">
                     <div class="text-[13.5px] font-bold">À traiter aujourd'hui</div>
                     <div class="text-xs text-(--color-text-muted) mt-0.5 mb-3.5">Ce qui bloque l'atelier</div>

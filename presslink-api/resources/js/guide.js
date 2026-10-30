@@ -137,7 +137,8 @@ function placer() {
     if (!actif.defile && performance.now() - actif.depuis > 350) {
         actif.defile = true;
         const avant = el.getBoundingClientRect();
-        if (avant.top < 70 || avant.bottom > window.innerHeight - 20) {
+        // Élément collé à l'écran (barre du ticket sur téléphone) : rien à faire défiler.
+        if (!estFixe(el) && (avant.top < 70 || avant.bottom > window.innerHeight - 20)) {
             el.scrollIntoView({ block: 'center', behavior: 'smooth' });
         }
     }
@@ -170,6 +171,14 @@ function placer() {
         left: `${gauche}px`,
         top: dessous ? `${r.bottom + 14}px` : `${Math.max(12, r.top - hauteur - 14)}px`,
     });
+}
+
+/** L'élément (ou un parent) est-il collé à l'écran (position fixe) ? */
+function estFixe(el) {
+    for (let e = el; e && e !== document.body; e = e.parentElement) {
+        if (getComputedStyle(e).position === 'fixed') return true;
+    }
+    return false;
 }
 
 /** Assombrit tout sauf le rectangle donné (null : tout l'écran). */

@@ -1,0 +1,27 @@
+{
+  "fps": 30,
+  "duree": 47.0,
+  "groove": 6.5,
+  "voix": [
+    { "cle": "cahier", "debut": 0.5 },
+    { "cle": "temps", "debut": 6.7 },
+    { "cle": "client", "debut": 10.6 },
+    { "cle": "pieces", "debut": 14.4 },
+    { "cle": "paiement", "debut": 20.6 },
+    { "cle": "suivi", "debut": 26.9 },
+    { "cle": "cta", "debut": 34.2 }
+  ],
+  "scenes": [
+    { "id": "cahier", "debut": 0.0, "fin": 6.5, "note": "le cahier griffonné, les tickets, les appels « c'est prêt ? »" },
+    { "id": "temps", "debut": 6.5, "fin": 10.4, "note": "Rangez le cahier. Passez à PressLink. Gratuit tout le mois de novembre" },
+    { "id": "commande", "debut": 10.4, "fin": 26.6, "note": "écran actuel « Nouvelle commande » : client, pièces, acompte Wave, validée, reçu" },
+    { "id": "suivi", "debut": 26.6, "fin": 33.8, "note": "fiche de la commande : en traitement, prête, client prévenu" },
+    { "id": "fin", "debut": 33.8, "fin": 47.0, "note": "gratuit tout le mois de novembre, contacts, QR de l'espace pressing" }
+  ],
+  "sons": {
+    "souffles": [6.5, 10.4, 26.6, 33.8],
+    "signature_sonore": [6.6, 34.3],
+    "notification": [31.0],
+    "pops": [0.9, 1.9, 2.6, 3.4, 4.2, 7.9, 8.6, 13.2, 15.6, 15.9, 16.2, 16.6, 16.9, 17.6, 18.5, 20.6, 21.2, 22.8, 23.6, 29.2, 30.15, 35.0, 36.2, 37.6, 38.0, 38.9]
+  }
+}

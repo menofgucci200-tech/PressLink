@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>PressLink — Rangez le cahier</title>
+<style>
+:root {
+    --primary: #2563EB; --primary-dark: #1D4ED8; --primary-tint: #EFF4FE; --sky: #93C5FD;
+    --success: #10B981; --success-tint: #ECFDF5; --success-text: #059669;
+    --navy: #0B1530; --ink: #0F172A; --ink-2: #475569; --muted: #94A3B8;
+    --bg: #F1F5F9; --border: #E2E8F0; --yellow: #FBBF24; --wa: #22C55E; --red: #EF4444;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+body { font-family: "Inter", sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+#stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--navy); }
+.scene { position: absolute; inset: 0; overflow: hidden; display: none; will-change: transform; }
+.abs { position: absolute; }
+.display { font-family: "Inter Display", "Inter", sans-serif; font-weight: 900; letter-spacing: -0.04em; line-height: 1.0; }
+.center { left: 0; right: 0; text-align: center; }
+img { display: block; }
+.navybg { background: var(--navy); color: #fff; }
+.navybg::before { content: ""; position: absolute; inset: 0; background: radial-gradient(90% 60% at 100% 0%, #2563EB 0%, transparent 60%), radial-gradient(80% 50% at 0% 100%, #12245A 0%, transparent 60%); }
+.strike { position: relative; color: var(--muted); }
+.strike i { position: absolute; left: -8px; right: -10px; top: 52%; height: 16px; background: var(--red); border-radius: 8px; transform-origin: 0 50%; transform: rotate(-3deg) scaleX(0); }
+.h { font-size: 112px; }
+.h em { font-style: normal; color: var(--sky); }
+.pill { display: inline-flex; align-items: center; gap: 16px; height: 80px; padding: 0 34px; border-radius: 999px; font-size: 36px; font-weight: 800; white-space: nowrap; }
+.pill i { width: 18px; height: 18px; border-radius: 50%; background: var(--wa); box-shadow: 0 0 0 8px rgba(34,197,94,.25); }
+.pill.glass { background: rgba(255,255,255,.1); border: 3px solid rgba(255,255,255,.24); color: #fff; }
+.pill.yellow { background: var(--yellow); color: var(--navy); }
+
+/* 1. Le cahier */
+.carnet { position: absolute; left: 150px; top: 430px; width: 780px; height: 900px; background: #FFFDF6; border-radius: 22px; box-shadow: 0 50px 100px -30px rgba(0,0,0,.7);
+    padding: 120px 50px 40px 130px; color: #34312B; background-image: linear-gradient(transparent 0 84px, #D9E2F1 84px 88px); background-size: 100% 88px; background-position: 0 60px;
+    font: 46px/88px "Courier New", monospace; overflow: hidden; }
+.carnet::before { content: ""; position: absolute; left: 96px; top: 0; bottom: 0; width: 5px; background: #F2A3A3; }
+.carnet .l { white-space: nowrap; overflow: hidden; position: relative; }
+.carnet .l s { position: absolute; left: -6px; top: 50%; height: 6px; background: #E11D48; border-radius: 3px; width: 0; }
+.carnet .stain { position: absolute; right: 70px; bottom: 120px; width: 230px; height: 230px; border-radius: 50%; border: 18px solid rgba(146,94,48,.22); filter: blur(1.5px); }
+.carnet .tag { position: absolute; left: -16px; top: 26px; background: var(--red); color: #fff; font: 800 36px Inter; letter-spacing: 2px; padding: 10px 28px; border-radius: 12px; transform: rotate(3deg); }
+.bubble { position: absolute; background: #fff; color: var(--ink); font-size: 40px; font-weight: 700; padding: 22px 32px; border-radius: 34px 34px 34px 10px; box-shadow: 0 24px 44px rgba(0,0,0,.4); white-space: nowrap; z-index: 3; }
+.bubble small { display: block; font-size: 24px; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
+.bubble.r { border-radius: 34px 34px 10px 34px; background: #DCF8C6; }
+
+/* Ordinateur */
+.laptop { position: absolute; left: 40px; width: 1000px; }
+.laptop .lid { padding: 20px 20px 26px; background: #0E1424; border-radius: 30px 30px 10px 10px; box-shadow: 0 50px 100px -20px rgba(0,0,0,.6); }
+.laptop .view { position: relative; width: 960px; height: 600px; border-radius: 8px; overflow: hidden; background: #fff; }
+.laptop .frames { position: absolute; left: 0; top: 0; width: 960px; height: 600px; transform-origin: 0 0; }
+.laptop .frames img { position: absolute; left: 0; top: 0; width: 960px; height: 600px; opacity: 0; }
+.laptop .base { width: 1080px; margin-left: -40px; height: 34px; background: linear-gradient(#C9D2E3, #8C97AD); border-radius: 0 0 40px 40px; }
+.tap { position: absolute; width: 70px; height: 70px; margin: -35px 0 0 -35px; border-radius: 50%; background: rgba(37,99,235,.28); border: 4px solid #fff; box-shadow: 0 0 0 3px rgba(15,23,42,.3), 0 8px 20px rgba(15,23,42,.35); opacity: 0; z-index: 5; }
+
+.step { display: inline-flex; align-items: center; gap: 18px; background: #fff; color: var(--primary); font-weight: 800; font-size: 34px; padding: 14px 34px 14px 16px; border-radius: 999px; box-shadow: 0 16px 34px rgba(0,0,0,.25); white-space: nowrap; }
+.step i { width: 56px; height: 56px; border-radius: 50%; background: var(--primary); color: #fff; display: grid; place-items: center; font-style: normal; font-size: 28px; }
+.chip { position: absolute; display: inline-flex; align-items: center; gap: 16px; background: #fff; border-radius: 999px; padding: 14px 32px 14px 14px; font-weight: 700; font-size: 36px;
+    box-shadow: 0 18px 40px rgba(15,23,42,.3); white-space: nowrap; z-index: 6; color: var(--ink); }
+.chip i { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-weight: 800; font-size: 28px; flex: none; }
+.chip b { font-weight: 900; }
+.paper { position: absolute; width: 360px; background: #fff; border-radius: 10px; box-shadow: 0 40px 80px -20px rgba(0,0,0,.6); padding: 12px; z-index: 7; }
+.paper img { width: 100%; }
+.paper::after { content: ""; position: absolute; left: 0; right: 0; bottom: -18px; height: 18px; background: linear-gradient(-45deg, transparent 12px, #fff 0) 0 0 / 24px 18px, linear-gradient(45deg, transparent 12px, #fff 0) 0 0 / 24px 18px; }
+
+.notif { position: absolute; left: 60px; width: 960px; color: var(--ink); background: rgba(255,255,255,.97); border-radius: 40px; padding: 30px 34px; display: flex; gap: 26px; align-items: flex-start; box-shadow: 0 30px 70px rgba(0,0,0,.4); z-index: 8; }
+.notif .ic { width: 92px; height: 92px; border-radius: 24px; background: var(--primary); display: grid; place-items: center; flex: none; }
+.notif .app { font-size: 25px; font-weight: 700; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; display: flex; justify-content: space-between; }
+.notif .t { font-size: 40px; font-weight: 800; margin-top: 6px; }
+.notif .b { font-size: 31px; color: var(--ink-2); margin-top: 4px; line-height: 1.3; }
+
+/* Fin */
+.free { position: absolute; z-index: 6; width: 300px; height: 300px; border-radius: 50%; background: var(--yellow); color: var(--navy); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    border: 9px solid var(--navy); outline: 5px solid var(--yellow); box-shadow: 0 26px 50px -16px rgba(0,0,0,.6); }
+.free b { font: 900 92px/1 "Inter Display"; letter-spacing: -3px; }
+.free span { font: 800 27px/1.15 Inter; text-transform: uppercase; margin-top: 4px; }
+.phone { position: absolute; width: 290px; height: 610px; border-radius: 46px; background: #0B0F19; padding: 11px; box-shadow: 0 40px 80px -20px rgba(0,0,0,.65), inset 0 0 0 3px #2A3245; z-index: 4; }
+.phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 36px; }
+.cta { position: absolute; left: 50px; right: 50px; background: #0F1B3D; border: 2px solid rgba(147,197,253,.25); border-radius: 44px; padding: 40px 44px; display: flex; gap: 36px; align-items: center; z-index: 5; }
+.cta .l { flex: 1; min-width: 0; }
+.cta h3 { font: 900 54px/1.08 "Inter Display"; letter-spacing: -1.5px; }
+.cta h3 em { font-style: normal; color: var(--yellow); }
+.ct { display: flex; align-items: center; gap: 18px; font: 800 38px Inter; margin-top: 26px; white-space: nowrap; }
+.ct .ci { width: 70px; height: 70px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.qr { flex: none; width: 300px; background: #fff; border-radius: 30px; padding: 22px 22px 18px; text-align: center; color: var(--ink); }
+.qr img { width: 256px; height: 256px; }
+.qr b { display: block; font: 800 24px/1.2 Inter; margin-top: 12px; }
+.qr span { display: block; font-size: 21px; color: var(--ink-2); margin-top: 4px; }
+
+/* Sous-titres */
+#caption { position: absolute; left: 60px; right: 60px; top: 1712px; display: flex; justify-content: center; z-index: 50; pointer-events: none; }
+#caption span { background: rgba(11,21,48,.86); color: #fff; font-size: 40px; font-weight: 600; line-height: 1.32; text-align: center; padding: 16px 30px; border-radius: 22px; max-width: 960px; box-shadow: 0 10px 30px rgba(0,0,0,.25); border: 2px solid rgba(255,255,255,.12); }
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- ============ 1. Le cahier ============ -->
+<section class="scene navybg" id="s1">
+    <div id="s1-carnet" class="carnet">
+        <span class="tag">LE CAHIER</span>
+        <div class="l" id="l1">12/10 · Kouassi</div>
+        <div class="l" id="l2">Awa ?? · 2 boubous<s id="x2"></s></div>
+        <div class="l" id="l3">Payé 5000 ?? (Wave)<s id="x3"></s></div>
+        <div class="l" id="l4">Mme K. → prêt ??</div>
+        <div class="l" id="l5">Ticket n° 48 perdu<s id="x5"></s></div>
+        <div class="l" id="l6">Rappeler Yao !!!</div>
+        <span class="stain" id="s1-stain"></span>
+    </div>
+    <div id="b1" class="bubble" style="left:560px; top:300px;"><small>Client · 07 08 …</small>C'est prêt ? 🙏</div>
+    <div id="b2" class="bubble r" style="left:70px; top:1190px;"><small>Client · 05 44 …</small>J'arrive, c'est prêt ?</div>
+    <div id="b3" class="bubble" style="left:470px; top:1360px;"><small>Client · 01 23 …</small>Allô ? Mon boubou ?</div>
+</section>
+
+<!-- ============ 2. Rangez le cahier, passez à PressLink ============ -->
+<section class="scene navybg" id="s2">
+    <div class="abs center" style="top:470px;"><span id="s2-badge" class="pill glass" style="display:inline-flex;"><i></i>Lancement officiel</span></div>
+    <div id="s2-h1" class="abs center display h" style="top:640px;">Rangez le <span class="strike">cahier<i id="s2-strike"></i></span>.</div>
+    <div id="s2-h2" class="abs center display h" style="top:780px;"><em>Passez à PressLink.</em></div>
+    <div class="abs center" style="top:1010px;"><span id="s2-free" class="pill yellow" style="display:inline-flex; height:96px; font-size:44px; padding:0 44px;">Gratuit tout le mois de novembre</span></div>
+</section>
+
+<!-- ============ 3. Une commande sur une seule page ============ -->
+<section class="scene navybg" id="s3">
+    <div id="s3-h" class="abs center display" style="top:150px; font-size:80px;">Une commande,<br><em style="font-style:normal; color:var(--sky);">une seule page.</em></div>
+    <div class="abs center" style="top:400px;"><span id="s3-step" class="step" style="display:inline-flex;"><i id="s3-n">1</i><span id="s3-t">Le client</span></span></div>
+    <div id="s3-lap" class="laptop" style="top:540px;">
+        <div class="lid"><div class="view"><div class="frames" id="s3-frames">
+            <img id="f-d00" src="assets/d00-vide.jpg"><img id="f-d01" src="assets/d01-recherche.jpg"><img id="f-d02" src="assets/d02-client.jpg">
+            <img id="f-d03" src="assets/d03-nettoyage.jpg"><img id="f-d04" src="assets/d04-chemise1.jpg"><img id="f-d05" src="assets/d05-chemise2.jpg">
+            <img id="f-d06" src="assets/d06-chemise3.jpg"><img id="f-d07" src="assets/d07-pantalon1.jpg"><img id="f-d08" src="assets/d08-pantalon2.jpg">
+            <img id="f-d09" src="assets/d09-boubou.jpg"><img id="f-d10" src="assets/d10-acompte.jpg"><img id="f-d11" src="assets/d11-wave.jpg">
+            <img id="f-d12" src="assets/d12-validee.jpg">
+            <div class="tap" id="s3-tap"></div>
+        </div></div></div>
+        <div class="base"></div>
+    </div>
+    <div id="c-awa" class="chip" style="left:60px; top:1270px;"><i style="background:var(--primary-tint); color:var(--primary);">AK</i>Awa Konan · trouvée en 3 lettres</div>
+    <div id="c-ch" class="chip" style="left:60px; top:1250px;"><i style="background:#DBEAFE;">👔</i><b>3</b>&nbsp;chemises</div>
+    <div id="c-pa" class="chip" style="left:440px; top:1250px;"><i style="background:#DBEAFE;">👖</i><b>2</b>&nbsp;pantalons</div>
+    <div id="c-bo" class="chip" style="left:60px; top:1370px;"><i style="background:#FEF3C7;">👘</i><b>1</b>&nbsp;grand boubou brodé</div>
+    <div id="c-tot" class="chip" style="left:560px; top:1490px; font-size:44px;"><i style="background:var(--success-tint); color:var(--success-text);">=</i>Total&nbsp;<b>12 000 F</b></div>
+    <div id="c-pay" class="chip" style="left:60px; top:1270px;"><i style="background:#E0F2FE;">💳</i>Acompte&nbsp;<b>5 000 F</b>&nbsp;· Wave</div>
+    <div id="c-ok" class="chip" style="left:60px; top:1390px; background:var(--success); color:#fff;"><i style="background:rgba(255,255,255,.22); color:#fff;">✓</i>Commande validée</div>
+    <div id="s3-paper" class="paper" style="left:670px; top:740px;"><img src="assets/recu.jpg"></div>
+</section>
+
+<!-- ============ 4. Le suivi ============ -->
+<section class="scene navybg" id="s4">
+    <div id="s4-h" class="abs center display" style="top:150px; font-size:80px;">Chaque commande,<br><em style="font-style:normal; color:var(--sky);">suivie en un clic.</em></div>
+    <div class="abs center" style="top:400px;"><span id="s4-step" class="step" style="display:inline-flex;"><i>✓</i><span id="s4-t">Reçue</span></span></div>
+    <div id="s4-lap" class="laptop" style="top:540px;">
+        <div class="lid"><div class="view"><div class="frames" id="s4-frames">
+            <img id="f-s01" src="assets/s01-recue.jpg"><img id="f-s02" src="assets/s02-traitement.jpg"><img id="f-s03" src="assets/s03-prete.jpg">
+            <div class="tap" id="s4-tap"></div>
+        </div></div></div>
+        <div class="base"></div>
+    </div>
+    <div id="s4-notif" class="notif" style="top:1230px;">
+        <div class="ic"><img src="assets/icon.png" style="width:64px; filter:brightness(0) invert(1);"></div>
+        <div style="flex:1; min-width:0;">
+            <div class="app"><span>PressLink</span><span style="letter-spacing:0; text-transform:none; font-weight:600;">maintenant</span></div>
+            <div class="t">Votre commande est prête !</div>
+            <div class="b">PL-219234 vous attend au Pressing du Plateau. Reste à payer : 7 000 F.</div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ 5. Fin ============ -->
+<section class="scene navybg" id="s5">
+    <img id="s5-logo" class="abs" src="assets/wordmark_white.png" style="left:290px; top:110px; width:500px;">
+    <div id="s5-h1" class="abs center display" style="top:330px; font-size:92px;">Rangez le <span class="strike">cahier<i style="transform:rotate(-3deg) scaleX(1);"></i></span>.</div>
+    <div id="s5-h2" class="abs center display" style="top:440px; font-size:92px; color:var(--sky);">Passez à PressLink.</div>
+    <div id="s5-lap" class="laptop" style="top:610px; left:150px; width:780px;">
+        <div class="lid" style="padding:14px 14px 18px;"><div class="view" style="width:752px; height:470px;"><img src="assets/d09-boubou.jpg" style="width:752px; height:470px;"></div></div>
+        <div class="base" style="width:840px; margin-left:-30px; height:26px;"></div>
+    </div>
+    <div id="s5-phone" class="phone" style="left:760px; top:700px;"><img src="assets/telephone-commande.jpg"></div>
+    <div id="s5-free" class="free" style="left:30px; top:880px;"><b>0 F</b><span>tout le mois<br>de novembre</span></div>
+    <div id="s5-cta" class="cta" style="top:1250px;">
+        <div class="l">
+            <h3>Faites le pas, <em>c'est gratuit.</em></h3>
+            <div class="ct"><span class="ci" style="background:var(--wa);"><svg width="40" height="40" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg></span>07 18 00 22 93</div>
+            <div class="ct" style="margin-top:16px;"><span class="ci" style="background:var(--primary);"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>contact@presslink.org</div>
+        </div>
+        <div class="qr" id="s5-qr"><img src="assets/qr-espace.svg"><b>Votre espace pressing</b><span>presslink.org/login</span></div>
+    </div>
+</section>
+
+<div id="caption"><span id="caption-text"></span></div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const lerp = (a, b, p) => a + (b - a) * p;
+const E = {
+    out: (p) => 1 - Math.pow(1 - p, 3),
+    inOut: (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2),
+    back: (p) => { const c = 1.7; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); },
+    in: (p) => p * p * p,
+};
+function set(el, { o = 1, x = 0, y = 0, s = 1, r = 0 } = {}) {
+    if (typeof el === 'string') el = $(el);
+    el.style.opacity = o;
+    el.style.transform = `translate(${x}px, ${y}px) scale(${s}) rotate(${r}deg)`;
+}
+function rise(el, t, a, dur = 0.55, dy = 40, out = null) {
+    const p = E.out(prog(t, a, a + dur));
+    let o = p, y = (1 - p) * dy;
+    if (out !== null) { const q = E.in(prog(t, out, out + 0.3)); o *= 1 - q; y -= 30 * q; }
+    set(el, { o, y });
+}
+function pop(el, t, a, dur = 0.5, out = null, r = 0) {
+    const p = prog(t, a, a + dur);
+    let s = p === 0 ? 0.6 : lerp(0.6, 1, E.back(p)), o = clamp(p * 3);
+    if (out !== null) { const q = E.in(prog(t, out, out + 0.3)); o *= 1 - q; s *= 1 - 0.12 * q; }
+    set(el, { o, s, r });
+}
+function slideIn(el, t, a, dx = -80, dur = 0.5, out = null) {
+    const p = prog(t, a, a + dur);
+    let o = clamp(p * 2.5);
+    if (out !== null) o *= 1 - E.in(prog(t, out, out + 0.3));
+    set(el, { o, x: (1 - E.back(p)) * dx, s: 0.94 + 0.06 * E.out(p) });
+}
+
+/** Image affichée à l'instant t : la dernière dont l'heure est passée (fondu court). */
+function frames(list, t) {
+    let cur = 0;
+    list.forEach(([, at], i) => { if (t >= at) cur = i; });
+    list.forEach(([id, at], i) => {
+        const el = $(id);
+        if (i === cur) el.style.opacity = 1;
+        else if (i === cur - 1) el.style.opacity = 1 - prog(t, list[cur][1], list[cur][1] + 0.12);
+        else el.style.opacity = 0;
+        el.style.zIndex = i === cur ? 2 : 1;
+    });
+}
+/** Zoom « Ken Burns » sur l'écran (coordonnées CSS 1440×900). Renvoie l'échelle. */
+function zoom(id, t, keys, W = 960, H = 600) {
+    let k = keys[0];
+    for (let i = 0; i < keys.length - 1; i++) {
+        const [a, b] = [keys[i], keys[i + 1]];
+        if (t >= a[0] && t <= b[0]) { const p = E.inOut(prog(t, a[0], b[0])); k = [t, lerp(a[1], b[1], p), lerp(a[2], b[2], p), lerp(a[3], b[3], p)]; }
+        else if (t > b[0]) k = b;
+    }
+    const [, s, cx, cy] = k, f = W / 1440;
+    const tx = clamp(W / 2 - cx * f * s, W - W * s, 0), ty = clamp(H / 2 - cy * f * s, H - H * s, 0);
+    $(id).style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+    return s;
+}
+/** Toucher à l'écran : point puis onde, aux coordonnées CSS 1440×900. */
+function taps(id, t, list, s) {
+    const el = $(id), f = 960 / 1440;
+    const cur = list.find(([at]) => t > at - 0.2 && t < at + 0.45);
+    if (!cur) { el.style.opacity = 0; return; }
+    const [at, x, y] = cur, k = prog(t, at, at + 0.45);
+    el.style.left = x * f + 'px'; el.style.top = y * f + 'px';
+    el.style.opacity = t < at ? 0.95 : 0.95 * (1 - k);
+    el.style.transform = `scale(${(t < at ? 0.6 : 0.6 + 1.0 * E.out(k)) / s})`;
+}
+
+const SCENES = ['s1', 's2', 's3', 's4', 's5'];
+let CAPTIONS = [], BOUNDS = [];
+function stage(t) {
+    BOUNDS.forEach(([a], i) => {
+        const el = $(SCENES[i]), next = BOUNDS[i + 1];
+        const visible = t >= a - 0.25 && (!next || t <= next[0] + 0.25);
+        el.style.display = visible ? 'block' : 'none';
+        if (!visible) return;
+        const inn = i === 0 ? 1 : E.inOut(prog(t, a - 0.25, a + 0.25));
+        const out = next ? E.inOut(prog(t, next[0] - 0.25, next[0] + 0.25)) : 0;
+        el.style.zIndex = i + 1;
+        if (i === 1) el.style.clipPath = `circle(${inn * 130}% at 50% 45%)`;
+        else el.style.transform = `translateX(${1080 * (1 - inn) - 260 * out}px)`;
+        el.style.filter = out > 0 ? `brightness(${1 - 0.35 * out})` : 'none';
+    });
+}
+
+function render(t) {
+    stage(t);
+
+    // ---------------- 1. Le cahier (0 → 6.5)
+    if ($('s1').style.display === 'block') {
+        const lines = [['l1', 0.4], ['l2', 1.1], ['l3', 1.8], ['l4', 2.5], ['l5', 3.2], ['l6', 3.9]];
+        lines.forEach(([id, a]) => { const p = prog(t, a, a + 0.55); $(id).style.width = (p * 100) + '%'; $(id).style.opacity = p > 0 ? 1 : 0; });
+        [['x2', 1.75], ['x3', 2.45], ['x5', 3.85]].forEach(([id, a]) => { $(id).style.width = (E.out(prog(t, a, a + 0.3)) * 105) + '%'; });
+        const shake = t > 4.6 ? Math.sin(t * 38) * 4 * clamp((t - 4.6) * 2) : 0;
+        const fall = E.in(prog(t, 6.0, 6.6));
+        set('s1-carnet', { r: -4 + shake * 0.3 + fall * 25, y: fall * 900, s: 1 - 0.1 * fall });
+        $('s1-stain').style.opacity = clamp(prog(t, 2.2, 3.0));
+        pop('b1', t, 1.9, 0.5); pop('b2', t, 3.4, 0.5); pop('b3', t, 4.2, 0.5);
+    }
+
+    // ---------------- 2. Rangez le cahier (6.5 → 10.4)
+    if ($('s2').style.display === 'block') {
+        pop('s2-badge', t, 6.6, 0.5);
+        rise('s2-h1', t, 6.75, 0.55);
+        $('s2-strike').style.transform = `rotate(-3deg) scaleX(${E.out(prog(t, 7.5, 7.85))})`;
+        const p = prog(t, 8.45, 8.85);
+        set('s2-h2', { o: clamp(p * 3), s: p === 0 ? 0.7 : lerp(0.7, 1, E.back(p)) });
+        const f = prog(t, 8.9, 9.35);
+        set('s2-free', { o: clamp(f * 3), s: f === 0 ? 0.5 : lerp(0.5, 1, E.back(f)), r: -2 });
+    }
+
+    // ---------------- 3. La commande (10.4 → 26.6)
+    if ($('s3').style.display === 'block') {
+        rise('s3-h', t, 10.5, 0.55);
+        rise('s3-lap', t, 10.6, 0.7, 120);
+        frames([['f-d00', 0], ['f-d01', 12.25], ['f-d02', 13.35], ['f-d03', 14.55], ['f-d04', 15.55], ['f-d05', 15.85], ['f-d06', 16.15],
+            ['f-d07', 16.55], ['f-d08', 16.85], ['f-d09', 17.55], ['f-d10', 20.65], ['f-d11', 21.25], ['f-d12', 23.05]], t);
+        const s = zoom('s3-frames', t, [[10.4, 1.0, 720, 450], [11.3, 1.0, 720, 450], [11.9, 1.75, 600, 290], [13.6, 1.75, 600, 290],
+            [14.3, 1.35, 700, 560], [18.1, 1.35, 700, 560], [18.6, 1.7, 1240, 520], [20.3, 1.7, 1240, 520], [20.5, 1.75, 1260, 700], [22.7, 1.75, 1260, 700],
+            [23.25, 1.0, 720, 450], [26.6, 1.0, 720, 450]]);
+        // Saisie « Awa » : le champ de recherche se remplit lettre par lettre.
+        taps('s3-tap', t, [[11.95, 654, 245], [13.2, 384, 304], [14.45, 526, 347], [15.5, 507, 515], [15.8, 507, 515], [16.1, 507, 515],
+            [16.5, 507, 660], [16.8, 507, 660], [17.5, 360, 520], [20.6, 1334, 610], [21.2, 1186, 732]], s);
+        const steps = [[10.4, '1', 'Le client'], [14.3, '2', 'Les pièces'], [20.4, '3', 'Le paiement'], [23.1, '✓', 'Validée : reçu prêt']];
+        const st = steps.filter(([a]) => t >= a).pop() || steps[0];
+        $('s3-n').textContent = st[1]; $('s3-t').textContent = st[2];
+        const lastSwitch = st[0], sp = prog(t, lastSwitch, lastSwitch + 0.4);
+        set('s3-step', { o: clamp(prog(t, 10.6, 10.9)), s: lastSwitch > 10.4 ? lerp(0.85, 1, E.back(sp)) : 1 });
+        $('s3-step').style.background = st[1] === '✓' ? 'var(--success)' : '#fff';
+        $('s3-step').style.color = st[1] === '✓' ? '#fff' : 'var(--primary)';
+        slideIn('c-awa', t, 13.35, -80, 0.5, 14.1);
+        slideIn('c-ch', t, 16.2, -80, 0.5, 20.3);
+        slideIn('c-pa', t, 16.9, 80, 0.5, 20.3);
+        slideIn('c-bo', t, 17.6, -80, 0.5, 20.3);
+        pop('c-tot', t, 18.5, 0.5, 20.3);
+        slideIn('c-pay', t, 21.3, -80, 0.5, 26.0);
+        pop('c-ok', t, 22.85, 0.5, 26.0);
+        const pp = prog(t, 23.6, 24.4);
+        set('s3-paper', { o: clamp(pp * 4), y: (1 - E.out(pp)) * 700, r: lerp(10, 4, E.out(pp)) });
+    }
+
+    // ---------------- 4. Le suivi (26.6 → 33.8)
+    if ($('s4').style.display === 'block') {
+        rise('s4-h', t, 26.75, 0.55);
+        rise('s4-lap', t, 26.85, 0.7, 120);
+        frames([['f-s01', 0], ['f-s02', 29.35], ['f-s03', 30.3]], t);
+        const s = zoom('s4-frames', t, [[26.6, 1.0, 720, 450], [27.6, 1.0, 720, 450], [28.3, 1.55, 860, 260], [30.6, 1.55, 860, 260], [31.0, 1.0, 720, 450], [33.8, 1.0, 720, 450]]);
+        taps('s4-tap', t, [[29.2, 1155, 243], [30.15, 1179, 243]], s);
+        const lab = t >= 30.3 ? 'Prête : client prévenu' : t >= 29.35 ? 'En traitement' : 'Reçue';
+        $('s4-t').textContent = lab;
+        const sw = t >= 30.3 ? 30.3 : t >= 29.35 ? 29.35 : 26.6;
+        set('s4-step', { o: clamp(prog(t, 26.9, 27.2)), s: sw > 26.6 ? lerp(0.85, 1, E.back(prog(t, sw, sw + 0.4))) : 1 });
+        $('s4-step').style.background = t >= 30.3 ? 'var(--success)' : '#fff';
+        $('s4-step').style.color = t >= 30.3 ? '#fff' : 'var(--primary)';
+        const np = prog(t, 31.0, 31.5);
+        set('s4-notif', { o: clamp(np * 3), y: (1 - E.back(np)) * 300 });
+    }
+
+    // ---------------- 5. Fin (33.8 → 47)
+    if ($('s5').style.display === 'block') {
+        rise('s5-logo', t, 34.0, 0.55);
+        rise('s5-h1', t, 34.3, 0.5); rise('s5-h2', t, 34.6, 0.5);
+        rise('s5-lap', t, 35.0, 0.7, 100);
+        const ph = prog(t, 35.4, 36.0);
+        set('s5-phone', { o: clamp(ph * 3), y: (1 - E.back(ph)) * 160, r: 5 });
+        const fp = prog(t, 36.2, 36.75);
+        const beat = t > 36.8 ? 1 + 0.025 * Math.max(0, Math.sin((t - 36.8) * Math.PI * 1.6)) : 1;
+        set('s5-free', { o: clamp(fp * 3), s: (fp === 0 ? 0.5 : lerp(0.5, 1, E.back(fp))) * beat, r: -10 });
+        rise('s5-cta', t, 37.6, 0.6, 80);
+        const q = prog(t, 38.9, 39.4);
+        set('s5-qr', { o: clamp(q * 3), s: q === 0 ? 0.8 : lerp(0.8, 1, E.back(q)) });
+    }
+
+    // ---------------- Sous-titres
+    const c = CAPTIONS.find((k) => t >= k.a && t < k.b);
+    const cap = $('caption-text');
+    if (c) {
+        cap.textContent = c.text;
+        const p = Math.min(prog(t, c.a, c.a + 0.18), 1 - prog(t, c.b - 0.12, c.b));
+        cap.style.opacity = p;
+        cap.style.transform = `translateY(${(1 - p) * 10}px)`;
+        cap.parentElement.style.display = 'flex';
+    } else cap.parentElement.style.display = 'none';
+}
+
+/** Découpe chaque réplique en sous-titres courts, minutés au prorata du texte. */
+function buildCaptions(timeline, repliques) {
+    const out = [];
+    const byKey = Object.fromEntries(repliques.map((r) => [r.cle, r]));
+    for (const v of timeline.voix) {
+        const r = byKey[v.cle];
+        const parts = r.texte.split(/(?<=[.:…!?])\s+|(?<=,)\s+(?=[^,]{12,})/).map((s) => s.trim()).filter(Boolean);
+        const chunks = [];
+        for (const p of parts) {
+            if (chunks.length && (chunks[chunks.length - 1] + ' ' + p).length <= 46 && !/[.…:!?]$/.test(chunks[chunks.length - 1])) chunks[chunks.length - 1] += ' ' + p;
+            else chunks.push(p);
+        }
+        const total = chunks.reduce((s, c) => s + c.length, 0);
+        let a = v.debut;
+        for (const ch of chunks) {
+            const d = r.duree * ch.length / total;
+            out.push({ a, b: a + d + 0.12, text: ch.replace(/\s*:$/, '') });
+            a += d;
+        }
+    }
+    for (let i = 0; i < out.length - 1; i++) out[i].b = Math.min(out[i].b, out[i + 1].a);
+    return out;
+}
+
+window.setup = (timeline, repliques) => {
+    BOUNDS = timeline.scenes.map((s) => [s.debut, s.fin]);
+    CAPTIONS = buildCaptions(timeline, repliques);
+    return CAPTIONS;
+};
+window.renderAt = (t) => { render(t); return true; };
+window.ready = Promise.all([document.fonts.ready, ...Array.from(document.images).map((im) => im.complete ? 1 : new Promise((r) => { im.onload = im.onerror = r; }))]);
+</script>
+</body>
+</html>

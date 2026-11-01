@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>PressLink — C'est quoi PressLink ?</title>
+<style>
+:root {
+    --primary: #2563EB; --primary-dark: #1D4ED8; --primary-tint: #EFF4FE; --sky: #93C5FD;
+    --success: #10B981; --success-tint: #ECFDF5; --success-text: #059669;
+    --navy: #0B1530; --ink: #0F172A; --ink-2: #475569; --muted: #94A3B8;
+    --yellow: #FBBF24; --wa: #22C55E; --red: #EF4444;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+body { font-family: "Inter", sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+#stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--navy); }
+.scene { position: absolute; inset: 0; overflow: hidden; display: none; will-change: transform; color: #fff; background: var(--navy); }
+.scene::before { content: ""; position: absolute; inset: 0; background: radial-gradient(90% 60% at 100% 0%, #2563EB 0%, transparent 60%), radial-gradient(80% 50% at 0% 100%, #12245A 0%, transparent 60%); }
+.abs { position: absolute; }
+.display { font-family: "Inter Display", "Inter", sans-serif; font-weight: 900; letter-spacing: -0.04em; line-height: 1.0; }
+.center { left: 0; right: 0; text-align: center; }
+img { display: block; }
+.title { font-size: 80px; }
+.title em { font-style: normal; color: var(--sky); }
+.kicker { display: inline-flex; align-items: center; gap: 14px; height: 70px; padding: 0 30px; border-radius: 999px; font-size: 30px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+    background: rgba(255,255,255,.1); border: 3px solid rgba(255,255,255,.22); color: #DBEAFE; white-space: nowrap; }
+.kicker i { width: 16px; height: 16px; border-radius: 50%; background: var(--sky); }
+
+/* Ordinateur */
+.laptop { position: absolute; left: 40px; width: 1000px; }
+.laptop .lid { padding: 20px 20px 26px; background: #0E1424; border-radius: 30px 30px 10px 10px; box-shadow: 0 50px 100px -20px rgba(0,0,0,.6); }
+.laptop .view { position: relative; width: 960px; height: 600px; border-radius: 8px; overflow: hidden; background: #fff; }
+.laptop .frames { position: absolute; left: 0; top: 0; width: 960px; height: 600px; transform-origin: 0 0; }
+.laptop .frames img { position: absolute; left: 0; top: 0; width: 960px; height: 600px; opacity: 0; }
+.laptop .base { width: 1080px; margin-left: -40px; height: 34px; background: linear-gradient(#C9D2E3, #8C97AD); border-radius: 0 0 40px 40px; }
+
+/* Téléphone */
+.phone { position: absolute; width: 560px; padding: 14px; background: #0B0F19; border-radius: 62px; box-shadow: 0 50px 90px rgba(0,0,0,.5), inset 0 0 0 3px #2A3245; }
+.phone .scr { position: relative; width: 532px; height: 1144px; border-radius: 48px; overflow: hidden; background: #fff; }
+.phone .scr img { position: absolute; left: 0; top: 0; width: 532px; height: 1144px; opacity: 0; }
+
+.chip { position: absolute; display: inline-flex; align-items: center; gap: 16px; background: #fff; border-radius: 999px; padding: 14px 32px 14px 14px; font-weight: 700; font-size: 36px;
+    box-shadow: 0 18px 40px rgba(0,0,0,.35); white-space: nowrap; z-index: 6; color: var(--ink); }
+.chip i { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-weight: 800; font-size: 28px; flex: none; }
+.chip b { font-weight: 900; }
+.tag { position: absolute; display: inline-flex; align-items: center; gap: 12px; padding: 12px 26px; border-radius: 16px; font: 800 32px Inter; white-space: nowrap; z-index: 6; box-shadow: 0 16px 34px rgba(0,0,0,.35); }
+.paper { position: absolute; width: 360px; background: #fff; border-radius: 10px; box-shadow: 0 40px 80px -20px rgba(0,0,0,.6); padding: 12px; z-index: 7; }
+.paper img { width: 100%; }
+.notif { position: absolute; left: 60px; width: 960px; color: var(--ink); background: rgba(255,255,255,.97); border-radius: 40px; padding: 30px 34px; display: flex; gap: 26px; align-items: flex-start; box-shadow: 0 30px 70px rgba(0,0,0,.45); z-index: 8; }
+.notif .ic { width: 92px; height: 92px; border-radius: 24px; background: var(--primary); display: grid; place-items: center; flex: none; }
+.notif .app { font-size: 25px; font-weight: 700; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; display: flex; justify-content: space-between; }
+.notif .t { font-size: 40px; font-weight: 800; margin-top: 6px; }
+.notif .b { font-size: 31px; color: var(--ink-2); margin-top: 4px; line-height: 1.3; }
+
+/* 1. Question */
+.q { font-size: 150px; }
+.q em { font-style: normal; color: var(--yellow); }
+
+/* Fin */
+.free { position: absolute; z-index: 6; width: 300px; height: 300px; border-radius: 50%; background: var(--yellow); color: var(--navy); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    border: 9px solid var(--navy); outline: 5px solid var(--yellow); box-shadow: 0 26px 50px -16px rgba(0,0,0,.6); }
+.free b { font: 900 92px/1 "Inter Display"; letter-spacing: -3px; }
+.free span { font: 800 27px/1.15 Inter; text-transform: uppercase; margin-top: 4px; }
+.mini-phone { position: absolute; width: 290px; height: 610px; border-radius: 46px; background: #0B0F19; padding: 11px; box-shadow: 0 40px 80px -20px rgba(0,0,0,.65), inset 0 0 0 3px #2A3245; z-index: 4; }
+.mini-phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 36px; }
+.cta { position: absolute; left: 50px; right: 50px; background: #0F1B3D; border: 2px solid rgba(147,197,253,.25); border-radius: 44px; padding: 40px 44px; display: flex; gap: 36px; align-items: center; z-index: 5; }
+.cta .l { flex: 1; min-width: 0; }
+.cta h3 { font: 900 54px/1.08 "Inter Display"; letter-spacing: -1.5px; }
+.cta h3 em { font-style: normal; color: var(--yellow); }
+.ct { display: flex; align-items: center; gap: 18px; font: 800 38px Inter; margin-top: 26px; white-space: nowrap; }
+.ct .ci { width: 70px; height: 70px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.qr { flex: none; width: 300px; background: #fff; border-radius: 30px; padding: 22px 22px 18px; text-align: center; color: var(--ink); }
+.qr img { width: 256px; height: 256px; }
+.qr b { display: block; font: 800 24px/1.2 Inter; margin-top: 12px; }
+.qr span { display: block; font-size: 21px; color: var(--ink-2); margin-top: 4px; }
+
+#caption { position: absolute; left: 60px; right: 60px; top: 1712px; display: flex; justify-content: center; z-index: 50; pointer-events: none; }
+#caption span { background: rgba(11,21,48,.86); color: #fff; font-size: 40px; font-weight: 600; line-height: 1.32; text-align: center; padding: 16px 30px; border-radius: 22px; max-width: 960px; box-shadow: 0 10px 30px rgba(0,0,0,.25); border: 2px solid rgba(255,255,255,.12); }
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- ============ 1. C'est quoi, PressLink ? ============ -->
+<section class="scene" id="s1">
+    <div id="s1-a" class="abs center display q" style="top:620px;">C'est quoi,</div>
+    <div id="s1-b" class="abs center display q" style="top:790px;">PressLink <em>?</em></div>
+</section>
+
+<!-- ============ 2. Définition ============ -->
+<section class="scene" id="s2">
+    <img id="s2-logo" class="abs" src="assets/wordmark_white.png" style="left:220px; top:170px; width:640px;">
+    <div id="s2-def" class="abs center" style="top:430px; font-size:46px; font-weight:700; line-height:1.3; color:#DBEAFE; padding:0 70px;">Le logiciel de gestion de pressing<br>pensé pour la <span style="color:#fff;">Côte d'Ivoire</span>.</div>
+    <div id="s2-lap" class="laptop" style="top:720px; left:30px; width:760px;">
+        <div class="lid" style="padding:14px 14px 18px;"><div class="view" style="width:732px; height:458px;"><img src="assets/tableau-de-bord.jpg" style="width:732px; height:458px;"></div></div>
+        <div class="base" style="width:820px; margin-left:-30px; height:26px;"></div>
+    </div>
+    <div id="s2-phone" class="mini-phone" style="left:760px; top:800px;"><img src="assets/appli-accueil.jpg"></div>
+    <div id="s2-t1" class="tag" style="left:60px; top:1300px; background:#fff; color:var(--primary);">🏪 Un espace pour le pressing</div>
+    <div id="s2-t2" class="tag" style="left:400px; top:1440px; background:var(--yellow); color:var(--navy);">📱 Une appli pour ses clients</div>
+</section>
+
+<!-- ============ 3. Les commandes ============ -->
+<section class="scene" id="s3">
+    <div class="abs center" style="top:150px;"><span id="s3-k" class="kicker" style="display:inline-flex;"><i></i>Au comptoir</span></div>
+    <div id="s3-h" class="abs center display title" style="top:260px;">Un dépôt en<br><em>quelques secondes.</em></div>
+    <div id="s3-lap" class="laptop" style="top:540px;"><div class="lid"><div class="view"><div class="frames" id="s3-frames"><img id="f3" src="assets/nouvelle-commande.jpg" style="opacity:1;"></div></div></div><div class="base"></div></div>
+    <div id="s3-c" class="chip" style="left:60px; top:1270px;"><i style="background:var(--success-tint); color:var(--success-text);">✓</i>Client, pièces, Valider</div>
+    <div id="s3-paper" class="paper" style="left:670px; top:760px;"><img src="assets/recu.jpg"></div>
+</section>
+
+<!-- ============ 4. Le suivi ============ -->
+<section class="scene" id="s4">
+    <div class="abs center" style="top:150px;"><span id="s4-k" class="kicker" style="display:inline-flex;"><i></i>Le suivi</span></div>
+    <div id="s4-h" class="abs center display title" style="top:260px;">Chaque commande,<br><em>à sa place.</em></div>
+    <div id="s4-lap" class="laptop" style="top:540px;"><div class="lid"><div class="view"><div class="frames" id="s4-frames"><img src="assets/commandes.jpg" style="opacity:1;"></div></div></div><div class="base"></div></div>
+    <div id="s4-c1" class="chip" style="left:60px; top:1280px;"><i style="background:#DBEAFE; color:#1D4ED8;">1</i>Reçue</div>
+    <div id="s4-c2" class="chip" style="left:330px; top:1280px;"><i style="background:#CFFAFE; color:#0E7490;">2</i>En traitement</div>
+    <div id="s4-c3" class="chip" style="left:730px; top:1280px;"><i style="background:var(--success-tint); color:var(--success-text);">3</i>Prête</div>
+</section>
+
+<!-- ============ 5. La caisse ============ -->
+<section class="scene" id="s5">
+    <div class="abs center" style="top:150px;"><span id="s5-k" class="kicker" style="display:inline-flex;"><i></i>La caisse du jour</span></div>
+    <div id="s5-h" class="abs center display title" style="top:260px;">Une caisse<br><em>qui tombe juste.</em></div>
+    <div id="s5-lap" class="laptop" style="top:540px;"><div class="lid"><div class="view"><div class="frames" id="s5-frames"><img src="assets/caisse.jpg" style="opacity:1;"></div></div></div><div class="base"></div></div>
+    <div id="s5-c1" class="chip" style="left:60px; top:1270px;"><i style="background:#DCFCE7;">💵</i>Espèces</div>
+    <div id="s5-c2" class="chip" style="left:340px; top:1270px;"><i style="background:#DBEAFE;">🌊</i>Wave</div>
+    <div id="s5-c3" class="chip" style="left:580px; top:1270px;"><i style="background:#FEF3C7;">📲</i>Mobile Money</div>
+    <div id="s5-c4" class="chip" style="left:60px; top:1390px; background:var(--success); color:#fff;"><i style="background:rgba(255,255,255,.22); color:#fff;">✓</i>Clôture sans écart</div>
+</section>
+
+<!-- ============ 6. Clients, tarifs, équipe, plusieurs pressings ============ -->
+<section class="scene" id="s6">
+    <div class="abs center" style="top:150px;"><span id="s6-k" class="kicker" style="display:inline-flex;"><i></i>Tout au même endroit</span></div>
+    <div id="s6-h" class="abs center display title" style="top:260px;"><span id="s6-word">Vos clients</span></div>
+    <div id="s6-lap" class="laptop" style="top:540px;"><div class="lid"><div class="view"><div class="frames" id="s6-frames">
+        <img id="f6a" src="assets/clients.jpg"><img id="f6b" src="assets/services-tarifs.jpg"><img id="f6c" src="assets/equipe.jpg"><img id="f6d" src="assets/vue-ensemble.jpg">
+    </div></div></div><div class="base"></div></div>
+    <div id="s6-dots" class="abs center" style="top:1270px; font-size:34px; font-weight:700; color:#DBEAFE;"></div>
+</section>
+
+<!-- ============ 7. L'appli client ============ -->
+<section class="scene" id="s7">
+    <div class="abs center" style="top:110px;"><span id="s7-k" class="kicker" style="display:inline-flex;"><i></i>Pour vos clients</span></div>
+    <div id="s7-h" class="abs center display" style="top:210px; font-size:72px;">Leur numéro suffit.</div>
+    <div id="s7-phone" class="phone" style="left:260px; top:340px;"><div class="scr">
+        <img id="f7a" src="assets/appli-numero.jpg"><img id="f7b" src="assets/appli-accueil.jpg"><img id="f7c" src="assets/appli-detail.jpg">
+    </div></div>
+    <div id="s7-notif" class="notif" style="top:330px;">
+        <div class="ic"><img src="assets/icon.png" style="width:64px; filter:brightness(0) invert(1);"></div>
+        <div style="flex:1; min-width:0;">
+            <div class="app"><span>PressLink</span><span style="letter-spacing:0; text-transform:none; font-weight:600;">maintenant</span></div>
+            <div class="t">Votre commande est prête !</div>
+            <div class="b">PL-219234 vous attend au Pressing du Plateau. Reste à payer : 7 000 F.</div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ 8. Fin ============ -->
+<section class="scene" id="s8">
+    <img id="s8-logo" class="abs" src="assets/wordmark_white.png" style="left:240px; top:110px; width:600px;">
+    <div id="s8-h" class="abs center display" style="top:330px; font-size:76px;">Le logiciel des pressings<br><span style="color:var(--sky);">ivoiriens.</span></div>
+    <div id="s8-lap" class="laptop" style="top:610px; left:150px; width:780px;">
+        <div class="lid" style="padding:14px 14px 18px;"><div class="view" style="width:752px; height:470px;"><img src="assets/tableau-de-bord.jpg" style="width:752px; height:470px;"></div></div>
+        <div class="base" style="width:840px; margin-left:-30px; height:26px;"></div>
+    </div>
+    <div id="s8-phone" class="mini-phone" style="left:760px; top:700px;"><img src="assets/appli-detail.jpg"></div>
+    <div id="s8-free" class="free" style="left:30px; top:880px;"><b>0 F</b><span>tout le mois<br>de novembre</span></div>
+    <div id="s8-cta" class="cta" style="top:1250px;">
+        <div class="l">
+            <h3>Essayez-le, <em>c'est gratuit.</em></h3>
+            <div class="ct"><span class="ci" style="background:var(--wa);"><svg width="40" height="40" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg></span>07 18 00 22 93</div>
+            <div class="ct" style="margin-top:16px;"><span class="ci" style="background:var(--primary);"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>contact@presslink.org</div>
+        </div>
+        <div class="qr" id="s8-qr"><img src="assets/qr-espace.svg"><b>Votre espace pressing</b><span>presslink.org/login</span></div>
+    </div>
+</section>
+
+<div id="caption"><span id="caption-text"></span></div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const lerp = (a, b, p) => a + (b - a) * p;
+const E = {
+    out: (p) => 1 - Math.pow(1 - p, 3),
+    inOut: (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2),
+    back: (p) => { const c = 1.7; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); },
+    in: (p) => p * p * p,
+};
+function set(el, { o = 1, x = 0, y = 0, s = 1, r = 0 } = {}) {
+    if (typeof el === 'string') el = $(el);
+    el.style.opacity = o;
+    el.style.transform = `translate(${x}px, ${y}px) scale(${s}) rotate(${r}deg)`;
+}
+function rise(el, t, a, dur = 0.55, dy = 40) { const p = E.out(prog(t, a, a + dur)); set(el, { o: p, y: (1 - p) * dy }); }
+function pop(el, t, a, dur = 0.5, r = 0) { const p = prog(t, a, a + dur); set(el, { o: clamp(p * 3), s: p === 0 ? 0.6 : lerp(0.6, 1, E.back(p)), r }); }
+function slideIn(el, t, a, dx = -80, dur = 0.5) { const p = prog(t, a, a + dur); set(el, { o: clamp(p * 2.5), x: (1 - E.back(p)) * dx, s: 0.94 + 0.06 * E.out(p) }); }
+/** Image affichée à l'instant t (fondu court entre deux écrans). */
+function frames(list, t, dur = 0.25) {
+    let cur = 0;
+    list.forEach(([, at], i) => { if (t >= at) cur = i; });
+    list.forEach(([id], i) => {
+        const el = $(id);
+        el.style.opacity = i === cur ? 1 : (i === cur - 1 ? 1 - prog(t, list[cur][1], list[cur][1] + dur) : 0);
+        el.style.zIndex = i === cur ? 2 : 1;
+    });
+}
+/** Zoom « Ken Burns » sur l'écran (coordonnées CSS 1440×900). */
+function zoom(id, t, keys, W = 960, H = 600) {
+    let k = keys[0];
+    for (let i = 0; i < keys.length - 1; i++) {
+        const [a, b] = [keys[i], keys[i + 1]];
+        if (t >= a[0] && t <= b[0]) { const p = E.inOut(prog(t, a[0], b[0])); k = [t, lerp(a[1], b[1], p), lerp(a[2], b[2], p), lerp(a[3], b[3], p)]; }
+        else if (t > b[0]) k = b;
+    }
+    const [, s, cx, cy] = k, f = W / 1440;
+    const tx = clamp(W / 2 - cx * f * s, W - W * s, 0), ty = clamp(H / 2 - cy * f * s, H - H * s, 0);
+    $(id).style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+}
+
+const SCENES = ['s1', 's2', 's3', 's4', 's5', 's6', 's7', 's8'];
+let CAPTIONS = [], BOUNDS = [];
+function stage(t) {
+    BOUNDS.forEach(([a], i) => {
+        const el = $(SCENES[i]), next = BOUNDS[i + 1];
+        const visible = t >= a - 0.25 && (!next || t <= next[0] + 0.25);
+        el.style.display = visible ? 'block' : 'none';
+        if (!visible) return;
+        const inn = i === 0 ? 1 : E.inOut(prog(t, a - 0.25, a + 0.25));
+        const out = next ? E.inOut(prog(t, next[0] - 0.25, next[0] + 0.25)) : 0;
+        el.style.zIndex = i + 1;
+        if (i === 1 || i === 7) el.style.clipPath = `circle(${inn * 130}% at 50% 45%)`;
+        else el.style.transform = `translateX(${1080 * (1 - inn) - 260 * out}px)`;
+        el.style.filter = out > 0 ? `brightness(${1 - 0.35 * out})` : 'none';
+    });
+}
+const on = (id) => $(id).style.display === 'block';
+
+function render(t) {
+    stage(t);
+
+    if (on('s1')) {
+        const a = prog(t, 0.4, 0.85);
+        set('s1-a', { o: clamp(a * 3), s: a === 0 ? 0.7 : lerp(0.7, 1, E.back(a)) });
+        const b = prog(t, 1.0, 1.45);
+        set('s1-b', { o: clamp(b * 3), s: b === 0 ? 0.7 : lerp(0.7, 1, E.back(b)), r: Math.sin(t * 6) * 1.2 * clamp(b) });
+    }
+
+    if (on('s2')) {
+        const lp = prog(t, 3.2, 3.9);
+        set('s2-logo', { o: clamp(lp * 2.5), s: lerp(1.15, 1, E.out(lp)) });
+        rise('s2-def', t, 4.3, 0.6);
+        const l = prog(t, 8.4, 9.0); set('s2-lap', { o: clamp(l * 3), x: (1 - E.out(l)) * -500 });
+        slideIn('s2-t1', t, 8.6, -80);
+        const ph = prog(t, 10.2, 10.8); set('s2-phone', { o: clamp(ph * 3), y: (1 - E.back(ph)) * 300, r: 5 });
+        slideIn('s2-t2', t, 10.4, 80);
+    }
+
+    if (on('s3')) {
+        pop('s3-k', t, 12.3, 0.45); rise('s3-h', t, 12.4, 0.55);
+        rise('s3-lap', t, 12.5, 0.7, 120);
+        zoom('s3-frames', t, [[12.2, 1.0, 720, 450], [13.0, 1.0, 720, 450], [13.7, 1.45, 650, 590], [14.9, 1.45, 650, 590], [15.5, 1.55, 1240, 480], [18.4, 1.55, 1240, 480]]);
+        slideIn('s3-c', t, 13.4, -80);
+        const pp = prog(t, 15.9, 16.7);
+        set('s3-paper', { o: clamp(pp * 4), y: (1 - E.out(pp)) * 700, r: lerp(10, 4, E.out(pp)) });
+    }
+
+    if (on('s4')) {
+        pop('s4-k', t, 18.5, 0.45); rise('s4-h', t, 18.6, 0.55);
+        rise('s4-lap', t, 18.7, 0.7, 120);
+        zoom('s4-frames', t, [[18.4, 1.0, 720, 450], [19.4, 1.0, 720, 450], [20.2, 1.5, 700, 380], [23.2, 1.5, 700, 380]]);
+        pop('s4-c1', t, 20.6); pop('s4-c2', t, 21.3); pop('s4-c3', t, 22.1);
+    }
+
+    if (on('s5')) {
+        pop('s5-k', t, 23.3, 0.45); rise('s5-h', t, 23.4, 0.55);
+        rise('s5-lap', t, 23.5, 0.7, 120);
+        zoom('s5-frames', t, [[23.2, 1.0, 720, 450], [24.3, 1.0, 720, 450], [25.0, 1.5, 560, 330], [26.6, 1.5, 560, 330], [27.3, 1.5, 1110, 440], [28.6, 1.5, 1110, 440]]);
+        pop('s5-c1', t, 25.6); pop('s5-c2', t, 26.2); pop('s5-c3', t, 26.8); pop('s5-c4', t, 27.5);
+    }
+
+    if (on('s6')) {
+        pop('s6-k', t, 28.7, 0.45);
+        rise('s6-lap', t, 28.8, 0.6, 100);
+        const words = [[28.6, 'Vos clients', 'f6a'], [29.7, 'Vos tarifs', 'f6b'], [30.5, 'Votre équipe', 'f6c'], [31.6, 'Plusieurs pressings', 'f6d']];
+        const cur = words.filter(([a]) => t >= a).pop() || words[0];
+        $('s6-word').textContent = cur[1];
+        $('s6-word').style.color = cur[2] === 'f6d' ? 'var(--yellow)' : '#fff';
+        const wp = prog(t, cur[0], cur[0] + 0.35);
+        set('s6-h', { o: clamp(prog(t, 28.8, 29.1)), s: cur[0] > 28.6 ? lerp(0.85, 1, E.back(wp)) : 1 });
+        frames(words.map(([a, , id]) => [id, a]), t);
+        zoom('s6-frames', t, [[28.6, 1.0, 720, 450], [33.6, 1.12, 720, 400]]);
+        $('s6-dots').innerHTML = words.map(([a, w]) => `<span style="opacity:${t >= a ? 1 : 0.3}">${w}</span>`).join(' &nbsp;·&nbsp; ');
+        set('s6-dots', { o: clamp(prog(t, 29.0, 29.4)) });
+    }
+
+    if (on('s7')) {
+        pop('s7-k', t, 33.7, 0.45); rise('s7-h', t, 33.8, 0.55);
+        const ph = prog(t, 33.9, 34.6); set('s7-phone', { o: clamp(ph * 3), y: (1 - E.out(ph)) * 200 });
+        frames([['f7a', 0], ['f7b', 35.9], ['f7c', 37.2]], t, 0.3);
+        const np = prog(t, 38.6, 39.1);
+        set('s7-notif', { o: clamp(np * 3), y: (1 - E.back(np)) * -260 });
+        $('s7-h').style.opacity = 1 - prog(t, 38.4, 38.6);
+    }
+
+    if (on('s8')) {
+        rise('s8-logo', t, 40.5, 0.55);
+        rise('s8-h', t, 40.9, 0.55);
+        rise('s8-lap', t, 41.4, 0.7, 100);
+        const ph = prog(t, 41.8, 42.4); set('s8-phone', { o: clamp(ph * 3), y: (1 - E.back(ph)) * 160, r: 5 });
+        const fp = prog(t, 42.6, 43.15);
+        const beat = t > 43.2 ? 1 + 0.025 * Math.max(0, Math.sin((t - 43.2) * Math.PI * 1.6)) : 1;
+        set('s8-free', { o: clamp(fp * 3), s: (fp === 0 ? 0.5 : lerp(0.5, 1, E.back(fp))) * beat, r: -10 });
+        rise('s8-cta', t, 43.6, 0.6, 80);
+        const q = prog(t, 44.9, 45.4); set('s8-qr', { o: clamp(q * 3), s: q === 0 ? 0.8 : lerp(0.8, 1, E.back(q)) });
+    }
+
+    const c = CAPTIONS.find((k) => t >= k.a && t < k.b);
+    const cap = $('caption-text');
+    if (c) {
+        cap.textContent = c.text;
+        const p = Math.min(prog(t, c.a, c.a + 0.18), 1 - prog(t, c.b - 0.12, c.b));
+        cap.style.opacity = p; cap.style.transform = `translateY(${(1 - p) * 10}px)`;
+        cap.parentElement.style.display = 'flex';
+    } else cap.parentElement.style.display = 'none';
+}
+
+/** Découpe chaque réplique en sous-titres courts, minutés au prorata du texte. */
+function buildCaptions(timeline, repliques) {
+    const out = [];
+    const byKey = Object.fromEntries(repliques.map((r) => [r.cle, r]));
+    for (const v of timeline.voix) {
+        const r = byKey[v.cle];
+        const parts = r.texte.split(/(?<=[.:…!?])\s+|(?<=,)\s+(?=[^,]{12,})/).map((s) => s.trim()).filter(Boolean);
+        const chunks = [];
+        for (const p of parts) {
+            if (chunks.length && (chunks[chunks.length - 1] + ' ' + p).length <= 46 && !/[.…:!?]$/.test(chunks[chunks.length - 1])) chunks[chunks.length - 1] += ' ' + p;
+            else chunks.push(p);
+        }
+        const total = chunks.reduce((s, c) => s + c.length, 0);
+        let a = v.debut;
+        for (const ch of chunks) {
+            const d = r.duree * ch.length / total;
+            out.push({ a, b: a + d + 0.12, text: ch.replace(/\s*:$/, '') });
+            a += d;
+        }
+    }
+    for (let i = 0; i < out.length - 1; i++) out[i].b = Math.min(out[i].b, out[i + 1].a);
+    return out;
+}
+
+window.setup = (timeline, repliques) => {
+    BOUNDS = timeline.scenes.map((s) => [s.debut, s.fin]);
+    CAPTIONS = buildCaptions(timeline, repliques);
+    return CAPTIONS;
+};
+window.renderAt = (t) => { render(t); return true; };
+window.ready = Promise.all([document.fonts.ready, ...Array.from(document.images).map((im) => im.complete ? 1 : new Promise((r) => { im.onload = im.onerror = r; }))]);
+</script>
+</body>
+</html>

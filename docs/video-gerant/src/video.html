@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>PressLink — Gérant de pressing : du cahier au digital</title>
+<style>
+:root {
+    --primary: #2563EB; --primary-tint: #EFF4FE; --sky: #93C5FD;
+    --success: #10B981; --success-tint: #ECFDF5; --success-text: #059669;
+    --navy: #0B1530; --ink: #0F172A; --ink-2: #475569; --muted: #94A3B8;
+    --yellow: #FBBF24; --wa: #22C55E; --red: #EF4444; --paper: #FFFDF6;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+body { font-family: "Inter", sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+#stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--navy); }
+.scene { position: absolute; inset: 0; overflow: hidden; display: none; will-change: transform; color: #fff; background: var(--navy); }
+.scene::before { content: ""; position: absolute; inset: 0; background: radial-gradient(90% 60% at 100% 0%, #2563EB 0%, transparent 60%), radial-gradient(80% 50% at 0% 100%, #12245A 0%, transparent 60%); }
+.scene.warm::before { background: radial-gradient(90% 60% at 100% 0%, #7C2D12 0%, transparent 60%), radial-gradient(80% 50% at 0% 100%, #1E1B4B 0%, transparent 60%); }
+.abs { position: absolute; }
+.display { font-family: "Inter Display", "Inter", sans-serif; font-weight: 900; letter-spacing: -0.04em; line-height: 1.0; }
+.center { left: 0; right: 0; text-align: center; }
+img { display: block; }
+.kicker { display: inline-flex; align-items: center; gap: 14px; height: 68px; padding: 0 30px; border-radius: 999px; font-size: 29px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+    background: rgba(255,255,255,.1); border: 3px solid rgba(255,255,255,.22); color: #DBEAFE; white-space: nowrap; }
+.kicker i { width: 16px; height: 16px; border-radius: 50%; background: var(--sky); }
+.kicker.red i { background: var(--red); }
+
+/* Le cahier */
+.carnet { position: absolute; width: 700px; height: 820px; background: var(--paper); border-radius: 20px; box-shadow: 0 50px 100px -30px rgba(0,0,0,.7);
+    padding: 110px 40px 40px 120px; color: #34312B; background-image: linear-gradient(transparent 0 78px, #D9E2F1 78px 82px); background-size: 100% 82px; background-position: 0 56px;
+    font: 42px/82px "Courier New", monospace; overflow: hidden; }
+.carnet::before { content: ""; position: absolute; left: 88px; top: 0; bottom: 0; width: 5px; background: #F2A3A3; }
+.carnet .l { white-space: nowrap; overflow: hidden; }
+.carnet .x { text-decoration: line-through; text-decoration-color: #E11D48; text-decoration-thickness: 5px; color: #8A857A; }
+.carnet .tag { position: absolute; left: -14px; top: 24px; background: var(--red); color: #fff; font: 800 32px Inter; letter-spacing: 2px; padding: 8px 24px; border-radius: 12px; transform: rotate(3deg); }
+.stain { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(96,130,180,.30) 0%, rgba(96,130,180,.18) 55%, transparent 72%); }
+.drop { position: absolute; width: 26px; height: 36px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: linear-gradient(#93C5FD, #3B82F6); opacity: .9; }
+
+/* Illustrations des problèmes */
+.illu { position: absolute; left: 0; right: 0; top: 330px; height: 820px; }
+.ticket { position: absolute; left: 290px; top: 60px; width: 500px; padding: 40px 40px 34px; background: var(--paper); color: #3B3A36; border-radius: 10px; box-shadow: 0 40px 80px -24px rgba(0,0,0,.7);
+    font: 38px/1.5 "Courier New", monospace; transform: rotate(-5deg); }
+.ticket .scr { filter: blur(2.6px); }
+.ticket .q { position: absolute; right: -30px; top: -40px; width: 120px; height: 120px; border-radius: 50%; background: var(--red); color: #fff; display: grid; place-items: center; font: 900 70px "Inter Display"; transform: rotate(10deg); }
+.call { position: absolute; left: 190px; top: 40px; width: 700px; background: #fff; color: var(--ink); border-radius: 40px; padding: 34px 36px; display: flex; align-items: center; gap: 28px; box-shadow: 0 30px 70px rgba(0,0,0,.5); }
+.call .av { width: 100px; height: 100px; border-radius: 50%; background: var(--wa); display: grid; place-items: center; flex: none; }
+.call b { display: block; font-size: 42px; } .call span { font-size: 30px; color: var(--ink-2); }
+.bubble { position: absolute; background: #fff; color: var(--ink); font-size: 40px; font-weight: 700; padding: 22px 32px; border-radius: 34px 34px 34px 10px; box-shadow: 0 24px 44px rgba(0,0,0,.4); white-space: nowrap; }
+.bubble small { display: block; font-size: 24px; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
+.bubble.r { border-radius: 34px 34px 10px 34px; background: #DCF8C6; }
+.cash { position: absolute; left: 160px; top: 60px; width: 760px; background: #fff; color: var(--ink); border-radius: 36px; padding: 40px 44px; box-shadow: 0 30px 70px rgba(0,0,0,.5); font-size: 40px; }
+.cash .row { display: flex; justify-content: space-between; padding: 18px 0; border-bottom: 3px dashed #E2E8F0; }
+.cash .row:last-child { border-bottom: 0; }
+.cash .ecart { color: var(--red); font-weight: 900; }
+
+.plist { position: absolute; left: 70px; right: 70px; top: 1180px; display: flex; flex-direction: column; gap: 14px; }
+.pitem { display: flex; align-items: center; gap: 20px; background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.14); border-radius: 22px; padding: 14px 22px; font-size: 34px; font-weight: 700; color: #F1F5F9; }
+.pitem i { width: 52px; height: 52px; border-radius: 50%; background: #FEE2E2; color: #DC2626; display: grid; place-items: center; font: 900 26px Inter; font-style: normal; flex: none; }
+
+/* Ordinateur */
+.laptop { position: absolute; left: 40px; width: 1000px; }
+.laptop .lid { padding: 20px 20px 26px; background: #0E1424; border-radius: 30px 30px 10px 10px; box-shadow: 0 50px 100px -20px rgba(0,0,0,.6); }
+.laptop .view { position: relative; width: 960px; height: 600px; border-radius: 8px; overflow: hidden; background: #fff; }
+.laptop .frames { position: absolute; left: 0; top: 0; width: 960px; height: 600px; transform-origin: 0 0; }
+.laptop .frames img { position: absolute; left: 0; top: 0; width: 960px; height: 600px; opacity: 0; }
+.laptop .base { width: 1080px; margin-left: -40px; height: 34px; background: linear-gradient(#C9D2E3, #8C97AD); border-radius: 0 0 40px 40px; }
+.pair { position: absolute; left: 60px; right: 60px; top: 180px; background: rgba(255,255,255,.06); border: 2px solid rgba(255,255,255,.14); border-radius: 30px; padding: 22px 30px; }
+.pair .old { display: flex; align-items: center; gap: 16px; font-size: 32px; font-weight: 700; color: #94A3B8; text-decoration: line-through; text-decoration-color: var(--red); text-decoration-thickness: 4px; }
+.pair .new { display: flex; align-items: center; gap: 16px; font: 900 52px/1.1 "Inter Display"; letter-spacing: -1.2px; color: #fff; margin-top: 10px; }
+.pair i { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; font: 900 24px Inter; font-style: normal; flex: none; text-decoration: none; }
+.paper { position: absolute; width: 360px; background: #fff; border-radius: 10px; box-shadow: 0 40px 80px -20px rgba(0,0,0,.6); padding: 12px; z-index: 7; }
+.paper img { width: 100%; }
+
+/* Téléphone */
+.phone { position: absolute; width: 500px; padding: 13px; background: #0B0F19; border-radius: 58px; box-shadow: 0 50px 90px rgba(0,0,0,.5), inset 0 0 0 3px #2A3245; }
+.phone .scr { position: relative; width: 474px; height: 1019px; border-radius: 45px; overflow: hidden; background: #fff; }
+.phone .scr img { position: absolute; left: 0; top: 0; width: 474px; height: 1019px; opacity: 0; }
+.notif { position: absolute; left: 60px; width: 960px; color: var(--ink); background: rgba(255,255,255,.97); border-radius: 40px; padding: 30px 34px; display: flex; gap: 26px; align-items: flex-start; box-shadow: 0 30px 70px rgba(0,0,0,.45); z-index: 8; }
+.notif .ic { width: 92px; height: 92px; border-radius: 24px; background: var(--primary); display: grid; place-items: center; flex: none; }
+.notif .app { font-size: 25px; font-weight: 700; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; display: flex; justify-content: space-between; }
+.notif .t { font-size: 40px; font-weight: 800; margin-top: 6px; }
+.notif .b { font-size: 31px; color: var(--ink-2); margin-top: 4px; line-height: 1.3; }
+
+/* Fin */
+.strike { position: relative; color: var(--muted); }
+.strike i { position: absolute; left: -8px; right: -10px; top: 52%; height: 14px; background: var(--red); border-radius: 7px; transform-origin: 0 50%; transform: rotate(-3deg) scaleX(0); }
+.free { position: absolute; z-index: 6; width: 300px; height: 300px; border-radius: 50%; background: var(--yellow); color: var(--navy); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    border: 9px solid var(--navy); outline: 5px solid var(--yellow); box-shadow: 0 26px 50px -16px rgba(0,0,0,.6); }
+.free b { font: 900 92px/1 "Inter Display"; letter-spacing: -3px; }
+.free span { font: 800 27px/1.15 Inter; text-transform: uppercase; margin-top: 4px; }
+.mini-phone { position: absolute; width: 290px; height: 610px; border-radius: 46px; background: #0B0F19; padding: 11px; box-shadow: 0 40px 80px -20px rgba(0,0,0,.65), inset 0 0 0 3px #2A3245; z-index: 4; }
+.mini-phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 36px; }
+.cta { position: absolute; left: 50px; right: 50px; background: #0F1B3D; border: 2px solid rgba(147,197,253,.25); border-radius: 44px; padding: 40px 44px; display: flex; gap: 36px; align-items: center; z-index: 5; }
+.cta .l { flex: 1; min-width: 0; }
+.cta h3 { font: 900 54px/1.08 "Inter Display"; letter-spacing: -1.5px; }
+.cta h3 em { font-style: normal; color: var(--yellow); }
+.ct { display: flex; align-items: center; gap: 18px; font: 800 38px Inter; margin-top: 26px; white-space: nowrap; }
+.ct .ci { width: 70px; height: 70px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.qr { flex: none; width: 300px; background: #fff; border-radius: 30px; padding: 22px 22px 18px; text-align: center; color: var(--ink); }
+.qr img { width: 256px; height: 256px; }
+.qr b { display: block; font: 800 24px/1.2 Inter; margin-top: 12px; }
+.qr span { display: block; font-size: 21px; color: var(--ink-2); margin-top: 4px; }
+
+#caption { position: absolute; left: 60px; right: 60px; top: 1712px; display: flex; justify-content: center; z-index: 50; pointer-events: none; }
+#caption span { background: rgba(11,21,48,.86); color: #fff; font-size: 40px; font-weight: 600; line-height: 1.32; text-align: center; padding: 16px 30px; border-radius: 22px; max-width: 960px; box-shadow: 0 10px 30px rgba(0,0,0,.25); border: 2px solid rgba(255,255,255,.12); }
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- ============ 1. Accroche ============ -->
+<section class="scene warm" id="s1">
+    <div id="s1-a" class="abs center display" style="top:170px; font-size:96px;">Gérant de pressing ?</div>
+    <div id="s1-b" class="abs center display" style="top:300px; font-size:72px; color:#FDE68A;">Encore un cahier ?</div>
+    <div id="s1-carnet" class="carnet" style="left:190px; top:500px;">
+        <span class="tag">CAHIER DE DÉPÔT</span>
+        <div class="l" id="l1">12/10 · Kouassi</div>
+        <div class="l" id="l2">3 chemises · 1 pant.</div>
+        <div class="l" id="l3">Awa · 2 boubous</div>
+        <div class="l" id="l4">Payé 5000 ? (Wave)</div>
+        <div class="l" id="l5">Mme K. → prêt ??</div>
+        <div class="l" id="l6">Yao · costume</div>
+    </div>
+</section>
+
+<!-- ============ 2. Le problème ============ -->
+<section class="scene warm" id="s2">
+    <div class="abs center" style="top:150px;"><span id="s2-k" class="kicker red" style="display:inline-flex;"><i></i>Le quotidien avec un cahier</span></div>
+    <!-- b1 : le cahier mouillé -->
+    <div id="i1" class="illu">
+        <div id="i1-carnet" class="carnet" style="left:240px; top:40px; width:600px; height:700px; font-size:38px; padding-left:110px;">
+            <div class="l">12/10 · Kouassi</div><div class="l">3 chemises</div><div class="l x">Awa · 2 boubous</div><div class="l">Payé 5000 ?</div><div class="l">Mme K. → prêt</div>
+            <span class="stain" id="st1" style="left:180px; top:160px; width:380px; height:320px;"></span>
+            <span class="stain" id="st2" style="left:40px; top:430px; width:300px; height:260px;"></span>
+        </div>
+        <span class="drop" id="dr1" style="left:420px;"></span><span class="drop" id="dr2" style="left:600px;"></span><span class="drop" id="dr3" style="left:330px;"></span>
+    </div>
+    <!-- b2 : ticket illisible -->
+    <div id="i2" class="illu">
+        <div class="ticket"><div class="scr">N° 48 — Kouas.<br>3 ch. + 1 pt<br>Rest. 2.500 ?<br>Prêt le 1?/10</div><div class="q">?</div></div>
+    </div>
+    <!-- b3 : les appels -->
+    <div id="i3" class="illu">
+        <div id="i3-call" class="call"><div class="av"><svg width="54" height="54" viewBox="0 0 24 24" fill="#fff"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1Z"/></svg></div><div><b>Appel entrant</b><span>Client · 07 08 12 44 00</span></div></div>
+        <div id="i3-b1" class="bubble" style="left:110px; top:330px;"><small>Client · 05 44 …</small>C'est prêt ? 🙏</div>
+        <div id="i3-b2" class="bubble r" style="left:400px; top:500px;"><small>Client · 01 23 …</small>J'arrive, c'est prêt ?</div>
+        <div id="i3-b3" class="bubble" style="left:170px; top:670px;"><small>Client · 07 77 …</small>Allô ? Mon boubou ?</div>
+    </div>
+    <!-- b4 : la caisse -->
+    <div id="i4" class="illu">
+        <div class="cash">
+            <div class="row"><span>Attendu dans la caisse</span><b>48 500 F</b></div>
+            <div class="row"><span>Compté ce soir</span><b>45 000 F</b></div>
+            <div class="row"><span>Écart</span><span class="ecart" id="i4-e">− 3 500 F ?</span></div>
+        </div>
+    </div>
+    <div class="plist">
+        <div class="pitem" id="p1"><i>✕</i>Cahier perdu ou mouillé</div>
+        <div class="pitem" id="p2"><i>✕</i>Tickets illisibles</div>
+        <div class="pitem" id="p3"><i>✕</i>« C'est prêt ? » toute la journée</div>
+        <div class="pitem" id="p4"><i>✕</i>Caisse qui ne tombe pas juste</div>
+    </div>
+</section>
+
+<!-- ============ 3. La solution ============ -->
+<section class="scene" id="s3">
+    <div id="s3-carnet" class="carnet" style="left:290px; top:620px; width:500px; height:580px; font-size:34px; padding:90px 30px 30px 96px;">
+        <div class="l">12/10 · Kouassi</div><div class="l">3 chemises</div><div class="l">Awa · 2 boubous</div>
+    </div>
+    <div id="s3-k" class="abs center" style="top:300px;"><span class="kicker" style="display:inline-flex;"><i></i>Grâce au digital</span></div>
+    <div id="s3-sol" class="abs center display" style="top:420px; font-size:88px;">Une solution<br><span style="color:var(--sky);">pour vous.</span></div>
+    <img id="s3-logo" class="abs" src="assets/wordmark_white.png" style="left:190px; top:660px; width:700px;">
+    <div id="s3-def" class="abs center display" style="top:900px; font-size:66px;">Le logiciel de gestion<br><span style="color:var(--yellow);">de pressing.</span></div>
+    <div id="s3-lap" class="laptop" style="top:1130px; left:190px; width:700px;">
+        <div class="lid" style="padding:12px 12px 16px;"><div class="view" style="width:676px; height:422px;"><img src="assets/tableau-de-bord.jpg" style="width:676px; height:422px;"></div></div>
+        <div class="base" style="width:760px; margin-left:-30px; height:24px;"></div>
+    </div>
+</section>
+
+<!-- ============ 4. L'outil ============ -->
+<section class="scene" id="s4">
+    <div id="s4-pair" class="pair">
+        <div class="old"><i style="background:#FEE2E2; color:#DC2626;">✕</i><span id="s4-old">Cahier perdu ou mouillé</span></div>
+        <div class="new"><i style="background:var(--success); color:#fff;">✓</i><span id="s4-new">Tout est enregistré</span></div>
+    </div>
+    <div id="s4-lap" class="laptop" style="top:470px;"><div class="lid"><div class="view"><div class="frames" id="s4-frames">
+        <img id="g1" src="assets/nouvelle-commande.jpg"><img id="g2" src="assets/commandes.jpg"><img id="g3" src="assets/tableau-de-bord.jpg"><img id="g4" src="assets/caisse.jpg">
+    </div></div></div><div class="base"></div></div>
+    <div id="s4-paper" class="paper" style="left:640px; top:700px;"><img src="assets/recu.jpg"></div>
+</section>
+
+<!-- ============ 5. L'appli client ============ -->
+<section class="scene" id="s5">
+    <div class="abs center" style="top:110px;"><span id="s5-k" class="kicker" style="display:inline-flex;"><i></i>Et pour vos clients</span></div>
+    <div id="s5-h" class="abs center display" style="top:210px; font-size:70px;">Une appli pour suivre.</div>
+    <div id="s5-phone" class="phone" style="left:290px; top:350px;"><div class="scr"><img id="h1" src="assets/appli-accueil.jpg"><img id="h2" src="assets/appli-detail.jpg"></div></div>
+    <div id="s5-notif" class="notif" style="top:330px;">
+        <div class="ic"><img src="assets/icon.png" style="width:64px; filter:brightness(0) invert(1);"></div>
+        <div style="flex:1; min-width:0;">
+            <div class="app"><span>PressLink</span><span style="letter-spacing:0; text-transform:none; font-weight:600;">maintenant</span></div>
+            <div class="t">Votre commande est prête !</div>
+            <div class="b">PL-219234 vous attend au Pressing du Plateau.</div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ 6. Fin ============ -->
+<section class="scene" id="s6">
+    <img id="s6-logo" class="abs" src="assets/wordmark_white.png" style="left:270px; top:100px; width:540px;">
+    <div id="s6-h1" class="abs center display" style="top:320px; font-size:90px;">Rangez le <span class="strike">cahier<i id="s6-strike"></i></span>.</div>
+    <div id="s6-h2" class="abs center display" style="top:430px; font-size:90px; color:var(--sky);">Passez au digital.</div>
+    <div id="s6-lap" class="laptop" style="top:610px; left:150px; width:780px;">
+        <div class="lid" style="padding:14px 14px 18px;"><div class="view" style="width:752px; height:470px;"><img src="assets/nouvelle-commande.jpg" style="width:752px; height:470px;"></div></div>
+        <div class="base" style="width:840px; margin-left:-30px; height:26px;"></div>
+    </div>
+    <div id="s6-phone" class="mini-phone" style="left:760px; top:700px;"><img src="assets/appli-detail.jpg"></div>
+    <div id="s6-free" class="free" style="left:30px; top:880px;"><b>0 F</b><span>tout le mois<br>de novembre</span></div>
+    <div id="s6-cta" class="cta" style="top:1250px;">
+        <div class="l">
+            <h3>Essayez, <em>c'est gratuit.</em></h3>
+            <div class="ct"><span class="ci" style="background:var(--wa);"><svg width="40" height="40" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg></span>07 18 00 22 93</div>
+            <div class="ct" style="margin-top:16px;"><span class="ci" style="background:var(--primary);"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>contact@presslink.org</div>
+        </div>
+        <div class="qr" id="s6-qr"><img src="assets/qr-espace.svg"><b>Votre espace pressing</b><span>presslink.org/login</span></div>
+    </div>
+</section>
+
+<div id="caption"><span id="caption-text"></span></div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const lerp = (a, b, p) => a + (b - a) * p;
+const E = {
+    out: (p) => 1 - Math.pow(1 - p, 3),
+    inOut: (p) => (p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2),
+    back: (p) => { const c = 1.7; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); },
+    in: (p) => p * p * p,
+};
+function set(el, { o = 1, x = 0, y = 0, s = 1, r = 0 } = {}) {
+    if (typeof el === 'string') el = $(el);
+    el.style.opacity = o;
+    el.style.transform = `translate(${x}px, ${y}px) scale(${s}) rotate(${r}deg)`;
+}
+function rise(el, t, a, dur = 0.5, dy = 40) { const p = E.out(prog(t, a, a + dur)); set(el, { o: p, y: (1 - p) * dy }); }
+function pop(el, t, a, dur = 0.45, r = 0) { const p = prog(t, a, a + dur); set(el, { o: clamp(p * 3), s: p === 0 ? 0.6 : lerp(0.6, 1, E.back(p)), r }); }
+function slideIn(el, t, a, dx = -80, dur = 0.45) { const p = prog(t, a, a + dur); set(el, { o: clamp(p * 2.5), x: (1 - E.back(p)) * dx }); }
+/** Visible de a à b (fondus courts) : pour les illustrations qui se succèdent. */
+function window_(el, t, a, b, dur = 0.25) { const o = Math.min(prog(t, a, a + dur), 1 - prog(t, b - dur, b)); set(el, { o, s: 0.96 + 0.04 * E.out(prog(t, a, a + 0.4)) }); }
+function frames(list, t, dur = 0.25) {
+    let cur = 0;
+    list.forEach(([, at], i) => { if (t >= at) cur = i; });
+    list.forEach(([id], i) => {
+        const el = $(id);
+        el.style.opacity = i === cur ? 1 : (i === cur - 1 ? 1 - prog(t, list[cur][1], list[cur][1] + dur) : 0);
+        el.style.zIndex = i === cur ? 2 : 1;
+    });
+}
+function zoom(id, t, keys, W = 960, H = 600) {
+    let k = keys[0];
+    for (let i = 0; i < keys.length - 1; i++) {
+        const [a, b] = [keys[i], keys[i + 1]];
+        if (t >= a[0] && t <= b[0]) { const p = E.inOut(prog(t, a[0], b[0])); k = [t, lerp(a[1], b[1], p), lerp(a[2], b[2], p), lerp(a[3], b[3], p)]; }
+        else if (t > b[0]) k = b;
+    }
+    const [, s, cx, cy] = k, f = W / 1440;
+    const tx = clamp(W / 2 - cx * f * s, W - W * s, 0), ty = clamp(H / 2 - cy * f * s, H - H * s, 0);
+    $(id).style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+}
+
+// Débuts et durées des répliques : toutes les animations s'y accrochent.
+let V = {}, D = {}, BOUNDS = [], CAPTIONS = [];
+const SCENES = ['s1', 's2', 's3', 's4', 's5', 's6'];
+function stage(t) {
+    BOUNDS.forEach(([a], i) => {
+        const el = $(SCENES[i]), next = BOUNDS[i + 1];
+        const visible = t >= a - 0.25 && (!next || t <= next[0] + 0.25);
+        el.style.display = visible ? 'block' : 'none';
+        if (!visible) return;
+        const inn = i === 0 ? 1 : E.inOut(prog(t, a - 0.25, a + 0.25));
+        const out = next ? E.inOut(prog(t, next[0] - 0.25, next[0] + 0.25)) : 0;
+        el.style.zIndex = i + 1;
+        if (i === 2 || i === 5) el.style.clipPath = `circle(${inn * 130}% at 50% 45%)`;
+        else el.style.transform = `translateX(${1080 * (1 - inn) - 260 * out}px)`;
+        el.style.filter = out > 0 ? `brightness(${1 - 0.35 * out})` : 'none';
+    });
+}
+const on = (id) => $(id).style.display === 'block';
+
+function render(t) {
+    stage(t);
+
+    // ---------------- 1. Accroche
+    if (on('s1')) {
+        pop('s1-a', t, V.a1 + 0.05, 0.5);
+        pop('s1-b', t, V.a2 + 1.3, 0.45, -2);
+        const c = prog(t, V.a2, V.a2 + 0.6);
+        set('s1-carnet', { o: clamp(c * 3), y: (1 - E.out(c)) * 700, r: lerp(8, -3, E.out(c)) });
+        ['l1', 'l2', 'l3', 'l4', 'l5', 'l6'].forEach((id, i) => { const a = V.a2 + 0.5 + i * 0.42; $(id).style.width = (prog(t, a, a + 0.45) * 100) + '%'; });
+    }
+
+    // ---------------- 2. Le problème : chaque illustration dure le temps de sa phrase
+    if (on('s2')) {
+        pop('s2-k', t, V.b1 - 0.2, 0.4);
+        const ends = [V.b2 - 0.1, V.b3 - 0.1, V.b4 - 0.1, BOUNDS[2][0] + 0.3];
+        ['b1', 'b2', 'b3', 'b4'].forEach((k, i) => {
+            window_('i' + (i + 1), t, V[k] - 0.1, ends[i]);
+            slideIn('p' + (i + 1), t, V[k] + 0.05, -90);
+        });
+        // b1 : gouttes qui tombent, taches qui s'étendent
+        [['dr1', 0.1], ['dr2', 0.5], ['dr3', 0.9]].forEach(([id, d]) => { const k = ((t - V.b1 - d) % 1.1 + 1.1) % 1.1; set(id, { o: t > V.b1 + d ? 0.9 * (1 - k) : 0, y: k * 620 }); });
+        $('st1').style.opacity = clamp(prog(t, V.b1 + 0.4, V.b1 + 1.6)); $('st2').style.opacity = clamp(prog(t, V.b1 + 1.0, V.b1 + 2.0));
+        set('i1-carnet', { o: 1, r: -3 + Math.sin(t * 2) * 0.6 });
+        // b3 : l'appel vibre, les messages arrivent pendant la phrase
+        set('i3-call', { o: 1, x: t > V.b3 && t < V.b4 ? Math.sin(t * 60) * 5 : 0 });
+        pop('i3-b1', t, V.b3 + 0.5); pop('i3-b2', t, V.b3 + 1.2); pop('i3-b3', t, V.b3 + 1.9);
+        // b4 : l'écart clignote
+        $('i4-e').style.opacity = t > V.b4 + 1.2 ? 0.55 + 0.45 * Math.abs(Math.sin((t - V.b4) * 4)) : 1;
+    }
+
+    // ---------------- 3. La solution
+    if (on('s3')) {
+        const fall = E.in(prog(t, V.c1 + 0.6, V.c1 + 1.5));
+        set('s3-carnet', { o: 1 - fall, y: fall * 900, r: -4 + fall * 30, s: 1 - 0.2 * fall });
+        pop('s3-k', t, V.c1, 0.45);
+        rise('s3-sol', t, V.c1 + 1.0, 0.5);
+        const solOut = prog(t, V.c2 - 0.35, V.c2);
+        $('s3-sol').style.opacity = Math.min(parseFloat($('s3-sol').style.opacity), 1 - solOut);
+        const lp = prog(t, V.c2, V.c2 + 0.6);
+        set('s3-logo', { o: clamp(lp * 2.5), s: lerp(1.2, 1, E.out(lp)) });
+        rise('s3-def', t, V.c2 + 0.9, 0.5);
+        rise('s3-lap', t, V.c2 + 1.4, 0.7, 160);
+    }
+
+    // ---------------- 4. L'outil : un écran par phrase, problème barré / solution
+    if (on('s4')) {
+        const steps = [['d1', 'Cahier perdu ou mouillé', 'Tout est enregistré'], ['d2', 'Tickets illisibles', 'Des reçus clairs'],
+            ['d3', '« C\'est prêt ? » toute la journée', 'Tout se voit d\'un coup d\'œil'], ['d4', 'Caisse qui ne tombe pas juste', 'Clôture sans écart']];
+        const cur = steps.filter(([k]) => t >= V[k] - 0.2).pop() || steps[0];
+        $('s4-old').textContent = cur[1]; $('s4-new').textContent = cur[2];
+        const sw = prog(t, V[cur[0]] - 0.2, V[cur[0]] + 0.25);
+        set('s4-pair', { o: clamp(prog(t, V.d1 - 0.3, V.d1)), s: cur[0] === 'd1' ? 1 : lerp(0.94, 1, E.back(sw)) });
+        rise('s4-lap', t, V.d1 - 0.2, 0.6, 120);
+        const retrouve = V.d1 + D.d1 * 0.62;  // « … et se retrouve en un clic »
+        frames([['g1', 0], ['g2', retrouve], ['g3', V.d3], ['g4', V.d4]], t);
+        zoom('s4-frames', t, [[V.d1 - 0.2, 1.0, 720, 450], [V.d1 + 0.5, 1.4, 660, 560], [retrouve - 0.2, 1.4, 660, 560], [retrouve, 1.55, 640, 240],
+            [V.d2, 1.55, 640, 240], [V.d2 + 0.01, 1.0, 720, 450], [V.d3, 1.0, 720, 450], [V.d3 + 0.7, 1.3, 850, 330], [V.d4, 1.3, 850, 330],
+            [V.d4 + 0.01, 1.0, 720, 450], [V.d4 + 0.6, 1.5, 600, 330], [V.d4 + 1.7, 1.5, 1110, 440], [V.d4 + 4, 1.5, 1110, 440]]);
+        const pp = prog(t, V.d2 + 0.1, V.d2 + 0.8), ppOut = prog(t, V.d3 - 0.35, V.d3);
+        set('s4-paper', { o: clamp(pp * 4) * (1 - ppOut), y: (1 - E.out(pp)) * 700 + ppOut * 300, r: lerp(10, 4, E.out(pp)) });
+    }
+
+    // ---------------- 5. L'appli client
+    if (on('s5')) {
+        pop('s5-k', t, V.e1 - 0.2, 0.4); rise('s5-h', t, V.e1, 0.5);
+        const ph = prog(t, V.e1, V.e1 + 0.6); set('s5-phone', { o: clamp(ph * 3), y: (1 - E.out(ph)) * 200 });
+        frames([['h1', 0], ['h2', V.e1 + D.e1 * 0.35]], t, 0.3);
+        const notifAt = V.e1 + D.e1 * 0.7;  // « … et sont prévenus quand c'est prêt »
+        const np = prog(t, notifAt, notifAt + 0.45);
+        set('s5-notif', { o: clamp(np * 3), y: (1 - E.back(np)) * -260 });
+        $('s5-h').style.opacity = Math.min(parseFloat($('s5-h').style.opacity || 1), 1 - prog(t, notifAt - 0.2, notifAt));
+    }
+
+    // ---------------- 6. Fin
+    if (on('s6')) {
+        rise('s6-logo', t, V.f1 - 0.1, 0.5);
+        rise('s6-h1', t, V.f1 + 0.1, 0.5);
+        rise('s6-lap', t, V.f1 + 0.3, 0.6, 100);
+        const ph = prog(t, V.f1 + 0.6, V.f1 + 1.1); set('s6-phone', { o: clamp(ph * 3), y: (1 - E.back(ph)) * 160, r: 5 });
+        const gratuit = V.f1 + D.f1 * 0.3;  // « … c'est gratuit … »
+        const fp = prog(t, gratuit, gratuit + 0.5);
+        const beat = t > gratuit + 0.6 ? 1 + 0.025 * Math.max(0, Math.sin((t - gratuit) * Math.PI * 1.6)) : 1;
+        set('s6-free', { o: clamp(fp * 3), s: (fp === 0 ? 0.5 : lerp(0.5, 1, E.back(fp))) * beat, r: -10 });
+        $('s6-strike').style.transform = `rotate(-3deg) scaleX(${E.out(prog(t, V.f2 + 0.3, V.f2 + 0.7))})`;
+        const h2 = prog(t, V.f2 + D.f2 * 0.42, V.f2 + D.f2 * 0.42 + 0.4); // « passez au digital »
+        set('s6-h2', { o: clamp(h2 * 3), s: h2 === 0 ? 0.7 : lerp(0.7, 1, E.back(h2)) });
+        rise('s6-cta', t, V.f2 + 0.2, 0.6, 80);
+        const q = prog(t, V.f2 + D.f2 + 0.2, V.f2 + D.f2 + 0.7); set('s6-qr', { o: clamp(q * 3), s: q === 0 ? 0.8 : lerp(0.8, 1, E.back(q)) });
+    }
+
+    const c = CAPTIONS.find((k) => t >= k.a && t < k.b);
+    const cap = $('caption-text');
+    if (c) {
+        cap.textContent = c.text;
+        const p = Math.min(prog(t, c.a, c.a + 0.15), 1 - prog(t, c.b - 0.1, c.b));
+        cap.style.opacity = p; cap.style.transform = `translateY(${(1 - p) * 10}px)`;
+        cap.parentElement.style.display = 'flex';
+    } else cap.parentElement.style.display = 'none';
+}
+
+/** Un sous-titre par réplique (coupé en deux au besoin), affiché pendant qu'elle est dite. */
+function buildCaptions(timeline, repliques) {
+    const out = [];
+    const byKey = Object.fromEntries(repliques.map((r) => [r.cle, r]));
+    for (const v of timeline.voix) {
+        const r = byKey[v.cle];
+        let parts = [r.texte];
+        if (r.texte.length > 48) {
+            const cut = r.texte.slice(0, Math.ceil(r.texte.length / 2) + 12).lastIndexOf(', ');
+            const cut2 = r.texte.lastIndexOf(' : ');
+            const at = cut > 10 ? cut + 1 : cut2 > 10 ? cut2 + 2 : -1;
+            if (at > 0) parts = [r.texte.slice(0, at).trim(), r.texte.slice(at).trim()];
+        }
+        const total = parts.reduce((s, p) => s + p.length, 0);
+        let a = v.debut;
+        parts.forEach((p, i) => {
+            const d = r.duree * p.length / total;
+            out.push({ a, b: i === parts.length - 1 ? v.debut + r.duree + 0.25 : a + d, text: p.replace(/\s*[:,]$/, '') });
+            a += d;
+        });
+    }
+    for (let i = 0; i < out.length - 1; i++) out[i].b = Math.min(out[i].b, out[i + 1].a);
+    return out;
+}
+
+window.setup = (timeline, repliques) => {
+    timeline.voix.forEach((v) => { V[v.cle] = v.debut; });
+    repliques.forEach((r) => { D[r.cle] = r.duree; });
+    BOUNDS = timeline.scenes.map((s) => [s.debut, s.fin]);
+    CAPTIONS = buildCaptions(timeline, repliques);
+    return CAPTIONS;
+};
+window.renderAt = (t) => { render(t); return true; };
+window.ready = Promise.all([document.fonts.ready, ...Array.from(document.images).map((im) => im.complete ? 1 : new Promise((r) => { im.onload = im.onerror = r; }))]);
+</script>
+</body>
+</html>

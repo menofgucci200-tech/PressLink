@@ -21,25 +21,45 @@
     description="Starter, Business, Premium : les offres PressLink pour gérer votre pressing, leurs prix au mois ou à l'année et ce que chacune comprend. Essai gratuit."
     path="/offres"
     :json-ld="\App\Support\SiteContent::softwareJsonLd(route('site.pricing'))">
-    <section class="bg-slate-900 text-white dark:border-b dark:border-(--color-border)">
-        <div class="max-w-6xl mx-auto px-5 pt-16 pb-28 md:pt-20 md:pb-32 text-center">
-            <p class="text-xs font-semibold uppercase tracking-widest text-blue-300 mb-3">Nos offres</p>
-            <h1 class="font-display text-4xl md:text-5xl font-extrabold leading-[1.08] tracking-tight mb-5">Une offre pour chaque pressing</h1>
-            <p class="text-slate-300 text-lg leading-relaxed max-w-2xl mx-auto">
-                Essai gratuit de {{ $trialDays }} jours, toutes les fonctions ouvertes. Ensuite, payez au mois ou à l'année par Wave, sans engagement.
-            </p>
-            <x-site.trial-button tone="light" class="mt-7" />
-            @if ($launchOffer)
-                <p class="mt-6 inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold">
-                    <span class="w-2 h-2 rounded-full bg-[#1DC8FF]" aria-hidden="true"></span>
-                    Offre de lancement : {{ $launchOffer }}
-                </p>
-            @endif
+    <section class="acc" data-motion-ignore>
+        <div class="acc-enveloppe acc-enveloppe--parcours acc-enveloppe--auto">
+            <div class="acc-briefing acc-briefing--court">
+                <div class="acc-tete">
+                    <x-service-icon kind="site" name="formule" :size="40" />
+                    <span class="acc-ariane">Accueil › <b>Ma formule</b></span>
+                </div>
+                <h1>Une formule à votre taille.</h1>
+                <p class="acc-chapo">Starter, Business ou Premium, selon le nombre de commandes de votre pressing. Essai gratuit de {{ $trialDays }} jours, toutes les fonctions ouvertes.</p>
+                <div class="acc-confiance">
+                    <span>Au mois ou à l'année</span>
+                    <span>Sans engagement</span>
+                    <span>Wave, Orange Money, MTN, Moov</span>
+                </div>
+                @if ($launchOffer)
+                    <p class="mt-6 inline-flex items-center gap-2 rounded-full bg-(--color-surface) border border-(--color-border) px-4 py-2 text-sm font-semibold">
+                        <span class="w-2 h-2 rounded-full bg-[#1DC8FF]" aria-hidden="true"></span>
+                        Offre de lancement : {{ $launchOffer }}
+                    </p>
+                @endif
+            </div>
+            <div class="pc-carte">
+                <x-site.rail current="formules" />
+                <div class="pc-zone">
+                    <p class="text-xs font-semibold uppercase tracking-widest text-(--color-primary) mb-4">Comment ça se passe</p>
+                    <ol class="pc-etapes">
+                        <li><div><strong>Créez votre pressing</strong><span>2 minutes, rien à payer. On vous appelle pour démarrer.</span></div></li>
+                        <li><div><strong>Travaillez avec vos vrais clients</strong><span>{{ \App\Support\LaunchOffer::isActive() ? 'Gratuitement jusqu\'au '.\App\Models\Subscription::trialEndsAtForNewPressing()->translatedFormat('j F').'.' : 'Pendant l\'essai gratuit de '.$trialDays.' jours.' }}</span></div></li>
+                        <li><div><strong>Choisissez votre formule</strong><span>Depuis votre espace, quand vous êtes prêt. Rien n'est prélevé automatiquement.</span></div></li>
+                    </ol>
+                    <x-site.trial-button class="mt-6 w-full" />
+                    <p class="mt-3 text-center text-sm text-(--color-text-secondary)">Déjà inscrit ? <a href="{{ route('login') }}" class="font-semibold text-(--color-primary) hover:underline">Se connecter pour choisir</a></p>
+                </div>
+            </div>
         </div>
     </section>
 
-    <section class="max-w-6xl mx-auto px-5 -mt-20 md:-mt-24 pb-16">
-        <h2 class="sr-only">Nos trois offres</h2>
+    <section class="max-w-6xl mx-auto px-5 pt-14 pb-16">
+        <h2 class="font-display text-3xl font-bold tracking-tight mb-8 text-center">Nos trois formules</h2>
         <x-plans.cards :plans="$plans" mode="site" data-motion="cascade" />
     </section>
 

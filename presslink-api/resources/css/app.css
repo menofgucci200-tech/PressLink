@@ -741,9 +741,10 @@ html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-stopped { overflow: hidden; }
 
 /* ---------------------------------------------------------------- Polices du site vitrine (gabarit public) */
-html.site-vitrine {
+html.site-vitrine, .site-polices {
     --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
     --font-display: 'Bricolage Grotesque', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-sans);
 }
 
 /* ---------------------------------------------------------------- Accueil : un court briefing à gauche, les 3 étapes à droite */
@@ -815,6 +816,39 @@ html.site-vitrine {
     .acc-etapes::before { left: 44px; }
     .acc-arrivee { padding-left: 29px; }
 }
+
+/* Pages d'étape (Tester, Inscription, Formules) : même briefing, et une carte avec le fil des 3 étapes */
+.acc-enveloppe--parcours { grid-template-columns: minmax(0, 1fr) minmax(0, 500px); padding-top: 24px; }
+.acc-enveloppe--auto { min-height: 0; padding-block: 56px 64px; }
+@media (max-width: 1023px) { .acc-enveloppe--parcours, .acc-enveloppe--auto { grid-template-columns: minmax(0, 1fr); padding-block: 16px 40px; } }
+.acc-briefing--court h1 { font-size: clamp(36px, 5vw, 62px); line-height: 1.02; margin: 20px 0 16px; }
+@media (max-width: 1023px) { .acc-briefing--court .acc-chapo { font-size: 17px; } }
+.acc-tete { display: flex; align-items: center; gap: 12px; }
+.acc-tete > :first-child { animation: acc-flotte-ico 4s ease-in-out infinite; }
+@keyframes acc-flotte-ico { 50% { transform: translateY(-5px) rotate(-4deg); } }
+.acc-ariane b { color: var(--color-primary); font-weight: 700; }
+.pc-carte { position: relative; background: var(--color-surface); border-radius: 28px; border: 1.5px solid var(--color-border); box-shadow: 0 40px 80px -46px rgb(15 23 42 / .5); overflow: hidden; animation: acc-carte-in .8s .2s var(--ressort) both; }
+.pc-rail { display: flex; align-items: center; gap: 8px; padding: 14px 18px; border-bottom: 1px solid var(--color-border); background: var(--color-bg); }
+.pc-retour { display: inline-flex; align-items: center; height: 34px; padding: 0 12px; border-radius: 99px; white-space: nowrap; font-size: 13.5px; font-weight: 600; color: var(--color-text-secondary); background: var(--color-surface); border: 1px solid var(--color-border); }
+.pc-retour:hover { color: var(--color-primary); border-color: var(--color-primary); }
+.pc-rail ol { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+.pc-rail li { display: flex; align-items: center; gap: 6px; }
+.pc-rail li + li::before { content: ""; width: 14px; height: 2px; border-radius: 2px; background: var(--color-border); }
+.pc-pas { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--color-text-muted); white-space: nowrap; }
+.pc-pas i { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-style: normal; background: var(--color-surface); border: 2px solid var(--color-border); transition: transform .4s var(--ressort), border-color .3s; }
+.pc-pas:hover i { border-color: var(--color-primary); }
+.pc-rail li:not(.ici) .t { display: none; }
+.pc-rail .fait i { background: #22C55E; border-color: #22C55E; color: #fff; }
+.pc-rail .ici .pc-pas { color: var(--color-primary); }
+.pc-rail .ici i { background: #2563EB; border-color: #2563EB; color: #fff; transform: scale(1.15); }
+.pc-zone { padding: 28px; }
+@media (max-width: 480px) { .pc-zone { padding: 22px 18px; } .pc-rail { padding: 12px; } }
+@media (max-width: 420px) { .pc-retour { width: 34px; padding: 0; justify-content: center; } .pc-retour-t { display: none; } }
+.pc-etapes { display: grid; gap: 16px; counter-reset: pc; }
+.pc-etapes li { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; align-items: start; }
+.pc-etapes li::before { counter-increment: pc; content: counter(pc); width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 14px; color: #2563EB; background: var(--color-primary-tint); }
+.pc-etapes strong { display: block; font-family: var(--font-display); font-size: 17px; letter-spacing: -.02em; }
+.pc-etapes span { font-size: 14.5px; color: var(--color-text-secondary); }
 
 /* Les dessins des étapes (ServiceIcons, bibliothèque « site ») s'animent un peu */
 .acc .si-badge { transform-box: fill-box; transform-origin: center; animation: acc-pouls 2.4s ease-in-out infinite; }

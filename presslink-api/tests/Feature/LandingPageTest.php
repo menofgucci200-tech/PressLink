@@ -37,6 +37,28 @@ class LandingPageTest extends TestCase
             ->assertSee('si-etiquette', false);
     }
 
+    /**
+     * @return array<string, array{string, string}>
+     */
+    public static function journeyPages(): array
+    {
+        return [
+            'tester' => ['sandbox.start', 'Étape 1 : Tester'],
+            'inscription' => ['signup', 'Étape 2 : Mon pressing'],
+            'formules' => ['site.pricing', 'Étape 3 : Ma formule'],
+        ];
+    }
+
+    #[DataProvider('journeyPages')]
+    public function test_each_step_page_shows_where_the_pressing_is_in_the_journey(string $routeName, string $currentStep): void
+    {
+        $html = $this->get(route($routeName))->assertOk()->getContent();
+
+        $this->assertStringContainsString('aria-label="'.$currentStep.'" aria-current="step"', $html);
+        $this->assertStringContainsString('aria-label="Revenir aux 3 étapes"', $html);
+        $this->assertSame(1, substr_count($html, '<h1'), 'un seul h1');
+    }
+
     public function test_landing_page_exposes_complete_seo_metadata(): void
     {
         $html = $this->get('/')->assertOk()->getContent();

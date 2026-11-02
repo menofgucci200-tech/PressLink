@@ -24,6 +24,19 @@ class LandingPageTest extends TestCase
             ->assertSee(route('login'), false);
     }
 
+    public function test_landing_page_guides_pressings_through_the_three_steps(): void
+    {
+        $this->get('/')
+            ->assertOk()
+            ->assertSeeInOrder(['Tester', 'Créer mon pressing', 'Voir nos formules'])
+            ->assertSee('href="'.route('sandbox.start').'"', false)
+            ->assertSee('href="'.route('signup').'"', false)
+            ->assertSee('href="'.route('site.pricing').'"', false)
+            ->assertSee('si-badge', false)
+            ->assertSee('si-porte', false)
+            ->assertSee('si-etiquette', false);
+    }
+
     public function test_landing_page_exposes_complete_seo_metadata(): void
     {
         $html = $this->get('/')->assertOk()->getContent();

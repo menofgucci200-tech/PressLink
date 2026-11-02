@@ -61,6 +61,18 @@ class ServiceIcons
         'autre' => ['label' => 'Autre pièce', 'svg' => '<path d="M32 16a4 4 0 1 1 4 4c-3 1-4 2-4 4"/><path d="M32 26L6 46h52z" fill="#E2E8F0"/>'],
     ];
 
+    /**
+     * Icônes du site vitrine (les 3 étapes de l'accueil), dans le même style.
+     * Les classes « si-* » servent aux petites animations de la page.
+     *
+     * @var array<string, array{label: string, svg: string}>
+     */
+    private const SITE = [
+        'essai' => ['label' => 'Tester PressLink', 'svg' => '<rect x="4" y="8" width="48" height="34" rx="5" fill="#BFDBFE"/><rect x="9" y="13" width="38" height="24" rx="2" fill="#fff"/><path d="M28 42v7M18 51h20"/><path d="M23 17l-7 4 2.5 5 2.5-1.2V34h14v-9.2l2.5 1.2 2.5-5-7-4c-.5 2.5-2.5 4-5 4s-4.5-1.5-5-4z" fill="#F472B6"/><g class="si-badge"><circle cx="49" cy="46" r="11" fill="#34D399"/><path d="M46 41v10l8-5z" fill="#fff"/></g>'],
+        'boutique' => ['label' => 'Créer mon pressing', 'svg' => '<rect x="10" y="26" width="44" height="30" fill="#E0F2FE"/><path d="M4 56h56"/><rect class="si-enseigne" x="19" y="3" width="26" height="9" rx="2" fill="#FDE047"/><path d="M25 7.5h14"/><path d="M8 14h12l-1 12H6z" fill="#F472B6"/><path d="M20 14h12v12H19z" fill="#fff"/><path d="M32 14h12l1 12H32z" fill="#F472B6"/><path d="M44 14h12l2 12H45z" fill="#fff"/><rect x="15" y="34" width="18" height="15" rx="2" fill="#fff"/><path d="M17.5 38.5l4-2c.4 1.2 1.3 1.8 2.5 1.8s2.1-.6 2.5-1.8l4 2-1.4 3-1.6-.7v5.7h-7v-5.7l-1.6.7z" fill="#A78BFA"/><rect class="si-porte" x="38" y="36" width="11" height="20" rx="1.5" fill="#60A5FA"/><circle cx="46" cy="47" r="1.2" fill="#fff"/>'],
+        'formule' => ['label' => 'Nos formules', 'svg' => '<g class="si-etiquette"><path d="M30 6h20a4 4 0 0 1 4 4v20L28.8 55.2a4 4 0 0 1-5.6 0L8.8 40.8a4 4 0 0 1 0-5.6z" fill="#FDE68A"/><circle cx="44" cy="16" r="4" fill="#fff"/><path d="M20 38l12-12M26 44l9-9" stroke="#B45309"/></g><path d="M44 16c3-6 9-9 15-7"/><path class="si-eclat" d="M14 6l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#34D399"/>'],
+    ];
+
     /** Mots-clés (sans accent, en minuscules) → icône de pièce. */
     private const KEYWORDS = [
         'tshirt' => ['t-shirt', 'tee shirt', 'tee-shirt', 'tshirt', 'polo', 'debardeur'],
@@ -138,7 +150,7 @@ class ServiceIcons
     public static function svg(string $kind, ?string $key, int $size = 40, ?string $class = null): HtmlString
     {
         $library = self::library($kind);
-        $icon = $library[$key] ?? $library[self::FALLBACK];
+        $icon = $library[$key] ?? $library[self::FALLBACK] ?? self::SERVICES[self::FALLBACK];
         $class = $class !== null ? ' class="'.e($class).'"' : '';
 
         return new HtmlString(
@@ -150,6 +162,10 @@ class ServiceIcons
     /** @return array<string, array{label: string, svg: string}> */
     private static function library(string $kind): array
     {
-        return $kind === 'service' ? self::SERVICES : self::PIECES;
+        return match ($kind) {
+            'service' => self::SERVICES,
+            'site' => self::SITE,
+            default => self::PIECES,
+        };
     }
 }

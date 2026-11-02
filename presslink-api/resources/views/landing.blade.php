@@ -11,6 +11,16 @@
     $join = 'https://wa.me/'.ltrim($supportPhoneE164, '+').'?text='.rawurlencode($offer
         ? 'Bonjour, je veux inscrire mon pressing sur PressLink (offre de lancement, gratuit jusqu\'au '.$until.').'
         : 'Bonjour, je veux inscrire mon pressing sur PressLink.');
+    $words = ['simple.', 'organisé.', 'à jour.', 'payé à temps.'];
+    $fromPrice = collect($plans)->pluck('monthly')->filter()->min();
+    $steps = [
+        ['url' => route('sandbox.start'), 'icon' => 'essai', 'number' => 'Étape 1 · facultative', 'title' => 'Tester', 'featured' => false,
+            'text' => 'Un pressing fictif, '.\App\Actions\Sandbox\StartSandbox::DAYS.' jours, sans inscription.'],
+        ['url' => route('signup'), 'icon' => 'boutique', 'number' => 'Étape 2', 'title' => 'Créer mon pressing', 'featured' => true,
+            'text' => '2 minutes. On vous appelle ensuite pour démarrer.'],
+        ['url' => route('site.pricing'), 'icon' => 'formule', 'number' => 'Étape 3', 'title' => 'Voir nos formules', 'featured' => false,
+            'text' => ($fromPrice ? 'Dès '.\App\Support\PlanCatalog::fcfa($fromPrice).' F par mois' : 'Au mois ou à l\'année').', sans engagement.'],
+    ];
     $keywords = 'pressing Abidjan, application pressing, suivi commande pressing, logiciel gestion pressing, logiciel pressing Côte d\'Ivoire, gestion de pressing, pressing en ligne, teinturerie Abidjan, blanchisserie Abidjan, notification vêtements prêts, PressLink';
 
     $jsonLd = [
@@ -68,63 +78,36 @@
 @endphp
 
 <x-site.page :title="$title" :description="$description" :keywords="$keywords" :json-ld="$jsonLd">
-    {{-- ===== Lancement officiel ===== --}}
-    <section class="relative overflow-hidden bg-[#0B1530] text-white">
-        <div class="absolute inset-0 bg-[radial-gradient(120%_80%_at_85%_0%,#2563EB_0%,transparent_55%),radial-gradient(90%_70%_at_0%_100%,#12245A_0%,transparent_60%)]" aria-hidden="true"></div>
-        <div class="relative max-w-6xl mx-auto px-5 pt-12 md:pt-16 pb-14 md:pb-20 grid lg:grid-cols-[1.05fr_1fr] gap-12 items-center">
-            <div>
-                <div class="flex flex-wrap items-center gap-2 mb-6">
-                    <span class="inline-flex items-center gap-2 h-8 px-3.5 rounded-full bg-white/10 border border-white/20 text-sm font-semibold">
-                        <span class="w-2 h-2 rounded-full bg-[#22C55E] shadow-[0_0_0_4px_rgba(34,197,94,.25)]" aria-hidden="true"></span>
-                        {{ $offer ? 'Lancement officiel' : 'Disponible en Côte d\'Ivoire' }}
-                    </span>
-                    @if ($offer)
-                        <span class="inline-flex items-center h-8 px-3.5 rounded-full bg-[#FBBF24] text-[#1E293B] text-sm font-bold">Gratuit jusqu'au {{ $until }}</span>
-                    @endif
+    {{-- ===== Accueil : un court briefing à gauche, les 3 étapes à droite ===== --}}
+    <section class="acc" data-motion-ignore>
+        <div class="acc-enveloppe">
+            <div class="acc-briefing">
+                <span class="acc-ariane"><i aria-hidden="true"></i>Logiciel de gestion de pressing</span>
+                <h1>Votre pressing,<br>enfin <span class="acc-tourne" data-motion="tourne">@foreach ($words as $i => $word)<span @class(['apres' => $i > 0]) @if ($i > 0) aria-hidden="true" @endif>{{ $word }}</span>@endforeach</span></h1>
+                <p class="acc-chapo">Commandes, paiements et clients prévenus au même endroit. Choisissez votre étape, on vous guide jusqu'au bout.</p>
+                <div class="acc-confiance">
+                    @if ($offer)<span>Gratuit jusqu'au {{ $until }}</span>@endif
+                    <span>Sans engagement</span>
+                    <span>Aide sur WhatsApp</span>
                 </div>
-                <h1 class="font-display text-4xl md:text-5xl font-extrabold leading-[1.06] tracking-tight mb-5">
-                    Votre pressing, enfin simple à gérer.
-                    <span class="text-[#93C5FD]">Vos clients, toujours informés.</span>
-                </h1>
-                <p class="text-lg text-[#CBD5E1] leading-relaxed mb-8 max-w-xl">
-                    PressLink est le logiciel de gestion de pressing pensé pour la Côte d'Ivoire : commandes, paiements, reçus et caisse au même endroit. Et dès qu'une commande est prête, votre client est prévenu sur son téléphone.
-                </p>
-
-                @if ($offer)
-                    <div class="mb-8 max-w-xl flex items-center gap-4 rounded-2xl bg-white/[0.07] border border-white/15 px-5 py-4">
-                        <div class="flex-none text-center">
-                            <div class="font-display text-4xl font-extrabold leading-none text-[#FBBF24] tabular-nums">{{ $daysLeft }}</div>
-                            <div class="text-[11px] font-semibold uppercase tracking-wider text-[#CBD5E1] mt-1">{{ $daysLeft > 1 ? 'jours' : 'jour' }}</div>
-                        </div>
-                        <p class="text-[15px] leading-snug">
-                            <strong>100 % gratuit jusqu'au {{ $until }}.</strong>
-                            <span class="text-[#CBD5E1]">Toutes les fonctions, sans rien payer : inscrivez votre pressing pendant le lancement.</span>
-                        </p>
-                    </div>
-                @endif
-
-                <div class="flex flex-wrap gap-3">
-                    <a href="{{ route('signup') }}" class="inline-flex items-center justify-center gap-2.5 min-h-13 py-2 px-6 rounded-xl bg-[#22C55E] text-white font-bold hover:brightness-95 shadow-lg shadow-black/20 sm:whitespace-nowrap">
-                        {{ $offer ? 'Inscrire mon pressing gratuitement' : 'Inscrire mon pressing' }}
-                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-                    </a>
-                    <a href="{{ $appUrl }}" class="inline-flex items-center justify-center h-13 px-6 rounded-xl border border-white/30 font-semibold hover:bg-white/10 whitespace-nowrap">
-                        Je suis client →
-                    </a>
-                </div>
-                <p class="mt-4 text-sm text-[#CBD5E1]">Pas encore décidé ? <a href="{{ route('sandbox.start') }}" class="font-semibold text-white underline underline-offset-2 hover:no-underline">Tester avec un pressing fictif</a>, sans inscription.</p>
-                <p class="mt-3 text-sm text-[#94A3B8]">Mise en place avec l'équipe PressLink · Sur ordinateur, tablette ou téléphone · Appel ou WhatsApp : {{ $supportPhoneDisplay }}</p>
+                <p class="acc-client">Vous êtes client d'un pressing ? <a href="{{ $appUrl }}">Suivre mes commandes →</a></p>
             </div>
 
-            <div class="relative max-w-xl mx-auto w-full pb-10 lg:pb-0" aria-hidden="true">
-                <div class="rounded-2xl bg-[#0E1424] p-2.5 pb-3 shadow-[0_40px_80px_-20px_rgba(0,0,0,.6)] ring-1 ring-white/10">
-                    <img src="{{ asset('images/launch-dashboard.webp') }}" width="1600" height="1000" alt="" class="rounded-lg w-full h-auto" fetchpriority="high">
-                </div>
-                <div class="mx-auto h-3 w-[108%] -ml-[4%] rounded-b-3xl bg-gradient-to-b from-[#C9D2E3] to-[#8C97AD]"></div>
-                <div class="absolute -bottom-2 right-2 sm:-right-4 w-[34%] max-w-[190px] rounded-[1.6rem] bg-[#0B0F19] p-1.5 shadow-[0_30px_60px_-15px_rgba(0,0,0,.7)] ring-1 ring-white/10 rotate-3">
-                    <img src="{{ asset('images/launch-app.webp') }}" width="600" height="1290" alt="" class="rounded-[1.25rem] w-full h-auto" loading="lazy">
-                </div>
-            </div>
+            <nav class="acc-etapes" aria-label="Les étapes pour rejoindre PressLink">
+                @foreach ($steps as $step)
+                    <a href="{{ $step['url'] }}" @class(['acc-carte', 'vedette' => $step['featured']])>
+                        @if ($step['featured'])<span class="acc-badge">Recommandé</span>@endif
+                        <x-service-icon kind="site" :name="$step['icon']" :size="48" class="acc-ico" />
+                        <span>
+                            <span class="acc-num">{{ $step['number'] }}</span>
+                            <h2>{{ $step['title'] }}</h2>
+                            <p>{{ $step['text'] }}</p>
+                        </span>
+                        <span class="acc-fleche" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                    </a>
+                @endforeach
+                <div class="acc-arrivee"><span aria-hidden="true">🏁</span>Votre pressing en ligne, vos clients prévenus</div>
+            </nav>
         </div>
     </section>
 

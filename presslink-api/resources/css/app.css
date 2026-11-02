@@ -740,6 +740,101 @@ html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 .lenis.lenis-stopped { overflow: hidden; }
 
+/* ---------------------------------------------------------------- Polices du site vitrine (gabarit public) */
+html.site-vitrine {
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+    --font-display: 'Bricolage Grotesque', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ---------------------------------------------------------------- Accueil : un court briefing à gauche, les 3 étapes à droite */
+.acc { --ressort: cubic-bezier(.34, 1.56, .64, 1); --doux: cubic-bezier(.22, 1, .36, 1); position: relative; overflow: hidden; background: var(--color-bg); }
+.acc::before { content: ""; position: absolute; width: 680px; height: 680px; right: -180px; top: -160px; border-radius: 50%; background: radial-gradient(circle, rgb(37 99 235 / .16), transparent 65%); animation: acc-flotte 14s ease-in-out infinite alternate; pointer-events: none; }
+@keyframes acc-flotte { to { transform: translate(-80px, 60px) scale(1.1); } }
+.acc-enveloppe { position: relative; max-width: 72rem; margin: 0 auto; padding: 40px 20px 56px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 540px); gap: 64px; align-items: center; min-height: calc(100svh - 64px); }
+@media (max-width: 1023px) { .acc-enveloppe { grid-template-columns: minmax(0, 1fr); gap: 36px; min-height: 0; padding: 28px 20px 48px; } }
+
+/* Le briefing */
+.acc-briefing { max-width: 560px; }
+.acc-briefing > * { animation: acc-entre .7s var(--ressort) both; }
+.acc-briefing > :nth-child(2) { animation-delay: .08s; } .acc-briefing > :nth-child(3) { animation-delay: .16s; } .acc-briefing > :nth-child(4) { animation-delay: .24s; } .acc-briefing > :nth-child(5) { animation-delay: .32s; }
+@keyframes acc-entre { from { opacity: 0; transform: translateY(18px); filter: blur(6px); } }
+.acc-ariane { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 14px; border-radius: 99px; background: var(--color-surface); border: 1px solid var(--color-border); font-size: 13.5px; font-weight: 600; color: var(--color-text-secondary); }
+.acc-ariane i { width: 8px; height: 8px; border-radius: 50%; background: #22C55E; box-shadow: 0 0 0 4px rgb(34 197 94 / .2); }
+.acc-briefing h1 { font-family: var(--font-display); font-size: clamp(42px, 6vw, 74px); font-weight: 800; line-height: .98; letter-spacing: -.035em; margin: 22px 0 18px; }
+.acc-chapo { font-size: 19px; line-height: 1.55; color: var(--color-text-secondary); max-width: 470px; }
+.acc-confiance { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 26px; font-size: 14px; font-weight: 600; color: var(--color-text-muted); }
+.acc-confiance span { display: inline-flex; align-items: center; gap: 6px; }
+.acc-confiance span::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #22C55E; }
+.acc-client { margin-top: 18px; font-size: 14px; color: var(--color-text-muted); }
+.acc-client a { font-weight: 600; color: var(--color-primary); }
+.acc-client a:hover { text-decoration: underline; }
+
+/* Le mot qui tourne, façon machine à sous (resources/js/site.js) */
+.acc-tourne { display: grid; justify-items: start; overflow: hidden; height: 1.06em; color: var(--color-primary); }
+.acc-tourne > span { grid-area: 1 / 1; position: relative; z-index: 0; white-space: nowrap; transition: transform .6s var(--ressort), opacity .4s; }
+.acc-tourne > span.avant { transform: translateY(-105%); opacity: 0; }
+.acc-tourne > span.apres { transform: translateY(105%); opacity: 0; }
+.acc-tourne > span::after { content: ""; position: absolute; left: 0; right: 0; bottom: .05em; height: .14em; border-radius: 9px; background: #FBBF24; opacity: .55; z-index: -1; transform-origin: left; animation: acc-souligne .8s .5s var(--doux) both; }
+@keyframes acc-souligne { from { transform: scaleX(0); } }
+
+/* Les 3 étapes */
+.acc-etapes { position: relative; display: grid; gap: 16px; }
+.acc-etapes::before { content: ""; position: absolute; left: 48px; top: 44px; bottom: 60px; width: 2px; background-image: linear-gradient(var(--color-primary) 50%, transparent 50%); background-size: 2px 10px; opacity: .35; animation: acc-fourmis 1.2s linear infinite; }
+@keyframes acc-fourmis { to { background-position: 0 10px; } }
+.acc-carte { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) 44px; gap: 18px; align-items: center; padding: 20px 22px 20px 18px; border-radius: 26px; background: var(--color-surface); border: 1.5px solid var(--color-border); box-shadow: 0 1px 2px rgb(15 23 42 / .04); transition: transform .45s var(--ressort), box-shadow .35s, border-color .3s, opacity .3s; animation: acc-carte-in .8s var(--ressort) both; }
+.acc-carte:nth-child(1) { animation-delay: .25s; } .acc-carte:nth-child(2) { animation-delay: .4s; } .acc-carte:nth-child(3) { animation-delay: .55s; }
+@keyframes acc-carte-in { from { opacity: 0; transform: translateX(60px) rotate(2deg); } }
+.acc-carte:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }
+.acc-ico { position: relative; z-index: 1; transition: transform .45s var(--ressort); }
+.acc-num { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--color-text-muted); }
+.acc-carte h2 { font-family: var(--font-display); font-size: 25px; font-weight: 700; letter-spacing: -.03em; line-height: 1.15; margin: 3px 0 3px; }
+.acc-carte p { font-size: 15.5px; line-height: 1.4; color: var(--color-text-secondary); }
+.acc-fleche { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--color-bg); color: var(--color-text-primary); transition: transform .4s var(--ressort), background .3s, color .3s; }
+@media (hover: hover) {
+    .acc-etapes:hover .acc-carte:not(:hover) { opacity: .62; }
+    .acc-carte:hover { transform: translateX(-8px) scale(1.015); border-color: var(--color-primary); box-shadow: 0 24px 50px -28px rgb(37 99 235 / .6); opacity: 1; }
+    .acc-carte:hover .acc-fleche { transform: translateX(4px) rotate(-45deg); background: var(--color-primary); color: #fff; }
+    .acc-carte:hover .acc-ico { transform: rotate(-6deg) scale(1.07); }
+}
+
+/* L'étape conseillée : créer son pressing */
+.acc-carte.vedette { background: #2563EB; border-color: #2563EB; color: #fff; padding-block: 26px; box-shadow: 0 30px 60px -28px rgb(37 99 235 / .85); }
+.acc-carte.vedette .acc-num, .acc-carte.vedette p { color: #DBEAFE; }
+.acc-carte.vedette .acc-fleche { background: #fff; color: #2563EB; animation: acc-appel 5s 3s var(--ressort) infinite; }
+@media (hover: hover) { .acc-carte.vedette:hover .acc-fleche { background: #22C55E; color: #fff; } }
+@keyframes acc-appel { 0%, 82%, 100% { transform: none; } 88% { transform: translateX(8px); } 94% { transform: translateX(-2px); } }
+.acc-badge { position: absolute; top: -12px; right: 24px; padding: 4px 12px; border-radius: 99px; background: #FBBF24; color: #1E293B; font-size: 12.5px; font-weight: 800; transform: rotate(3deg); animation: acc-badge 3.5s 2s ease-in-out infinite; }
+@keyframes acc-badge { 0%, 88%, 100% { transform: rotate(3deg); } 92% { transform: rotate(-6deg) scale(1.08); } 96% { transform: rotate(7deg) scale(1.08); } }
+.acc-arrivee { display: flex; align-items: center; gap: 10px; padding-left: 33px; font-size: 14px; font-weight: 600; color: var(--color-text-muted); animation: acc-carte-in .8s .75s var(--ressort) both; }
+.acc-arrivee span { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--color-surface); border: 1.5px dashed #CBD5E1; font-size: 15px; }
+@media (max-width: 480px) {
+    .acc-carte { gap: 14px; padding: 16px 16px 16px 14px; grid-template-columns: auto minmax(0, 1fr) 38px; }
+    .acc-carte h2 { font-size: 22px; }
+    .acc-carte p { font-size: 14.5px; }
+    .acc-fleche { width: 38px; height: 38px; }
+    .acc-etapes::before { left: 44px; }
+    .acc-arrivee { padding-left: 29px; }
+}
+
+/* Les dessins des étapes (ServiceIcons, bibliothèque « site ») s'animent un peu */
+.acc .si-badge { transform-box: fill-box; transform-origin: center; animation: acc-pouls 2.4s ease-in-out infinite; }
+@keyframes acc-pouls { 0%, 60%, 100% { transform: scale(1); } 75% { transform: scale(1.14); } }
+.acc .si-porte { transform-box: fill-box; transform-origin: left center; transition: transform .45s var(--ressort); }
+.acc .si-enseigne { transform-box: fill-box; transform-origin: center top; }
+.acc .si-etiquette { transform-box: view-box; transform-origin: 44px 16px; animation: acc-balance 4s ease-in-out infinite; }
+@keyframes acc-balance { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(-5deg); } }
+.acc .si-eclat { transform-box: fill-box; transform-origin: center; animation: acc-brille 2.8s .5s ease-in-out infinite; }
+@keyframes acc-brille { 0%, 40%, 100% { transform: scale(0) rotate(0); } 55%, 80% { transform: scale(1) rotate(72deg); } }
+@media (hover: hover) {
+    .acc-carte:hover .si-porte { transform: scaleX(.3); }
+    .acc-carte:hover .si-enseigne { animation: acc-enseigne .7s var(--ressort); }
+    .acc-carte:hover .si-etiquette { animation: acc-balance .6s ease-in-out 2; }
+}
+@keyframes acc-enseigne { 30% { transform: rotate(-6deg); } 65% { transform: rotate(4deg); } }
+@media (prefers-reduced-motion: reduce) {
+    .acc *, .acc *::before, .acc *::after, .acc::before { animation: none !important; transition: none !important; }
+}
+
 /* Thème sombre : le bleu principal y est plus clair (#3b82f6), lisible en
    texte mais trop pâle sous un libellé blanc (3,7:1). Les boutons pleins
    prennent la nuance foncée (5,2:1). */

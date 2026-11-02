@@ -33,6 +33,9 @@
             <a href="{{ route('login') }}" class="hidden sm:inline-flex items-center whitespace-nowrap h-10 px-4 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">
                 Espace pressing
             </a>
+            <a href="{{ route('signup') }}" class="hidden sm:inline-flex items-center whitespace-nowrap h-10 px-4 rounded-full bg-[#16A34A] text-white text-sm font-bold hover:bg-[#15803D]">
+                Créer mon espace
+            </a>
             {{-- Menu mobile sans JavaScript --}}
             <details class="lg:hidden relative group">
                 <summary class="list-none cursor-pointer w-10 h-10 rounded-lg border border-(--color-border) flex items-center justify-center" aria-label="Ouvrir le menu">
@@ -43,6 +46,7 @@
                         <a href="{{ route($name) }}" @class(['px-3 py-2.5 rounded-lg hover:bg-(--color-bg)', 'text-(--color-primary) bg-(--color-primary-tint)' => request()->routeIs($name)])>{{ $label }}</a>
                     @endforeach
                     <a href="{{ route('login') }}" class="mt-1 px-3 py-2.5 rounded-lg border-t border-(--color-border) hover:bg-(--color-bg)">Espace pressing</a>
+                    <a href="{{ route('signup') }}" class="mt-1 px-3 py-2.5 rounded-lg bg-[#16A34A] text-white font-bold text-center hover:bg-[#15803D]">Créer mon espace pressing</a>
                 </nav>
             </details>
         </div>

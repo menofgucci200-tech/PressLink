@@ -39,6 +39,7 @@ function demarrer() {
     else montrer();
 
     titres(hero);
+    motTourne();
     cascades();
     accueilSections();
     boutons();
@@ -118,6 +119,25 @@ function accueil(hero) {
     }
     gsap.to(texte, { y: -70, opacity: 0.2, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
     gsap.to(telephone, { y: -50, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } });
+}
+
+/* ---------------------------------------------------------------- accueil : le mot du titre qui tourne */
+function motTourne() {
+    const bloc = $('[data-motion="tourne"]');
+    if (!bloc) return;
+    const mots = [...bloc.children];
+    let i = 0;
+    setInterval(() => {
+        if (document.hidden) return;
+        mots[i].className = 'avant';
+        mots[i].setAttribute('aria-hidden', 'true');
+        i = (i + 1) % mots.length;
+        mots[i].className = 'apres';
+        void mots[i].offsetWidth;
+        mots[i].className = '';
+        mots[i].removeAttribute('aria-hidden');
+        setTimeout(() => mots.forEach((m, k) => { if (k !== i) m.className = 'apres'; }), 650);
+    }, 2300);
 }
 
 /* ---------------------------------------------------------------- titres de toutes les pages */

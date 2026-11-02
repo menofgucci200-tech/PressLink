@@ -1,6 +1,6 @@
 @props(['title', 'description', 'canonical', 'ogImage', 'keywords' => null, 'jsonLd' => null, 'breadcrumbJsonLd' => null])
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="site-vitrine">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -47,6 +47,11 @@
         @if ($breadcrumbJsonLd)
             <script type="application/ld+json">{!! json_encode($breadcrumbJsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>
         @endif
+
+        {{-- Polices du site vitrine : Bricolage Grotesque (titres) et Plus Jakarta Sans (texte). --}}
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 
         <x-theme-script />
         <script>document.documentElement.classList.add('js-motion');</script>

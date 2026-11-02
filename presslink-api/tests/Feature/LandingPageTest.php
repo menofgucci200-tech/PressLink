@@ -54,7 +54,7 @@ class LandingPageTest extends TestCase
     {
         $html = $this->get(route($routeName))->assertOk()->getContent();
 
-        $this->assertStringContainsString('aria-label="'.$currentStep.'" aria-current="step"', $html);
+        $this->assertMatchesRegularExpression('/aria-label="'.preg_quote($currentStep, '/').'"\s+aria-current="step"/u', $html);
         $this->assertStringContainsString('aria-label="Revenir aux 3 étapes"', $html);
         $this->assertSame(1, substr_count($html, '<h1'), 'un seul h1');
     }

@@ -1,4 +1,4 @@
-{{-- En-tête commun des reçus : logo, pressing, titre et numéro. --}}
+{{-- En-tête commun des reçus : logo et coordonnées du pressing, titre et date du reçu. --}}
 @php
     $logo = null;
     if ($pressing->logo_path) {
@@ -8,17 +8,20 @@
             : $pressing->logo_url;
     }
 @endphp
-        <div class="center">
-            @if ($logo)
-                <img src="{{ $logo }}" alt="" class="logo">
-            @endif
-            <p class="pressing-name">{{ $pressing->name }}</p>
-            @if ($pressing->address || $pressing->city)
-                <div class="muted small">{{ collect([$pressing->address, $pressing->city])->filter()->implode(', ') }}</div>
-            @endif
-            @if ($pressing->phone)
-                <div class="muted small">Tél. {{ \App\Support\PhoneNumber::format($pressing->phone) }}</div>
-            @endif
-            <p class="title">{{ $title }}</p>
-            <p class="number">{{ $number }}</p>
-        </div>
+        <table class="head">
+            <tr>
+                @if ($logo)
+                    <td class="head-logo"><img src="{{ $logo }}" alt="" class="logo"></td>
+                @endif
+                <td>
+                    <p class="pressing-name">{{ $pressing->name }}</p>
+                    @if ($pressing->address || $pressing->city)
+                        <div class="muted small">{{ collect([$pressing->address, $pressing->city])->filter()->implode(', ') }}</div>
+                    @endif
+                    @if ($pressing->phone)
+                        <div class="muted small">Tél. {{ \App\Support\PhoneNumber::format($pressing->phone) }}</div>
+                    @endif
+                </td>
+                <td class="r muted small">{{ $title }}<br>{{ $date }}</td>
+            </tr>
+        </table>

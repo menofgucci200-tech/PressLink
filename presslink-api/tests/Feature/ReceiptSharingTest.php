@@ -48,6 +48,26 @@ class ReceiptSharingTest extends TestCase
         return $user;
     }
 
+    public function test_the_printed_receipt_has_a_tracking_qr_code_and_a_bag_stub(): void
+    {
+        $this->actingAs($this->staff());
+
+        foreach ([[], ['taille' => 'a5']] as $size) {
+            $this->get(route('orders.receipt', ['order' => $this->order, ...$size]))
+                ->assertOk()
+                ->assertSee('images/qr-presslink-app.png', false)
+                ->assertSee('Talon · à agrafer au sac de linge')
+                ->assertSeeText($this->customer->fullName().' · 1 pièce');
+        }
+
+        $this->order->forceFill(['recovered_at' => now()])->save();
+
+        $this->get(route('orders.receipt', $this->order))
+            ->assertOk()
+            ->assertSee('Récupéré')
+            ->assertDontSee('Talon · à agrafer au sac de linge');
+    }
+
     public function test_staff_open_and_download_a_payment_receipt(): void
     {
         $payment = $this->order->payments()->reorder('id', 'desc')->firstOrFail();

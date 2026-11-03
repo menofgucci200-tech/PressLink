@@ -7,25 +7,34 @@
     $remaining = $order->status === \App\Enums\OrderStatus::Annulee ? 0 : max(0, (int) $order->total_fcfa - $paidUntil);
 @endphp
     <div class="sheet">
-        @include('orders._receipt-header', ['title' => $isRefund ? 'Reçu de remboursement' : 'Reçu de paiement', 'number' => $order->order_number.'-'.$rank])
+        @include('orders._receipt-header', ['title' => $isRefund ? 'Reçu de remboursement' : 'Reçu de paiement', 'date' => $payment->paid_at->format('d/m/Y à H:i')])
 
-        <hr class="rule">
+        <table class="hero-wrap">
+            <tr>
+                <td>
+                    <div class="hero">
+                        <div class="label">{{ $isRefund ? 'Montant remboursé' : 'Montant payé' }}</div>
+                        <p class="hero-number">{{ $fcfa(abs((int) $payment->amount_fcfa)) }} F</p>
+                        <div><span class="bold">N° {{ $order->order_number.'-'.$rank }}</span> <span class="muted">· {{ $payment->method->label() }}</span></div>
+                    </div>
+                </td>
+                @if ($size !== 'ticket')
+                    <td class="hero-qr">
+                        @include('orders._receipt-qr')
+                        <div class="muted tiny">Scannez pour suivre<br>votre commande</div>
+                    </td>
+                @endif
+            </tr>
+        </table>
 
         <table>
             <tr><td class="muted">Client</td><td class="r bold">{{ $order->customer->fullName() }}</td></tr>
             <tr><td class="muted">Téléphone</td><td class="r">{{ \App\Support\PhoneNumber::format($order->customer->phone) }}</td></tr>
             <tr><td class="muted">Commande</td><td class="r">{{ $order->order_number }}</td></tr>
             <tr><td class="muted">{{ $isRefund ? 'Remboursé le' : 'Payé le' }}</td><td class="r">{{ $payment->paid_at->format('d/m/Y à H:i') }}</td></tr>
-            <tr><td class="muted">Moyen</td><td class="r">{{ $payment->method->label() }}</td></tr>
             @if ($payment->recorder)
                 <tr><td class="muted">{{ $isRefund ? 'Remboursé par' : 'Encaissé par' }}</td><td class="r">{{ $payment->recorder->name }}</td></tr>
             @endif
-        </table>
-
-        <hr class="rule">
-
-        <table>
-            <tr class="total"><td>{{ $isRefund ? 'Montant remboursé' : 'Montant payé' }}</td><td class="r">{{ $fcfa(abs((int) $payment->amount_fcfa)) }} F</td></tr>
         </table>
 
         <hr class="rule">
@@ -45,9 +54,20 @@
 
         <hr class="rule">
 
+        @if ($size === 'ticket')
+            <table class="qr-row">
+                <tr>
+                    <td class="qr-cell">@include('orders._receipt-qr')</td>
+                    <td class="muted small">Scannez pour suivre votre commande dans l'application PressLink (presslink.org/app) avec votre numéro de téléphone.</td>
+                </tr>
+            </table>
+        @endif
+
         <div class="footer">
-            Suivez votre commande dans l'application PressLink<br>
-            (presslink.org/app) avec votre numéro de téléphone.<br>
+            @if ($size !== 'ticket')
+                Suivez votre commande dans l'application PressLink<br>
+                (presslink.org/app) avec votre numéro de téléphone.<br>
+            @endif
             Merci de votre confiance !
         </div>
         <div class="footer small">Édité le {{ now()->format('d/m/Y à H:i') }}</div>

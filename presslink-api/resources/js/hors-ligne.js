@@ -366,31 +366,35 @@ function dateCourte(iso, avecHeure = true) {
     return avecHeure ? `${jour} à ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}` : jour;
 }
 
-/** Reçu de dépôt (ticket 80 mm), sur le modèle de orders/_receipt-sheet.blade.php. */
+/** Reçu de dépôt (ticket 80 mm) avec son talon, sur le modèle de orders/_receipt-sheet.blade.php. */
 export function recuHtml(donnees, commande, libelleMode) {
     const p = donnees.pressing;
     const client = commande.client;
     const lignes = commande.items.map((i) => `<tr><td class="qte">${i.quantity} ×</td><td>${echapper(i.name)}${i.quantity > 1 ? `<br><span class="m p">${fcfa(i.unit)} F l'unité</span>` : ''}</td><td class="d">${fcfa(i.subtotal)} F</td></tr>`).join('');
     const paiements = commande.payments.map((pa) => `<tr><td class="m p">${dateCourte(pa.at, false)} · ${echapper(libelleMode(pa.method))}</td><td class="d p">${fcfa(pa.amount)} F</td></tr>`).join('');
     const etat = commande.reste <= 0 ? 'Payée' : (commande.paid > 0 ? 'Acompte versé' : 'À payer');
+    const pieces = commande.items.reduce((somme, i) => somme + Number(i.quantity), 0);
+    const retrait = commande.expected_at
+        ? new Date(`${commande.expected_at}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })
+        : '';
 
     return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Reçu ${echapper(commande.number)}</title>
 <style>
 @page { size: 80mm auto; margin: 4mm; }
 body { font: 12px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #000; width: 72mm; margin: 0 auto; }
 .c { text-align: center; } .m { color: #444; } .p { font-size: 10.5px; } .b { font-weight: 700; } .d { text-align: right; white-space: nowrap; }
-h1 { font-size: 15px; margin: 0 0 2px; } .t { margin: 8px 0 0; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; } .n { font-size: 16px; font-weight: 800; margin: 2px 0 0; }
+h1 { font-size: 14px; margin: 0; } .lbl { font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #444; }
+.cadre { border: 2px solid #000; border-radius: 8px; padding: 6px 8px; margin-top: 8px; text-align: center; } .n { font-size: 24px; font-weight: 800; margin: 2px 0; line-height: 1.05; }
+.cles { margin: 8px 0 4px; text-align: center; } .cles td { width: 33%; } .cle { font-size: 13px; font-weight: 800; }
 hr { border: 0; border-top: 1px dashed #000; margin: 8px 0; } table { width: 100%; border-collapse: collapse; font-size: inherit; } td { padding: 1px 0; vertical-align: top; }
 .qte { width: 30px; } .tot td { font-size: 14px; font-weight: 800; } .etat { margin: 6px 0; text-align: center; font-weight: 700; border: 1px solid #000; padding: 2px; }
+.talon { position: relative; margin: 12px -4mm 0; padding-top: 10px; border-top: 2px dashed #000; text-align: center; } .ciseaux { position: absolute; top: -9px; left: 4mm; background: #fff; padding: 0 3px; }
 .pied { text-align: center; margin-top: 6px; }
 </style></head><body>
-<div class="c"><h1>${echapper(p.name)}</h1>${p.address ? `<div class="m p">${echapper(p.address)}</div>` : ''}${p.phone ? `<div class="m p">Tél. ${echapper(p.phone)}</div>` : ''}
-<p class="t">Reçu de dépôt</p><p class="n">${echapper(commande.number)}</p></div><hr>
-<table><tr><td class="m">Client</td><td class="d b">${echapper(client?.name || '—')}</td></tr>
-<tr><td class="m">Téléphone</td><td class="d">${echapper(formaterTelephone(client?.phone || ''))}</td></tr>
-<tr><td class="m">Déposé le</td><td class="d">${dateCourte(commande.dropped_off_at)}</td></tr>
-${commande.expected_at ? `<tr><td class="m">Retrait prévu</td><td class="d b">${dateCourte(`${commande.expected_at}T12:00:00`, false)}</td></tr>` : ''}
-<tr><td class="m">Reçu par</td><td class="d">${echapper(donnees.user.name)}</td></tr></table><hr>
+<table><tr><td><h1>${echapper(p.name)}</h1>${p.address ? `<div class="m p">${echapper(p.address)}</div>` : ''}${p.phone ? `<div class="m p">Tél. ${echapper(p.phone)}</div>` : ''}</td>
+<td class="d m p">Reçu de dépôt<br>${dateCourte(commande.dropped_off_at)}</td></tr></table>
+<div class="cadre"><div class="lbl">Commande</div><p class="n">${echapper(commande.number)}</p><div><span class="b">${echapper(client?.name || '—')}</span> · ${echapper(formaterTelephone(client?.phone || ''))}</div></div>
+<table class="cles"><tr><td><div class="lbl">Retrait prévu</div><div class="cle">${retrait || '—'}</div></td><td><div class="lbl">Pièces</div><div class="cle">${pieces}</div></td><td><div class="lbl">Reste à payer</div><div class="cle">${fcfa(Math.max(0, commande.reste))} F</div></td></tr></table><hr>
 <table>${lignes}</table><hr>
 <table><tr class="tot"><td>Total</td><td class="d">${fcfa(commande.total)} F</td></tr></table>
 <div class="etat">${etat}</div>
@@ -399,7 +403,9 @@ ${commande.expected_at ? `<tr><td class="m">Retrait prévu</td><td class="d b">$
 ${commande.notes ? `<p class="p"><span class="b">Note :</span> ${echapper(commande.notes)}</p>` : ''}
 ${p.terms || p.storage_clause ? `<hr><div class="p"><div class="b">Conditions</div>${p.terms ? `<div class="m" style="white-space:pre-line">${echapper(p.terms)}</div>` : ''}${p.storage_clause ? `<div class="m">${echapper(p.storage_clause)}</div>` : ''}</div>` : ''}
 <hr><div class="pied p">Présentez ce reçu pour retirer vos vêtements.<br>Suivez votre commande dans l'application PressLink<br>avec le code pressing <b>${echapper(p.code)}</b>.<br>Merci de votre confiance !</div>
-<div class="pied p m">Imprimé le ${dateCourte(new Date().toISOString())}</div>
+<div class="pied p m">Reçu par ${echapper(donnees.user.name)} · imprimé le ${dateCourte(new Date().toISOString())}</div>
+<div class="talon"><span class="ciseaux">✂</span><div class="lbl">Talon · à agrafer au sac de linge</div><p class="n">${echapper(commande.number)}</p>
+<div class="p"><span class="b">${echapper(client?.name || '—')}</span> · ${pieces} pièce${pieces > 1 ? 's' : ''}${retrait ? ` · retrait ${retrait}` : ''}</div><div class="m p">${echapper(p.name)}</div></div>
 </body></html>`;
 }
 

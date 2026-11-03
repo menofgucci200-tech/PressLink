@@ -18,8 +18,8 @@
             font-family: {!! $isPdf ? '"DejaVu Sans", sans-serif' : 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif' !!};
             color: #0f172a;
             background: {{ $isPdf ? '#ffffff' : '#e2e8f0' }};
-            font-size: {{ $size === 'ticket' ? '12px' : '12.5px' }};
-            line-height: 1.4;
+            font-size: {{ $isPdf ? '10.5px' : ($size === 'ticket' ? '12px' : '12.5px') }};
+            line-height: {{ $isPdf ? '1.3' : '1.4' }};
         }
         .toolbar {
             position: sticky; top: 0; z-index: 2;
@@ -52,17 +52,46 @@
         .muted { color: #64748b; }
         .small { font-size: 0.85em; }
         .bold { font-weight: bold; }
-        .logo { max-height: 42px; max-width: 120px; margin-bottom: 6px; }
-        .pressing-name { font-size: 1.35em; font-weight: bold; margin: 0; }
-        .title {
-            margin: 10px 0 2px; font-size: 0.8em; letter-spacing: 2px; text-transform: uppercase; color: #64748b;
+        .tiny { font-size: 0.75em; }
+        .head td { vertical-align: middle; }
+        .head-logo { width: 1%; padding-right: 8px; }
+        .logo { display: block; max-height: {{ $size === 'ticket' ? '34px' : '42px' }}; max-width: {{ $size === 'ticket' ? '60px' : '110px' }}; }
+        .pressing-name { font-size: {{ $size === 'ticket' ? '1.2em' : '1.35em' }}; font-weight: bold; margin: 0; }
+        .label { font-size: 0.72em; font-weight: bold; letter-spacing: 1.5px; text-transform: uppercase; color: #64748b; }
+        .hero-wrap { margin-top: 12px; }
+        .hero-wrap td { vertical-align: middle; }
+        .hero {
+            @if ($size === 'ticket')
+                border: 2px solid #0f172a; border-radius: 8px; padding: 8px 10px; text-align: center;
+            @else
+                background: #f5f7fc; border-radius: 12px; padding: 12px 16px;
+            @endif
         }
-        .number { font-size: 1.5em; font-weight: bold; letter-spacing: 0.5px; margin: 0; }
+        .hero-number { margin: 2px 0; font-size: {{ $size === 'ticket' ? '2.1em' : '2.9em' }}; font-weight: bold; letter-spacing: -0.5px; line-height: 1.05; }
+        .hero-qr { width: 30mm; padding-left: 12px; text-align: center; }
+        .hero-qr .qr { width: {{ $isPdf ? '22mm' : '26mm' }}; height: {{ $isPdf ? '22mm' : '26mm' }}; }
+        .keys { margin: 10px 0 6px; {{ $size === 'ticket' ? 'text-align: center;' : '' }} }
+        .keys td { width: 33%; }
+        .key { font-size: 1.25em; font-weight: bold; }
+        .key--accent { color: #2563eb; }
+        .qr-row td { vertical-align: middle; }
+        .qr-cell { width: 1%; padding-right: 8px; }
+        .qr-cell .qr { width: 18mm; height: 18mm; display: block; }
+        .talon {
+            position: relative; margin-top: 14px; padding-top: 12px; border-top: 2px dashed #64748b;
+            text-align: center; page-break-inside: avoid;
+            @unless ($isPdf)
+                margin-left: {{ $size === 'ticket' ? '-5mm' : '-11mm' }}; margin-right: {{ $size === 'ticket' ? '-5mm' : '-11mm' }};
+            @endunless
+        }
+        .cut { position: absolute; top: -0.8em; left: 6mm; padding: 0 4px; background: #fff; color: #64748b; }
+        .talon-number { margin: 2px 0; font-size: {{ $size === 'ticket' ? '1.9em' : '2.4em' }}; font-weight: bold; letter-spacing: -0.5px; }
         .rule { border: 0; border-top: 1px dashed #94a3b8; margin: 10px 0; }
         table { width: 100%; border-collapse: collapse; }
         td { padding: 2px 0; vertical-align: top; }
         td.r { text-align: right; white-space: nowrap; }
-        .items td { padding: 4px 0; }
+        .items { border-top: 1px solid #e2e8f0; }
+        .items td { padding: {{ $isPdf ? '3px' : '5px' }} 0; border-bottom: 1px solid #f1f5f9; }
         .items .qty { width: 1%; color: #64748b; white-space: nowrap; padding-right: 8px; }
         .total td { font-size: 1.2em; font-weight: bold; padding-top: 6px; }
         .state {
@@ -83,7 +112,7 @@
             .toolbar { display: none; }
             .sheet { margin: 0 auto; box-shadow: none; border-radius: 0; }
         }
-        @page { size: {{ $size === 'ticket' ? '80mm auto' : 'A5' }}; margin: {{ $isPdf ? '12mm 13mm' : ($size === 'ticket' ? '0' : '8mm') }}; }
+        @page { size: {{ $size === 'ticket' ? '80mm auto' : 'A5' }}; margin: {{ $isPdf ? '10mm 12mm' : ($size === 'ticket' ? '0' : '8mm') }}; }
     </style>
 </head>
 <body>

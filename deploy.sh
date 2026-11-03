@@ -171,7 +171,7 @@ deploy_backend() {
   local static_file
   # manifest-espace.json, espace-sw.js, hors-connexion.html : espace pressing
   # installable sur PC (le service worker doit être servi à la racine).
-  for static_file in robots.txt favicon.ico apple-touch-icon.png favicon-48.png favicon-96.png favicon-192.png og-image.png qr-presslink-app.png manifest-espace.json espace-sw.js hors-connexion.html; do
+  for static_file in robots.txt favicon.ico favicon.svg favicon-pro.ico favicon-pro.svg apple-touch-icon.png apple-touch-icon-pro.png favicon-48.png favicon-96.png favicon-192.png og-image.png qr-presslink-app.png manifest-espace.json espace-sw.js hors-connexion.html; do
     lftp_run "put '$API_DIR/public/$static_file' -o $REMOTE_WEBROOT/$static_file;"
   done
 

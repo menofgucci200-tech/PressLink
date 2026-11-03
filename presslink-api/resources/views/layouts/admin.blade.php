@@ -6,8 +6,8 @@
         <meta name="app-debug" content="{{ config('app.debug') ? '1' : '0' }}">
         <title>{{ $title ?? config('app.name') }}</title>
         <meta name="robots" content="noindex, nofollow">
-        <link rel="icon" href="{{ asset('favicon.ico') }}?v=2" sizes="any">
-        <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}?v=2">
+        <link rel="icon" href="{{ asset('favicon.ico') }}?v=3" sizes="any">
+        <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}?v=3">
         <x-theme-script />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
@@ -60,8 +60,7 @@
                    @click="if ($event.target.closest('a')) menu = false">
                 <div class="flex justify-center px-4 pb-4 pt-6">
                     <a href="{{ route('admin.dashboard') }}" wire:navigate class="flex flex-col items-center gap-1 rounded-xl border border-(--color-border) bg-(--color-surface) px-6 py-3 shadow-sm">
-                        <img src="{{ asset('images/logo-presslink.png') }}" alt="" width="44" height="44" class="w-11 h-11">
-                        <span class="font-display text-lg font-bold tracking-tight leading-none">Press<span class="text-(--color-primary)">Link</span></span>
+                        <x-logo class="h-10" />
                         <span class="text-[9px] font-semibold uppercase tracking-widest text-(--color-text-muted)">Console super admin</span>
                     </a>
                 </div>

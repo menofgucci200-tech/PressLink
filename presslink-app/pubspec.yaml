@@ -83,6 +83,9 @@ flutter:
   assets:
     - assets/branding/logo_original.png
     - assets/branding/logo_wordmark.png
+    - assets/branding/logo_horizontal.png
+    - assets/branding/logo_horizontal_negatif.png
+    - assets/branding/icone_app.png
     - assets/icons/
 
   # Polices Inter / Inter Tight embarquées (AppTheme.bodyFont/displayFont) :

@@ -8,7 +8,7 @@
 
     <div class="relative w-full max-w-md animate-step">
         <div class="flex items-center justify-between mb-8">
-            <span class="font-display text-xl font-bold tracking-tight">Press<span class="text-violet-400">Link</span></span>
+            <x-logo tone="negatif" class="h-10 -ml-1.5" />
             <span class="inline-flex items-center gap-1.5 rounded-full border border-violet-400/30 bg-violet-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-violet-200">
                 <span class="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse"></span>
                 Super admin

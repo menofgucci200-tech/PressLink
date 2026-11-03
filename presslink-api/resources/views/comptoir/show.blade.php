@@ -6,7 +6,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow">
     <title>Comptoir — PressLink</title>
-    <link rel="icon" href="{{ asset('favicon.ico') }}?v=2" sizes="any">
+    <link rel="icon" href="{{ asset('favicon-pro.ico') }}?v=3" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon-pro.svg') }}?v=3">
     <x-theme-script />
     <x-installable-app />
     @vite(['resources/css/app.css', 'resources/js/comptoir.js'])
@@ -23,7 +24,7 @@
     {{-- Barre du haut : état de la connexion et des envois --}}
     <header class="sticky top-0 z-20 bg-(--color-surface) border-b border-(--color-border)">
         <div class="max-w-6xl mx-auto px-4 h-16 flex items-center gap-3">
-            <div class="font-display text-xl font-bold tracking-tight">Press<span class="text-(--color-primary)">Link</span></div>
+            <div class="flex items-center gap-1.5 -ml-1.5"><x-logo class="h-9" /><span class="rounded-md bg-(--color-primary-tint) px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-(--color-primary)">Pro</span></div>
             <div class="hidden sm:block text-sm text-(--color-text-secondary) truncate" x-text="donnees?.pressing.name"></div>
             <div class="flex-1"></div>
 

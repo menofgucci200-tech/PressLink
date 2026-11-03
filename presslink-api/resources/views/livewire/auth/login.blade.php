@@ -32,7 +32,7 @@
     <main class="relative flex flex-col justify-center px-6 py-12 sm:px-12 bg-(--color-bg) lg:bg-(--color-surface)">
         <x-theme-toggle class="absolute top-5 right-5 sm:top-6 sm:right-6" />
         <div class="w-full max-w-sm mx-auto animate-step">
-            <a href="{{ route('home') }}" class="lg:hidden inline-block font-display text-2xl font-bold tracking-tight mb-10">Press<span class="text-(--color-primary)">Link</span></a>
+            <a href="{{ route('home') }}" class="lg:hidden inline-block -ml-1.5 mb-10" aria-label="PressLink, accueil"><x-logo class="h-11" alt="" /></a>
 
             <div class="w-12 h-12 rounded-2xl bg-(--color-primary-tint) text-(--color-primary) flex items-center justify-center mb-5">
                 <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 4l9 5.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/><path d="M9 21v-7h6v7"/></svg>

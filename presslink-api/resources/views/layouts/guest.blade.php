@@ -7,9 +7,9 @@
 
         <title>{{ $title ?? config('app.name') }}</title>
         <meta name="robots" content="noindex, nofollow">
-        <link rel="icon" href="{{ asset('favicon.ico') }}?v=2" sizes="any">
-        <link rel="icon" type="image/png" href="{{ asset('favicon-96.png') }}?v=2" sizes="96x96">
-        <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}?v=2">
+        <link rel="icon" href="{{ asset('favicon.ico') }}?v=3" sizes="any">
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=3">
+        <link rel="icon" type="image/png" href="{{ asset('favicon-96.png') }}?v=3" sizes="96x96">
 
         <x-theme-script />
         <x-installable-app />

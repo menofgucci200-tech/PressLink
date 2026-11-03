@@ -4,7 +4,7 @@
 <div class="acc site-polices min-h-screen">
     <x-site.fonts />
     <header class="relative max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
-        <a href="{{ route('home') }}" class="font-display text-xl font-bold tracking-tight" aria-label="PressLink, accueil">Press<span class="text-(--color-primary)">Link</span></a>
+        <a href="{{ route('home') }}" class="-ml-1.5" aria-label="PressLink, accueil"><x-logo class="h-10" alt="" /></a>
         <div class="flex items-center gap-2">
             <a href="{{ route('login') }}" class="hidden sm:inline-flex items-center whitespace-nowrap h-10 px-4 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">Espace pressing</a>
             <x-theme-toggle class="w-10! h-10!" />

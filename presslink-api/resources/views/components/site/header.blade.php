@@ -20,8 +20,8 @@
 @endphp
 <header class="sticky top-0 z-20 bg-(--color-surface)/90 backdrop-blur border-b border-(--color-border)">
     <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
-        <a href="{{ route('home') }}" class="font-display text-xl font-bold tracking-tight" aria-label="PressLink, accueil">
-            Press<span class="text-(--color-primary)">Link</span>
+        <a href="{{ route('home') }}" class="-ml-1.5" aria-label="PressLink, accueil">
+            <x-logo class="h-10" alt="" />
         </a>
         <nav class="hidden lg:flex items-center gap-6 text-sm font-medium text-(--color-text-secondary)" aria-label="Navigation principale">
             @foreach ($links as $name => $label)

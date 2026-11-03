@@ -90,19 +90,12 @@ class _PhoneScreenState extends ConsumerState<PhoneScreen> {
               const SizedBox(height: AppSpacing.xxxl),
               _Entrance(
                 index: 0,
-                child: RichText(
-                  text: TextSpan(
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                    children: [
-                      const TextSpan(text: 'Press'),
-                      TextSpan(
-                        text: 'Link',
-                        style: TextStyle(color: AppColors.primary),
-                      ),
-                    ],
-                  ),
+                child: Image.asset(
+                  context.isDark
+                      ? 'assets/branding/logo_horizontal_negatif.png'
+                      : 'assets/branding/logo_horizontal.png',
+                  height: 34,
+                  semanticLabel: 'PressLink',
                 ),
               ),
               const SizedBox(height: AppSpacing.md),

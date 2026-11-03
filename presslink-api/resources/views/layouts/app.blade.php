@@ -7,8 +7,8 @@
 
         <title>{{ $title ?? config('app.name') }}</title>
         <meta name="robots" content="noindex, nofollow">
-        <link rel="icon" href="{{ asset('favicon.ico') }}?v=2" sizes="any">
-        <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}?v=2">
+        <link rel="icon" href="{{ asset('favicon.ico') }}?v=3" sizes="any">
+        <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}?v=3">
 
         <x-theme-script />
         @vite(['resources/css/app.css', 'resources/js/app.js'])

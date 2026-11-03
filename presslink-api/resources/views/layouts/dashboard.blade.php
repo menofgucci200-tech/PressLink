@@ -6,8 +6,8 @@
         <meta name="app-debug" content="{{ config('app.debug') ? '1' : '0' }}">
         <title>{{ $title ?? config('app.name') }}</title>
         <meta name="robots" content="noindex, nofollow">
-        <link rel="icon" href="{{ asset('favicon.ico') }}?v=2" sizes="any">
-        <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}?v=2">
+        <link rel="icon" href="{{ asset('favicon-pro.ico') }}?v=3" sizes="any">
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon-pro.svg') }}?v=3">
         <x-theme-script />
         <x-installable-app />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -85,7 +85,7 @@
             <aside class="fixed inset-y-0 left-0 z-40 max-lg:-translate-x-full lg:sticky lg:top-0 lg:h-screen lg:self-start lg:z-auto w-[239px] flex-none flex flex-col py-[22px] pl-5 overflow-y-auto overflow-x-hidden text-white transition-transform duration-200 ease-out app-sidebar"
                    :class="menu && 'max-lg:translate-x-0!'"
                    @click="if ($event.target.closest('a')) menu = false">
-                <div class="font-display text-[21px] font-bold tracking-tight pr-1 pb-[30px]">Press<span class="text-blue-100">Link</span></div>
+                <div class="flex items-center gap-1.5 pr-1 pb-[26px] -ml-1.5"><x-logo tone="negatif" class="h-10" /><span class="rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-blue-100">Pro</span></div>
 
                 @if ($user->hasMultiplePressings())
                     <div class="pr-5 pb-4">

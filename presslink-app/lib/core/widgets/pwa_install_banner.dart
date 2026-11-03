@@ -161,17 +161,13 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.install_mobile,
-                    size: 20,
-                    color: Colors.white,
+                // L'icône que l'on retrouvera sur l'écran d'accueil.
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.asset(
+                    'assets/branding/icone_app.png',
+                    width: 36,
+                    height: 36,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm + 4),

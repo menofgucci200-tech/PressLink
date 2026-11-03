@@ -12,7 +12,7 @@
 // En ligne, la page et le code viennent toujours du serveur (une mise à jour
 // est prise tout de suite) ; le cache ne sert qu'en cas d'échec du réseau.
 
-const CACHE = 'presslink-app-hors-connexion-v1';
+const CACHE = 'presslink-app-hors-connexion-v2';
 const SHELL = ['./', 'index.html', 'flutter_bootstrap.js', 'flutter.js', 'main.dart.js', 'manifest.json', 'favicon.png'];
 
 self.addEventListener('install', (event) => {

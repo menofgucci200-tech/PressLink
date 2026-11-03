@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
     <title>@yield('code') · @yield('title') — PressLink</title>
-    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" href="/favicon.ico?v=3" sizes="any">
     {{-- Même choix jour / nuit que le reste du site (cf. components/theme-script). --}}
     <script>try{var t=localStorage.getItem('presslink-theme');if(t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.setAttribute('data-theme','dark')}catch(e){}</script>
     <style>

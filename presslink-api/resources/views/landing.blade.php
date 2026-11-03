@@ -82,7 +82,7 @@
     <section class="acc" data-motion-ignore>
         <div class="acc-enveloppe">
             <div class="acc-briefing">
-                <span class="acc-ariane"><i aria-hidden="true"></i>Logiciel de gestion de pressing</span>
+                <span class="acc-ariane"><i aria-hidden="true"></i>{{ $offer ? 'Lancement officiel · logiciel de pressing' : 'Logiciel de gestion de pressing' }}</span>
                 <h1>Votre pressing,<br>enfin <span class="acc-tourne" data-motion="tourne">@foreach ($words as $i => $word)<span @class(['apres' => $i > 0]) @if ($i > 0) aria-hidden="true" @endif>{{ $word }}</span>@endforeach</span></h1>
                 <p class="acc-chapo">Commandes, paiements et clients prévenus au même endroit. Choisissez votre étape, on vous guide jusqu'au bout.</p>
                 <div class="acc-confiance">

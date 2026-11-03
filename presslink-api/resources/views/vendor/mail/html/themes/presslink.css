@@ -41,7 +41,7 @@ img { max-width: 100%; }
 
 .header { padding: 32px 0 24px; text-align: center; }
 .header a { color: #0F172A; font-size: 19px; font-weight: bold; text-decoration: none; }
-.logo { height: auto; max-height: 40px; width: 150px; }
+.logo { height: auto; max-height: 46px; width: 180px; }
 
 .body {
     -premailer-cellpadding: 0; -premailer-cellspacing: 0; -premailer-width: 100%;
@@ -100,9 +100,9 @@ img { max-width: 100%; }
     border-right: 24px solid #2563EB; border-top: 12px solid #2563EB;
 }
 .button-green, .button-success {
-    background-color: #059669;
-    border-bottom: 12px solid #059669; border-left: 24px solid #059669;
-    border-right: 24px solid #059669; border-top: 12px solid #059669;
+    background-color: #15803D;
+    border-bottom: 12px solid #15803D; border-left: 24px solid #15803D;
+    border-right: 24px solid #15803D; border-top: 12px solid #15803D;
 }
 .button-red, .button-error {
     background-color: #DC2626;

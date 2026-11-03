@@ -51,4 +51,5 @@
             Merci de votre confiance !
         </div>
         <div class="footer small">Édité le {{ now()->format('d/m/Y à H:i') }}</div>
+        @include('orders._receipt-signature')
     </div>

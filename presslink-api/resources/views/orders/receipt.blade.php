@@ -75,6 +75,8 @@
         .balance td { font-size: 1.15em; font-weight: bold; padding-top: 4px; }
         .note { margin-top: 8px; padding: 6px 8px; background: #f8fafc; border-left: 3px solid #cbd5e1; }
         .footer { margin-top: 12px; text-align: center; color: #64748b; font-size: 0.85em; }
+        .signature { margin-top: 10px; text-align: center; color: #94a3b8; font-size: 0.75em; }
+        .signature img { height: 13px; width: auto; vertical-align: middle; margin-left: 4px; }
         .code { font-family: "DejaVu Sans Mono", ui-monospace, monospace; font-weight: bold; color: #0f172a; letter-spacing: 1px; }
         @media print {
             body { background: #fff; }

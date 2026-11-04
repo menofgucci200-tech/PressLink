@@ -36,7 +36,7 @@
 
     <section class="max-w-6xl mx-auto px-5 py-16 md:py-20">
         <div class="grid lg:grid-cols-[1.3fr_1fr] gap-10 items-center">
-            <figure>
+            <figure id="video-parcours" class="scroll-mt-24">
                 <video class="w-full rounded-3xl border border-(--color-border) shadow-sm bg-(--color-bg)" controls playsinline preload="none"
                        poster="{{ asset('video/presslink-parcours-pressing.jpg') }}" width="1920" height="1080">
                     <source src="{{ asset('video/presslink-parcours-pressing.mp4') }}" type="video/mp4">

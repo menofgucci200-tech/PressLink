@@ -12,6 +12,16 @@ const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const montrer = () => document.documentElement.classList.add('motion-pret');
 
+// « Comment ça marche ? » : la vidéo s'ouvre dans une fenêtre, sans quitter la page.
+$$('[data-video-dialog]').forEach((lien) => {
+    const dialogue = document.getElementById(lien.dataset.videoDialog);
+    if (!dialogue?.showModal) return;
+    const video = $('video', dialogue);
+    lien.addEventListener('click', (e) => { e.preventDefault(); dialogue.showModal(); video.play().catch(() => {}); });
+    dialogue.addEventListener('close', () => video.pause());
+    dialogue.addEventListener('click', (e) => { if (e.target === dialogue || e.target.closest('[data-fermer]')) dialogue.close(); });
+});
+
 if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
     montrer();
 } else {

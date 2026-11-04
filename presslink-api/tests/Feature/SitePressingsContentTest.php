@@ -43,8 +43,17 @@ class SitePressingsContentTest extends TestCase
             ->assertSee(asset('video/presslink-parcours-pressing.jpg'), false)
             ->assertSee('Votre pressing sur PressLink, étape par étape');
 
+        // Accueil : « Comment ça marche ? » ouvre la même vidéo (repli : la page Pour les pressings).
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Comment ça marche ?')
+            ->assertSee('data-video-dialog="video-parcours-accueil"', false)
+            ->assertSee(route('site.pressings').'#video-parcours', false)
+            ->assertSee(asset('video/presslink-parcours-pressing.mp4'), false);
+
         $this->assertFileExists(public_path('video/presslink-parcours-pressing.mp4'));
         $this->assertFileExists(public_path('video/presslink-parcours-pressing.jpg'));
+        $this->assertFileExists(public_path('video/presslink-parcours-pressing-mini.jpg'));
     }
 
     public function test_the_trial_button_announces_the_launch_offer_while_it_runs(): void

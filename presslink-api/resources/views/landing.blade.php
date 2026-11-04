@@ -85,6 +85,17 @@
                 <span class="acc-ariane"><i aria-hidden="true"></i>{{ $offer ? 'Lancement officiel · logiciel de pressing' : 'Logiciel de gestion de pressing' }}</span>
                 <h1>Votre pressing,<br>enfin <span class="acc-tourne" data-motion="tourne">@foreach ($words as $i => $word)<span @class(['apres' => $i > 0]) @if ($i > 0) aria-hidden="true" @endif>{{ $word }}</span>@endforeach</span></h1>
                 <p class="acc-chapo">Commandes, paiements et clients prévenus au même endroit. Choisissez votre étape, on vous guide jusqu'au bout.</p>
+                {{-- La vidéo du parcours s'ouvre ici même (site.js) ; sans JavaScript, le lien mène à la page Pour les pressings. --}}
+                <a href="{{ route('site.pressings') }}#video-parcours" class="acc-video" data-video-dialog="video-parcours-accueil">
+                    <span class="acc-video-vignette">
+                        <img src="{{ asset('video/presslink-parcours-pressing-mini.jpg') }}" alt="" width="112" height="63">
+                        <span class="acc-video-lecture" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z"/></svg></span>
+                    </span>
+                    <span class="acc-video-texte">
+                        <strong>Comment ça marche ?</strong>
+                        <span>Le parcours complet en vidéo · 3 min 36</span>
+                    </span>
+                </a>
                 <div class="acc-confiance">
                     @if ($offer)<span>Gratuit jusqu'au {{ $until }}</span>@endif
                     <span>Sans engagement</span>
@@ -109,6 +120,21 @@
                 <div class="acc-arrivee"><span aria-hidden="true">🏁</span>Votre pressing en ligne, vos clients prévenus</div>
             </nav>
         </div>
+
+        <dialog id="video-parcours-accueil" class="acc-dialogue" aria-label="Comment ça marche : votre pressing sur PressLink, étape par étape" data-lenis-prevent>
+            <div class="acc-dialogue-cadre">
+                <button type="button" class="acc-dialogue-fermer" data-fermer aria-label="Fermer la vidéo">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                </button>
+                <video controls playsinline preload="none" poster="{{ asset('video/presslink-parcours-pressing.jpg') }}" width="1920" height="1080">
+                    <source src="{{ asset('video/presslink-parcours-pressing.mp4') }}" type="video/mp4">
+                </video>
+                <div class="acc-dialogue-pied">
+                    <span>Votre pressing sur PressLink, étape par étape</span>
+                    <a href="{{ route('signup') }}">Créer mon pressing →</a>
+                </div>
+            </div>
+        </dialog>
     </section>
 
     {{-- ===== Pourquoi maintenant ===== --}}

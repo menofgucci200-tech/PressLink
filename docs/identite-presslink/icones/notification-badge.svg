@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="t"><title id="t">PressLink</title>
+<path fill="#FFFFFF" d="M 38 46 A 18 18 0 0 1 56 28 H 120 A 66 66 0 0 1 120 160 H 74 V 210 A 18 18 0 0 1 38 210 Z M 74 64 V 124 H 120 A 30 30 0 0 0 120 64 Z"/>
+<path fill="#FFFFFF" d="M 138 88 L 138 92 A 18 18 0 0 1 102 92 L 102 88 A 18 18 0 0 1 138 88 Z M 138 192 L 138 210 A 18 18 0 0 1 102 210 L 102 192 A 18 18 0 0 1 138 192 Z M 120 192 L 200 192 A 18 18 0 0 1 200 228 L 120 228 A 18 18 0 0 1 120 192 Z"/>
+</svg>

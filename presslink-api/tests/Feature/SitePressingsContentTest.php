@@ -35,6 +35,18 @@ class SitePressingsContentTest extends TestCase
             ->assertDontSee('Ils utilisent PressLink');
     }
 
+    public function test_the_pressings_page_shows_the_full_pressing_journey_video(): void
+    {
+        $this->get(route('site.pressings'))
+            ->assertOk()
+            ->assertSee(asset('video/presslink-parcours-pressing.mp4'), false)
+            ->assertSee(asset('video/presslink-parcours-pressing.jpg'), false)
+            ->assertSee('Votre pressing sur PressLink, étape par étape');
+
+        $this->assertFileExists(public_path('video/presslink-parcours-pressing.mp4'));
+        $this->assertFileExists(public_path('video/presslink-parcours-pressing.jpg'));
+    }
+
     public function test_the_trial_button_announces_the_launch_offer_while_it_runs(): void
     {
         $this->travelTo('2026-10-26 09:00:00');

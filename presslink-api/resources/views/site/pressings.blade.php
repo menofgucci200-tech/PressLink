@@ -38,15 +38,15 @@
         <div class="grid lg:grid-cols-[1.3fr_1fr] gap-10 items-center">
             <figure>
                 <video class="w-full rounded-3xl border border-(--color-border) shadow-sm bg-(--color-bg)" controls playsinline preload="none"
-                       poster="{{ asset('video/presslink-presentation.jpg') }}" width="1280" height="720">
-                    <source src="{{ asset('video/presslink-presentation.mp4') }}" type="video/mp4">
+                       poster="{{ asset('video/presslink-parcours-pressing.jpg') }}" width="1920" height="1080">
+                    <source src="{{ asset('video/presslink-parcours-pressing.mp4') }}" type="video/mp4">
                 </video>
-                <figcaption class="mt-3 font-semibold">Découvrir PressLink : l'application et le logiciel de gestion <span class="font-normal text-(--color-text-muted)">· 1 min 22</span></figcaption>
+                <figcaption class="mt-3 font-semibold">Votre pressing sur PressLink, étape par étape <span class="font-normal text-(--color-text-muted)">· 3 min 36</span></figcaption>
             </figure>
             <div>
                 <h2 class="font-display text-3xl font-bold tracking-tight mb-4">Voyez-le avant de vous lancer</h2>
                 <p class="text-(--color-text-secondary) leading-relaxed mb-4">
-                    Filmé dans le tableau de bord du pressing et dans l'application de vos clients : la création d'une commande au comptoir, l'encaissement, puis la notification « prête » reçue par le client.
+                    Filmé dans le vrai logiciel : le test avec un pressing fictif, l'inscription, vos prix et votre équipe, une commande du dépôt jusqu'au retrait, puis le tableau de bord, vos clients et la clôture de caisse.
                 </p>
                 <p class="text-(--color-text-secondary) leading-relaxed">
                     Vos clients n'ont rien à télécharger depuis un store : ils ouvrent <span class="font-semibold">presslink.org/app</span> et suivent leurs commandes gratuitement.

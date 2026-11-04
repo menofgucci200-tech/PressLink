@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PressLink · La fusion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="parcours.css">
+<style>
+/* La fusion des propositions 1 et 2 : un court briefing à gauche, les 3 étapes à droite.
+   Un seul écran, rien d'autre. Au clic, l'étape devient le formulaire et le briefing suit. */
+:root {
+    --display: 'Bricolage Grotesque', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --corps: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --fond: #F5F7FC;
+    --ambre: #F59E0B;
+    --ambre-teinte: #FEF3C7;
+    --vert-teinte: #DCFCE7;
+}
+body { background: var(--fond); }
+h1, h2, h3 { font-family: var(--display); letter-spacing: -.03em; }
+.ecran-parcours h3 { font-size: 24px; }
+
+.entete .enveloppe { display: flex; align-items: center; gap: 24px; min-height: 72px; }
+.entete nav { margin-left: auto; display: flex; align-items: center; gap: 22px; font-weight: 600; color: var(--texte-2); }
+.entete nav a { text-decoration: none; }
+.entete nav a:hover { color: var(--encre); }
+.entete .btn { min-height: 42px; padding: 0 18px; border-radius: 99px; }
+.logo { font-family: var(--display); }
+@media (max-width: 720px) { .entete nav .lien { display: none; } }
+
+/* ----- La scène : briefing + étapes ----- */
+.scene { position: relative; overflow: hidden; }
+.scene::before { content: ""; position: absolute; width: 640px; height: 640px; right: -160px; top: -140px; border-radius: 50%; background: radial-gradient(circle, rgba(37,99,235,.16), transparent 65%); animation: flotte 14s ease-in-out infinite alternate; pointer-events: none; }
+@keyframes flotte { to { transform: translate(-80px, 60px) scale(1.1); } }
+.scene .enveloppe { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 500px); gap: 64px; align-items: center; min-height: calc(100vh - 112px); padding-block: 40px 56px; }
+@media (max-width: 960px) { .scene .enveloppe { grid-template-columns: 1fr; gap: 32px; min-height: 0; padding-block: 20px 48px; } }
+
+/* Briefing à gauche */
+.briefing { view-transition-name: briefing; max-width: 540px; }
+.ariane { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 14px; border-radius: 99px; background: #fff; border: 1px solid var(--trait); font-size: 13.5px; font-weight: 600; color: var(--texte-2); }
+.ariane b { color: var(--bleu); }
+.ariane i { width: 8px; height: 8px; border-radius: 50%; background: var(--vert); box-shadow: 0 0 0 4px rgba(34,197,94,.2); }
+.briefing h1 { font-size: clamp(42px, 6vw, 74px); font-weight: 800; line-height: .98; margin: 22px 0 18px; }
+.briefing p.chapo { font-size: 19px; color: var(--texte-2); max-width: 460px; line-height: 1.55; }
+.confiance { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 26px; font-size: 14px; font-weight: 600; color: var(--texte-3); }
+.confiance span { display: inline-flex; align-items: center; gap: 6px; }
+.confiance span::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--vert); }
+.briefing .anime > * { animation: entre .7s var(--ressort) both; }
+.briefing .anime > *:nth-child(2) { animation-delay: .08s; } .briefing .anime > *:nth-child(3) { animation-delay: .16s; } .briefing .anime > *:nth-child(4) { animation-delay: .24s; }
+@keyframes entre { from { opacity: 0; transform: translateY(18px); filter: blur(6px); } }
+
+/* Mot qui tourne, façon machine à sous */
+.tourne { display: inline-grid; vertical-align: bottom; overflow: hidden; height: 1.02em; color: var(--bleu); position: relative; }
+.tourne span { grid-area: 1 / 1; transition: transform .6s var(--ressort), opacity .4s; white-space: nowrap; }
+.tourne span.avant { transform: translateY(-105%); opacity: 0; }
+.tourne span.apres { transform: translateY(105%); opacity: 0; }
+.tourne::after { content: ""; position: absolute; left: 0; right: 0; bottom: .02em; height: .14em; border-radius: 9px; background: var(--or); opacity: .55; z-index: -1; transform-origin: left; animation: souligne .8s .5s var(--doux) both; }
+@keyframes souligne { from { transform: scaleX(0); } }
+
+/* ----- Les 3 étapes à droite ----- */
+.droite { position: relative; }
+.etapes { position: relative; display: grid; gap: 14px; }
+.etapes::before { content: ""; position: absolute; left: 41px; top: 40px; bottom: 58px; width: 2px; background-image: linear-gradient(var(--bleu) 50%, transparent 50%); background-size: 2px 10px; opacity: .35; animation: fourmis 1.2s linear infinite; }
+@keyframes fourmis { to { background-position: 0 10px; } }
+.carte { position: relative; display: grid; grid-template-columns: 54px 1fr 40px; gap: 16px; align-items: center; width: 100%; padding: 16px 18px 16px 14px; border-radius: 24px; background: #fff; border: 1.5px solid var(--trait); text-align: left; box-shadow: 0 1px 2px rgba(15,23,42,.04); transition: transform .45s var(--ressort), box-shadow .35s, border-color .3s, opacity .3s; animation: carte-in .8s var(--ressort) both; }
+.carte:nth-child(1) { animation-delay: .25s; } .carte:nth-child(2) { animation-delay: .4s; } .carte:nth-child(3) { animation-delay: .55s; }
+@keyframes carte-in { from { opacity: 0; transform: translateX(60px) rotate(2deg); } }
+.etapes:hover .carte:not(:hover) { opacity: .62; }
+.carte:hover, .carte.survol { transform: translateX(-8px) scale(1.015); border-color: var(--bleu); box-shadow: 0 24px 50px -28px rgba(37,99,235,.6); opacity: 1; }
+.carte .ico { position: relative; z-index: 1; width: 54px; height: 54px; border-radius: 17px; display: grid; place-items: center; }
+.carte .ico svg { width: 34px; height: 34px; overflow: visible; }
+.carte[data-etape="tester"] .ico { background: var(--ambre-teinte); color: #B45309; }
+.carte[data-etape="formules"] .ico { background: var(--vert-teinte); color: var(--vert-fonce); }
+.carte .num { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--texte-3); }
+.carte h2 { font-size: 23px; font-weight: 700; margin: 2px 0 2px; }
+.carte p { font-size: 14.5px; color: var(--texte-2); }
+.carte .fleche { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--fond); color: var(--encre); transition: transform .4s var(--ressort), background .3s, color .3s; }
+.carte:hover .fleche, .carte.survol .fleche { transform: translateX(4px) rotate(-45deg); background: var(--bleu); color: #fff; }
+.carte .fait-badge { display: none; margin-left: 6px; padding: 2px 8px; border-radius: 99px; background: var(--vert-teinte); color: var(--vert-fonce); font: 700 11.5px/1.4 var(--corps); letter-spacing: 0; vertical-align: 4px; }
+.carte.fait .fait-badge { display: inline-block; }
+
+/* L'étape conseillée */
+.carte.vedette { background: var(--bleu); border-color: var(--bleu); color: #fff; padding-block: 22px; box-shadow: 0 30px 60px -28px rgba(37,99,235,.85); }
+.carte.vedette .ico { background: rgba(255,255,255,.16); color: #fff; }
+.carte.vedette .num, .carte.vedette p { color: #DBEAFE; }
+.carte.vedette .fleche { background: #fff; color: var(--bleu); }
+.carte.vedette:hover .fleche { background: var(--vert); color: #fff; }
+.carte.vedette .badge { position: absolute; top: -11px; right: 22px; padding: 4px 11px; border-radius: 99px; background: var(--or); color: #1E293B; font-size: 12px; font-weight: 800; transform: rotate(3deg); animation: badge 3.5s 2s ease-in-out infinite; }
+@keyframes badge { 0%, 88%, 100% { transform: rotate(3deg); } 92% { transform: rotate(-6deg) scale(1.08); } 96% { transform: rotate(7deg) scale(1.08); } }
+.carte.vedette.appel .fleche { animation: appel .9s var(--ressort); }
+@keyframes appel { 40% { transform: translateX(8px); } }
+.arrivee { display: flex; align-items: center; gap: 10px; padding-left: 26px; font-size: 14px; font-weight: 600; color: var(--texte-3); animation: carte-in .8s .75s var(--ressort) both; }
+.arrivee span { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: #fff; border: 1.5px dashed #CBD5E1; font-size: 15px; }
+
+/* Icônes animées */
+.bulle-test { animation: bulle-monte 2.4s ease-in infinite; transform-box: fill-box; }
+.bulle-test:nth-of-type(2) { animation-delay: .8s; } .bulle-test:nth-of-type(3) { animation-delay: 1.6s; }
+@keyframes bulle-monte { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(-16px); opacity: 0; } }
+.liquide { animation: vague 2s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+@keyframes vague { to { transform: skewY(-6deg) translateY(1px); } }
+.carte:hover .flacon, .carte.survol .flacon { animation: secoue .5s ease-in-out 2; transform-origin: 50% 90%; transform-box: fill-box; }
+@keyframes secoue { 25% { transform: rotate(-12deg); } 75% { transform: rotate(12deg); } }
+.toit { transform-box: fill-box; transform-origin: center bottom; }
+.porte-maison { transform-box: fill-box; transform-origin: left center; transition: transform .45s var(--ressort); }
+.carte:hover .porte-maison, .carte.survol .porte-maison { transform: scaleX(.25); }
+.carte:hover .toit, .carte.survol .toit { animation: saute .6s var(--ressort); }
+@keyframes saute { 40% { transform: translateY(-5px); } }
+.fumee { animation: fumee 2.6s ease-out infinite; transform-box: fill-box; opacity: 0; }
+@keyframes fumee { 0% { opacity: 0; transform: translate(0, 0) scale(.6); } 30% { opacity: .9; } 100% { opacity: 0; transform: translate(4px, -12px) scale(1.4); } }
+.barre { transform-box: fill-box; transform-origin: bottom; animation: pousse 2.8s var(--ressort) infinite; }
+.barre:nth-of-type(2) { animation-delay: .15s; } .barre:nth-of-type(3) { animation-delay: .3s; }
+@keyframes pousse { 0%, 100% { transform: scaleY(.55); } 45%, 70% { transform: scaleY(1); } }
+.etoile { transform-box: fill-box; transform-origin: center; animation: brille 2.8s .5s ease-in-out infinite; }
+@keyframes brille { 0%, 40%, 100% { transform: scale(0) rotate(0); } 55%, 80% { transform: scale(1) rotate(72deg); } }
+
+/* ----- Le parcours, à la place des étapes ----- */
+.parcours-zone { view-transition-name: panneau; background: #fff; border-radius: 28px; border: 1.5px solid var(--trait); box-shadow: 0 40px 80px -46px rgba(15,23,42,.5); overflow: hidden; }
+.parcours-zone[hidden] { display: none !important; }
+.rail { display: flex; align-items: center; gap: 8px; padding: 14px 18px; border-bottom: 1px solid var(--trait); background: var(--fond); }
+.rail .retour { height: 34px; padding: 0 12px; border-radius: 99px; font-weight: 600; font-size: 13.5px; color: var(--texte-2); background: #fff; border: 1px solid var(--trait); }
+.rail .retour:hover { color: var(--bleu); border-color: var(--bleu); }
+.rail ol { margin: 0 0 0 auto; padding: 0; list-style: none; display: flex; align-items: center; gap: 6px; }
+.rail li { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--texte-3); }
+.rail li + li::before { content: ""; width: 14px; height: 2px; border-radius: 2px; background: var(--trait); }
+.rail li i { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-style: normal; background: #fff; border: 2px solid var(--trait); transition: all .4s var(--ressort); }
+.rail li.fait i { background: var(--vert); border-color: var(--vert); color: #fff; }
+.rail li.ici { color: var(--bleu); }
+.rail li.ici i { background: var(--bleu); border-color: var(--bleu); color: #fff; transform: scale(1.15); }
+.rail li:not(.ici) .t { display: none; }
+.zone { padding: 24px; }
+@media (max-width: 480px) { .zone { padding: 18px; } .rail { padding: 12px; } }
+
+.pied { padding-block: 0 28px; text-align: center; font-size: 13.5px; color: var(--texte-3); }
+::view-transition-old(panneau), ::view-transition-new(panneau) { animation-duration: .5s; }
+</style>
+</head>
+<body>
+<div class="maquette">
+    <div class="enveloppe">
+        <span class="pastille">Maquette</span>
+        <span><strong>La fusion des propositions 1 et 2</strong><span class="desc"> : un court briefing à gauche, les 3 étapes à droite</span></span>
+        <span class="droite"><a href="index.html">← Toutes les propositions</a><button class="rejouer" type="button" data-rejouer>▶ Rejouer la démo</button></span>
+    </div>
+</div>
+
+<header class="entete">
+    <div class="enveloppe">
+        <a class="logo" href="#" data-accueil><img src="img/logo-presslink.png" alt=""><span class="nom">Press<span>Link</span></span></a>
+        <nav>
+            <a class="lien" href="#" data-etape-lien="formules">Formules</a>
+            <a class="lien" href="#">Se connecter</a>
+            <a class="btn btn-vert" href="#" data-etape-lien="creer">Créer mon espace</a>
+        </nav>
+    </div>
+</header>
+
+<main class="scene">
+    <div class="enveloppe">
+        <div class="briefing" id="briefing"></div>
+
+        <div class="droite">
+            <div class="etapes" id="etapes">
+                <button class="carte" type="button" data-etape="tester">
+                    <span class="ico"><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <g class="flacon"><path d="M13 4h8M14 4v8L7 25.5A2.5 2.5 0 0 0 9.2 29h15.6a2.5 2.5 0 0 0 2.2-3.5L20 12V4"/>
+                        <path class="liquide" d="M10 21.5c2.5-1.5 4.5 1 7 0s4.5-1.5 7 0L26 25.5A2.5 2.5 0 0 1 24 28H10a2.5 2.5 0 0 1-2-2.5z" fill="currentColor" opacity=".35" stroke="none"/></g>
+                        <circle class="bulle-test" cx="15" cy="22" r="1.4" fill="currentColor" stroke="none"/><circle class="bulle-test" cx="19" cy="24" r="1.1" fill="currentColor" stroke="none"/><circle class="bulle-test" cx="17" cy="21" r="1" fill="currentColor" stroke="none"/>
+                    </svg></span>
+                    <span><span class="num">Étape 1 · facultative</span><h2>Tester <span class="fait-badge">✓ Fait</span></h2><p>Un pressing fictif, 3 jours, sans inscription.</p></span>
+                    <span class="fleche"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                </button>
+                <button class="carte vedette" type="button" data-etape="creer">
+                    <span class="badge">Recommandé</span>
+                    <span class="ico"><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle class="fumee" cx="24" cy="6" r="2" fill="currentColor" stroke="none"/>
+                        <path d="M23 9V5.5h3V12"/>
+                        <path class="toit" d="M4 15L17 5l13 10"/>
+                        <path d="M7 13v15h20V13"/>
+                        <rect class="porte-maison" x="14" y="19" width="6" height="9" rx="1" fill="currentColor" stroke="none" opacity=".5"/>
+                    </svg></span>
+                    <span><span class="num">Étape 2</span><h2>Créer mon pressing <span class="fait-badge">✓ Fait</span></h2><p>2 minutes. On vous appelle pour démarrer.</p></span>
+                    <span class="fleche"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                </button>
+                <button class="carte" type="button" data-etape="formules">
+                    <span class="ico"><svg viewBox="0 0 34 34" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect class="barre" x="6" y="18" width="5" height="10" rx="1.5" fill="currentColor" stroke="none" opacity=".45"/>
+                        <rect class="barre" x="14.5" y="12" width="5" height="16" rx="1.5" fill="currentColor" stroke="none"/>
+                        <rect class="barre" x="23" y="8" width="5" height="20" rx="1.5" fill="currentColor" stroke="none" opacity=".45"/>
+                        <path class="etoile" d="M17 2.5l1.2 2.6 2.8.3-2.1 1.9.6 2.8L17 8.7l-2.5 1.4.6-2.8L13 5.4l2.8-.3z" fill="#FBBF24" stroke="none"/>
+                    </svg></span>
+                    <span><span class="num">Étape 3</span><h2>Voir nos formules <span class="fait-badge">✓ Fait</span></h2><p>Dès 20 000 F par mois, sans engagement.</p></span>
+                    <span class="fleche"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                </button>
+                <div class="arrivee"><span id="arrivee-ico">🏁</span><span id="arrivee-txt" style="all:unset">Votre pressing en ligne</span></div>
+            </div>
+
+            <div class="parcours-zone" id="parcours-zone" hidden>
+                <div class="rail">
+                    <button class="retour" type="button" data-accueil>← Les 3 étapes</button>
+                    <ol id="rail">
+                        <li data-r="tester"><i>1</i><span class="t">Tester</span></li>
+                        <li data-r="creer"><i>2</i><span class="t">Mon pressing</span></li>
+                        <li data-r="formules"><i>3</i><span class="t">Ma formule</span></li>
+                    </ol>
+                </div>
+                <div class="zone" id="zone"></div>
+            </div>
+        </div>
+    </div>
+</main>
+<p class="pied">PressLink · Logiciel de gestion de pressing · Côte d'Ivoire · Aide sur WhatsApp</p>
+
+<script src="demo.js"></script>
+<script src="parcours.js"></script>
+<script>
+const briefing = document.getElementById('briefing');
+const etapes = document.getElementById('etapes');
+const panneau = document.getElementById('parcours-zone');
+const MOTS = ['simple.', 'organisé.', 'à jour.', 'payé à temps.'];
+
+/* Le briefing de gauche : trois lignes, qui changent avec l'étape */
+const BRIEFINGS = {
+    accueil: () => `
+        <span class="ariane"><i></i>Logiciel de gestion de pressing</span>
+        <h1>Votre pressing,<br>enfin <span class="tourne" id="tourne">${MOTS.map((m, i) => `<span class="${i ? 'apres' : ''}">${m}</span>`).join('')}</span></h1>
+        <p class="chapo">Commandes, paiements et clients prévenus au même endroit. Choisissez votre étape, on vous guide jusqu'au bout.</p>
+        <div class="confiance"><span>Gratuit jusqu'au 15 novembre</span><span>Sans engagement</span><span>Aide WhatsApp</span></div>`,
+    tester: () => `
+        <span class="ariane">Accueil › <b>Tester</b></span>
+        <h1>Essayez, sans rien risquer.</h1>
+        <p class="chapo">Un pressing fictif rempli d'exemples, pendant 3 jours. Si vous aimez, vos articles et vos prix sont gardés.</p>`,
+    creer: () => `
+        <span class="ariane">Accueil › <b>Créer mon pressing</b></span>
+        <h1>Votre espace en 2 minutes.</h1>
+        <p class="chapo">Votre pressing, puis vous. Notre équipe vous appelle ensuite pour vos tarifs et vos horaires.</p>`,
+    formules: () => `
+        <span class="ariane">Accueil › <b>Ma formule</b></span>
+        <h1>Une formule à votre taille.</h1>
+        <p class="chapo">Starter, Business ou Premium selon vos commandes. Deux mois offerts en payant à l'année.</p>`,
+    pret: () => `
+        <span class="ariane"><i></i>Accueil › <b>C'est parti</b></span>
+        <h1>Bienvenue sur PressLink !</h1>
+        <p class="chapo">Votre pressing est en ligne. On vous appelle aujourd'hui pour vous aider à démarrer.</p>`,
+};
+let briefingActuel = null, rotation = null;
+function montrerBriefing(cle) {
+    if (cle === briefingActuel) { return; }
+    briefingActuel = cle;
+    briefing.innerHTML = `<div class="anime">${BRIEFINGS[cle]()}</div>`;
+    clearInterval(rotation);
+    if (cle === 'accueil') {
+        let i = 0;
+        rotation = setInterval(() => {
+            const mots = [...document.querySelectorAll('#tourne span')];
+            if (!mots.length) { return; }
+            mots[i].className = 'avant';
+            i = (i + 1) % mots.length;
+            mots[i].className = 'apres';
+            void mots[i].offsetWidth;
+            mots[i].className = '';
+            setTimeout(() => mots.forEach((m, k) => { if (k !== i) { m.className = 'apres'; } }), 650);
+        }, 2300);
+    }
+}
+
+/* Rail d'étapes du panneau + état des cartes */
+function majEtat(etat) {
+    const faits = { tester: etat.teste, creer: etat.cree, formules: etat.paye };
+    document.querySelectorAll('#rail li').forEach((li) => {
+        const k = li.dataset.r;
+        li.classList.toggle('ici', k === etat.ici || (etat.ici === 'pret' && k === 'formules'));
+        li.classList.toggle('fait', !!faits[k] && k !== etat.ici);
+        li.querySelector('i').textContent = faits[k] && k !== etat.ici ? '✓' : ['tester', 'creer', 'formules'].indexOf(k) + 1;
+    });
+    document.querySelectorAll('.carte').forEach((c) => c.classList.toggle('fait', !!faits[c.dataset.etape]));
+    document.getElementById('arrivee-ico').textContent = etat.paye ? '🎉' : '🏁';
+    document.getElementById('arrivee-txt').textContent = etat.paye ? 'Votre pressing est en ligne' : 'Votre pressing en ligne';
+    if (etat.ici && !panneau.hidden) { montrerBriefing(etat.ici); }
+}
+const parcours = Parcours({ conteneur: document.getElementById('zone'), surChangement: majEtat, compact: true });
+
+function transition(maj) {
+    if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches && !document.hidden) { document.startViewTransition(maj); } else { maj(); }
+}
+function ouvrir(cle) {
+    transition(() => {
+        etapes.hidden = true;
+        panneau.hidden = false;
+        parcours.aller(cle);
+        montrerBriefing(parcours.etat.ici);
+    });
+    if (innerWidth <= 960) { setTimeout(() => panneau.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80); }
+}
+function accueil() {
+    transition(() => {
+        etapes.hidden = false;
+        panneau.hidden = true;
+        parcours.etat.ici = null;
+        montrerBriefing(parcours.etat.paye ? 'pret' : 'accueil');
+        majEtat(parcours.etat);
+    });
+}
+
+document.addEventListener('click', (e) => {
+    const c = e.target.closest('.carte');
+    if (c) { ouvrir(c.dataset.etape); return; }
+    const l = e.target.closest('[data-etape-lien]');
+    if (l) { e.preventDefault(); ouvrir(l.dataset.etapeLien); return; }
+    const a = e.target.closest('[data-accueil]');
+    if (a) { e.preventDefault(); accueil(); }
+});
+
+/* De temps en temps, la carte conseillée fait signe. */
+setInterval(() => {
+    const v = document.querySelector('.carte.vedette');
+    if (etapes.hidden || etapes.matches(':hover')) { return; }
+    v.classList.remove('appel'); void v.offsetWidth; v.classList.add('appel');
+}, 5000);
+
+montrerBriefing('accueil');
+
+Demo.installer({
+    reinitialiser: () => { parcours.reinitialiser(); briefingActuel = null; etapes.hidden = false; panneau.hidden = true; montrerBriefing('accueil'); majEtat(parcours.etat); window.scrollTo({ top: 0 }); },
+    scenario: async ({ cliquer, taper, attendre, vers }) => {
+        await attendre(4200);
+        for (const sel of ['.carte[data-etape="tester"]', '.carte[data-etape="formules"]']) {
+            const el = document.querySelector(sel);
+            await vers(el); el.classList.add('survol'); await attendre(1300); el.classList.remove('survol');
+        }
+        await cliquer('.carte.vedette');
+        await attendre(900);
+        await taper('#c-nom', 'Pressing Élégance');
+        await taper('#c-com', 'Cocody');
+        await taper('#c-tel', '07 08 45 12 30');
+        await cliquer('[data-action="creer-2"]');
+        await attendre(500);
+        await taper('#g-nom', 'Awa Koné');
+        await taper('#g-tel', '07 08 45 12 30');
+        await taper('#g-mdp', 'pressing2026');
+        await cliquer('[data-action="creer-ok"]');
+        await attendre(1800);
+        await cliquer('.zone .suite .btn');
+        await attendre(900);
+        await cliquer('[data-plan="Business"]');
+        await attendre(400);
+        await cliquer('[data-moyen="Wave"]');
+        await cliquer('[data-action="payer"]');
+        await attendre(3000);
+        await cliquer('.rail .retour');
+        await attendre(2500);
+    },
+});
+</script>
+</body>
+</html>

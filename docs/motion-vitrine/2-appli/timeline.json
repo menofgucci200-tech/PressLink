@@ -1,0 +1,14 @@
+{
+  "fps": 30,
+  "duree": 22.5,
+  "bpm": 120,
+  "voix": [
+    { "cle": "a1", "debut": 1.0 },
+    { "cle": "a2", "debut": 4.7 },
+    { "cle": "a3", "debut": 7.3 },
+    { "cle": "a4", "debut": 10.0 },
+    { "cle": "a5", "debut": 14.6 },
+    { "cle": "a6", "debut": 18.6 }
+  ],
+  "scenes": { "depot": 0.5, "suivi": 4.5, "prevenir": 7.0, "caisse": 9.5, "equipe": 14.0, "logo": 18.0 }
+}

@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PressLink — Abidjan, de l'aube à la nuit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../commun/v2.css">
+<style>
+body { background: #05081C; color: #fff; font-family: "Bricolage Grotesque", Inter, sans-serif; }
+#journee { position: relative; height: 1100vh; }
+.scene { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+#ciel { position: absolute; inset: 0; }
+#etoiles, #constellation { position: absolute; inset: 0; width: 100%; height: 100%; }
+.astre { position: absolute; border-radius: 50%; }
+#soleil { width: 120px; height: 120px; margin: -60px 0 0 -60px; background: radial-gradient(circle, #FFF6D6 0 38%, #FFD45A 39% 60%, rgba(255,190,70,0) 61%); filter: drop-shadow(0 0 60px rgba(255,200,90,.8)); }
+#lune { width: 80px; height: 80px; margin: -40px 0 0 -40px; background: radial-gradient(circle at 35% 35%, #FFFBEA, #E8E0C4 60%, #CFC6A6); box-shadow: 0 0 60px rgba(255,250,220,.5); }
+.nuage { position: absolute; height: 46px; border-radius: 40px; background: rgba(255,255,255,.75); filter: blur(2px); }
+.nuage::before, .nuage::after { content: ""; position: absolute; border-radius: 50%; background: inherit; }
+.nuage::before { width: 60%; height: 140%; left: 12%; top: -60%; }
+.nuage::after { width: 40%; height: 120%; right: 14%; top: -40%; }
+.couche { position: absolute; left: 0; bottom: 0; will-change: transform; max-width: none; }
+#phrases { position: absolute; left: 0; right: 0; top: 13vh; text-align: center; padding: 0 5vw; pointer-events: none; }
+.phrase { position: absolute; left: 5vw; right: 5vw; top: 0; opacity: 0; }
+.phrase .heure { font: 500 clamp(14px, 1.2vw, 17px)/1 "Bricolage Grotesque"; letter-spacing: .3em; opacity: .85; }
+.phrase h2 { font: 800 clamp(44px, 7.4vw, 128px)/.92 "Bricolage Grotesque"; letter-spacing: -.035em; margin-top: 14px; text-wrap: balance; }
+#cerf-volant { position: absolute; left: 0; top: 0; width: 170px; z-index: 4; pointer-events: none; overflow: visible; }
+.hud { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
+.hud > * { pointer-events: auto; position: absolute; }
+.hud .logo { left: 26px; top: 22px; font: 800 22px "Bricolage Grotesque"; letter-spacing: -.02em; text-decoration: none; }
+.hud .son-btn { right: 22px; top: 18px; }
+.hud .horloge { right: 26px; top: 72px; font: 800 clamp(30px, 3.4vw, 54px)/1 "Bricolage Grotesque"; letter-spacing: -.02em; font-variant-numeric: tabular-nums; text-align: right; }
+.hud .horloge small { display: block; font: 500 12px Inter; letter-spacing: .2em; opacity: .7; margin-top: 6px; text-transform: uppercase; }
+.frise { left: 26px; right: 26px; bottom: 64px; height: 24px; }
+.frise .ligne { position: absolute; left: 0; right: 0; top: 11px; height: 2px; background: rgba(255,255,255,.3); }
+.frise .fait { position: absolute; left: 0; top: 11px; height: 2px; background: #fff; }
+.frise .rep { position: absolute; top: 2px; font: 500 11px Inter; opacity: .7; transform: translateX(-50%); top: -12px; }
+.frise .rep::after { content: ""; position: absolute; left: 50%; top: 20px; width: 2px; height: 8px; background: currentColor; }
+.frise .curseur { position: absolute; top: 3px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: #FFD45A; box-shadow: 0 0 16px #FFD45A; }
+#panneau-video { position: absolute; z-index: 3; width: min(520px, 70vw); aspect-ratio: 16/9; border-radius: 12px; background: #0B1020; border: 6px solid #1B2240; display: grid; place-items: center; box-shadow: 0 30px 60px rgba(0,0,0,.4); opacity: 0; }
+#panneau-video .jouer { width: 74px; height: 74px; border-radius: 50%; background: #FFD45A; color: #0B1020; display: grid; place-items: center; font-size: 26px; }
+#panneau-video span { position: absolute; left: 14px; bottom: 10px; font: 500 13px Inter; opacity: .75; }
+#panneau-video::after { content: ""; position: absolute; left: 50%; bottom: -120px; width: 14px; height: 114px; margin-left: -7px; background: #1B2240; }
+#bulle-notif { position: absolute; z-index: 5; display: flex; gap: 14px; align-items: center; background: rgba(255,255,255,.96); color: #0F172A; border-radius: 24px; padding: 14px 20px 14px 14px; box-shadow: 0 20px 50px rgba(0,0,0,.3); opacity: 0; font-family: Inter; white-space: nowrap; }
+#bulle-notif img { width: 48px; height: 48px; border-radius: 12px; box-shadow: 0 0 0 1px #E2E8F0 inset; }
+#bulle-notif b { display: block; font-size: 17px; }
+#bulle-notif span { font-size: 13px; color: #64748B; }
+#final { position: absolute; left: 0; right: 0; top: 52%; text-align: center; z-index: 6; opacity: 0; pointer-events: none; }
+#final h2 { font: 800 clamp(48px, 8vw, 140px)/.9 "Bricolage Grotesque"; letter-spacing: -.04em; }
+#final p { margin-top: 14px; font: 500 clamp(15px, 1.4vw, 20px) Inter; opacity: .85; }
+#final .ctas { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 30px; }
+#final a { padding: 15px 26px; border-radius: 999px; font: 800 16px "Bricolage Grotesque"; text-decoration: none; }
+#final a.plein { background: #FFD45A; color: #0B1020; }
+#final a.bord { border: 2px solid rgba(255,255,255,.7); }
+.indice-scroll { position: absolute; left: 50%; bottom: 110px; transform: translateX(-50%); font: 500 12px Inter; letter-spacing: .25em; text-transform: uppercase; z-index: 10; }
+@media (max-width: 700px) { .frise .rep { display: none; } .hud .horloge { top: 66px; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+    <pattern id="wax" width="40" height="40" patternUnits="userSpaceOnUse"><rect width="40" height="40" fill="#E4572E"/><circle cx="10" cy="10" r="8" fill="#FFC145"/><circle cx="10" cy="10" r="3.5" fill="#2B4C9B"/><path d="M30 20 L40 30 L30 40 L20 30Z" fill="#2B4C9B"/><circle cx="30" cy="8" r="3" fill="#fff"/></pattern>
+    <linearGradient id="lagune" x1="0" y1="0" x2="0" y2="1"><stop id="lag1" offset="0" stop-color="#6E8FC4"/><stop id="lag2" offset="1" stop-color="#2A3F73"/></linearGradient>
+</defs></svg>
+
+<main>
+<section id="journee">
+    <div class="scene" id="scene">
+        <div id="ciel"></div>
+        <canvas id="etoiles"></canvas>
+        <div class="astre" id="soleil"></div>
+        <div class="astre" id="lune"></div>
+        <div id="nuages"></div>
+        <svg class="couche" id="loin"></svg>
+        <div id="phrases">
+            <div class="phrase" data-h="6"><div class="heure">06:00</div><h2>Abidjan se réveille.</h2></div>
+            <div class="phrase" data-h="8"><div class="heure">08:00</div><h2>On dépose ses vêtements, en passant.</h2></div>
+            <div class="phrase" data-h="12"><div class="heure">12:00</div><h2>L'atelier s'active. Chacun suit sa commande.</h2></div>
+            <div class="phrase" data-h="16"><div class="heure">16:00</div><h2>« C'est prêt&nbsp;! » Le téléphone vibre.</h2></div>
+            <div class="phrase" data-h="19"><div class="heure">19:00</div><h2>On passe récupérer. Sans attendre.</h2></div>
+            <div class="phrase" data-h="22"><div class="heure">22:00</div><h2>La ville s'endort.</h2></div>
+        </div>
+        <svg class="couche" id="milieu"></svg>
+        <div id="panneau-video"><div class="jouer">▶</div><span>Vidéo de présentation · bientôt ici</span></div>
+        <svg class="couche" id="pres"></svg>
+        <div id="bulle-notif"><img src="../commun/icon.png" alt=""><div><b>Votre commande est prête ! 🎉</b><span>PressLink · maintenant</span></div></div>
+        <svg id="cerf-volant" viewBox="-20 -20 210 400"><path id="ficelle" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="1.5"/><path id="pagne" fill="url(#wax)" stroke="#7A2A12" stroke-width="2"/></svg>
+        <svg id="constellation" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice"><path id="const-p" d="M 1180 470 L 1180 260 L 1300 260 Q 1380 260 1380 330 Q 1380 400 1300 400 L 1180 400" fill="none" stroke="rgba(255,240,200,.85)" stroke-width="2" stroke-linejoin="round"/><g id="const-pts" fill="#FFF6D6"></g></svg>
+        <div id="final"><h2>PressLink.</h2><p>Le lien entre votre pressing et vos clients. Le jour, la nuit, sans stress.</p><div class="ctas"><a class="plein" href="https://presslink.org/app/">Ouvrir l'application</a><a class="bord" href="https://wa.me/2250718002293" target="_blank" rel="noopener">Parlons-en</a></div></div>
+        <div class="hud">
+            <a class="logo" href="#journee">PressLink</a>
+            <button class="son-btn" data-son aria-pressed="false"><span class="ondes"><span></span><span></span><span></span></span>Son</button>
+            <div class="horloge" id="horloge">05:00<small id="moment">Avant l'aube</small></div>
+            <div class="frise" id="frise"><div class="ligne"></div><div class="fait" id="fait"></div><div class="curseur" id="curseur"></div></div>
+        </div>
+        <div class="indice-scroll" id="indice">Faites défiler pour avancer l'heure ↓</div>
+    </div>
+</section>
+</main>
+
+<div class="legende" data-legende></div>
+<nav class="maquette-bar"><a href="../">Maquettes</a><a href="../1-plisse/">Plissé</a><a href="../2-fil/">Le Fil</a><a class="on" href="../3-abidjan/">Abidjan</a></nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="../commun/son.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+window.lenis = new Lenis({ lerp: 0.07 });
+window.lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add((t) => window.lenis.raf(t * 1000));
+gsap.ticker.lagSmoothing(0);
+
+const H0 = 5, H1 = 23;
+const REPLIQUES = { h6: 'Six heures. Abidjan se réveille.', h8: 'Huit heures. On dépose ses vêtements au pressing, en passant.', h12: "Midi. L'atelier s'active, et chacun suit sa commande.", h16: "Seize heures. C'est prêt ! Le téléphone vibre.", h19: 'Dix-neuf heures. On passe récupérer, sans attendre.', h22: "Vingt-deux heures. La ville s'endort… sans stress." };
+const dit = new Set();
+Son.brancher({});
+Son.preparerAmbiances({ aube: 'audio/aube.mp3', jour: 'audio/jour.mp3', soir: 'audio/soir.mp3', nuit: 'audio/nuit.mp3' });
+
+/* ---------------------------------------------------------------- couleurs selon l'heure */
+const CIEL = [ // heure, haut, milieu, horizon, loin, milieu, près
+    [5, '#0B1030', '#262B58', '#5B4C7E', '#2A2E57', '#1A1E40', '#0D1026'],
+    [6.5, '#2B3A75', '#C9707A', '#FFC48A', '#7A6A92', '#4B3F68', '#231C38'],
+    [8.5, '#4A9BDE', '#8FCDF3', '#DDF2FF', '#9DB4D8', '#5E7AA8', '#2E3B5E'],
+    [13, '#2D8BDE', '#7CC4F7', '#CDEBFF', '#9AB6DA', '#5A79AB', '#2B3A5E'],
+    [16.5, '#3D75BE', '#E9B26E', '#FFD9A0', '#B5A1A6', '#77617A', '#2F2840'],
+    [18.6, '#3B2F6B', '#E0584A', '#FFB15C', '#A86475', '#5C3560', '#241632'],
+    [20, '#141A42', '#3A2D63', '#7A4A6B', '#3A2E5A', '#221C42', '#100C22'],
+    [23, '#05081C', '#0B1030', '#1A2050', '#1C2148', '#121636', '#080A1C'],
+];
+const melange = (a, b, k) => gsap.utils.interpolate(a, b, k);
+function couleurs(h) {
+    let i = 0; while (i < CIEL.length - 2 && h > CIEL[i + 1][0]) i++;
+    const a = CIEL[i], b = CIEL[i + 1], k = gsap.utils.clamp(0, 1, (h - a[0]) / (b[0] - a[0]));
+    return a.slice(1).map((c, j) => melange(c, b[j + 1], k));
+}
+
+/* ---------------------------------------------------------------- les couches de la ville */
+const rand = (s) => { const x = Math.sin(s * 999.7) * 43758.5453; return x - Math.floor(x); };
+const COUCHES = { loin: 1.7, milieu: 2.7, pres: 4.2 };
+function construire() {
+    // Plateau au loin : tours, Pyramide, lagune Ébrié
+    let l = `<rect x="0" y="690" width="${1600 * COUCHES.loin}" height="210" fill="url(#lagune)"/><g id="reflets" stroke="rgba(255,255,255,.35)" stroke-width="3" stroke-linecap="round"></g><g class="sil">`;
+    let fen = '';
+    for (let i = 0; i < 46; i++) {
+        const x = i * 60 + rand(i) * 20, plateau = x > 900 && x < 1700, w = 40 + rand(i + 3) * 50, h = (plateau ? 170 : 40) + rand(i + 7) * (plateau ? 230 : 110);
+        l += `<rect x="${x}" y="${690 - h}" width="${w}" height="${h}"/>`;
+        for (let r = 0; r < h / 26 - 1; r++) for (let c = 0; c < w / 14 - 1; c++) if (rand(i * 31 + r * 7 + c) > 0.55) fen += `<rect x="${x + 6 + c * 14}" y="${690 - h + 10 + r * 26}" width="6" height="10"/>`;
+    }
+    l += `<path d="M1180 690 L1180 380 L1240 300 L1300 380 L1300 690Z"/><rect x="1380" y="250" width="34" height="440"/><rect x="1374" y="236" width="46" height="18"/></g><g id="fenetres-loin" fill="#FFD77A">${fen}</g>`;
+    document.getElementById('loin').innerHTML = l;
+    // Milieu : pont HKB, cathédrale Saint-Paul, marché, le pressing
+    let m = `<g class="sil"><rect x="0" y="760" width="${1600 * COUCHES.milieu}" height="140"/>`;
+    m += `<path d="M120 700 L1500 700 L1500 716 L120 716Z"/>`;
+    for (let k = 0; k < 8; k++) m += `<path d="M${160 + k * 170} 716 Q ${245 + k * 170} 650 ${330 + k * 170} 716" fill="none" stroke="currentColor" stroke-width="10"/><rect x="${238 + k * 170}" y="716" width="14" height="60"/>`;
+    m += `<path d="M2050 760 L2050 520 L2140 520 L2140 760Z"/><path d="M2095 520 L2300 230 L2312 238 L2120 520Z"/>`;
+    for (let k = 0; k < 6; k++) m += `<line x1="2300" y1="236" x2="${2150 + k * 40}" y2="560" stroke="currentColor" stroke-width="3"/>`;
+    m += `<path d="M2140 760 L2140 560 L2420 560 L2420 760Z"/>`;
+    for (let k = 0; k < 9; k++) m += `<path d="M${2700 + k * 90} 690 Q ${2740 + k * 90} 640 ${2780 + k * 90} 690 Z"/><rect x="${2738 + k * 90}" y="690" width="5" height="70"/>`;
+    for (let k = 0; k < 14; k++) m += `<rect x="${3500 + k * 95}" y="${640 - rand(k + 50) * 60}" width="80" height="${120 + rand(k + 50) * 60}"/>`;
+    m += `</g><g id="parasols">`;
+    for (let k = 0; k < 9; k++) m += `<path d="M${2700 + k * 90} 690 Q ${2740 + k * 90} 640 ${2780 + k * 90} 690 Z" fill="${['#E4572E', '#FFC145', '#1E9E50', '#2563EB'][k % 4]}" opacity=".85"/>`;
+    m += `</g><g id="pressing"><rect x="3000" y="620" width="300" height="140" fill="#F5F1E8"/><rect x="2990" y="600" width="320" height="30" fill="#2563EB"/><rect x="3120" y="680" width="60" height="80" fill="#1B2240"/><text id="neon" x="3150" y="621" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="800" font-size="22" fill="#fff">PRESSING · PressLink</text></g>`;
+    document.getElementById('milieu').innerHTML = m;
+    // Près : route, palmiers, lampadaires, gbakas et taxis
+    let p = `<rect x="0" y="800" width="${1600 * COUCHES.pres}" height="100" fill="#1E2233"/><g id="tirets" fill="#E9E4D6">`;
+    for (let k = 0; k < 90; k++) p += `<rect x="${k * 80}" y="846" width="40" height="5" rx="2"/>`;
+    p += `</g><g class="sil">`;
+    for (let k = 0; k < 14; k++) {
+        const x = 200 + k * 470 + rand(k + 90) * 120;
+        p += `<g class="palmier" data-x="${x}" transform="translate(${x} 800) scale(0.62)"><path d="M0 0 Q 16 -150 -6 -300" stroke="currentColor" stroke-width="14" fill="none" stroke-linecap="round"/>
+           <g class="palmes" transform="translate(-6 -300)">${[-150, -110, -60, -10, 40, 90, 140].map((a) => `<path d="M0 0 q ${a * 0.6} ${-30 + Math.abs(a) * 0.25} ${a * 1.05} ${30 + Math.abs(a) * 0.35}" stroke="currentColor" stroke-width="16" fill="none" stroke-linecap="round"/>`).join('')}</g></g>`;
+        p += `<g transform="translate(${x + 230} 800)"><rect x="-3" y="-170" width="6" height="170"/><path d="M0 -170 q 20 -10 34 2"  stroke="currentColor" stroke-width="5" fill="none"/></g>`;
+    }
+    p += `</g><g id="lampes" fill="#FFE4A0">`;
+    for (let k = 0; k < 14; k++) p += `<circle cx="${200 + k * 470 + rand(k + 90) * 120 + 264}" cy="${800 - 166}" r="9"/>`;
+    p += `</g><g id="halos" fill="rgba(255,196,90,.10)">`;
+    for (let k = 0; k < 14; k++) p += `<ellipse cx="${200 + k * 470 + rand(k + 90) * 120 + 264}" cy="${800 - 60}" rx="70" ry="110"/>`;
+    p += `</g><g id="vehicules"></g>`;
+    document.getElementById('pres').innerHTML = p;
+    const veh = document.getElementById('vehicules');
+    for (let k = 0; k < 9; k++) {
+        const gbaka = k % 3 === 0, c = gbaka ? '#F2C230' : '#F47B20', w = gbaka ? 170 : 120;
+        veh.insertAdjacentHTML('beforeend', `<g class="veh" data-k="${k}" data-w="${w}"><rect x="0" y="${gbaka ? -70 : -52}" width="${w}" height="${gbaka ? 56 : 40}" rx="12" fill="${c}"/>${gbaka ? `<rect x="0" y="-48" width="${w}" height="10" fill="#1E9E50"/>` : ''}<rect x="${w * 0.15}" y="${gbaka ? -64 : -48}" width="${w * 0.5}" height="14" rx="4" fill="#BFE6FF" opacity=".85"/><circle cx="${w * 0.22}" cy="-10" r="13" fill="#111"/><circle cx="${w * 0.78}" cy="-10" r="13" fill="#111"/><circle class="phare" cx="${w - 4}" cy="-30" r="5" fill="#FFF3B0"/></g>`);
+    }
+}
+construire();
+const etoiles = document.getElementById('etoiles'), ctx = etoiles.getContext('2d');
+const listeEtoiles = Array.from({ length: 220 }, (_, i) => ({ x: rand(i + 300), y: rand(i + 700) * 0.62, r: 0.5 + rand(i + 900) * 1.6, ph: rand(i) * 6 }));
+const ptsP = [[1180, 470], [1180, 365], [1180, 260], [1300, 260], [1370, 300], [1360, 370], [1300, 400], [1180, 400]];
+document.getElementById('const-pts').innerHTML = ptsP.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5"/>`).join('');
+const nuages = document.getElementById('nuages');
+for (let i = 0; i < 7; i++) nuages.insertAdjacentHTML('beforeend', `<div class="nuage" style="width:${140 + rand(i + 40) * 160}px; top:${8 + rand(i + 60) * 26}%; left:${rand(i + 80) * 100}%"></div>`);
+
+/* ---------------------------------------------------------------- dimensions des couches */
+let W = innerWidth, Hh = innerHeight;
+function dimensionner() {
+    W = innerWidth; Hh = innerHeight;
+    const k = Hh / 900;
+    for (const [id, f] of Object.entries(COUCHES)) {
+        const el = document.getElementById(id), vw = 1600 * f;
+        el.setAttribute('viewBox', `0 0 ${vw} 900`);
+        el.setAttribute('width', vw * k); el.setAttribute('height', Hh);
+        el.__largeur = vw * k;
+    }
+    const r = devicePixelRatio || 1; etoiles.width = W * r; etoiles.height = Hh * r; ctx.setTransform(r, 0, 0, r, 0, 0);
+}
+dimensionner(); addEventListener('resize', () => { dimensionner(); ScrollTrigger.refresh(); });
+
+/* ---------------------------------------------------------------- la journée */
+const etat = { p: 0, cible: 0 };
+ScrollTrigger.create({ trigger: '#journee', start: 'top top', end: 'bottom bottom', onUpdate: (st) => (etat.cible = st.progress) });
+const reperes = [6, 8, 12, 16, 19, 22];
+const frise = document.getElementById('frise');
+reperes.forEach((h) => frise.insertAdjacentHTML('beforeend', `<span class="rep" style="left:${((h - H0) / (H1 - H0)) * 100}%">${String(h).padStart(2, '0')}h</span>`));
+let souris = { x: 0.5, y: 0.4 };
+addEventListener('pointermove', (e) => { souris = { x: e.clientX / W, y: e.clientY / Hh }; });
+const pagne = document.getElementById('pagne'), ficelle = document.getElementById('ficelle'), cerf = { x: 0.22, y: 0.32 };
+let dernierMoment = '';
+
+gsap.ticker.add((temps) => {
+    etat.p += (etat.cible - etat.p) * 0.09;
+    const p = etat.p, h = H0 + p * (H1 - H0);
+    const [haut, mil, hor, cLoin, cMil, cPres] = couleurs(h);
+    document.getElementById('ciel').style.background = `linear-gradient(${haut} 0%, ${mil} 55%, ${hor} 78%)`;
+    document.getElementById('lag1').setAttribute('stop-color', hor); document.getElementById('lag2').setAttribute('stop-color', cMil);
+    document.querySelector('#loin .sil').setAttribute('fill', cLoin);
+    document.querySelector('#milieu .sil').setAttribute('fill', cMil); document.querySelector('#milieu .sil').style.color = cMil;
+    document.querySelector('#pres .sil').setAttribute('fill', cPres); document.querySelector('#pres .sil').style.color = cPres;
+    const nuit = gsap.utils.clamp(0, 1, (h - 18.6) / 1.4) + gsap.utils.clamp(0, 1, (6.2 - h) / 1.2);
+    document.getElementById('fenetres-loin').style.opacity = gsap.utils.clamp(0, 1, (h - 18.2) / 1.2) * 0.9 + gsap.utils.clamp(0, 1, (6 - h)) * 0.5;
+    document.getElementById('lampes').style.opacity = nuit; document.getElementById('halos').style.opacity = nuit;
+    document.getElementById('neon').setAttribute('fill', nuit > 0.3 ? `rgba(255,${200 + Math.sin(temps * 9) * 30},120,1)` : '#fff');
+    document.querySelectorAll('.phare').forEach((ph) => (ph.style.opacity = 0.3 + nuit * 0.7));
+    // parallaxe
+    for (const id of Object.keys(COUCHES)) { const el = document.getElementById(id); el.style.transform = `translate3d(${-p * (el.__largeur - W)}px,0,0)`; }
+    // soleil, lune, étoiles
+    const ks = (h - 6) / (18.8 - 6);
+    gsap.set('#soleil', { left: (0.1 + ks * 0.8) * W, top: (0.78 - Math.sin(Math.PI * gsap.utils.clamp(0, 1, ks)) * 0.62) * Hh, opacity: ks > -0.05 && ks < 1.05 ? 1 : 0 });
+    const kl = (h - 18.8) / 6;
+    gsap.set('#lune', { left: (0.15 + kl * 0.7) * W, top: (0.7 - Math.sin(Math.PI * gsap.utils.clamp(0, 1, kl * 0.9 + 0.1)) * 0.5) * Hh, opacity: gsap.utils.clamp(0, 1, kl * 4) });
+    ctx.clearRect(0, 0, W, Hh);
+    if (nuit > 0.02) for (const e of listeEtoiles) { ctx.globalAlpha = nuit * (0.5 + 0.5 * Math.sin(temps * 2 + e.ph)); ctx.fillStyle = '#FFF8E0'; ctx.beginPath(); ctx.arc(e.x * W, e.y * Hh, e.r, 0, 7); ctx.fill(); }
+    document.querySelectorAll('.nuage').forEach((n, i) => { n.style.transform = `translateX(${((temps * (8 + i * 3) + p * 1200 * (0.3 + i * 0.1)) % (W + 400)) - 200 - n.offsetLeft}px)`; n.style.opacity = (1 - nuit) * 0.85; });
+    // reflets sur la lagune
+    if (Math.floor(temps * 10) % 3 === 0) document.getElementById('reflets').innerHTML = Array.from({ length: 30 }, (_, i) => { const x = (i * 97 + temps * 30 * (i % 3 + 1)) % (1600 * COUCHES.loin); return `<line x1="${x}" y1="${705 + (i % 5) * 10}" x2="${x + 30 + (i % 4) * 10}" y2="${705 + (i % 5) * 10}" opacity="${0.4 + 0.6 * Math.sin(temps * 3 + i) ** 2}"/>`; }).join('');
+    // véhicules qui roulent, palmiers dans le vent
+    document.querySelectorAll('.veh').forEach((v) => { const k = +v.dataset.k, L = 1600 * COUCHES.pres, sens = k % 2 ? 1 : -1; const x = ((k * 777 + temps * (90 + k * 14) * sens + p * 900) % L + L) % L; v.setAttribute('transform', `translate(${x} ${sens > 0 ? 840 : 870}) scale(${sens} 1)`); });
+    const vent = (souris.x - 0.5) * 18;
+    document.querySelectorAll('.palmes').forEach((g, i) => g.setAttribute('transform', `translate(-6 -300) rotate(${Math.sin(temps * 1.6 + i) * 4 + vent})`));
+    // le pagne cerf-volant
+    cerf.x += (0.06 + souris.x * 0.12 - cerf.x) * 0.03; cerf.y += (0.44 + souris.y * 0.16 - cerf.y) * 0.03;
+    const pts = [];
+    for (let i = 0; i <= 10; i++) { const u = i / 10; pts.push([u * 150, Math.sin(temps * 5 + u * 5) * 9 * u]); }
+    const bas = pts.map(([x, y]) => [x, y + 100 + Math.sin(temps * 5 + x / 30 + 1) * 6 * (x / 150)]).reverse();
+    pagne.setAttribute('d', 'M ' + pts.concat(bas).map((q) => q.join(' ')).join(' L ') + ' Z');
+    ficelle.setAttribute('d', `M 0 100 Q ${-30 + Math.sin(temps) * 20} 260 ${-60} 420`);
+    gsap.set('#cerf-volant', { x: cerf.x * W, y: cerf.y * Hh, rotation: Math.sin(temps * 1.3) * 8 + vent * 0.6, opacity: 1 - gsap.utils.clamp(0, 1, (h - 21.8) / 0.5) });
+    // phrases de l'heure
+    document.querySelectorAll('.phrase').forEach((ph) => {
+        const hh = +ph.dataset.h, k = (h - (hh - 0.9)) / 2.0;
+        const o = k < 0 || k > 1 ? 0 : Math.sin(Math.PI * k) ** 0.6;
+        ph.style.opacity = o; ph.style.transform = `translateY(${(0.5 - k) * 60}px)`;
+        if (k > 0.35 && k < 0.6 && Son.actif && !dit.has(hh)) { dit.add(hh); Son.voix(`audio/voix-h${hh}.mp3`, REPLIQUES['h' + hh]); }
+    });
+    // panneau vidéo (11 h – 14 h) et notification (15 h – 17 h)
+    const kv = (h - 10.6) / 3.6;
+    gsap.set('#panneau-video', { left: (1.1 - kv * 1.4) * W - 260, top: Hh * 0.5 - 150, opacity: kv > 0 && kv < 1 ? 1 : 0 });
+    const kn = (h - 15.3) / 1.9;
+    gsap.set('#bulle-notif', { left: (0.15 + kn * 0.55) * W, top: (0.62 - kn * 0.35) * Hh + Math.sin(temps * 2) * 8, opacity: kn > 0 && kn < 1 ? Math.min(1, Math.sin(Math.PI * kn) * 2) : 0, rotation: Math.sin(temps * 1.5) * 3 });
+    if (kn > 0.05 && kn < 0.2 && !dit.has('ding')) { dit.add('ding'); Son.sfx('ding', 0.7); }
+    // constellation et fin
+    const kc = gsap.utils.clamp(0, 1, (h - 21.2) / 1.0), cp = document.getElementById('const-p');
+    const Lp = cp.getTotalLength(); cp.style.strokeDasharray = Lp; cp.style.strokeDashoffset = Lp * (1 - kc);
+    document.getElementById('const-pts').style.opacity = gsap.utils.clamp(0, 1, (h - 20.8) / 0.5);
+    document.getElementById('constellation').style.opacity = nuit;
+    const kf = gsap.utils.clamp(0, 1, (h - 22.1) / 0.6);
+    document.getElementById('final').style.opacity = kf; document.getElementById('final').style.pointerEvents = kf > 0.5 ? 'auto' : 'none';
+    document.getElementById('final').style.transform = `translateY(${(1 - kf) * 40}px)`;
+    if (kf > 0.5 && !dit.has('sig')) { dit.add('sig'); Son.sfx('signature', 0.6); }
+    // HUD
+    const hh = Math.floor(h), mm = Math.floor((h - hh) * 60 / 5) * 5;
+    const moment = h < 6 ? "Avant l'aube" : h < 9 ? 'Le matin' : h < 14 ? 'La journée' : h < 18.5 ? "L'après-midi" : h < 20.5 ? 'Le soir' : 'La nuit';
+    document.getElementById('horloge').firstChild.textContent = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+    if (moment !== dernierMoment) { dernierMoment = moment; document.getElementById('moment').textContent = moment; Son.sfx('souffle', 0.3); }
+    document.getElementById('fait').style.width = p * 100 + '%'; document.getElementById('curseur').style.left = p * 100 + '%';
+    document.getElementById('indice').style.opacity = 1 - gsap.utils.clamp(0, 1, p * 30);
+    const encre = h > 8 && h < 17.5 ? '#0B1530' : '#FFFFFF';
+    document.querySelector('.hud').style.color = encre; document.getElementById('phrases').style.color = encre;
+    // ambiances sonores
+    const bosse = (c, l) => Math.max(0, 1 - Math.abs(h - c) / l);
+    Son.doserAmbiances({ aube: bosse(6.5, 2.5), jour: bosse(12.5, 4.5), soir: bosse(19.5, 2.2), nuit: gsap.utils.clamp(0, 1, (h - 20) / 1.5) });
+});
+// une étoile filante quand on clique le ciel la nuit
+document.getElementById('scene').addEventListener('click', (e) => {
+    const h = H0 + etat.p * (H1 - H0);
+    if (h < 19.5 && h > 6) return;
+    const s = document.createElement('div');
+    Object.assign(s.style, { position: 'absolute', left: e.clientX + 'px', top: e.clientY + 'px', width: '140px', height: '2px', background: 'linear-gradient(90deg, #fff, transparent)', zIndex: 3, transformOrigin: '0 50%', rotate: '-25deg' });
+    document.getElementById('scene').appendChild(s);
+    gsap.fromTo(s, { opacity: 1, x: 0, y: 0 }, { x: -300, y: 140, opacity: 0, duration: 0.9, ease: 'power2.out', onComplete: () => s.remove() });
+    Son.sfx('etincelles', 0.5);
+});
+</script>
+</body>
+</html>

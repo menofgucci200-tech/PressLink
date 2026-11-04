@@ -1,0 +1,12 @@
+{"repliques": [
+ {"cle": "intro", "texte": "PressLink : le lien entre votre pressing et vos clients.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "accroche", "texte": "Vous gérez un pressing ? Vous méritez mieux qu'un cahier, des tickets papier et des appels toute la journée.", "voix": "ff_siwis", "vitesse": 0.97},
+ {"cle": "souci", "texte": "Les tickets se perdent, les clients appellent pour savoir si c'est prêt, et le linge attend au comptoir.", "voix": "ff_siwis", "vitesse": 0.97},
+ {"cle": "bascule", "texte": "Avec PressLink, tout devient simple.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "pro1", "texte": "Au dépôt, l'employé enregistre la commande en quelques clics : le client, les articles, et le total se calcule tout seul.", "voix": "ff_siwis", "vitesse": 0.98},
+ {"cle": "pro2", "texte": "Le gérant suit toute l'activité d'un coup d'œil : les commandes en cours, celles qui sont prêtes, et les encaissements du jour.", "voix": "ff_siwis", "vitesse": 0.98},
+ {"cle": "cli1", "texte": "Dès que la commande est prête, le client est prévenu sur son téléphone.", "voix": "ff_siwis", "vitesse": 0.97},
+ {"cle": "cli2", "texte": "Et il suit toutes ses commandes dans l'appli PressLink : gratuite, elle s'installe en un geste.", "voix": "ff_siwis", "vitesse": 0.97},
+ {"cle": "conclusion", "texte": "Moins d'attente. Moins d'appels. Des clients toujours informés.", "voix": "ff_siwis", "vitesse": 0.92},
+ {"cle": "fin", "texte": "Scannez le code, ou rendez-vous sur presslink point org.", "voix": "ff_siwis", "vitesse": 0.95}
+]}

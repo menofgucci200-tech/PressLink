@@ -1,0 +1,9 @@
+{"repliques": [
+ {"cle": "hero", "texte": "PressLink. Le pressing, en mode simple.", "voix": "ff_siwis", "vitesse": 0.94},
+ {"cle": "clients", "texte": "Vos clients suivent leurs vêtements en temps réel, et sont prévenus dès que c'est prêt.", "voix": "ff_siwis", "vitesse": 1.0},
+ {"cle": "depot", "texte": "Au comptoir, une commande s'enregistre en quelques secondes : le client, les articles, le paiement.", "voix": "ff_siwis", "vitesse": 1.0},
+ {"cle": "caisse", "texte": "Le soir, la caisse se clôture en un instant : les encaissements, les dépenses, l'écart.", "voix": "ff_siwis", "vitesse": 1.0},
+ {"cle": "equipe", "texte": "Chaque rôle a ses accès. Chaque action est tracée dans le journal.", "voix": "ff_siwis", "vitesse": 1.0},
+ {"cle": "install", "texte": "Aucun store : l'application s'installe en un geste, depuis le navigateur.", "voix": "ff_siwis", "vitesse": 1.0},
+ {"cle": "contact", "texte": "Parlons de votre pressing. Écrivez-nous sur WhatsApp.", "voix": "ff_siwis", "vitesse": 0.98}
+]}

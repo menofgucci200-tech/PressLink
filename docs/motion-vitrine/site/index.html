@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PressLink — Maquettes du site vitrine</title>
+<link rel="stylesheet" href="commun/base.css">
+<style>
+body { background: #0B1530; color: #fff; min-height: 100vh; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 60px 20px 80px; }
+h1 { font: 800 clamp(36px, 5vw, 60px)/1.05 "Inter Tight"; letter-spacing: -.03em; }
+.lead { color: #A9B8D9; font-size: 18px; line-height: 1.55; margin-top: 14px; max-width: 760px; }
+.grille { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 44px; }
+.carte { display: block; text-decoration: none; background: #111D44; border: 1px solid rgba(147,197,253,.2); border-radius: 22px; overflow: hidden; transition: transform .25s, box-shadow .25s; }
+.carte:hover { transform: translateY(-6px); box-shadow: 0 30px 60px rgba(0,0,0,.4); }
+.carte img { width: 100%; aspect-ratio: 16/10; object-fit: cover; object-position: top; }
+.carte div { padding: 20px 22px 24px; }
+.carte b { display: block; font: 800 24px "Inter Tight"; }
+.carte span { display: block; color: #A9B8D9; margin-top: 8px; line-height: 1.5; font-size: 15px; }
+.carte em { display: inline-block; margin-top: 14px; font-style: normal; font-weight: 700; color: #93C5FD; }
+.astuce { margin-top: 36px; padding: 16px 20px; border-radius: 16px; background: rgba(37,99,235,.18); border: 1px solid rgba(147,197,253,.3); color: #DBEAFE; }
+@media (max-width: 900px) { .grille { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <img src="commun/img/wordmark_white.png" alt="PressLink" style="height:30px; width:auto; margin-bottom:30px">
+    <h1>Site vitrine en motion design : 3 orientations</h1>
+    <p class="lead">Trois maquettes du site, avec animations au défilement, interactions, musique, voix off et bruitages. Le contenu est le même (clients, pressings, vidéos, installation, contact) ; seule la façon de le raconter change.</p>
+    <div class="grille">
+        <a class="carte" href="1-bouba/"><img src="commun/img/apercu-1.jpg" alt=""><div><b>1 · Le voyage de Bouba</b><span>Une chemise bavarde vous guide. Le parcours défile à l'horizontale, ses yeux suivent la souris, elle réagit au clic.</span><em>Ouvrir →</em></div></a>
+        <a class="carte" href="2-appli/"><img src="commun/img/apercu-2.jpg" alt=""><div><b>2 · L'appli prend vie</b><span>Présentation produit sombre et rythmée : téléphone en 3D, sections épinglées, caisse qui se remplit au défilement.</span><em>Ouvrir →</em></div></a>
+        <a class="carte" href="3-avant-apres/"><img src="commun/img/apercu-3.jpg" alt=""><div><b>3 · Avant / Après</b><span>Le sketch : chaque situation se compare en faisant glisser la poignée, du croquis de la galère à la solution PressLink.</span><em>Ouvrir →</em></div></a>
+    </div>
+    <p class="astuce">🔊 Sur chaque maquette, appuyez sur <b>Son</b> en haut à droite pour la musique, la voix off et les bruitages. Essayez aussi sur téléphone.</p>
+</div>
+</body>
+</html>

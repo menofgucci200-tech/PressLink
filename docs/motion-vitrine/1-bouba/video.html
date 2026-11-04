@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>PressLink — Le voyage de Bouba (maquette)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=block" rel="stylesheet">
+<style>
+@font-face { font-family: Inter; font-weight: 400; src: url(../commun/fonts/inter-400-normal.woff2); }
+@font-face { font-family: Inter; font-weight: 500; src: url(../commun/fonts/inter-500-normal.woff2); }
+@font-face { font-family: Inter; font-weight: 600; src: url(../commun/fonts/inter-600-normal.woff2); }
+@font-face { font-family: Inter; font-weight: 700; src: url(../commun/fonts/inter-700-normal.woff2); }
+:root { --primary: #2563EB; --navy: #0B1530; --ink: #0F172A; --muted: #64748B; --success: #10B981; --orange: #F47B20; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+body { font-family: Fredoka, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+#stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+.scene { position: absolute; inset: 0; overflow: hidden; }
+.abs { position: absolute; left: 0; top: 0; transform-origin: 50% 50%; }
+svg { overflow: visible; }
+
+.comic { position: absolute; background: #FFF6D6; border: 5px solid #1F2937; border-radius: 10px; padding: 14px 26px; font-weight: 700; font-size: 40px; box-shadow: 8px 8px 0 #1F2937; white-space: nowrap; }
+.pow { position: absolute; font-weight: 700; font-size: 74px; color: #fff; -webkit-text-stroke: 6px #1F2937; paint-order: stroke fill; white-space: nowrap; }
+
+.ui { font-family: Inter, sans-serif; }
+.phone { position: absolute; width: 330px; height: 690px; background: #0B0F19; border-radius: 48px; padding: 12px; box-shadow: 0 30px 70px rgba(15,23,42,.35); }
+.phone .scr { position: relative; width: 100%; height: 100%; border-radius: 37px; overflow: hidden; background: #F4F7FE; }
+
+/* Statut de commande recréé façon application client */
+.app-head { background: linear-gradient(90deg, #1E3B8B, #2563EB); color: #fff; padding: 46px 18px 16px; font: 600 17px Inter; text-align: center; }
+.app-card { margin: 14px; background: #fff; border-radius: 16px; padding: 16px; box-shadow: 0 2px 6px rgba(15,23,42,.06); }
+.step { display: flex; gap: 12px; align-items: center; padding: 10px 0; font: 600 16px Inter; color: var(--ink); }
+.step i { width: 26px; height: 26px; border-radius: 50%; border: 3px solid #CBD5E1; display: grid; place-items: center; flex: none; font-style: normal; color: #fff; font-size: 14px; }
+.step.done i { background: var(--success); border-color: var(--success); }
+.step.cur i { border-color: var(--primary); border-top-color: transparent; }
+.step.todo { color: #94A3B8; }
+.step small { display: block; font: 500 12px Inter; color: #94A3B8; }
+
+.notif { position: absolute; width: 760px; background: rgba(255,255,255,.97); border-radius: 30px; padding: 22px 26px; display: flex; gap: 20px; box-shadow: 0 30px 60px rgba(15,23,42,.28); font-family: Inter; }
+.notif img { width: 64px; height: 64px; border-radius: 16px; }
+.notif .app { font: 700 15px Inter; color: #94A3B8; letter-spacing: .08em; display: flex; justify-content: space-between; }
+.notif .t { font: 800 27px Inter; margin-top: 4px; }
+.notif .b { font: 500 21px Inter; color: #475569; margin-top: 3px; }
+
+#caption { position: absolute; left: 0; right: 0; bottom: 46px; display: flex; justify-content: center; z-index: 50; }
+#caption span { background: #fff; border: 4px solid #1F2937; box-shadow: 6px 6px 0 #1F2937; border-radius: 22px; padding: 12px 28px; font-size: 36px; font-weight: 600; max-width: 1500px; text-align: center; }
+#caption b { color: var(--orange); }
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- ============ 1. La chambre ============ -->
+<div class="scene" id="chambre" style="background: linear-gradient(#FFE6BF, #FFCB8E);">
+    <div id="ch-world" class="abs" style="width:1920px; height:1080px; transform-origin: 1100px 640px;">
+        <!-- fenêtre sur Abidjan -->
+        <svg class="abs" style="left:1330px; top:120px;" width="440" height="420">
+            <defs><linearGradient id="sky1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFB86B"/><stop offset="1" stop-color="#FFE3A3"/></linearGradient></defs>
+            <rect x="0" y="0" width="440" height="420" rx="18" fill="#8B5A3C"/>
+            <rect x="20" y="20" width="400" height="380" rx="8" fill="url(#sky1)"/>
+            <circle cx="300" cy="150" r="60" fill="#FFF1B8"/>
+            <g fill="#E58B5A" opacity=".75"><rect x="40" y="230" width="46" height="170"/><rect x="95" y="190" width="40" height="210"/><rect x="145" y="250" width="60" height="150"/><path d="M215 400 L215 210 L250 170 L285 210 L285 400Z"/><rect x="300" y="260" width="44" height="140"/><rect x="352" y="225" width="50" height="175"/></g>
+            <rect x="20" y="360" width="400" height="40" fill="#5FA8D3" opacity=".8"/>
+            <rect x="214" y="20" width="12" height="380" fill="#8B5A3C"/><rect x="20" y="204" width="400" height="12" fill="#8B5A3C"/>
+        </svg>
+        <!-- sol -->
+        <div class="abs" style="top:900px; width:1920px; height:180px; background: repeating-linear-gradient(90deg, #C98A55 0 160px, #BD7F4B 160px 164px);"></div>
+        <!-- tringle -->
+        <div class="abs" style="left:300px; top:244px; width:960px; height:20px; border-radius:10px; background: linear-gradient(#B9BFCB, #7C8494);"></div>
+        <div class="abs" style="left:290px; top:220px; width:20px; height:700px; border-radius:8px; background:#8C94A3;"></div>
+        <div class="abs" style="left:1250px; top:220px; width:20px; height:700px; border-radius:8px; background:#8C94A3;"></div>
+        <!-- autres vêtements : un pagne wax et un pantalon -->
+        <svg class="abs" id="pagne" style="left:390px; top:250px;" width="230" height="560" viewBox="-115 -60 230 560">
+            <defs><pattern id="wax" width="60" height="60" patternUnits="userSpaceOnUse"><rect width="60" height="60" fill="#E4572E"/><circle cx="15" cy="15" r="11" fill="#FFC145"/><circle cx="15" cy="15" r="5" fill="#2B4C9B"/><path d="M45 30 L60 45 L45 60 L30 45Z" fill="#2B4C9B"/><circle cx="45" cy="15" r="4" fill="#fff"/></pattern></defs>
+            <path d="M -80 20 L 0 -25 L 80 20" fill="none" stroke="#5B6170" stroke-width="6" stroke-linecap="round"/>
+            <path d="M -60 10 Q 0 40 60 10 L 70 120 Q 100 300 110 480 L -110 480 Q -100 300 -70 120 Z" fill="url(#wax)" stroke="#7A2A12" stroke-width="6" stroke-linejoin="round"/>
+        </svg>
+        <svg class="abs" id="pantalon" style="left:1040px; top:250px;" width="200" height="520" viewBox="-100 -60 200 520">
+            <path d="M -80 20 L 0 -25 L 80 20" fill="none" stroke="#5B6170" stroke-width="6" stroke-linecap="round"/>
+            <path d="M -70 15 L 70 15 L 85 450 L 15 450 L 0 140 L -15 450 L -85 450 Z" fill="#3B4A6B" stroke="#1E2742" stroke-width="6" stroke-linejoin="round"/>
+        </svg>
+        <div id="ch-bouba" class="abs"></div>
+        <div id="ch-bang" class="pow" style="left:700px; top:90px; font-size:130px; color:#FFD84D;">!!</div>
+        <div id="ch-label" class="comic" style="left:1080px; top:690px; font-size:34px; background:#fff;">sauce graine 🌶️</div>
+    </div>
+    <div id="ch-cap" class="comic" style="left:70px; top:60px; transform: rotate(-3deg);">Abidjan, 7 h 30</div>
+</div>
+
+<!-- ============ 2. La rue ============ -->
+<div class="scene" id="rue" style="background: linear-gradient(#73C2FF, #D4F0FF 70%);">
+    <svg class="abs" width="1920" height="1080">
+        <circle cx="1640" cy="190" r="110" fill="#FFD84D"/><circle cx="1640" cy="190" r="150" fill="#FFD84D" opacity=".25"/>
+    </svg>
+    <svg class="abs" id="rue-ville" width="5200" height="1080"><g id="rue-ville-g"></g></svg>
+    <div class="abs" style="top:690px; width:1920px; height:70px; background:#4BA3D9;"></div>
+    <svg class="abs" width="5200" height="1080" id="rue-palmiers"><g id="rue-palmiers-g"></g></svg>
+
+    <div class="abs" style="top:760px; width:1920px; height:320px; background:#3A3F4B;"></div>
+    <svg class="abs" width="5200" height="1080" id="rue-lignes"><g id="rue-lignes-g"></g></svg>
+    <!-- devanture -->
+    <svg class="abs" id="devanture" width="760" height="560" viewBox="0 0 760 560">
+        <rect x="0" y="80" width="760" height="480" fill="#F8FAFC" stroke="#1E293B" stroke-width="8"/>
+        <rect x="-10" y="40" width="780" height="110" rx="14" fill="#2563EB" stroke="#1E293B" stroke-width="8"/>
+        <text x="380" y="114" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="50" fill="#fff">Pressing du Plateau</text>
+        <g fill="#fff" stroke="#1E293B" stroke-width="6"><path d="M0 150 h95 v40 a47 22 0 0 1 -95 0z" fill="#93C5FD"/><path d="M95 150 h95 v40 a47 22 0 0 1 -95 0z"/><path d="M190 150 h95 v40 a47 22 0 0 1 -95 0z" fill="#93C5FD"/><path d="M285 150 h95 v40 a47 22 0 0 1 -95 0z"/><path d="M380 150 h95 v40 a47 22 0 0 1 -95 0z" fill="#93C5FD"/><path d="M475 150 h95 v40 a47 22 0 0 1 -95 0z"/><path d="M570 150 h95 v40 a47 22 0 0 1 -95 0z" fill="#93C5FD"/><path d="M665 150 h95 v40 a47 22 0 0 1 -95 0z"/></g>
+        <rect x="80" y="250" width="300" height="230" rx="10" fill="#BFDBFE" stroke="#1E293B" stroke-width="6"/>
+        <rect x="460" y="250" width="200" height="310" rx="10" fill="#7C4A2D" stroke="#1E293B" stroke-width="6"/>
+        <circle cx="630" cy="410" r="10" fill="#FBBF24"/>
+    </svg>
+    <div id="taxi-wrap" class="abs" style="width:620px; height:420px;">
+        <div id="rue-bouba" class="abs"></div>
+        <svg id="taxi" class="abs" style="top:120px;" width="620" height="300" viewBox="0 0 620 300">
+            <rect x="250" y="0" width="120" height="44" rx="10" fill="#FFF" stroke="#1E293B" stroke-width="6"/>
+            <text x="310" y="32" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="28" fill="#1E293B">TAXI</text>
+            <path d="M120 60 Q140 40 200 40 L430 40 Q480 40 510 100 L590 120 Q615 125 615 160 L615 220 L10 220 L10 150 Q10 110 60 105 Z" fill="#F47B20" stroke="#1E293B" stroke-width="7" stroke-linejoin="round"/>
+            <path d="M150 70 L300 70 L300 120 L110 120 Z" fill="#BFE6FF" stroke="#1E293B" stroke-width="5"/>
+            <path d="M320 70 L425 70 Q455 70 480 120 L320 120 Z" fill="#BFE6FF" stroke="#1E293B" stroke-width="5"/>
+            <rect x="10" y="150" width="605" height="16" fill="#1E293B" opacity=".18"/>
+            <circle cx="595" cy="150" r="10" fill="#FFF3B0"/>
+            <g id="roue1"><circle cx="150" cy="225" r="52" fill="#1E293B"/><circle cx="150" cy="225" r="22" fill="#CBD5E1"/><rect x="146" y="185" width="8" height="80" fill="#94A3B8"/></g>
+            <g id="roue2"><circle cx="480" cy="225" r="52" fill="#1E293B"/><circle cx="480" cy="225" r="22" fill="#CBD5E1"/><rect x="476" y="185" width="8" height="80" fill="#94A3B8"/></g>
+        </svg>
+        <div id="pouet" class="pow" style="left:520px; top:60px; font-size:60px; color:#FFD84D;">Pouet pouet !</div>
+    </div>
+</div>
+
+<!-- ============ 3. Le comptoir ============ -->
+<div class="scene" id="comptoir" style="background: linear-gradient(#EAF2FF, #D6E5FF);">
+    <!-- étagère de linge plié -->
+    <div class="abs" style="left:120px; top:140px; width:640px; height:18px; background:#A86B3C; border-radius:6px;"></div>
+    <div class="abs" style="left:120px; top:330px; width:640px; height:18px; background:#A86B3C; border-radius:6px;"></div>
+    <div id="piles" class="abs"></div>
+    <div id="cp-bouba" class="abs"></div>
+    <!-- comptoir -->
+    <div class="abs" style="top:800px; width:1920px; height:280px; background: linear-gradient(#C98A55, #A86B3C);"></div>
+    <div class="abs" style="top:780px; width:1920px; height:34px; background:#E2A86E; box-shadow: 0 8px 0 rgba(0,0,0,.08);"></div>
+    <!-- ordinateur -->
+    <div id="laptop" class="abs" style="left:760px; top:250px; width:820px;">
+        <div style="background:#0E1424; border-radius:22px 22px 8px 8px; padding:14px;">
+            <div style="position:relative; width:792px; height:495px; overflow:hidden; border-radius:6px; background:#fff;">
+                <img src="../assets/d-dashboard.jpg" style="width:792px; height:495px; display:block;">
+                <div id="cp-modal" class="abs ui" style="left:196px; top:90px; width:400px; background:#fff; border-radius:16px; padding:20px; box-shadow:0 24px 60px rgba(15,23,42,.35);">
+                    <div style="font:700 20px Inter;">Nouvelle commande</div>
+                    <div style="font:500 14px Inter; color:#64748B; margin-top:2px;">Client · Articles · Paiement</div>
+                    <div style="margin-top:14px; display:flex; justify-content:space-between; font:600 16px Inter;"><span>Chemise × 1</span><span>1 000 F</span></div>
+                    <div style="margin-top:6px; display:flex; justify-content:space-between; font:500 15px Inter; color:#64748B;"><span>Bouba · retrait demain</span><span style="color:#059669; font-weight:700;">Payé</span></div>
+                    <div id="cp-btn" style="margin-top:16px; height:44px; border-radius:10px; background:#2563EB; color:#fff; font:700 16px Inter; display:grid; place-items:center;">Créer la commande</div>
+                </div>
+                <div id="cp-ok" class="abs ui" style="left:236px; top:200px; width:320px; background:#ECFDF5; border:2px solid #10B981; color:#047857; border-radius:14px; padding:14px 18px; font:700 18px Inter; text-align:center;">✓ Commande PL-286571 créée</div>
+            </div>
+        </div>
+        <div style="width:900px; margin-left:-40px; height:26px; background: linear-gradient(#C9D2E3, #8C97AD); border-radius:0 0 30px 30px;"></div>
+    </div>
+    <div id="cp-chrono" class="comic" style="left:1500px; top:170px; background:#fff;">⏱ <span id="cp-chrono-n">0,0</span> s</div>
+    <!-- imprimante à tickets et reçu -->
+    <div id="recu" class="abs" style="left:1650px; top:520px; width:200px; height:448px; overflow:hidden; box-shadow:0 18px 40px rgba(15,23,42,.3);">
+        <img src="../assets/recu.jpg" style="width:200px; display:block;">
+    </div>
+    <div class="abs" style="left:1620px; top:640px; width:260px; height:150px; border-radius:24px; background: linear-gradient(#475569, #1E293B); box-shadow: 0 16px 30px rgba(15,23,42,.3);"></div>
+    <div class="abs" style="left:1650px; top:636px; width:200px; height:14px; border-radius:6px; background:#020617;"></div>
+    <div class="abs" style="left:1840px; top:670px; width:16px; height:16px; border-radius:50%; background:#22C55E; box-shadow:0 0 12px #22C55E;"></div>
+    <svg id="curseur" class="abs" width="60" height="60" viewBox="0 0 24 24"><path d="M5 2 L5 20 L10 15 L13.5 22 L16.5 20.5 L13 14 L20 14 Z" fill="#fff" stroke="#0F172A" stroke-width="1.6" stroke-linejoin="round"/></svg>
+</div>
+
+<!-- ============ 4. Le lavage ============ -->
+<div class="scene" id="lavage" style="background: linear-gradient(135deg, #DFF3FF, #B8E2FF);">
+    <svg class="abs" style="left:170px; top:110px;" width="700" height="860" viewBox="0 0 700 860">
+        <rect x="0" y="0" width="700" height="860" rx="40" fill="#F8FAFC" stroke="#1E293B" stroke-width="8"/>
+        <rect x="0" y="0" width="700" height="150" rx="40" fill="#E2E8F0" stroke="#1E293B" stroke-width="8"/>
+        <circle cx="120" cy="75" r="34" fill="#fff" stroke="#1E293B" stroke-width="6"/><line id="bouton" x1="120" y1="75" x2="120" y2="50" stroke="#1E293B" stroke-width="6" stroke-linecap="round"/>
+        <rect x="420" y="50" width="200" height="50" rx="12" fill="#0F172A"/><text x="520" y="86" text-anchor="middle" font-family="Fredoka" font-size="30" font-weight="600" fill="#22D3EE">40°</text>
+        <circle cx="350" cy="500" r="270" fill="#CBD5E1" stroke="#1E293B" stroke-width="8"/>
+        <circle cx="350" cy="500" r="220" fill="#1E3A8A" stroke="#1E293B" stroke-width="8"/>
+    </svg>
+    <div class="abs" style="left:300px; top:390px; width:440px; height:440px; border-radius:50%; overflow:hidden;">
+        <div id="eau" class="abs" style="left:-100px; top:-100px; width:640px; height:640px; background: conic-gradient(from 0deg, #2563EB, #60A5FA, #1D4ED8, #93C5FD, #2563EB);"></div>
+        <div id="lv-bouba" class="abs"></div>
+        <svg class="abs" width="440" height="440" id="bulles-svg"><g id="bulles"></g></svg>
+        <div class="abs" style="inset:0; border-radius:50%; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.45), transparent 40%);"></div>
+    </div>
+    <!-- téléphone du client -->
+    <img id="lv-mains" src="../assets/hands.png" class="abs" style="left:1060px; top:150px; width:900px;">
+    <div id="lv-ecran" class="abs ui" style="left:1386px; top:166px; width:262px; height:508px; border-radius:30px; overflow:hidden; background:#F4F7FE;">
+        <div class="app-head">Détail de la commande</div>
+        <div style="padding:14px 16px 0; font:700 19px Inter;">Commande PL-286571</div>
+        <div style="padding:0 16px; font:500 13px Inter; color:#2563EB; text-decoration:underline;">Pressing du Plateau</div>
+        <div class="app-card" style="padding:8px 14px;">
+            <div class="step done" id="st1"><i>✓</i><div>Reçue<small>aujourd'hui · 07:42</small></div></div>
+            <div class="step todo" id="st2"><i></i><div>En traitement<small id="st2s">—</small></div></div>
+            <div class="step todo" id="st3"><i></i><div>Prête</div></div>
+            <div class="step todo"><i></i><div>Récupérée</div></div>
+        </div>
+    </div>
+    <div id="lv-tag" class="comic" style="left:1180px; top:820px; background:#fff;">En temps réel 📱</div>
+</div>
+
+<!-- ============ 5. Le repassage ============ -->
+<div class="scene" id="repassage" style="background: linear-gradient(#FFF1D6, #FFD9A0);">
+    <svg class="abs" style="left:360px; top:690px;" width="1200" height="300" viewBox="0 0 1200 300">
+        <path d="M60 40 L1100 40 Q1190 40 1190 70 Q1190 100 1100 100 L60 100 Q10 100 10 70 Q10 40 60 40Z" fill="#93C5FD" stroke="#1E293B" stroke-width="8"/>
+        <path d="M400 100 L250 300 M800 100 L950 300" stroke="#475569" stroke-width="14" stroke-linecap="round"/>
+    </svg>
+    <div id="rp-bouba" class="abs"></div>
+    <svg id="plis" class="abs" width="1920" height="1080"><g stroke="#24408E" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55">
+        <path d="M820 420 l20 18 l-20 18 l20 18"/><path d="M1040 470 l-20 18 l20 18 l-20 18"/><path d="M900 560 l24 14 l-24 14"/><path d="M1000 380 l18 20 l-18 20"/>
+    </g></svg>
+    <svg id="fer" class="abs" width="520" height="300" viewBox="0 0 520 300">
+        <path d="M20 250 Q40 120 220 110 L500 110 L500 250 Z" fill="#E2E8F0" stroke="#1E293B" stroke-width="8" stroke-linejoin="round"/>
+        <path d="M20 250 L500 250 L500 275 L35 275 Z" fill="#94A3B8" stroke="#1E293B" stroke-width="8" stroke-linejoin="round"/>
+        <path d="M230 110 Q250 20 330 20 L460 20 Q490 20 490 50 L490 110" fill="none" stroke="#1E293B" stroke-width="18" stroke-linecap="round"/>
+        <circle cx="380" cy="180" r="18" fill="#F87171"/>
+    </svg>
+    <svg class="abs" width="1920" height="1080"><g id="vapeur" fill="#fff"></g></svg>
+    <div id="rp-tag" class="pow" style="left:1240px; top:200px; color:#FFD84D;">Tout lisse !</div>
+</div>
+
+<!-- ============ 6. Prête ! ============ -->
+<div class="scene" id="prete" style="background: radial-gradient(circle at 35% 55%, #FFFFFF, #CFE3FF 60%, #A9CBFF);">
+    <svg class="abs" width="1920" height="1080"><g id="rayons" fill="#fff" opacity=".55"></g></svg>
+    <div id="pr-bouba" class="abs"></div>
+    <svg class="abs" width="1920" height="1080"><g id="etincelles" fill="#FBBF24"></g></svg>
+    <img id="pr-homme" src="../assets/man.png" class="abs" style="left:1130px; top:300px; width:700px; border-radius:40px;">
+    <div id="pr-ecran" class="abs" style="left:1361px; top:585px; width:185px; height:372px; border-radius:22px; overflow:hidden;">
+        <img src="../assets/c-detail.jpg" style="width:185px; display:block;">
+    </div>
+    <div id="pr-notif" class="notif" style="left:580px;">
+        <img src="../assets/icon.png">
+        <div style="flex:1;">
+            <div class="app"><span>PRESSLINK</span><span>maintenant</span></div>
+            <div class="t">Votre commande est prête ! 🎉</div>
+            <div class="b">Pressing du Plateau · PL-286571. Vous pouvez passer la récupérer.</div>
+        </div>
+    </div>
+</div>
+
+<!-- ============ 7. Logo ============ -->
+<div class="scene" id="logo" style="background: radial-gradient(circle at 50% 40%, #3B82F6, #2563EB 45%, #1D4ED8);">
+    <svg class="abs" width="1920" height="1080" opacity=".09"><rect width="1920" height="1080" fill="url(#wax-bleu)"/></svg>
+    <img id="lg-icon" src="../assets/icon.png" class="abs" style="left:860px; top:200px; width:200px; height:200px; border-radius:46px; background:#fff; box-shadow:0 30px 60px rgba(0,0,0,.25);">
+    <img id="lg-mot" src="../assets/wordmark_white.png" class="abs" style="left:630px; top:450px; width:660px;">
+    <div id="lg-slogan" class="abs" style="top:640px; width:1920px; text-align:center; color:#fff; font-size:68px; font-weight:700;">Le pressing, sans stress.</div>
+    <div id="lg-url" class="abs" style="left:760px; top:770px; width:400px; text-align:center; background:#FBBF24; color:#1E293B; border-radius:999px; padding:14px 0; font-size:40px; font-weight:700;">presslink.org</div>
+    <div id="lg-bouba" class="abs"></div>
+</div>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+    <pattern id="wax-bleu" width="160" height="160" patternUnits="userSpaceOnUse"><g fill="none" stroke="#fff" stroke-width="5"><circle cx="40" cy="40" r="28"/><circle cx="40" cy="40" r="12" fill="#fff"/><path d="M120 12 L148 40 L120 68 L92 40Z"/><circle cx="120" cy="120" r="26"/><path d="M12 120 Q40 92 68 120 Q40 148 12 120Z"/></g></pattern>
+</defs></svg>
+
+<div id="noir" class="abs" style="width:1920px; height:1080px; background:#000; pointer-events:none; z-index:40;"></div>
+<div id="caption"></div>
+</div>
+
+<script src="../commun/anim.js"></script>
+<script>
+/* ---------------------------------------------------------------- Bouba */
+function boubaSVG(id) {
+    return `<svg id="${id}" width="340" height="440" viewBox="-170 -60 340 440" style="position:absolute; left:-170px; top:-60px; overflow:visible;">
+      <g id="${id}-corps">
+        <path d="M -95 0 L 0 -28 L 95 0" fill="none" stroke="#5B6170" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 0 -28 C 0 -42 2 -50 12 -55 C 26 -62 34 -44 20 -36" fill="none" stroke="#5B6170" stroke-width="7" stroke-linecap="round"/>
+        <g id="${id}-mg" style="transform-origin:-112px 55px;"><path d="M -128 28 L -165 130 L -118 148 L -95 95 Z" fill="#8EC1FF" stroke="#24408E" stroke-width="7" stroke-linejoin="round"/><path d="M -158 112 L -116 128" stroke="#24408E" stroke-width="5"/></g>
+        <g id="${id}-md" style="transform-origin:112px 55px;"><path d="M 128 28 L 165 130 L 118 148 L 95 95 Z" fill="#8EC1FF" stroke="#24408E" stroke-width="7" stroke-linejoin="round"/><path d="M 158 112 L 116 128" stroke="#24408E" stroke-width="5"/></g>
+        <path d="M -70 0 L -128 28 L -95 95 L -95 330 Q 0 350 95 330 L 95 95 L 128 28 L 70 0 Q 0 40 -70 0 Z" fill="#8EC1FF" stroke="#24408E" stroke-width="7" stroke-linejoin="round"/>
+        <path d="M -70 0 Q -40 28 -4 52 L -44 70 Q -64 40 -70 0 Z" fill="#B9D8FF" stroke="#24408E" stroke-width="6" stroke-linejoin="round"/>
+        <path d="M 70 0 Q 40 28 4 52 L 44 70 Q 64 40 70 0 Z" fill="#B9D8FF" stroke="#24408E" stroke-width="6" stroke-linejoin="round"/>
+        <path d="M 0 240 L 0 338" stroke="#24408E" stroke-width="4"/>
+        <circle cx="0" cy="262" r="7" fill="#fff" stroke="#24408E" stroke-width="3"/><circle cx="0" cy="306" r="7" fill="#fff" stroke="#24408E" stroke-width="3"/>
+        <g id="${id}-tache">
+          <path d="M 40 238 C 60 222 92 230 88 252 C 98 262 86 286 66 278 C 58 296 34 288 38 270 C 22 262 26 244 40 238 Z" fill="#D9661F"/>
+          <path d="M 52 286 q 4 14 0 20 q -6 -6 0 -20Z" fill="#D9661F"/><circle cx="96" cy="236" r="5" fill="#D9661F"/><circle cx="28" cy="292" r="4" fill="#D9661F"/>
+        </g>
+        <circle cx="-52" cy="178" r="16" fill="#FF8FA3" opacity=".45"/><circle cx="52" cy="178" r="16" fill="#FF8FA3" opacity=".45"/>
+        <g id="${id}-yeux">
+          <g id="${id}-og" style="transform-origin:-36px 135px;"><ellipse cx="-36" cy="135" rx="22" ry="26" fill="#fff" stroke="#1E293B" stroke-width="4"/><circle id="${id}-pg" cx="-36" cy="137" r="10" fill="#1E293B"/><circle id="${id}-pg2" cx="-33" cy="133" r="3.5" fill="#fff"/></g>
+          <g id="${id}-od" style="transform-origin:36px 135px;"><ellipse cx="36" cy="135" rx="22" ry="26" fill="#fff" stroke="#1E293B" stroke-width="4"/><circle id="${id}-pd" cx="36" cy="137" r="10" fill="#1E293B"/><circle id="${id}-pd2" cx="39" cy="133" r="3.5" fill="#fff"/></g>
+        </g>
+        <path id="${id}-sg" d="M -54 100 Q -36 92 -18 100" fill="none" stroke="#1E293B" stroke-width="6" stroke-linecap="round" style="transform-origin:-36px 100px;"/>
+        <path id="${id}-sd" d="M 18 100 Q 36 92 54 100" fill="none" stroke="#1E293B" stroke-width="6" stroke-linecap="round" style="transform-origin:36px 100px;"/>
+        <g id="${id}-bouche"><ellipse id="${id}-bo" cx="0" cy="198" rx="20" ry="6" fill="#5B1A1A" stroke="#1E293B" stroke-width="4"/><path id="${id}-sourire" d="M -26 192 Q 0 216 26 192" fill="none" stroke="#1E293B" stroke-width="6" stroke-linecap="round"/></g>
+      </g></svg>`;
+}
+const ids = ['ch-bouba', 'rue-bouba', 'cp-bouba', 'lv-bouba', 'rp-bouba', 'pr-bouba', 'lg-bouba'];
+for (const id of ids) $(id).innerHTML = boubaSVG(id + 'S');
+
+/**
+ * Pose de Bouba : position, taille, regard, sourcils, bras, voix (bouche), tache…
+ * o = { x, y, s, r, sx, sy, look:[dx,dy], wide, brow (-1 fâché, 0, 1 surpris), armL, armR (degrés), talk, smile, blink, wink, stain, show }
+ */
+function bouba(wrap, t, o) {
+    const id = wrap + 'S';
+    put(wrap, { x: o.x, y: o.y, s: o.s ?? 1, sx: o.sx, sy: o.sy, r: o.r ?? 0, o: o.o ?? 1, show: o.show ?? true });
+    if (o.show === false) return;
+    const [lx, ly] = o.look ?? [0, 0];
+    for (const [e, k] of [['pg', 0], ['pd', 0], ['pg2', 3], ['pd2', 3]]) {
+        $(id + '-' + e).setAttribute('transform', `translate(${lx * 9}, ${ly * 11})`);
+    }
+    const wide = o.wide ?? 0;
+    const blink = o.blink ?? (((t * 1000) % 3400) < 110 ? 1 : 0);
+    const sy = Math.max(0.08, (1 + wide * 0.25) * (1 - blink * 0.92));
+    $(id + '-og').style.transform = `scale(${1 + wide * 0.2}, ${sy})`;
+    $(id + '-od').style.transform = `scale(${1 + wide * 0.2}, ${o.wink ? 0.08 : sy})`;
+    const b = o.brow ?? 0;
+    $(id + '-sg').style.transform = `translateY(${-b * 12}px) rotate(${b < 0 ? 14 : -b * 6}deg)`;
+    $(id + '-sd').style.transform = `translateY(${-b * 12}px) rotate(${b < 0 ? -14 : b * 6}deg)`;
+    $(id + '-mg').style.transform = `rotate(${o.armL ?? 0}deg)`;
+    $(id + '-md').style.transform = `rotate(${-(o.armR ?? 0)}deg)`;
+    const talk = o.talk ?? 0;
+    $(id + '-bo').setAttribute('ry', 4 + talk * 24);
+    $(id + '-bo').setAttribute('rx', 16 + talk * 8);
+    $(id + '-bo').style.opacity = talk > 0.04 || o.oh ? 1 : 0;
+    if (o.oh) { $(id + '-bo').setAttribute('ry', 20); $(id + '-bo').setAttribute('rx', 18); }
+    $(id + '-sourire').style.opacity = talk > 0.04 || o.oh ? 0 : (o.smile ?? 1);
+    $(id + '-tache').style.opacity = o.stain ?? 1;
+}
+
+/* ---------------------------------------------------------------- décors générés */
+(function decors() {
+    let ville = '';
+    for (let i = 0; i < 26; i++) {
+        const w = 90 + noise(i) * 120, h = 150 + noise(i + 7) * 330, x = i * 200;
+        ville += `<rect x="${x}" y="${690 - h}" width="${w}" height="${h}" fill="${i % 3 ? '#9DB7E0' : '#88A6D6'}"/>`;
+        for (let k = 0; k < h / 60 - 1; k++) ville += `<rect x="${x + 18}" y="${690 - h + 24 + k * 60}" width="${w - 36}" height="14" fill="#C9D9F2"/>`;
+    }
+    $('rue-ville-g').innerHTML = ville;
+    let lignes = '';
+    for (let i = 0; i < 40; i++) lignes += `<rect x="${i * 160}" y="905" width="90" height="14" rx="7" fill="#F8FAFC"/>`;
+    $('rue-lignes-g').innerHTML = lignes;
+    let palmiers = '';
+    for (let i = 0; i < 9; i++) {
+        const x = i * 520 + 120;
+        palmiers += `<g transform="translate(${x} 770) scale(0.55)"><path d="M0 0 Q 18 -260 -10 -520" stroke="#7A4E2D" stroke-width="30" fill="none" stroke-linecap="round"/>
+        ${[-150, -100, -40, 20, 80, 140].map((a) => `<path d="M-10 -520 q ${a} ${-60 + Math.abs(a) * 0.3} ${a * 1.7} ${40 + Math.abs(a) * 0.4}" stroke="#2F9E44" stroke-width="34" fill="none" stroke-linecap="round"/>`).join('')}</g>`;
+    }
+    $('rue-palmiers-g').innerHTML = palmiers;
+    let piles = '';
+    const couleurs = ['#E4572E', '#FFC145', '#2B4C9B', '#10B981', '#F472B6', '#FFFFFF'];
+    for (let r = 0; r < 2; r++) for (let i = 0; i < 4; i++) for (let k = 0; k < 3; k++) {
+        piles += `<div style="position:absolute; left:${150 + i * 150}px; top:${(r ? 330 : 140) - 38 - k * 36}px; width:120px; height:34px; border-radius:8px; background:${couleurs[(i + k + r) % 6]}; border:4px solid #1E293B;"></div>`;
+    }
+    $('piles').innerHTML = piles;
+    let rayons = '';
+    for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2, b = a + 0.12; rayons += `<path d="M0 0 L${Math.cos(a) * 1600} ${Math.sin(a) * 1600} L${Math.cos(b) * 1600} ${Math.sin(b) * 1600}Z"/>`; }
+    $('rayons').innerHTML = rayons;
+})();
+
+/* ---------------------------------------------------------------- montage */
+const S = () => TL.scenes;
+function scene(id, a, b) { const on = window.__t >= a && window.__t < b; $(id).style.display = on ? '' : 'none'; return on; }
+const parle = (t) => niveau('Bouba', t);
+
+function draw(t) {
+    window.__t = t;
+    const sc = S();
+    $('noir').style.opacity = 1 - E.out(p(t, 0, 0.5)) + E.in(p(t, 23.2, 24));
+
+    /* 1. Chambre */
+    if (scene('chambre', 0, sc.rue + 0.3)) {
+        const panique = p(t, 0.9, 1.9), zoom = E.inOut(p(t, 1.9, 2.5)) - E.inOut(p(t, 3.0, 3.4));
+        put('ch-world', { s: 1 + zoom * 0.35, x: -zoom * 120, y: -zoom * 60 });
+        const reveil = p(t, 0.3, 0.7);
+        const depart = E.in(p(t, 4.25, 4.9));
+        const shake = panique > 0 && panique < 1 ? Math.sin(t * 70) * 10 : 0;
+        bouba('ch-bouba', t, {
+            x: 860 + shake + depart * 1400, y: 300 - depart * 140 + Math.sin(t * 2) * 4,
+            s: 1.45, r: Math.sin(t * 2.2) * 2 + depart * 18,
+            look: t < 1.9 && t > 0.9 ? [0.6, 1] : (t > 3 ? [1, 0] : [0.5, 0.8]),
+            wide: t > 0.9 && t < 3 ? 1 : 0, brow: t > 0.9 && t < 3 ? 1 : (t > 3 ? -1 : 0),
+            blink: reveil < 1 ? 1 : undefined, armR: t > 3 ? E.back(p(t, 3, 3.3)) * 70 : 0, armL: panique > 0 && panique < 1 ? 40 + Math.sin(t * 40) * 20 : 0,
+            talk: parle(t), smile: t > 3 ? 1 : 0.2,
+        });
+        put('ch-bang', { s: E.back(p(t, 0.95, 1.2)), o: 1 - p(t, 1.9, 2.1), r: Math.sin(t * 30) * 4 });
+        put('ch-label', { s: E.back(p(t, 2.1, 2.4)), o: 1 - p(t, 3.0, 3.2), r: -4 });
+        put('ch-cap', { s: E.back(p(t, 0.2, 0.5)), o: 1 - p(t, 3.8, 4.1), r: -3 });
+        put('pagne', { r: Math.sin(t * 1.7) * 1.5 }); put('pantalon', { r: Math.sin(t * 1.9 + 1) * 1.5 });
+        $('chambre').style.clipPath = 'none';
+    }
+
+    /* 2. Rue : taxi orange */
+    if (scene('rue', sc.rue - 0.25, sc.comptoir + 0.35)) {
+        const w = p(t, sc.rue - 0.25, sc.rue + 0.15);
+        $('rue').style.clipPath = `inset(0 0 0 ${(1 - E.inOut(w)) * 100}%)`;
+        const k = t - sc.rue;
+        const arrivee = E.out(p(t, sc.rue, sc.rue + 0.6)), frein = E.out(p(t, sc.comptoir - 0.5, sc.comptoir - 0.2));
+        const defil = k * 900 - frein * 120;
+        put('rue-ville', { x: -defil * 0.15 });
+        put('rue-lignes', { x: -(defil % 160) });
+        put('rue-palmiers', { x: -defil * 0.6 });
+        put('taxi-wrap', { x: -700 + arrivee * 1100 + frein * 60, y: 470 + Math.abs(Math.sin(k * 14)) * -6, r: frein * (1 - p(t, sc.comptoir - 0.2, sc.comptoir)) * 3 });
+        $('roue1').setAttribute('transform', `rotate(${k * 900} 150 225)`); $('roue2').setAttribute('transform', `rotate(${k * 900} 480 225)`);
+        bouba('rue-bouba', t, { x: 300, y: 30 + Math.sin(k * 14) * 6, s: 0.5, r: -6 + Math.sin(k * 9) * 5, sx: 0.5 * (1 + Math.sin(k * 26) * 0.04), armL: 120 + Math.sin(k * 16) * 25, armR: 30, look: [1, 0], wide: 0.4, talk: 0, smile: 1 });
+        put('pouet', { s: E.back(p(t, sc.rue + 0.45, sc.rue + 0.7)), o: 1 - p(t, sc.rue + 1.2, sc.rue + 1.4), r: -6 });
+        put('devanture', { x: 2000 - E.out(p(t, sc.comptoir - 0.9, sc.comptoir - 0.2)) * 900, y: 220 });
+        const entre = E.in(p(t, sc.comptoir - 0.1, sc.comptoir + 0.35));
+        $('rue').style.transform = `scale(${1 + entre * 1.8})`; $('rue').style.transformOrigin = '1620px 600px'; $('rue').style.opacity = 1 - p(t, sc.comptoir + 0.15, sc.comptoir + 0.35);
+    }
+
+    /* 3. Comptoir */
+    if (scene('comptoir', sc.comptoir, sc.lavage + 0.3)) {
+        const c = sc.comptoir;
+        bouba('cp-bouba', t, { x: 330, y: 400 + Math.sin(t * 3) * 5, s: 1.05, r: Math.sin(t * 2) * 2, look: t < c + 1.8 ? [1, 0.2] : [1, 0.6], brow: 1, talk: parle(t), armR: t > c + 2.3 && t < c + 3.2 ? 60 : 0, stain: 1 });
+        const modal = E.back(p(t, c + 0.3, c + 0.7));
+        put('cp-modal', { s: modal, o: p(t, c + 0.3, c + 0.45) * (1 - p(t, c + 1.4, c + 1.55)) });
+        $('cp-btn').style.background = t > c + 1.25 && t < c + 1.45 ? '#1D4ED8' : '#2563EB';
+        put('cp-ok', { s: E.back(p(t, c + 1.5, c + 1.8)), o: p(t, c + 1.5, c + 1.6) * (1 - p(t, c + 3.4, c + 3.6)) });
+        // curseur qui va cliquer « Créer la commande »
+        const cur = E.inOut(p(t, c + 0.6, c + 1.2));
+        put('curseur', { x: lerp(1500, 1180, cur), y: lerp(900, 640, cur), s: t > c + 1.25 && t < c + 1.4 ? 0.85 : 1, o: 1 - p(t, c + 1.8, c + 2.0) });
+        put('cp-chrono', { s: E.back(p(t, c + 0.2, c + 0.45)), r: 3, o: 1 - p(t, c + 3.3, c + 3.5) });
+        $('cp-chrono-n').textContent = (Math.min(2, Math.max(0, (t - c - 0.25) * 1.45))).toFixed(1).replace('.', ',');
+        // le reçu sort de l'imprimante puis vole vers Bouba
+        const sort = E.out(p(t, c + 1.9, c + 2.7)), vole = E.inOut(p(t, c + 2.9, c + 3.4));
+        $('recu').style.height = `${sort * 330 + vole * 118}px`;
+        put('recu', { x: vole * -1160, y: (1 - sort) * 120 - sort * 210 + vole * 260, r: vole * -12, s: 1 - vole * 0.45 });
+    }
+
+    /* 4. Lavage */
+    if (scene('lavage', sc.lavage, sc.repassage + 0.2)) {
+        const l = sc.lavage, k = t - l;
+        $('lavage').style.clipPath = `circle(${E.inOut(p(t, l, l + 0.45)) * 130}% at 30% 60%)`;
+        put('eau', { r: k * 160 });
+        bouba('lv-bouba', t, { x: 220, y: 120, s: 0.62, r: k * 300 + Math.sin(k * 3) * 30, look: [Math.sin(k * 8), Math.cos(k * 8)], wide: 0.6, brow: 1, talk: parle(t), stain: 1 - p(t, l + 2.8, l + 3.5), armL: 50 + Math.sin(k * 12) * 30, armR: 50 + Math.cos(k * 12) * 30 });
+        let b = '';
+        for (let i = 0; i < 26; i++) {
+            const ph = (k * (0.4 + noise(i) * 0.5) + noise(i + 3)) % 1;
+            b += `<circle cx="${40 + noise(i + 9) * 360 + Math.sin(k * 3 + i) * 12}" cy="${440 - ph * 480}" r="${6 + noise(i + 5) * 16}" fill="rgba(255,255,255,.55)" stroke="#fff" stroke-width="2"/>`;
+        }
+        $('bulles').innerHTML = b;
+        $('bouton').setAttribute('transform', `rotate(${k * 90} 120 75)`);
+        const tel = E.out(p(t, l + 0.4, l + 0.9));
+        put('lv-mains', { y: (1 - tel) * 700 }); put('lv-ecran', { y: (1 - tel) * 700 });
+        const enCours = t > l + 1.9;
+        $('st2').className = 'step ' + (enCours ? 'cur' : 'todo');
+        $('st2').querySelector('i').style.transform = `rotate(${k * 360}deg)`;
+        $('st2s').textContent = enCours ? 'en cours…' : '—';
+        put('lv-tag', { s: E.back(p(t, l + 2.0, l + 2.3)), r: -3 });
+    }
+
+    /* 5. Repassage */
+    if (scene('repassage', sc.repassage, sc.prete + 0.2)) {
+        const r = sc.repassage, k = t - r;
+        $('repassage').style.clipPath = `inset(0 ${(1 - E.inOut(p(t, r, r + 0.35))) * 100}% 0 0)`;
+        const passe = E.inOut(p(t, r + 0.3, r + 1.2));
+        const ecrase = Math.max(0, 1 - Math.abs(passe - 0.5) * 4);
+        bouba('rp-bouba', t, { x: 960, y: 330 + ecrase * 40, s: 0.95, sy: 0.95 * (1 - ecrase * 0.18), r: 0, look: [-0.6, -0.8], wide: ecrase > 0.1 ? 1 : 0, brow: 1, talk: parle(t), stain: 0, smile: 1, oh: ecrase > 0.1 });
+        put('plis', { o: 1 - p(t, r + 0.6, r + 1.0) });
+        put('fer', { x: lerp(-500, 1500, passe), y: 300 + Math.sin(passe * Math.PI) * 60, r: -8 });
+        let v = '';
+        for (let i = 0; i < 12; i++) {
+            const ph = (k * 1.4 + noise(i)) % 1;
+            if (passe > 0 && passe < 1) v += `<circle cx="${lerp(-500, 1500, passe) + 260 + noise(i + 2) * 200 - 100}" cy="${560 - ph * 260}" r="${20 + ph * 50}" opacity="${0.6 * (1 - ph)}"/>`;
+        }
+        $('vapeur').innerHTML = v;
+        put('rp-tag', { s: E.back(p(t, r + 1.2, r + 1.5)), r: 6 });
+    }
+
+    /* 6. Prête */
+    if (scene('prete', sc.prete, sc.logo + 0.3)) {
+        const q = sc.prete, k = t - q;
+        $('prete').style.clipPath = `circle(${E.inOut(p(t, q, q + 0.4)) * 130}% at 30% 50%)`;
+        $('rayons').setAttribute('transform', `translate(600 560) rotate(${k * 12})`);
+        bouba('pr-bouba', t, { x: 600, y: 330 + Math.sin(k * 4) * 8, s: 1.15, r: Math.sin(k * 3) * 3, look: k < 0.9 ? [0.4, -1] : [0.7, 0], brow: 1, talk: parle(t), stain: 0, smile: 1, wink: t > q + 3.1 && t < q + 3.5, armL: 60 + Math.sin(k * 10) * 25, armR: k > 0.8 ? 120 + Math.sin(k * 9) * 20 : 30 });
+        let e = '';
+        for (let i = 0; i < 14; i++) {
+            const ph = (k * 0.9 + noise(i)) % 1, a = noise(i + 4) * Math.PI * 2, d = 200 + noise(i + 8) * 160;
+            const sz = Math.sin(ph * Math.PI) * 22;
+            e += `<path transform="translate(${600 + Math.cos(a) * d} ${520 + Math.sin(a) * d}) rotate(${k * 90})" d="M0 ${-sz} L${sz * 0.3} ${-sz * 0.3} L${sz} 0 L${sz * 0.3} ${sz * 0.3} L0 ${sz} L${-sz * 0.3} ${sz * 0.3} L${-sz} 0 L${-sz * 0.3} ${-sz * 0.3}Z"/>`;
+        }
+        $('etincelles').innerHTML = e;
+        const n = E.back(p(t, q + 0.25, q + 0.6));
+        put('pr-notif', { y: lerp(-220, 60, n), o: 1 - p(t, q + 3.5, q + 3.8) });
+        const h = E.out(p(t, q + 0.5, q + 1.0));
+        put('pr-homme', { x: (1 - h) * 900 }); put('pr-ecran', { x: (1 - h) * 900 });
+    }
+
+    /* 7. Logo */
+    if (scene('logo', sc.logo, 99)) {
+        const g = sc.logo;
+        $('logo').style.clipPath = `circle(${E.inOut(p(t, g, g + 0.5)) * 130}% at 50% 40%)`;
+        put('lg-icon', { s: E.elastic(p(t, g + 0.2, g + 1.1)), r: (1 - p(t, g + 0.2, g + 0.8)) * -20 });
+        put('lg-mot', { y: (1 - E.out(p(t, g + 0.5, g + 0.9))) * 40, o: p(t, g + 0.5, g + 0.8) });
+        put('lg-slogan', { s: E.back(p(t, g + 0.9, g + 1.25)), o: p(t, g + 0.9, g + 1.05) });
+        put('lg-url', { s: E.back(p(t, g + 1.5, g + 1.8)) });
+        const peek = E.back(p(t, g + 1.3, g + 1.8));
+        bouba('lg-bouba', t, { x: 1640, y: 1120 - peek * 380, s: 0.9, r: -12, look: [-0.6, -0.4], talk: 0, stain: 0, smile: 1, wink: t > g + 2.4 && t < g + 2.8, armR: 130 + Math.sin(t * 10) * 25, brow: 0.5 });
+    }
+}
+</script>
+</body>
+</html>

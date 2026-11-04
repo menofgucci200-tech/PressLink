@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PressLink — Le Fil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,400;1,9..144,600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../commun/v2.css">
+<style>
+:root { --creme: #F4ECDD; --encre: #1A2340; --or: #D99A1E; --terre: #C8553D; --indigo: #2B3A8C; --vert: #2E7D5B; }
+body { background: var(--creme); color: var(--encre); font-family: "DM Sans", Inter, sans-serif; cursor: none; }
+@media (hover: none) { body { cursor: auto; } }
+.conte { font-family: Fraunces, Georgia, serif; font-style: italic; font-weight: 400; letter-spacing: -.01em; }
+.titre { font-family: Fraunces, Georgia, serif; font-weight: 700; letter-spacing: -.025em; line-height: 1; }
+.chap { font: 700 12px "DM Sans"; letter-spacing: .22em; text-transform: uppercase; color: var(--terre); }
+#fil-souris { position: fixed; inset: 0; z-index: 80; pointer-events: none; }
+.barre { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; padding: 18px 26px; }
+.barre .logo { font: 600 22px Fraunces; font-style: italic; text-decoration: none; }
+.barre .son-btn { color: var(--encre); }
+.grain { position: fixed; inset: 0; pointer-events: none; z-index: 70; opacity: .35; mix-blend-mode: multiply; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .1 0 0 0 0 .1 0 0 0 0 .15 0 0 0 .25 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+section { position: relative; }
+.scene { height: 100vh; overflow: hidden; position: relative; }
+.scene svg.toile { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Intro */
+#intro .texte { position: absolute; left: 7vw; right: 7vw; top: 50%; transform: translateY(-58%); }
+#intro h1 { font-size: clamp(56px, 10vw, 168px); line-height: .98; }
+#intro h1 .ligne { display: block; clip-path: inset(0 100% 0 0); }
+#intro .sous { margin-top: 30px; font-size: clamp(16px, 1.4vw, 20px); max-width: 520px; line-height: 1.6; opacity: 0; }
+#aiguille { position: absolute; width: 150px; left: 0; top: 0; z-index: 3; transform-origin: 85% 50%; }
+.indice { position: absolute; left: 50%; bottom: 74px; transform: translateX(-50%); font: 500 13px "DM Sans"; letter-spacing: .14em; text-transform: uppercase; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.indice i { width: 2px; height: 46px; background: linear-gradient(var(--encre), transparent); display: block; animation: goutte 1.8s ease-in-out infinite; transform-origin: top; }
+@keyframes goutte { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
+
+/* Textes des chapitres */
+.cartouche { position: absolute; left: 7vw; top: 13vh; max-width: 560px; z-index: 2; }
+.cartouche h2 { font-size: clamp(38px, 5.4vw, 86px); margin: 14px 0 16px; }
+.cartouche p { font-size: clamp(16px, 1.35vw, 19px); line-height: 1.6; max-width: 460px; }
+.mot { position: absolute; font-family: Fraunces, serif; font-style: italic; font-size: clamp(22px, 2.6vw, 40px); white-space: nowrap; }
+.video-cadre { position: absolute; left: 50%; top: 50%; width: min(940px, 86vw); aspect-ratio: 16/9; transform: translate(-50%, -50%); border-radius: 18px; display: grid; place-items: center; z-index: 3; opacity: 0; border: 3px dashed var(--or); background: rgba(26,35,64,.82); color: var(--creme); }
+.video-cadre .jouer { width: 92px; height: 92px; border-radius: 50%; background: var(--or); display: grid; place-items: center; color: var(--encre); font-size: 32px; }
+.video-cadre .conte { position: absolute; bottom: 18px; left: 24px; font-size: 20px; opacity: .8; }
+
+/* Fin */
+#fin { min-height: 100vh; }
+#fin .cta { position: absolute; left: 50%; bottom: 16vh; transform: translateX(-50%); display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; z-index: 3; }
+#fin .cta a { padding: 16px 28px; border-radius: 999px; text-decoration: none; font-weight: 700; border: 2px dashed var(--encre); background: var(--creme); transition: background .3s, color .3s; cursor: none; }
+#fin .cta a:hover { background: var(--encre); color: var(--creme); }
+#fin .cta a.plein { background: var(--encre); color: var(--creme); border-style: solid; }
+#fin-mot { position: absolute; left: 0; right: 0; top: 60%; text-align: center; font-size: clamp(64px, 11vw, 190px); z-index: 2; }
+@media (max-width: 760px) { .cartouche { top: 11vh; } .mot { font-size: 20px; } }
+</style>
+</head>
+<body>
+<canvas id="fil-souris"></canvas>
+<div class="grain"></div>
+<header class="barre"><a class="logo" href="#intro">PressLink</a><button class="son-btn" data-son aria-pressed="false"><span class="ondes"><span></span><span></span><span></span></span>Son</button></header>
+
+<main>
+<section id="intro" class="scene">
+    <svg class="toile" id="intro-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice"><path id="couture" fill="none" stroke="#D99A1E" stroke-width="3" stroke-linecap="round" stroke-dasharray="14 10"/></svg>
+    <svg id="aiguille" viewBox="0 0 300 40"><path d="M6 20 Q 40 10 270 18 L 296 20 L 270 22 Q 40 30 6 20 Z" fill="#9AA3B5"/><ellipse cx="40" cy="20" rx="16" ry="4" fill="#F4ECDD" stroke="#6B7489" stroke-width="2"/><path d="M6 20 Q 70 4 140 20" stroke="#fff" stroke-width="2" fill="none" opacity=".6"/></svg>
+    <div class="texte">
+        <h1 class="conte"><span class="ligne">Il était une fois,</span><span class="ligne" style="color:var(--terre)">au pressing…</span></h1>
+        <p class="sous">Une histoire de vêtements, de patience, et d'un fil qui relie un pressing à tous ses clients. Suivez le fil.</p>
+    </div>
+    <div class="indice">Suivez le fil<i></i></div>
+</section>
+
+<section id="noeud" class="scene">
+    <svg class="toile" id="noeud-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid meet"><path id="noeud-fil" fill="none" stroke="#D99A1E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="cartouche" id="noeud-txt"><span class="chap">Chapitre 1 · Le nœud</span><h2 class="titre">Tout était emmêlé.</h2><p>Les tickets qui se perdent, le téléphone qui sonne, « c'est prêt ? », la caisse qui ne tombe pas juste…</p></div>
+    <span class="mot" style="left:52%; top:22%">tickets perdus</span>
+    <span class="mot" style="left:70%; top:40%; color:var(--terre)">« c'est prêt ? »</span>
+    <span class="mot" style="left:44%; top:62%">l'attente</span>
+    <span class="mot" style="left:76%; top:70%">les appels</span>
+    <span class="mot" style="left:30%; top:80%; color:var(--indigo)">la caisse</span>
+    <div class="cartouche" id="noeud-txt2" style="top:auto; bottom:16vh; opacity:0"><span class="chap">Puis un jour</span><h2 class="titre conte" style="font-weight:600">quelqu'un a tiré<br>sur le bon fil.</h2></div>
+</section>
+
+<section id="lien" class="scene">
+    <div class="cartouche"><span class="chap">Chapitre 2 · Le lien</span><h2 class="titre">Un pressing,<br>relié à ses clients.</h2><p>Chaque client suit ses vêtements et sait quand c'est prêt. <em class="conte">Pincez les fils…</em></p></div>
+    <svg class="toile" id="lien-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid meet"></svg>
+</section>
+
+<section id="tissage" class="scene">
+    <div class="cartouche" id="tissage-txt"><span class="chap">Chapitre 3 · Le tissage</span><h2 class="titre">Fil après fil,<br>une histoire se tisse.</h2></div>
+    <svg class="toile" id="tissage-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="video-cadre" id="video"><div class="jouer">▶</div><span class="conte">La vidéo de présentation, bientôt ici.</span></div>
+</section>
+
+<section id="fin" class="scene">
+    <svg class="toile" id="fin-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid meet"><path id="cintre" fill="none" stroke="#1A2340" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path id="cintre-ref" d="M 720 150 C 720 120 760 110 770 140 C 778 165 745 175 720 200 L 720 215 L 420 440 Q 400 456 430 456 L 1010 456 Q 1040 456 1020 440 L 720 215" fill="none" stroke="none"/></svg>
+    <div id="fin-mot" class="titre conte" style="font-weight:600">PressLink<span style="color:var(--or)">.</span></div>
+    <div class="cta"><a class="plein" href="https://presslink.org/app/">Ouvrir l'application</a><a href="https://wa.me/2250718002293" target="_blank" rel="noopener">Raconter votre pressing</a></div>
+</section>
+</main>
+
+<div class="legende" data-legende></div>
+<nav class="maquette-bar"><a href="../">Maquettes</a><a href="../1-plisse/">Plissé</a><a class="on" href="../2-fil/">Le Fil</a><a href="../3-abidjan/">Abidjan</a></nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="../commun/son.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+window.lenis = new Lenis({ lerp: 0.075 });
+window.lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add((t) => window.lenis.raf(t * 1000));
+gsap.ticker.lagSmoothing(0);
+const NS = 'http://www.w3.org/2000/svg';
+const REPLIQUES = {
+    f1: 'Il était une fois, au pressing…', f2: "Un fil tout emmêlé : des tickets perdus, des appels sans fin, et l'attente.",
+    f3: "Puis un jour, quelqu'un a tiré sur le bon fil.", f4: "Et le pressing s'est relié à tous ses clients.", f5: 'Fil après fil, une belle histoire s\'est tissée.',
+};
+const dit = new Set();
+const conter = (c) => { if (!Son.actif || dit.has(c)) return; dit.add(c); Son.voix(`audio/voix-${c}.mp3`, REPLIQUES[c]); };
+Son.brancher({ musique: 'audio/musique.mp3' });
+Son.onChange((on) => { if (on && scrollY < innerHeight / 2) conter('f1'); });
+const kora = (i, g = 0.7) => Son.note('kora-' + (((i % 12) + 12) % 12), g);
+/** Chemin lisse passant par des points (Catmull-Rom). */
+function lisse(pts) {
+    let d = `M ${pts[0][0]} ${pts[0][1]}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+        const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+        d += ` C ${p1[0] + (p2[0] - p0[0]) / 6} ${p1[1] + (p2[1] - p0[1]) / 6} ${p2[0] - (p3[0] - p1[0]) / 6} ${p2[1] - (p3[1] - p1[1]) / 6} ${p2[0]} ${p2[1]}`;
+    }
+    return d;
+}
+
+/* ---------------------------------------------------------------- le fil qui suit la souris */
+const cv = document.getElementById('fil-souris'), cx = cv.getContext('2d');
+const corde = Array.from({ length: 28 }, () => ({ x: innerWidth / 2, y: innerHeight / 2, px: innerWidth / 2, py: innerHeight / 2 }));
+let souris = { x: innerWidth / 2, y: innerHeight / 2 }, sourisActive = matchMedia('(hover: hover)').matches;
+function taille() { const r = devicePixelRatio || 1; cv.width = innerWidth * r; cv.height = innerHeight * r; cx.setTransform(r, 0, 0, r, 0, 0); }
+taille(); addEventListener('resize', taille);
+addEventListener('pointermove', (e) => { souris = { x: e.clientX, y: e.clientY }; });
+gsap.ticker.add(() => {
+    if (!sourisActive) return;
+    corde[0].x = souris.x; corde[0].y = souris.y;
+    for (let i = 1; i < corde.length; i++) {
+        const p = corde[i], vx = (p.x - p.px) * 0.9, vy = (p.y - p.py) * 0.9;
+        p.px = p.x; p.py = p.y; p.x += vx; p.y += vy + 0.6;
+    }
+    for (let k = 0; k < 5; k++) for (let i = 1; i < corde.length; i++) {
+        const a = corde[i - 1], b = corde[i], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1, diff = (d - 9) / d;
+        if (i > 1) { a.x += dx * diff * 0.5; a.y += dy * diff * 0.5; }
+        b.x -= dx * diff * (i > 1 ? 0.5 : 1); b.y -= dy * diff * (i > 1 ? 0.5 : 1);
+    }
+    cx.clearRect(0, 0, innerWidth, innerHeight);
+    cx.beginPath(); cx.moveTo(corde[0].x, corde[0].y);
+    for (let i = 1; i < corde.length - 1; i++) cx.quadraticCurveTo(corde[i].x, corde[i].y, (corde[i].x + corde[i + 1].x) / 2, (corde[i].y + corde[i + 1].y) / 2);
+    cx.strokeStyle = '#D99A1E'; cx.lineWidth = 2.5; cx.lineCap = 'round'; cx.stroke();
+    // l'aiguille au bout du pointeur
+    const a = Math.atan2(corde[0].y - corde[2].y, corde[0].x - corde[2].x);
+    cx.save(); cx.translate(souris.x, souris.y); cx.rotate(a);
+    cx.fillStyle = '#7C869C'; cx.beginPath(); cx.moveTo(4, 0); cx.lineTo(-26, -2.6); cx.lineTo(-30, 0); cx.lineTo(-26, 2.6); cx.closePath(); cx.fill();
+    cx.restore();
+});
+
+/* ---------------------------------------------------------------- intro : l'aiguille coud le titre */
+const couture = document.getElementById('couture');
+const ptsCouture = Array.from({ length: 30 }, (_, i) => [-60 + i * 55, 470 + Math.sin(i * 0.7) * 40]);
+couture.setAttribute('d', lisse(ptsCouture));
+const Lc = couture.getTotalLength();
+gsap.set(couture, { strokeDashoffset: 0, attr: { 'stroke-dasharray': `14 10` } });
+const masque = { p: 0 };
+const intro = gsap.timeline({ delay: 0.4 });
+intro.to(masque, { p: 1, duration: 2.6, ease: 'power2.inOut', onUpdate: () => {
+    const pt = couture.getPointAtLength(masque.p * Lc), pt2 = couture.getPointAtLength(Math.max(0, masque.p * Lc - 6));
+    const svg = document.getElementById('intro-svg').getBoundingClientRect(), k = Math.max(svg.width / 1440, svg.height / 900);
+    const ox = (svg.width - 1440 * k) / 2, oy = (svg.height - 900 * k) / 2;
+    gsap.set('#aiguille', { x: ox + pt.x * k - 128, y: oy + pt.y * k - 13, rotation: Math.atan2(pt.y - pt2.y, pt.x - pt2.x) * 180 / Math.PI });
+    couture.style.clipPath = `inset(0 ${100 - masque.p * 100}% 0 0)`;
+    document.querySelectorAll('#intro h1 .ligne').forEach((l, i) => { l.style.clipPath = `inset(-20% ${Math.max(0, 100 - (masque.p * 1.25 - i * 0.18) * 100)}% -20% 0)`; });
+} })
+.to('#aiguille', { x: '+=400', opacity: 0, duration: 0.6, ease: 'power2.in' })
+.to('#intro .sous', { opacity: 1, y: -10, duration: 0.8 }, '-=0.5');
+gsap.to('#intro .texte', { yPercent: -30, opacity: 0, ease: 'none', scrollTrigger: { trigger: '#intro', start: 'top top', end: 'bottom top', scrub: true } });
+
+/* ---------------------------------------------------------------- chapitre 1 : le nœud se dénoue */
+const NN = 180, noeudFil = document.getElementById('noeud-fil');
+const emmele = [], droit = [];
+for (let i = 0; i < NN; i++) {
+    const t = i / (NN - 1);
+    emmele.push([1440 * (0.3 + 0.55 * t) + 190 * Math.sin(t * 31) + 70 * Math.sin(t * 83), 470 + 210 * Math.cos(t * 23) + 80 * Math.sin(t * 61)]);
+    droit.push([-40 + t * 1520, 470 + Math.sin(t * 9) * 6]);
+}
+const mots = gsap.utils.toArray('#noeud .mot');
+const tlNoeud = gsap.timeline({ scrollTrigger: { trigger: '#noeud', pin: true, start: 'top top', end: '+=220%', scrub: 0.8,
+    onEnter: () => conter('f2'), onUpdate: (st) => { if (st.progress > 0.62) conter('f3'); } } });
+const dn = { u: 0, dessin: 0 };
+function dessinerNoeud() {
+    const u = E(dn.u), n = Math.max(2, Math.floor(NN * dn.dessin));
+    const pts = emmele.slice(0, n).map((p, i) => [p[0] + (droit[i][0] - p[0]) * u, p[1] + (droit[i][1] - p[1]) * u]);
+    noeudFil.setAttribute('d', lisse(pts));
+}
+const E = gsap.parseEase('power3.inOut');
+tlNoeud.to(dn, { dessin: 1, duration: 1, ease: 'none', onUpdate: dessinerNoeud })
+       .from(mots, { opacity: 0, scale: 0.6, rotation: () => gsap.utils.random(-20, 20), stagger: 0.12, duration: 0.4 }, 0.1)
+       .to(dn, { u: 1, duration: 1.4, ease: 'none', onUpdate: dessinerNoeud, onStart: () => Son.sfx('montee', 0.5) }, 1.3)
+       .to(mots, { y: () => gsap.utils.random(-300, -500), x: () => gsap.utils.random(-200, 200), rotation: () => gsap.utils.random(-60, 60), opacity: 0, stagger: 0.05, duration: 0.8 }, 1.4)
+       .to('#noeud-txt', { opacity: 0, y: -40, duration: 0.4 }, 1.4)
+       .to('#noeud-txt2', { opacity: 1, y: -20, duration: 0.5 }, 2.2)
+       .to({}, { duration: 0.3 });
+dessinerNoeud();
+
+/* ---------------------------------------------------------------- chapitre 2 : le lien (fils qu'on pince) */
+const lienSvg = document.getElementById('lien-svg');
+lienSvg.innerHTML = `
+  <g id="pressing" fill="none" stroke="#1A2340" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M150 720 L150 470 L430 470 L430 720 Z"/><path d="M130 470 L450 470 L430 420 L150 420 Z"/>
+    <path d="M150 470 q 23 30 46 0 q 23 30 46 0 q 23 30 46 0 q 23 30 46 0 q 23 30 46 0 q 23 30 46 0"/>
+    <path d="M250 720 L250 580 L330 580 L330 720"/><path d="M175 520 L225 520 L225 570 L175 570 Z M355 520 L405 520 L405 570 L355 570 Z"/>
+    <path d="M110 720 L470 720"/><text x="290" y="452" text-anchor="middle" font-family="DM Sans" font-weight="700" font-size="22" letter-spacing="4" fill="#1A2340" stroke="none">PRESSING</text>
+  </g>`;
+const clients = [[1020, 190], [1210, 330], [1270, 520], [1180, 700], [990, 790], [860, 640]];
+const fils = clients.map(([x, y], i) => {
+    lienSvg.insertAdjacentHTML('beforeend', `<g class="client" fill="none" stroke="#1A2340" stroke-width="3.5" stroke-linecap="round"><rect x="${x - 26}" y="${y - 46}" width="52" height="92" rx="10"/><path d="M${x - 8} ${y - 36} L${x + 8} ${y - 36}"/><circle cx="${x}" cy="${y + 34}" r="3"/></g>`);
+    const f = document.createElementNS(NS, 'path');
+    f.setAttribute('fill', 'none'); f.setAttribute('stroke', ['#D99A1E', '#C8553D', '#2B3A8C', '#2E7D5B'][i % 4]); f.setAttribute('stroke-width', '3'); f.setAttribute('stroke-linecap', 'round');
+    lienSvg.insertBefore(f, lienSvg.firstChild);
+    const point = document.createElementNS(NS, 'circle'); point.setAttribute('r', '7'); point.setAttribute('fill', f.getAttribute('stroke')); point.style.opacity = 0;
+    lienSvg.appendChild(point);
+    return { f, point, a: [290, 600], b: [x - 30, y], vib: 0, phase: 0, dessin: 0, note: [0, 2, 4, 5, 7, 9][i] };
+});
+const centre = (F) => [(F.a[0] + F.b[0]) / 2, (F.a[1] + F.b[1]) / 2];
+function dessinerFils(t) {
+    fils.forEach((F) => {
+        const [mx, my] = centre(F), dx = F.b[0] - F.a[0], dy = F.b[1] - F.a[1], L = Math.hypot(dx, dy);
+        const nx = -dy / L, ny = dx / L, o = F.vib * Math.sin(F.phase);
+        F.f.setAttribute('d', `M ${F.a[0]} ${F.a[1]} Q ${mx + nx * o} ${my + ny * o} ${F.b[0]} ${F.b[1]}`);
+        F.vib *= 0.93; F.phase += 0.9;
+        const len = F.f.getTotalLength();
+        F.f.style.strokeDasharray = len; F.f.style.strokeDashoffset = len * (1 - F.dessin);
+        if (F.dessin >= 1) { const k = ((t * 0.35 + F.note * 0.13) % 1); const p = F.f.getPointAtLength(k * len); F.point.setAttribute('cx', p.x); F.point.setAttribute('cy', p.y); F.point.style.opacity = Math.sin(k * Math.PI); }
+    });
+}
+gsap.ticker.add((t) => dessinerFils(t));
+// pincer : quand la souris traverse un fil, il vibre et joue sa note
+let precedente = null;
+lienSvg.addEventListener('pointermove', (e) => {
+    const m = lienSvg.getScreenCTM().inverse(), p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m);
+    if (precedente) fils.forEach((F) => {
+        if (F.dessin < 1) return;
+        const cote = (q) => Math.sign((F.b[0] - F.a[0]) * (q.y - F.a[1]) - (F.b[1] - F.a[1]) * (q.x - F.a[0]));
+        const t1 = ((p.x - F.a[0]) * (F.b[0] - F.a[0]) + (p.y - F.a[1]) * (F.b[1] - F.a[1])) / ((F.b[0] - F.a[0]) ** 2 + (F.b[1] - F.a[1]) ** 2);
+        if (t1 > 0.05 && t1 < 0.95 && cote(p) !== cote(precedente) && F.vib < 6) { F.vib = 26; F.phase = 0; kora(F.note); }
+    });
+    precedente = p;
+});
+const tlLien = gsap.timeline({ scrollTrigger: { trigger: '#lien', pin: true, start: 'top top', end: '+=170%', scrub: 0.6, onEnter: () => conter('f4') } });
+tlLien.from('#pressing path, #pressing text', { opacity: 0, y: 30, stagger: 0.05, duration: 0.5 })
+      .from('#lien-svg .client', { opacity: 0, scale: 0.5, transformOrigin: '50% 50%', stagger: 0.08, duration: 0.4 }, 0.3)
+      .to(fils, { dessin: 1, stagger: 0.15, duration: 0.8, ease: 'power1.inOut', onComplete: () => {} }, 0.6)
+      .to({}, { duration: 0.8 });
+let notes = 0;
+ScrollTrigger.create({ trigger: '#lien', start: 'top top', end: '+=170%', onUpdate: (st) => { const n = Math.floor(st.progress * 8); if (n > notes) { notes = n; if (n >= 3 && n <= 8) { kora(fils[(n - 3) % 6].note, 0.5); fils[(n - 3) % 6].vib = 14; } } } });
+
+/* ---------------------------------------------------------------- chapitre 3 : le tissage (kente) */
+const tissSvg = document.getElementById('tissage-svg');
+const KENTE = ['#D99A1E', '#2E7D5B', '#C8553D', '#1A2340', '#F2C14E'];
+let html = '<g id="chaine">';
+for (let i = 0; i < 26; i++) html += `<line x1="${560 + i * 31}" y1="150" x2="${560 + i * 31}" y2="770" stroke="#1A2340" stroke-width="2" opacity=".35"/>`;
+html += '</g><g id="trame">';
+for (let b = 0; b < 8; b++) {
+    html += `<g class="bande" data-b="${b}">`;
+    for (let c = 0; c < 13; c++) {
+        const col = KENTE[(b * 2 + c) % KENTE.length], x = 560 + c * 62, y = 160 + b * 76;
+        html += `<rect x="${x}" y="${y}" width="62" height="70" fill="${col}"/>`;
+        if ((b + c) % 3 === 0) html += `<path d="M${x + 8} ${y + 35} L${x + 31} ${y + 12} L${x + 54} ${y + 35} L${x + 31} ${y + 58} Z" fill="${KENTE[(b + c + 2) % 5]}"/>`;
+        else if ((b + c) % 3 === 1) html += `<rect x="${x + 6}" y="${y + 26}" width="50" height="6" fill="#F4ECDD"/><rect x="${x + 6}" y="${y + 40}" width="50" height="6" fill="#F4ECDD"/>`;
+    }
+    html += '</g>';
+}
+html += '</g>';
+tissSvg.innerHTML = html;
+const bandes = gsap.utils.toArray('#tissage .bande');
+const tlTiss = gsap.timeline({ scrollTrigger: { trigger: '#tissage', pin: true, start: 'top top', end: '+=240%', scrub: 0.6, onEnter: () => conter('f5') } });
+bandes.forEach((b, i) => tlTiss.from(b, { x: i % 2 ? 1500 : -1500, duration: 0.5, ease: 'power2.out', onStart: () => kora(i * 2, 0.35) }, i * 0.22));
+tlTiss.to('#tissage-txt', { opacity: 0, y: -30, duration: 0.3 }, 1.6)
+      .to('#tissage-svg', { scale: 1.25, x: () => -243 * 1.25 * Math.min(innerWidth / 1440, innerHeight / 900), duration: 0.8, ease: 'power2.inOut' }, 2)
+      .to('#video', { opacity: 1, duration: 0.5 }, 2.3)
+      .to({}, { duration: 0.6 });
+
+/* ---------------------------------------------------------------- fin : le fil devient cintre */
+const ref = document.getElementById('cintre-ref'), Lr = ref.getTotalLength(), NC = 120;
+const ptsCintre = Array.from({ length: NC }, (_, i) => { const p = ref.getPointAtLength((i / (NC - 1)) * Lr); return [p.x, p.y]; });
+const ptsLigne = Array.from({ length: NC }, (_, i) => [-40 + (i / (NC - 1)) * 1520, 300 + Math.sin(i / 8) * 10]);
+const ci = { u: 0 };
+const majCintre = () => { const u = gsap.parseEase('power3.inOut')(ci.u); document.getElementById('cintre').setAttribute('d', lisse(ptsLigne.map((p, i) => [p[0] + (ptsCintre[i][0] - p[0]) * u, p[1] + (ptsCintre[i][1] - p[1]) * u]))); };
+majCintre();
+const tlFin = gsap.timeline({ scrollTrigger: { trigger: '#fin', pin: true, start: 'top top', end: '+=150%', scrub: 0.6 } });
+tlFin.to(ci, { u: 1, duration: 1, ease: 'none', onUpdate: majCintre })
+     .from('#fin-mot', { opacity: 0, y: 60, duration: 0.5 }, 0.7)
+     .from('#fin .cta a', { opacity: 0, y: 40, stagger: 0.1, duration: 0.4, onStart: () => Son.sfx('signature', 0.6) }, 0.9)
+     .to({}, { duration: 0.4 });
+addEventListener('resize', () => ScrollTrigger.refresh());
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{"repliques": [
+  {"cle": "a1", "texte": "Un dépôt ? Quelques secondes.", "voix": "ff_siwis", "vitesse": 0.98},
+  {"cle": "a2", "texte": "Vos clients suivent leurs vêtements en temps réel…", "voix": "ff_siwis", "vitesse": 1.0},
+  {"cle": "a3", "texte": "et sont prévenus dès que c'est prêt.", "voix": "ff_siwis", "vitesse": 1.0},
+  {"cle": "a4", "texte": "À la caisse : les dépenses, la clôture, l'écart. Tout tombe juste.", "voix": "ff_siwis", "vitesse": 1.02},
+  {"cle": "a5", "texte": "Chaque rôle a ses accès. Chaque action est tracée.", "voix": "ff_siwis", "vitesse": 1.0},
+  {"cle": "a6", "texte": "PressLink. Votre pressing, en mode simple.", "voix": "ff_siwis", "vitesse": 0.94}
+]}

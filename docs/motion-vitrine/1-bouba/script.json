@@ -1,0 +1,44 @@
+{
+ "repliques": [
+  {
+   "cle": "b1",
+   "qui": "Bouba",
+   "texte": "Aïe aïe aïe ! Une tache de sauce graine… Direction le pressing !",
+   "voix": "ff_siwis",
+   "vitesse": 1.05,
+   "hauteur": 4
+  },
+  {
+   "cle": "b2",
+   "qui": "Bouba",
+   "texte": "Au comptoir, deux secondes pour m'enregistrer… et hop, voilà le reçu !",
+   "voix": "ff_siwis",
+   "vitesse": 1.05,
+   "hauteur": 4
+  },
+  {
+   "cle": "b3",
+   "qui": "Bouba",
+   "texte": "Pendant que je fais ma toilette, mon propriétaire suit tout sur son téléphone.",
+   "voix": "ff_siwis",
+   "vitesse": 1.08,
+   "hauteur": 4
+  },
+  {
+   "cle": "b4",
+   "qui": "Bouba",
+   "texte": "Toute propre ! Et mon propriétaire est prévenu tout de suite.",
+   "voix": "ff_siwis",
+   "vitesse": 1.05,
+   "hauteur": 4
+  },
+  {
+   "cle": "n1",
+   "qui": "",
+   "texte": "PressLink. Le pressing, sans stress.",
+   "voix": "ff_siwis",
+   "vitesse": 0.92,
+   "hauteur": 0
+  }
+ ]
+}

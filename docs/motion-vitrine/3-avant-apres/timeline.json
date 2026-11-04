@@ -1,0 +1,14 @@
+{
+  "fps": 30,
+  "duree": 24.5,
+  "voix": [
+    { "cle": "c1", "debut": 2.0 },
+    { "cle": "p1", "debut": 3.1 },
+    { "cle": "c2", "debut": 4.9 },
+    { "cle": "n1", "debut": 7.3 },
+    { "cle": "p2", "debut": 11.0 },
+    { "cle": "n2", "debut": 14.5 },
+    { "cle": "n3", "debut": 20.0 }
+  ],
+  "scenes": { "s1": 1.0, "s1_apres": 6.8, "s2": 10.4, "s2_apres": 14.2, "fin": 18.6 }
+}

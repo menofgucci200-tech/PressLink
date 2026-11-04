@@ -1,0 +1,7 @@
+{"repliques": [
+ {"cle": "f1", "texte": "Il était une fois, au pressing…", "voix": "ff_siwis", "vitesse": 0.88},
+ {"cle": "f2", "texte": "Un fil tout emmêlé : des tickets perdus, des appels sans fin, et l'attente.", "voix": "ff_siwis", "vitesse": 0.92},
+ {"cle": "f3", "texte": "Puis un jour, quelqu'un a tiré sur le bon fil.", "voix": "ff_siwis", "vitesse": 0.9},
+ {"cle": "f4", "texte": "Et le pressing s'est relié à tous ses clients.", "voix": "ff_siwis", "vitesse": 0.9},
+ {"cle": "f5", "texte": "Fil après fil, une belle histoire s'est tissée.", "voix": "ff_siwis", "vitesse": 0.9}
+]}

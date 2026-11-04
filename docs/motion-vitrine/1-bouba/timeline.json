@@ -1,0 +1,12 @@
+{
+  "fps": 30,
+  "duree": 24.0,
+  "voix": [
+    { "cle": "b1", "debut": 0.9 },
+    { "cle": "b2", "debut": 6.7 },
+    { "cle": "b3", "debut": 10.9 },
+    { "cle": "b4", "debut": 17.0 },
+    { "cle": "n1", "debut": 20.8 }
+  ],
+  "scenes": { "chambre": 0, "rue": 5.0, "comptoir": 6.8, "lavage": 10.5, "repassage": 14.4, "prete": 16.2, "logo": 20.2 }
+}

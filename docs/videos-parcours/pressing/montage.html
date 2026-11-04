@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=block" rel="stylesheet">
+<style>
+:root { --nuit: #0f172a; --bleu: #2563eb; --clair: #60a5fa; --encre: #0b1530; --fond: #f5f7fc; --gris: #475569; --bord: #e2e8f0; --vert: #16a34a; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--fond); font-family: "Plus Jakarta Sans", sans-serif; color: var(--encre); -webkit-font-smoothing: antialiased; }
+.titre { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; letter-spacing: -.035em; }
+.titre b { color: var(--bleu); font-weight: 800; }
+#fond { position: absolute; inset: 0; background: radial-gradient(1200px 800px at 12% 90%, #dbe7ff 0, transparent 60%), radial-gradient(1000px 700px at 92% 8%, #e3ecff 0, transparent 60%), var(--fond); }
+.tache { position: absolute; width: 1000px; height: 1000px; margin: -500px 0 0 -500px; border-radius: 50%; background: radial-gradient(closest-side, rgba(147,183,250,.4), rgba(147,183,250,0)); }
+
+/* fenêtre du navigateur */
+#fenetre { position: absolute; border-radius: 18px; background: #fff; box-shadow: 0 50px 100px rgba(15,23,42,.18), 0 0 0 1px rgba(15,23,42,.08); overflow: hidden; }
+#barre { position: absolute; left: 0; top: 0; right: 0; height: 44px; background: #f1f5f9; border-bottom: 1px solid var(--bord); display: flex; align-items: center; padding: 0 18px; gap: 8px; }
+#barre i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+#url { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); min-width: 520px; height: 28px; border-radius: 8px; background: #fff; box-shadow: 0 0 0 1px var(--bord); font: 500 15px "Plus Jakarta Sans"; color: var(--gris); display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 18px; }
+#ecran { position: absolute; left: 0; top: 44px; overflow: hidden; background: #fff; }
+#ecran img { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+
+/* habillage */
+#marque { position: absolute; left: 56px; top: 38px; height: 34px; }
+#etape { position: absolute; right: 56px; top: 40px; display: flex; align-items: center; gap: 12px; font: 700 19px "Plus Jakarta Sans"; }
+#etape i { font-style: normal; padding: 6px 12px; border-radius: 999px; background: var(--bleu); color: #fff; font-size: 16px; }
+#prog { position: absolute; left: 0; top: 0; height: 5px; background: var(--bleu); }
+#legende { position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%); padding: 14px 30px; border-radius: 16px; background: rgba(11,21,48,.88); color: #fff; font: 600 28px/1.38 "Plus Jakarta Sans"; text-align: center; white-space: nowrap; box-shadow: 0 16px 40px rgba(11,21,48,.25); }
+
+/* cartes plein écran */
+.carte { position: absolute; inset: 0; background: var(--fond); display: flex; align-items: center; justify-content: center; }
+#intro .bloc { text-align: center; }
+#intro .sur { font: 800 22px "Plus Jakarta Sans"; letter-spacing: .2em; text-transform: uppercase; color: var(--bleu); margin-top: 48px; }
+#intro h1 { font-size: 92px; line-height: 1.02; margin-top: 18px; }
+#intro .sous { font: 500 30px "Plus Jakarta Sans"; color: var(--gris); margin-top: 22px; }
+#chapitre { background: linear-gradient(135deg, #2563eb, #1d4ed8 60%, #1e40af); color: #fff; }
+#chapitre .num { font: 800 30px "Plus Jakarta Sans"; letter-spacing: .2em; color: #bfdbfe; }
+#chapitre h2 { font-size: 104px; color: #fff; margin-top: 14px; }
+#chapitre p { font: 600 32px "Plus Jakarta Sans"; opacity: .92; margin-top: 18px; }
+#chapitre .points { display: flex; gap: 12px; justify-content: center; margin-top: 46px; }
+#chapitre .points span { width: 46px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.3); }
+#chapitre .points span.on { background: #fff; }
+#fin { gap: 130px; }
+#fin .message { font-size: 62px; line-height: 1.08; margin-top: 44px; }
+#fin .slogan { font: 600 24px "Plus Jakarta Sans"; color: var(--gris); margin-top: 14px; }
+#fin .choix { display: flex; flex-direction: column; gap: 14px; margin-top: 40px; }
+#fin .choix span { display: inline-flex; align-items: center; gap: 14px; font: 700 26px "Plus Jakarta Sans"; }
+#fin .choix i { font-style: normal; width: 44px; height: 44px; border-radius: 12px; background: #e8efff; display: grid; place-items: center; font-size: 24px; }
+#fin .qr { width: 520px; padding: 40px; border-radius: 36px; background: linear-gradient(160deg, #2563eb, #1d4ed8); color: #fff; text-align: center; box-shadow: 0 40px 80px rgba(37,99,235,.35); }
+#fin .qr .img { width: 280px; height: 280px; margin: 0 auto; padding: 14px; border-radius: 24px; background: #fff; }
+#fin .qr .img img { width: 100%; }
+#fin .qr .url { font: 800 52px "Bricolage Grotesque"; margin-top: 24px; letter-spacing: -.02em; }
+#fin .qr .petit { font: 500 21px "Plus Jakarta Sans"; opacity: .92; margin-top: 8px; }
+#fin .qr .contacts { display: flex; justify-content: center; gap: 22px; margin-top: 18px; font: 700 21px "Plus Jakarta Sans"; }
+#fin .qr .contacts span { display: inline-flex; align-items: center; gap: 8px; }
+#fin .qr .contacts i { width: 12px; height: 12px; border-radius: 50%; background: #22c55e; }
+/* téléphone du client : la notification « commande prête » */
+#tel { position: absolute; right: 90px; top: 170px; width: 330px; height: 680px; border-radius: 52px; background: #0b1220; padding: 12px; box-shadow: 0 50px 90px rgba(15,23,42,.35), 0 0 0 2px #1e293b; visibility: hidden; }
+#tel .verre { position: relative; width: 100%; height: 100%; border-radius: 42px; overflow: hidden; background: radial-gradient(420px 380px at 20% 15%, #3b82f6, transparent 70%), radial-gradient(420px 420px at 90% 90%, #1e3a8a, transparent 70%), linear-gradient(170deg, #1d4ed8, #0f172a); }
+#tel .ilot { position: absolute; left: 50%; top: 12px; width: 96px; height: 28px; margin-left: -48px; border-radius: 16px; background: #000; }
+#tel .heure { position: absolute; left: 0; right: 0; top: 92px; text-align: center; color: #fff; font: 700 76px "Plus Jakarta Sans"; letter-spacing: -.03em; }
+#tel .jour { position: absolute; left: 0; right: 0; top: 70px; text-align: center; color: rgba(255,255,255,.85); font: 600 17px "Plus Jakarta Sans"; }
+#notif { position: absolute; left: 12px; right: 12px; top: 232px; border-radius: 22px; background: rgba(255,255,255,.93); padding: 14px 16px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+#notif .tete { display: flex; align-items: center; gap: 8px; font: 700 13px "Plus Jakarta Sans"; color: #475569; letter-spacing: .04em; }
+#notif .tete img { width: 26px; height: 26px; border-radius: 7px; background: #fff; box-shadow: 0 0 0 1px #e2e8f0; padding: 3px; }
+#notif .tete span:last-child { margin-left: auto; font-weight: 500; letter-spacing: 0; }
+#notif b { display: block; font: 800 17px "Plus Jakarta Sans"; color: #0b1530; margin-top: 9px; }
+#notif p { font: 500 15px/1.4 "Plus Jakarta Sans"; color: #1e293b; margin-top: 3px; }
+</style>
+</head>
+<body>
+<div id="fond"><div class="tache" id="tache1"></div><div class="tache" id="tache2"></div></div>
+<div id="fenetre"><div id="barre"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><div id="url">🔒 <span id="url-texte">presslink.org</span></div></div><div id="ecran"><img id="image"></div></div>
+<img id="marque" src="../../motion-vitrine/v5/img/presslink-horizontal-couleur.svg">
+<div id="etape"><i id="etape-num"></i><span id="etape-nom"></span></div>
+<div id="prog"></div>
+<div id="tel"><div class="verre"><div class="ilot"></div><div class="jour" id="tel-jour"></div><div class="heure" id="tel-heure"></div>
+    <div id="notif"><div class="tete"><img src="../../motion-vitrine/v5/img/presslink-symbole-couleur.svg"><span>PRESSLINK</span><span>maintenant</span></div><b id="notif-titre"></b><p id="notif-corps"></p></div></div></div>
+<div id="legende"></div>
+
+<div id="chapitre" class="carte"><div style="text-align:center"><div class="num" id="chap-num"></div><h2 class="titre" id="chap-titre"></h2><p id="chap-sous"></p><div class="points" id="chap-points"></div></div></div>
+
+<div id="intro" class="carte"><div class="bloc">
+    <img src="../../motion-vitrine/v5/img/presslink-horizontal-couleur.svg" style="height:120px">
+    <div class="sur">Guide pour les pressings</div>
+    <h1 class="titre">Votre pressing sur PressLink,<br><b>étape par étape</b>.</h1>
+    <div class="sous">De la découverte du site à la remise des vêtements.</div>
+</div></div>
+
+<div id="fin" class="carte">
+    <div>
+        <img src="../../motion-vitrine/v5/img/presslink-horizontal-couleur.svg" style="width:600px">
+        <div class="slogan">Le lien entre votre pressing et vos clients</div>
+        <div class="message titre">À vous de jouer.</div>
+        <div class="choix"><span><i>🧪</i>Tester avec un pressing fictif</span><span><i>🏪</i>Créer votre pressing</span><span><i>💬</i>Nous écrire sur WhatsApp</span></div>
+    </div>
+    <div class="qr">
+        <div class="img"><img src="../../motion-vitrine/v5/img/qr-presslink-site.svg"></div>
+        <div class="url">presslink.org</div>
+        <div class="petit">Scannez pour tester ou créer votre pressing</div>
+        <div class="contacts"><span><i></i>07 18 00 22 93</span><span>contact@presslink.org</span></div>
+    </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const p = (t, a, b) => clamp((t - a) / (b - a));
+const sortie = (x) => 1 - Math.pow(1 - x, 3);
+const douce = (x) => x * x * (3 - 2 * x);
+const retour = (x) => { const c = 1.4; return x <= 0 ? 0 : 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const lerp = (a, b, k) => a + (b - a) * k;
+
+// Écran filmé (1440 × 900) affiché à l'échelle 0,955 dans une fenêtre de navigateur.
+const VP = { w: 1440, h: 900 }, E = { x: 272, y: 118, w: 1376, h: 860 }, BARRE = 44;
+let D = null, cadres = [], images = [], legendes = [], chapitres = [], urls = [], telephones = [];
+
+window.ready = document.fonts.ready.then(() => Promise.all([...document.images].filter((i) => i.src).map((i) => (i.complete ? 0 : new Promise((r) => { i.onload = i.onerror = r; })))));
+window.setup = (d) => {
+    D = d;
+    images = d.images; // [{ src, t }] triées
+    const ev = d.evenements;
+    cadres = ev.filter((e) => e.type === 'cadre');
+    chapitres = ev.filter((e) => e.type === 'chapitre');
+    urls = ev.filter((e) => e.type === 'url');
+    telephones = ev.filter((e) => e.type === 'telephone');
+    if (d.horloge) { $('tel-heure').textContent = d.horloge.heure; $('tel-jour').textContent = d.horloge.jour; }
+    legendes = ev.filter((e) => e.type === 'replique' && d.repliques[e.cle]).map((e) => ({ debut: e.t, fin: e.t + d.repliques[e.cle].duree + 0.3, texte: d.repliques[e.cle].texte }));
+    Object.assign($('fenetre').style, { left: E.x + 'px', top: E.y + 'px', width: E.w + 'px', height: E.h + BARRE + 'px' });
+    Object.assign($('ecran').style, { width: E.w + 'px', height: E.h + 'px' });
+    $('chap-points').innerHTML = chapitres.map(() => '<span></span>').join('');
+};
+
+// Caméra : transition douce (0,9 s) d'un cadrage au suivant ; zoom limité pour rester net.
+function cadrageA(t) {
+    let prec = { zoom: 1, x: 0.5, y: 0.5 }, cur = prec, tc = -10;
+    for (const c of cadres) { if (c.t <= t) { prec = cur; cur = c; tc = c.t; } else break; }
+    const vise = (c) => {
+        const z = c.zoom === 1 ? 1 : Math.min(c.zoom, 1 / Math.max(c.w, c.h * VP.h / VP.w * VP.w / VP.h), 2.0);
+        return { z: Math.max(1, z), x: c.x, y: c.y };
+    };
+    const a = vise(prec), b = vise(cur), k = douce(p(t, tc, tc + 0.9));
+    return { z: lerp(a.z, b.z, k), x: lerp(a.x, b.x, k), y: lerp(a.y, b.y, k) };
+}
+
+function imageA(t) {
+    let lo = 0, hi = images.length - 1;
+    if (t <= images[0].t) return images[0];
+    while (lo < hi) { const m = (lo + hi + 1) >> 1; if (images[m].t <= t) lo = m; else hi = m - 1; }
+    return images[lo];
+}
+
+window.renderAt = async (T) => {
+    const INTRO = D.intro, finRec = D.duree, FIN = INTRO + finRec;
+    $('tache1').style.left = 300 + Math.sin(T * 0.25) * 140 + 'px'; $('tache1').style.top = 800 + Math.cos(T * 0.2) * 90 + 'px';
+    $('tache2').style.left = 1640 + Math.cos(T * 0.22) * 120 + 'px'; $('tache2').style.top = 200 + Math.sin(T * 0.3) * 80 + 'px';
+    const t = clamp(T - INTRO, 0, finRec);
+
+    // intro
+    const ki = p(T, INTRO - 0.5, INTRO);
+    $('intro').style.visibility = T < INTRO ? 'visible' : 'hidden';
+    $('intro').style.opacity = 1 - ki; $('intro').style.transform = `scale(${1 + ki * 0.06})`;
+    [...$('intro').querySelectorAll('.bloc > *')].forEach((el, i) => { const k = retour(p(T, 0.2 + i * 0.18, 0.8 + i * 0.18)); el.style.opacity = clamp(k); el.style.transform = `translateY(${(1 - clamp(k)) * 30}px)`; });
+
+    // fenêtre : entre en douceur après l'intro
+    const kf = sortie(p(T, INTRO - 0.5, INTRO + 0.3));
+    $('fenetre').style.transform = `translateY(${(1 - kf) * 60}px) scale(${0.96 + 0.04 * kf})`;
+
+    // écran filmé + caméra
+    const im = imageA(t);
+    const img = $('image');
+    if (img.dataset.src !== im.src) { img.dataset.src = im.src; img.src = im.src; await img.decode().catch(() => 0); }
+    const c = cadrageA(t);
+    const base = E.w / VP.w, s = base * c.z;
+    let tx = E.w / 2 - c.x * VP.w * s, ty = E.h / 2 - c.y * VP.h * s;
+    tx = clamp(tx, E.w - VP.w * s, 0); ty = clamp(ty, E.h - VP.h * s, 0);
+    img.style.width = VP.w + 'px'; img.style.height = VP.h + 'px';
+    img.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+
+    // adresse affichée
+    let u = 'presslink.org'; for (const e of urls) if (e.t <= t + 0.05) u = e.url; $('url-texte').textContent = u;
+
+    // chapitres : carte bleue plein écran, puis bandeau en haut à droite
+    let ch = null, ich = -1;
+    chapitres.forEach((e, i) => { if (e.t <= t) { ch = e; ich = i; } });
+    const enChap = ch && t < ch.t + ch.duree && T < FIN;
+    $('chapitre').style.visibility = enChap ? 'visible' : 'hidden';
+    if (ch) {
+        const kin = sortie(p(t, ch.t, ch.t + 0.4)), kout = sortie(p(t, ch.t + ch.duree - 0.45, ch.t + ch.duree));
+        $('chapitre').style.clipPath = `inset(${kout * 100}% 0 0 ${(1 - kin) * 100}%)`;
+        if ($('chap-titre').dataset.i !== String(ich)) {
+            $('chap-titre').dataset.i = ich;
+            $('chap-num').textContent = `Étape ${ich + 1} sur ${chapitres.length}`;
+            $('chap-titre').textContent = ch.titre; $('chap-sous').textContent = ch.sous ?? '';
+            [...$('chap-points').children].forEach((x, j) => x.classList.toggle('on', j <= ich));
+        }
+        const k2 = retour(p(t, ch.t + 0.25, ch.t + 0.8));
+        $('chap-titre').style.opacity = clamp(k2); $('chap-titre').style.transform = `translateY(${(1 - clamp(k2)) * 40}px)`;
+        $('chap-sous').style.opacity = sortie(p(t, ch.t + 0.5, ch.t + 1.0));
+        $('etape-num').textContent = String(ich + 1).padStart(2, '0'); $('etape-nom').textContent = ch.court ?? ch.titre;
+    }
+    $('etape').style.opacity = ch ? sortie(p(t, ch.t + ch.duree - 0.2, ch.t + ch.duree + 0.3)) * (T < FIN ? 1 : 0) : 0;
+    $('prog').style.width = clamp(t / finRec) * 1920 + 'px';
+    $('prog').style.visibility = T >= INTRO && T < FIN ? 'visible' : 'hidden';
+
+    // légende (texte de la voix off)
+    const lg = T < FIN ? legendes.find((x) => t >= x.debut - 0.05 && t <= x.fin) : null;
+    const el = $('legende');
+    el.style.visibility = lg ? 'visible' : 'hidden';
+    if (lg) {
+        if (el.textContent !== lg.texte) {
+            Object.assign(el.style, { whiteSpace: 'nowrap', width: '', maxWidth: 'none' }); el.textContent = lg.texte;
+            const large = el.offsetWidth;
+            if (large > 1560) Object.assign(el.style, { whiteSpace: 'normal', textWrap: 'balance', width: Math.ceil(large / 2) + 90 + 'px' });
+        }
+        el.style.opacity = clamp(Math.min((t - lg.debut + 0.05) / 0.2, (lg.fin - t) / 0.2));
+    }
+
+    // téléphone : monte du bas, la notification tombe, puis il repart (4,4 s)
+    const tl = telephones.find((x) => t >= x.t && t < x.t + 4.4);
+    $('tel').style.visibility = tl && T < FIN ? 'visible' : 'hidden';
+    if (tl) {
+        const kin = retour(p(t, tl.t, tl.t + 0.7)), kout = sortie(p(t, tl.t + 3.8, tl.t + 4.4));
+        $('tel').style.transform = `translateY(${(1 - clamp(kin)) * 760 + kout * 860}px) rotate(${(1 - clamp(kin)) * 6}deg)`;
+        $('notif-titre').textContent = tl.titre; $('notif-corps').textContent = tl.corps;
+        const kn = retour(p(t, tl.t + 0.9, tl.t + 1.45));
+        $('notif').style.opacity = clamp(kn * 1.4); $('notif').style.transform = `translateY(${(1 - clamp(kn)) * -40}px) scale(${0.92 + 0.08 * clamp(kn)})`;
+    }
+
+    // fin
+    const kfin = sortie(p(T, FIN, FIN + 0.6));
+    $('fin').style.visibility = T >= FIN ? 'visible' : 'hidden';
+    $('fin').style.clipPath = `circle(${kfin * 130}% at 50% 50%)`;
+    [...$('fin').querySelectorAll(':scope > div > *, .choix span, .qr')].forEach((x, i) => { const k = retour(p(T, FIN + 0.4 + i * 0.13, FIN + 1.0 + i * 0.13)); x.style.opacity = clamp(k); x.style.transform = `translateY(${(1 - clamp(k)) * 36}px)`; });
+    $('marque').style.opacity = T >= INTRO - 0.3 && T < FIN ? 1 : 0;
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Proposition 3 · Le Fil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&display=swap">
+<link rel="stylesheet" href="base.css">
+<style>
+/* Proposition 3 : le site est un fil à linge. Le visiteur avance comme un vêtement dans le pressing :
+   5 cintres, 5 étapes, et une barre en bas qui propose toujours la bonne action. */
+.entete { position: sticky; top: 0; z-index: 40; background: var(--nuit); color: #fff; }
+.entete .enveloppe { display: flex; align-items: center; gap: 20px; min-height: 64px; }
+.entete nav { margin-left: auto; display: flex; gap: 20px; align-items: center; color: #CBD5E1; font-weight: 500; }
+.entete nav a { text-decoration: none; }
+.entete .btn { min-height: 40px; padding: 0 16px; }
+@media (max-width: 760px) { .entete nav .lien { display: none; } }
+
+/* ----- Hero : la corde à linge ----- */
+.hero { position: relative; background: var(--nuit); color: #fff; overflow: hidden; padding-block: 48px 0; }
+.hero::before { content: ""; position: absolute; inset: 0; background: radial-gradient(60% 80% at 80% 0%, rgba(37,99,235,.45), transparent 60%); }
+.hero .enveloppe { position: relative; }
+.hero h1 { font-size: clamp(38px, 5.6vw, 68px); font-weight: 800; max-width: 860px; }
+.hero h1 span { color: var(--bleu-clair); }
+.hero .chapo { font-size: 19px; color: #CBD5E1; max-width: 600px; margin-top: 16px; }
+.hero .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+.corde { position: relative; height: 270px; margin-top: 30px; }
+.corde svg.ligne { position: absolute; left: 0; top: 0; width: 100%; height: 80px; overflow: visible; }
+.corde svg.ligne path { fill: none; stroke: #CBD5E1; stroke-width: 2.5; stroke-dasharray: 1400; stroke-dashoffset: 1400; animation: tendre 1.4s .2s var(--doux) forwards; }
+@keyframes tendre { to { stroke-dashoffset: 0; } }
+.linge { position: absolute; top: 0; display: grid; justify-items: center; text-decoration: none; transform-origin: 50% 0; animation: pend 1s var(--ressort) both, balance 5s ease-in-out infinite; }
+.linge:nth-child(2) { left: 6%; top: 30px; animation-delay: .6s, 1.6s; }
+.linge:nth-child(3) { left: 26%; top: 47px; animation-delay: .75s, 2.1s; }
+.linge:nth-child(4) { left: 46%; top: 52px; animation-delay: .9s, 1.3s; }
+.linge:nth-child(5) { left: 66%; top: 46px; animation-delay: 1.05s, 2.4s; }
+.linge:nth-child(6) { left: 85%; top: 28px; animation-delay: 1.2s, 1.8s; }
+@keyframes pend { from { transform: translateY(-140px) rotate(-12deg); opacity: 0; } }
+@keyframes balance { 0%, 100% { rotate: -2.5deg; } 50% { rotate: 2.5deg; } }
+.linge .pince { width: 10px; height: 18px; border-radius: 3px; background: var(--or); margin-bottom: -4px; position: relative; z-index: 1; }
+.linge svg { width: 96px; height: 96px; transition: transform .3s var(--ressort); }
+.linge:hover svg { transform: scale(1.08) translateY(4px); }
+.linge .etiquette { margin-top: 6px; padding: 5px 10px; border-radius: 8px; background: #fff; color: var(--encre); font-size: 12.5px; font-weight: 700; white-space: nowrap; box-shadow: 0 8px 20px -10px rgba(0,0,0,.5); }
+.linge .etiquette b { color: var(--bleu); }
+@media (max-width: 760px) {
+    .corde { height: 210px; }
+    .linge svg { width: 62px; height: 62px; }
+    .linge .etiquette { font-size: 10.5px; padding: 3px 6px; }
+    .linge:nth-child(2) { left: 0%; } .linge:nth-child(3) { left: 19%; } .linge:nth-child(4) { left: 39%; } .linge:nth-child(5) { left: 59%; } .linge:nth-child(6) { left: 79%; }
+    .linge .etiquette span { display: none; }
+}
+
+/* ----- Mise en page du parcours : fil vertical collant + étapes ----- */
+.parcours { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 48px; }
+@media (max-width: 900px) { .parcours { grid-template-columns: 1fr; gap: 0; } }
+.fil-colle { position: sticky; top: 100px; height: calc(100vh - 200px); max-height: 560px; margin-top: 70px; }
+@media (max-width: 900px) { .fil-colle { display: none; } }
+.fil-colle .trait { position: absolute; left: 22px; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--trait); }
+.fil-colle .trait b { position: absolute; left: 0; top: 0; width: 100%; border-radius: 3px; background: linear-gradient(var(--bleu), var(--vert)); height: 0; }
+.cintre { position: absolute; left: 0; display: flex; align-items: center; gap: 20px; text-decoration: none; transform: translateY(-50%); }
+.cintre i { width: 47px; height: 26px; display: grid; place-items: center; color: var(--texte-3); background: var(--fond); transition: color .3s; }
+.cintre span { font-size: 14px; font-weight: 600; color: var(--texte-3); transition: color .3s; }
+.cintre span small { display: block; font-size: 11.5px; font-weight: 500; }
+.cintre.passe i, .cintre.passe span { color: var(--vert-fonce); }
+.cintre.actif i, .cintre.actif span { color: var(--bleu); }
+.cintre.actif span { font-weight: 800; }
+.vetement { position: absolute; left: 0; top: 0; width: 47px; display: grid; justify-items: center; pointer-events: none; transition: transform .25s linear; z-index: 2; }
+.vetement svg { width: 47px; height: 47px; filter: drop-shadow(0 6px 10px rgba(37,99,235,.35)); }
+.vetement em { margin-top: 2px; font-style: normal; font-size: 10.5px; font-weight: 800; padding: 1px 7px; border-radius: 99px; background: var(--bleu); color: #fff; white-space: nowrap; transition: background .3s; }
+.vetement.pret em { background: var(--vert); }
+
+/* Fil horizontal sur téléphone */
+.fil-mobile { display: none; position: sticky; top: 64px; z-index: 30; background: rgba(245,247,251,.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--trait); }
+@media (max-width: 900px) { .fil-mobile { display: block; } }
+.fil-mobile .enveloppe { display: flex; align-items: center; gap: 10px; min-height: 48px; }
+.fil-mobile .points { flex: 1; position: relative; display: flex; justify-content: space-between; align-items: center; }
+.fil-mobile .points::before { content: ""; position: absolute; left: 6px; right: 6px; top: 50%; height: 2px; background: var(--trait); }
+.fil-mobile .points b { position: absolute; left: 6px; top: 50%; height: 2px; margin-top: -1px; background: var(--vert); width: 0; transition: width .3s; }
+.fil-mobile .points i { position: relative; width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 2px solid var(--trait); transition: all .3s; }
+.fil-mobile .points i.passe { background: var(--vert); border-color: var(--vert); }
+.fil-mobile .points i.actif { background: var(--bleu); border-color: var(--bleu); transform: scale(1.3); }
+.fil-mobile strong { font-size: 13px; white-space: nowrap; }
+
+.etape { min-height: 82vh; padding-block: 90px 40px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: center; }
+@media (max-width: 1100px) { .etape { grid-template-columns: 1fr; min-height: 0; padding-block: 64px 24px; } }
+.etape .num { font: 700 13px/1 var(--corps); text-transform: uppercase; letter-spacing: .1em; color: var(--bleu); }
+.etape h2 { font-size: clamp(30px, 3.6vw, 46px); font-weight: 800; margin: 12px 0 14px; }
+.etape p.txt { font-size: 18px; color: var(--texte-2); max-width: 520px; }
+.etape .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.etape .texte > * { transition: opacity .7s var(--doux), transform .7s var(--doux); }
+.etape:not(.vu) .texte > * { opacity: .35; transform: translateY(14px); }
+.scene { position: relative; min-height: 340px; border-radius: 28px; background: #fff; border: 1px solid var(--trait); box-shadow: 0 30px 60px -40px rgba(15,23,42,.4); overflow: hidden; padding: 26px; }
+
+/* Étape 1 : le cahier et le téléphone qui sonne */
+.cahier { position: absolute; left: 26px; top: 26px; width: 58%; bottom: 26px; border-radius: 10px; background: repeating-linear-gradient(#FFFDF5 0 27px, #DCE4F2 27px 28px); border-left: 3px solid #F87171; padding: 10px 14px; font: italic 500 15px/28px 'Segoe Print', 'Bradley Hand', cursive; color: #334155; transform: rotate(-2deg); }
+.cahier p { position: relative; white-space: nowrap; overflow: hidden; }
+.cahier p::after { content: ""; position: absolute; left: 0; top: 50%; height: 2px; width: 0; background: #DC2626; transition: width .5s var(--doux); }
+.etape.vu .cahier p::after { width: 100%; }
+.etape.vu .cahier p:nth-child(1)::after { transition-delay: 2.6s; } .etape.vu .cahier p:nth-child(2)::after { transition-delay: 2.8s; } .etape.vu .cahier p:nth-child(3)::after { transition-delay: 3s; } .etape.vu .cahier p:nth-child(4)::after { transition-delay: 3.2s; } .etape.vu .cahier p:nth-child(5)::after { transition-delay: 3.4s; }
+.appels { position: absolute; right: 22px; top: 30px; width: 46%; display: grid; gap: 8px; }
+.appel { justify-self: end; padding: 9px 13px; border-radius: 16px 16px 4px 16px; background: var(--nuit); color: #fff; font-size: 13.5px; font-weight: 600; box-shadow: 0 10px 24px -12px rgba(0,0,0,.5); opacity: 0; transform: translateY(10px) scale(.9); transition: opacity .4s, transform .5s var(--ressort); }
+.etape.vu .appel { opacity: 1; transform: none; }
+.etape.vu .appel:nth-child(2) { transition-delay: .5s; } .etape.vu .appel:nth-child(3) { transition-delay: 1s; } .etape.vu .appel:nth-child(4) { transition-delay: 1.5s; }
+.compteur { position: absolute; right: 22px; bottom: 22px; padding: 10px 14px; border-radius: 14px; background: #FEE2E2; color: #B91C1C; font-weight: 800; font-size: 14px; }
+.compteur b { font: 800 26px/1 var(--display); font-variant-numeric: tabular-nums; display: block; }
+
+/* Étape 2 : le ticket qui se construit */
+.ticket { position: relative; width: min(300px, 64%); background: #fff; border-radius: 16px; box-shadow: 0 16px 40px -18px rgba(15,23,42,.45); padding: 16px; font-size: 13.5px; display: grid; gap: 8px; border: 1px solid var(--trait); }
+.ticket .tt { display: flex; justify-content: space-between; font-weight: 700; }
+.ticket .tt span { color: var(--texte-3); font-weight: 600; }
+.ticket .art { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed var(--trait); animation: art .4s var(--doux) both; font-variant-numeric: tabular-nums; }
+@keyframes art { from { opacity: 0; transform: translateX(-12px); } }
+.ticket .total { display: flex; justify-content: space-between; font: 800 18px/1 var(--display); padding-top: 4px; font-variant-numeric: tabular-nums; }
+.ticket .tampon { position: absolute; right: 14px; top: 44px; padding: 4px 10px; border: 2.5px solid var(--vert); color: var(--vert-fonce); border-radius: 8px; font-weight: 800; transform: rotate(-10deg) scale(1.6); opacity: 0; transition: transform .4s var(--ressort), opacity .2s; }
+.ticket .tampon.posé { transform: rotate(-10deg); opacity: 1; }
+.statuts { display: flex; gap: 6px; margin-top: 4px; }
+.statuts span { flex: 1; text-align: center; padding: 5px 0; border-radius: 99px; font-size: 11.5px; font-weight: 700; background: var(--fond); color: var(--texte-3); transition: background .3s, color .3s; }
+.statuts span.on { background: var(--bleu); color: #fff; }
+.statuts span.on.vert { background: var(--vert); }
+.notif { position: absolute; z-index: 3; right: 18px; top: 26px; width: min(250px, 46%); padding: 12px 14px; border-radius: 18px; background: rgba(255,255,255,.96); box-shadow: 0 20px 40px -14px rgba(15,23,42,.45), 0 0 0 1px var(--trait); display: grid; grid-template-columns: 30px 1fr; gap: 10px; font-size: 13px; transform: translateY(-30px) scale(.95); opacity: 0; transition: transform .6s var(--ressort), opacity .3s; }
+.notif.visible { transform: none; opacity: 1; }
+.notif img { width: 30px; height: 30px; border-radius: 8px; }
+.notif strong { display: block; font-size: 13px; }
+.telephone { position: absolute; right: 34px; top: 118px; width: 140px; border-radius: 26px; background: #0B0F19; padding: 6px; box-shadow: 0 30px 50px -20px rgba(0,0,0,.6); transform: rotate(6deg); }
+.telephone img { border-radius: 21px; }
+@media (max-width: 560px) { .telephone { width: 110px; right: 12px; } .ticket { width: 70%; } }
+
+/* Étape 3 */
+.scene.test { background: linear-gradient(150deg, var(--bleu), var(--nuit-2)); border: 0; padding: 30px; color: #fff; display: grid; align-content: start; gap: 18px; }
+.scene.test .ecran { border-radius: 14px; overflow: hidden; box-shadow: 0 30px 60px -20px rgba(0,0,0,.6); transform: perspective(900px) rotateY(-8deg) rotateX(4deg); transition: transform .8s var(--doux); }
+.etape.vu .scene.test .ecran { transform: perspective(900px) rotateY(0) rotateX(0); }
+.scene.test .bandeau { display: inline-flex; align-self: start; gap: 8px; align-items: center; padding: 6px 12px; border-radius: 99px; background: var(--or); color: #1E293B; font-weight: 800; font-size: 13px; justify-self: start; }
+.garde { display: grid; gap: 8px; margin-top: 18px; color: var(--texte-2); }
+.garde span { display: flex; gap: 8px; align-items: center; }
+.garde b { color: var(--vert-fonce); }
+
+/* Étape 4 : calculateur de formule */
+.calcul { display: grid; gap: 18px; }
+.calcul label { font-weight: 700; display: flex; justify-content: space-between; }
+.calcul label output { font: 800 22px/1 var(--display); color: var(--bleu); font-variant-numeric: tabular-nums; }
+.calcul input[type=range] { width: 100%; accent-color: var(--bleu); height: 30px; }
+.calcul .case { display: flex; justify-content: flex-start; align-items: center; gap: 10px; font-weight: 600; }
+.case input { width: 20px; height: 20px; accent-color: var(--bleu); }
+.formules3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.f3 { padding: 12px; border-radius: 14px; border: 1.5px solid var(--trait); text-align: center; transition: all .35s var(--ressort); }
+.f3 strong { display: block; font: 800 15px/1.2 var(--display); }
+.f3 span { font-size: 12px; color: var(--texte-3); font-variant-numeric: tabular-nums; }
+.f3.choisie { border: 2px solid var(--bleu); background: var(--bleu-teinte); transform: translateY(-6px) scale(1.04); box-shadow: 0 16px 30px -18px rgba(37,99,235,.7); }
+.verdict { padding: 16px 18px; border-radius: 18px; background: var(--nuit); color: #fff; display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
+.verdict small { display: block; color: #94A3B8; font-size: 12px; font-weight: 600; }
+.verdict strong { font: 800 26px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+
+/* Étape 5 */
+.scene.fin { display: grid; gap: 14px; align-content: center; background: linear-gradient(#fff, #F0FDF4); }
+.mini-etapes { display: grid; gap: 10px; }
+.mini-etapes div { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; border: 1.5px solid var(--trait); background: #fff; font-weight: 600; transition: all .5s var(--doux); }
+.mini-etapes i { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--fond); color: var(--texte-3); font-style: normal; font-weight: 800; transition: all .4s var(--ressort); }
+.etape.vu .mini-etapes div:nth-child(1) i, .etape.vu .mini-etapes div:nth-child(2) i { background: var(--vert); color: #fff; }
+.etape.vu .mini-etapes div:nth-child(2) i { transition-delay: .5s; }
+.etape.vu .mini-etapes div:nth-child(3) { border-color: var(--bleu); box-shadow: 0 0 0 4px rgba(37,99,235,.12); transition-delay: .9s; }
+.etape.vu .mini-etapes div:nth-child(3) i { background: var(--bleu); color: #fff; transition-delay: .9s; }
+.aide { font-size: 14.5px; color: var(--texte-2); margin-top: 16px; }
+
+/* ----- Barre du bas : la prochaine action, toujours ----- */
+.barre { position: fixed; z-index: 45; left: 0; right: 0; bottom: 0; background: rgba(11,21,48,.96); color: #fff; backdrop-filter: blur(10px); transform: translateY(110%); transition: transform .5s var(--ressort); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.barre.visible { transform: none; }
+.barre .avance { height: 3px; background: rgba(255,255,255,.12); }
+.barre .avance b { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--bleu), var(--vert)); transition: width .3s; }
+.barre .enveloppe { display: flex; align-items: center; gap: 14px; min-height: 66px; }
+.barre small { display: block; font-size: 12px; color: #94A3B8; font-weight: 600; }
+.barre strong { font: 700 16px/1.25 var(--display); }
+.barre .textes { min-width: 0; }
+.barre .textes strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barre .boutons { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.barre .secondaire { color: #CBD5E1; font-weight: 600; text-decoration: underline; font-size: 14px; white-space: nowrap; }
+.barre .btn { min-height: 44px; padding: 0 18px; }
+.barre .btn span { display: inline-block; animation: change .45s var(--ressort); }
+@keyframes change { from { opacity: 0; transform: translateY(8px); } }
+@media (max-width: 640px) { .barre .secondaire { display: none; } .barre .textes small { display: none; } .barre strong { font-size: 14px; } }
+footer { padding-block: 40px 120px; text-align: center; color: var(--texte-3); font-size: 14px; }
+.toast { position: fixed; z-index: 80; left: 50%; top: 90px; transform: translate(-50%, -20px); opacity: 0; transition: all .4s var(--ressort); padding: 12px 18px; border-radius: 14px; background: var(--vert); color: #fff; font-weight: 700; box-shadow: 0 20px 40px -14px rgba(0,0,0,.4); pointer-events: none; }
+.toast.visible { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+<div class="maquette">
+    <div class="enveloppe">
+        <span class="pastille">Maquette</span>
+        <span><strong>Proposition 3 · Le Fil</strong><span class="desc"> : le visiteur avance comme un vêtement dans le pressing, cintre après cintre</span></span>
+        <span class="droite"><a href="index.html">← Les 3 propositions</a><button class="rejouer" type="button" data-rejouer>▶ Rejouer la démo</button></span>
+    </div>
+</div>
+
+<header class="entete sur-nuit">
+    <div class="enveloppe">
+        <a class="logo" href="#"><img src="img/logo-presslink.png" alt=""><span class="nom">Press<span>Link</span></span></a>
+        <nav>
+            <a class="lien" href="#e4">Formules</a>
+            <a class="lien" href="#e3">Tester</a>
+            <a class="lien" href="#">Se connecter</a>
+            <a class="btn btn-vert" href="#e5">Créer mon espace</a>
+        </nav>
+    </div>
+</header>
+
+<section class="hero sur-nuit">
+    <div class="enveloppe">
+        <h1>Suivez le fil : <span>de votre cahier à PressLink</span> en 5 étapes.</h1>
+        <p class="chapo">Comme un vêtement dans votre pressing, vous avancez de cintre en cintre. À chaque étape, le bon bouton vous attend.</p>
+        <div class="actions">
+            <a class="btn btn-vert" href="#e1">Commencer le parcours ↓</a>
+            <a class="btn btn-contour" href="#e5" style="color:#fff">J'ai décidé : créer mon espace</a>
+        </div>
+        <div class="corde" id="corde">
+            <svg class="ligne" viewBox="0 0 1000 80" preserveAspectRatio="none"><path d="M0 10 Q 500 90 1000 10"/></svg>
+            <a class="linge" href="#e1"><i class="pince"></i><svg viewBox="0 0 64 64"><path d="M22 8l-14 8 5 12 6-3v31h26V25l6 3 5-12-14-8c-2 4-6 6-10 6s-8-2-10-6z" fill="#F8FAFC" stroke="#94A3B8" stroke-width="2" stroke-linejoin="round"/></svg><span class="etiquette"><b>1</b> <span>Aujourd'hui</span></span></a>
+            <a class="linge" href="#e2"><i class="pince"></i><svg viewBox="0 0 64 64"><path d="M22 8l-14 8 5 12 6-3v31h26V25l6 3 5-12-14-8c-2 4-6 6-10 6s-8-2-10-6z" fill="#93C5FD" stroke="#1D4ED8" stroke-width="2" stroke-linejoin="round"/></svg><span class="etiquette"><b>2</b> <span>Voir PressLink</span></span></a>
+            <a class="linge" href="#e3"><i class="pince"></i><svg viewBox="0 0 64 64"><path d="M20 8h24l4 48H36l-4-30-4 30H16z" fill="#FDE68A" stroke="#B45309" stroke-width="2" stroke-linejoin="round"/></svg><span class="etiquette"><b>3</b> <span>Essayer</span></span></a>
+            <a class="linge" href="#e4"><i class="pince"></i><svg viewBox="0 0 64 64"><path d="M14 8h36l6 14-8 2v32H16V24l-8-2z" fill="#C4B5FD" stroke="#6D28D9" stroke-width="2" stroke-linejoin="round"/><path d="M24 8l8 10 8-10" fill="none" stroke="#6D28D9" stroke-width="2"/></svg><span class="etiquette"><b>4</b> <span>Ma formule</span></span></a>
+            <a class="linge" href="#e5"><i class="pince"></i><svg viewBox="0 0 64 64"><path d="M22 8l-14 8 5 12 6-3v31h26V25l6 3 5-12-14-8c-2 4-6 6-10 6s-8-2-10-6z" fill="#86EFAC" stroke="#15803D" stroke-width="2" stroke-linejoin="round"/></svg><span class="etiquette"><b>5</b> <span>Mon espace ✓</span></span></a>
+        </div>
+    </div>
+</section>
+
+<div class="fil-mobile"><div class="enveloppe"><div class="points" id="points"><b></b><i></i><i></i><i></i><i></i><i></i></div><strong id="fm-titre">Étape 1 sur 5</strong></div></div>
+
+<div class="enveloppe parcours">
+    <aside class="fil-colle" id="fil-colle" aria-label="Où vous en êtes">
+        <div class="trait"><b id="trait"></b></div>
+        <div class="vetement" id="vetement"><svg viewBox="0 0 64 64"><path d="M22 8l-14 8 5 12 6-3v31h26V25l6 3 5-12-14-8c-2 4-6 6-10 6s-8-2-10-6z" fill="#2563EB" stroke="#1D4ED8" stroke-width="2" stroke-linejoin="round"/></svg><em id="vetement-statut">Déposé</em></div>
+    </aside>
+
+    <main>
+        <section class="etape" id="e1" data-titre="Votre comptoir aujourd'hui" data-cta="Voir la solution ↓" data-cible="#e2" data-statut="Déposé">
+            <div class="texte">
+                <p class="num">Cintre 1 sur 5 · Aujourd'hui</p>
+                <h2>Le cahier, les tickets perdus, et le téléphone qui sonne.</h2>
+                <p class="txt">« C'est prêt ? », « Combien je vous dois ? ». Chaque appel interrompt le comptoir, et le soir la caisse ne tombe pas juste.</p>
+            </div>
+            <div class="scene">
+                <div class="cahier"><p>Mme Kouassi · 3 chemises</p><p>M. Traoré · costume ?? payé</p><p>Awa · boubou + draps</p><p>Yao · 2 pantalons 1500</p><p>?? · robe bleue</p></div>
+                <div class="appels"><div class="appel">📞 C'est prêt ?</div><div class="appel">📞 Je dois combien ?</div><div class="appel">📞 Vous fermez à quelle heure ?</div><div class="appel">📞 C'est prêt maintenant ?</div></div>
+                <div class="compteur"><b id="nb-appels">0</b>appels aujourd'hui</div>
+            </div>
+        </section>
+
+        <section class="etape" id="e2" data-titre="PressLink en 30 secondes" data-cta="Essayer 3 jours" data-cible="#e3" data-statut="En cours">
+            <div class="texte">
+                <p class="num">Cintre 2 sur 5 · Avec PressLink</p>
+                <h2>Un dépôt en 4 gestes. Le client prévenu tout seul.</h2>
+                <p class="txt">Client, articles, paiement, ticket. Quand c'est prêt, votre client reçoit la notification et sait ce qu'il reste à payer.</p>
+            </div>
+            <div class="scene" style="min-height:380px">
+                <div class="ticket" id="ticket"><div class="tt">Awa Koné <span>N° 0142</span></div><div id="articles"></div><div class="total"><span>Total</span><span id="total">0 F</span></div><div class="statuts"><span>Reçue</span><span>En cours</span><span>Prête</span></div><span class="tampon" id="tampon">PAYÉ · WAVE</span></div>
+                <div class="notif" id="notif"><img src="img/logo-presslink.png" alt=""><div><strong>Votre commande est prête</strong>Pressing Élégance · Reste à payer : 0 F</div></div>
+                <div class="telephone"><img src="img/launch-app.webp" alt="Application client PressLink" width="600" height="1290"></div>
+            </div>
+        </section>
+
+        <section class="etape" id="e3" data-titre="Essayer sans rien risquer" data-cta="Démarrer un test" data-cible="test" data-statut="En cours">
+            <div class="texte">
+                <p class="num">Cintre 3 sur 5 · Essayer</p>
+                <h2>Essayez sur un pressing fictif, pendant 3 jours.</h2>
+                <p class="txt">Votre nom de pressing et votre numéro WhatsApp suffisent. Tout est déjà rempli : commandes, clients, caisse.</p>
+                <div class="garde"><span><b>✓</b> Sans inscription</span><span><b>✓</b> Vos articles et vos prix gardés si vous continuez</span><span><b>✓</b> Rien n'est envoyé à de vrais clients</span></div>
+                <div class="actions"><button class="btn btn-bleu" type="button" data-toast="Écran suivant : « Tester avec un pressing fictif »">Démarrer un test</button></div>
+            </div>
+            <div class="scene test">
+                <span class="bandeau">⏱ Pressing de test · 3 jours</span>
+                <div class="ecran"><img src="img/launch-dashboard.webp" alt="Tableau de bord du pressing fictif" width="1600" height="1000" loading="lazy"></div>
+            </div>
+        </section>
+
+        <section class="etape" id="e4" data-titre="Trouver ma formule" data-cta="Choisir Business" data-cible="#e5" data-statut="Repassé">
+            <div class="texte">
+                <p class="num">Cintre 4 sur 5 · Ma formule</p>
+                <h2>Dites-nous votre activité, on vous dit quelle formule prendre.</h2>
+                <p class="txt">Pas de tableau compliqué à comparer. Bougez le curseur, la bonne formule s'allume.</p>
+            </div>
+            <div class="scene calcul">
+                <label for="volume">Commandes par jour <output id="volume-txt">6</output></label>
+                <input type="range" id="volume" min="1" max="20" value="6">
+                <label class="case" for="groupe"><input type="checkbox" id="groupe"> J'ai plusieurs pressings</label>
+                <div class="formules3">
+                    <div class="f3" data-f="Starter"><strong>Starter</strong><span>100 cmd / mois</span></div>
+                    <div class="f3" data-f="Business"><strong>Business</strong><span>200 cmd / mois</span></div>
+                    <div class="f3" data-f="Premium"><strong>Premium</strong><span>350 cmd · groupe</span></div>
+                </div>
+                <div class="verdict"><div><small>Pour vous</small><strong id="verdict-nom">Business</strong></div><div style="text-align:right"><small>par mois</small><strong id="verdict-prix">30 000 F</strong></div></div>
+            </div>
+        </section>
+
+        <section class="etape" id="e5" data-titre="Créer mon espace pressing" data-cta="Créer mon espace" data-cible="creer" data-statut="Prêt ✓">
+            <div class="texte">
+                <p class="num">Cintre 5 sur 5 · Votre espace</p>
+                <h2>Votre pressing sur PressLink, en 2 minutes.</h2>
+                <p class="txt">Deux étapes : votre pressing, puis vous. Votre formule <b id="rappel-formule">Business</b> est retenue, gratuite jusqu'au 15 novembre.</p>
+                <div class="actions"><button class="btn btn-vert" type="button" data-toast="Écran suivant : « Créer mon espace » (étape 1 sur 2)">Créer mon espace pressing →</button></div>
+                <p class="aide">Besoin d'aide ? Appel ou WhatsApp, une personne de l'équipe vous répond.</p>
+            </div>
+            <div class="scene fin">
+                <div class="mini-etapes">
+                    <div><i>1</i>Vous avez vu PressLink</div>
+                    <div><i>2</i>Formule <span id="rappel-formule-2">&nbsp;Business&nbsp;</span> retenue</div>
+                    <div><i>3</i>Créer mon espace · 2 minutes</div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+<footer>PressLink · Logiciel de gestion de pressing · Côte d'Ivoire</footer>
+
+<div class="barre" id="barre">
+    <div class="avance"><b id="avance"></b></div>
+    <div class="enveloppe">
+        <div class="textes"><small id="barre-sur">Étape 1 sur 5</small><strong id="barre-titre">Votre comptoir aujourd'hui</strong></div>
+        <div class="boutons"><a class="secondaire" href="#e5">Créer mon espace</a><button class="btn btn-vert" type="button" id="barre-btn"><span>Voir la solution ↓</span></button></div>
+    </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="demo.js"></script>
+<script>
+const etapes = [...document.querySelectorAll('.etape')];
+const fil = document.getElementById('fil-colle');
+const vetement = document.getElementById('vetement');
+let active = -1;
+
+/* Cintres du fil vertical */
+etapes.forEach((e, i) => {
+    const a = document.createElement('a');
+    a.className = 'cintre'; a.href = '#' + e.id;
+    a.style.top = (6 + i * 22) + '%';
+    a.innerHTML = `<i><svg width="40" height="22" viewBox="0 0 40 22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7a3 3 0 1 1 3-3c0 1.5-1.5 2-3 3.2V9l17 9.5c1 .6.6 2-.5 2h-33c-1.1 0-1.5-1.4-.5-2L20 9"/></svg></i><span>${e.dataset.titre}<small>Étape ${i + 1}</small></span>`;
+    fil.appendChild(a);
+});
+const cintres = [...fil.querySelectorAll('.cintre')];
+const points = [...document.querySelectorAll('#points i')];
+
+const toast = document.getElementById('toast');
+function montrer(texte) { toast.textContent = texte; toast.classList.add('visible'); clearTimeout(toast.t); toast.t = setTimeout(() => toast.classList.remove('visible'), 2400); }
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-toast]'); if (b) { montrer(b.dataset.toast); } });
+
+function activer(i) {
+    if (i === active) { return; }
+    active = i;
+    const e = etapes[i];
+    cintres.forEach((c, k) => { c.classList.toggle('actif', k === i); c.classList.toggle('passe', k < i); });
+    points.forEach((p, k) => { p.classList.toggle('actif', k === i); p.classList.toggle('passe', k < i); });
+    document.querySelector('#points b').style.width = `calc(${(i / 4) * 100}% - 12px)`;
+    document.getElementById('fm-titre').textContent = `${i + 1}/5 · ${e.dataset.titre}`;
+    document.getElementById('barre-sur').textContent = `Étape ${i + 1} sur 5`;
+    document.getElementById('barre-titre').textContent = e.dataset.titre;
+    document.getElementById('barre-btn').innerHTML = `<span>${e.dataset.cta}</span>`;
+    document.getElementById('vetement-statut').textContent = e.dataset.statut;
+    vetement.classList.toggle('pret', i === 4);
+}
+document.getElementById('barre-btn').addEventListener('click', () => {
+    const cible = etapes[Math.max(0, active)].dataset.cible;
+    if (cible.startsWith('#')) { document.querySelector(cible).scrollIntoView({ behavior: 'smooth' }); }
+    else if (cible === 'test') { montrer('Écran suivant : « Tester avec un pressing fictif »'); }
+    else { montrer('Écran suivant : « Créer mon espace » (étape 1 sur 2)'); }
+});
+
+/* Le vêtement suit le défilement, d'un cintre à l'autre */
+function suivre() {
+    const milieu = innerHeight * 0.45;
+    let idx = 0, frac = 0;
+    etapes.forEach((e, i) => { const r = e.getBoundingClientRect(); if (r.top <= milieu) { idx = i; frac = Math.min(1, (milieu - r.top) / r.height); } });
+    activer(idx);
+    const h = fil.clientHeight;
+    const pos = Math.min(4, idx + (idx < 4 ? frac : 0));
+    const y = (6 + pos * 22) / 100 * h;
+    vetement.style.transform = `translateY(${y - 26}px)`;
+    document.getElementById('trait').style.height = `${Math.max(0, y - 10)}px`;
+    const total = document.documentElement.scrollHeight - innerHeight;
+    document.getElementById('avance').style.width = `${(scrollY / total) * 100}%`;
+    document.getElementById('barre').classList.toggle('visible', document.querySelector('.hero .actions').getBoundingClientRect().bottom < 60);
+}
+addEventListener('scroll', suivre, { passive: true });
+addEventListener('resize', suivre);
+suivre();
+
+/* Apparition des scènes quand on arrive dessus */
+const vus = new IntersectionObserver((entrees) => entrees.forEach((en) => {
+    if (en.isIntersecting && !en.target.classList.contains('vu')) {
+        en.target.classList.add('vu');
+        if (en.target.id === 'e1') { compterAppels(); }
+        if (en.target.id === 'e2') { jouerTicket(); }
+    }
+}), { threshold: .35 });
+etapes.forEach((e) => vus.observe(e));
+
+function compterAppels() {
+    const el = document.getElementById('nb-appels'); let n = 0;
+    const t = setInterval(() => { el.textContent = ++n; if (n >= 14) { clearInterval(t); } }, 130);
+}
+const ARTICLES = [['Chemise × 3', 1500], ['Boubou × 1', 3000], ['Pantalon × 2', 2000], ['Draps × 1', 1500]];
+let ticketTour = null;
+function jouerTicket() {
+    clearTimeout(ticketTour);
+    const box = document.getElementById('articles'), total = document.getElementById('total'), tampon = document.getElementById('tampon'), notif = document.getElementById('notif');
+    const statuts = [...document.querySelectorAll('.statuts span')];
+    box.innerHTML = ''; total.textContent = '0 F'; tampon.classList.remove('posé'); notif.classList.remove('visible'); statuts.forEach((s) => s.className = '');
+    let somme = 0;
+    ARTICLES.forEach(([nom, prix], i) => setTimeout(() => {
+        box.insertAdjacentHTML('beforeend', `<div class="art"><span>${nom}</span><span>${prix.toLocaleString('fr-FR')} F</span></div>`);
+        somme += prix; total.textContent = somme.toLocaleString('fr-FR') + ' F';
+    }, 300 + i * 450));
+    setTimeout(() => { tampon.classList.add('posé'); statuts[0].className = 'on'; }, 2300);
+    setTimeout(() => { statuts[1].className = 'on'; }, 3200);
+    setTimeout(() => { statuts[2].className = 'on vert'; notif.classList.add('visible'); }, 4200);
+    ticketTour = setTimeout(jouerTicket, 9000);
+}
+
+/* Calculateur de formule */
+const volume = document.getElementById('volume'), groupe = document.getElementById('groupe');
+const PRIX = { Starter: 20000, Business: 30000, Premium: 50000 };
+function calculer() {
+    const v = +volume.value;
+    document.getElementById('volume-txt').textContent = v;
+    const mois = v * 26;
+    const nom = groupe.checked || mois > 200 ? 'Premium' : mois > 100 ? 'Business' : 'Starter';
+    document.querySelectorAll('.f3').forEach((f) => f.classList.toggle('choisie', f.dataset.f === nom));
+    const avant = document.getElementById('verdict-nom').textContent;
+    document.getElementById('verdict-nom').textContent = nom;
+    document.getElementById('rappel-formule').textContent = nom;
+    document.getElementById('rappel-formule-2').textContent = ' ' + nom + ' ';
+    document.getElementById('e4').dataset.cta = 'Choisir ' + nom;
+    if (active === 3) { document.getElementById('barre-btn').innerHTML = `<span>Choisir ${nom}</span>`; }
+    if (avant !== nom) {
+        const el = document.getElementById('verdict-prix'), de = PRIX[avant] || 0, a = PRIX[nom], t0 = performance.now();
+        const pas = (t) => { const k = Math.min(1, (t - t0) / 600); el.textContent = (Math.round((de + (a - de) * k) / 500) * 500).toLocaleString('fr-FR') + ' F'; if (k < 1) { requestAnimationFrame(pas); } };
+        requestAnimationFrame(pas);
+    }
+}
+volume.addEventListener('input', calculer); groupe.addEventListener('change', calculer);
+calculer();
+
+Demo.installer({
+    reinitialiser: () => { window.scrollTo({ top: 0 }); volume.value = 6; groupe.checked = false; calculer(); },
+    scenario: async ({ attendre, defiler, cliquer, vers }) => {
+        await attendre(2400);
+        await vers('.linge:nth-child(4)');
+        await attendre(600);
+        await cliquer('.hero .actions .btn-vert');
+        await attendre(4200);
+        await defiler('#e2', 1200);
+        await attendre(5200);
+        await defiler('#e3', 1400);
+        await vers('#e3 .btn-bleu');
+        await attendre(900);
+        await defiler('#e4', 1200);
+        await vers('#volume');
+        for (let v = 6; v >= 2; v--) { volume.value = v; calculer(); await attendre(160); }
+        await attendre(600);
+        for (let v = 2; v <= 12; v++) { volume.value = v; calculer(); await attendre(130); }
+        await attendre(700);
+        for (let v = 12; v >= 5; v--) { volume.value = v; calculer(); await attendre(130); }
+        await attendre(900);
+        await cliquer('#barre-btn');
+        await attendre(1800);
+        await cliquer('#e5 .btn-vert');
+        await attendre(2000);
+        await defiler(0, 1200);
+    },
+});
+</script>
+</body>
+</html>

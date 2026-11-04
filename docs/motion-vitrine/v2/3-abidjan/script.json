@@ -1,0 +1,8 @@
+{"repliques": [
+ {"cle": "h6", "texte": "Six heures. Abidjan se réveille.", "voix": "ff_siwis", "vitesse": 0.92},
+ {"cle": "h8", "texte": "Huit heures. On dépose ses vêtements au pressing, en passant.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "h12", "texte": "Midi. L'atelier s'active, et chacun suit sa commande.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "h16", "texte": "Seize heures. C'est prêt ! Le téléphone vibre.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "h19", "texte": "Dix-neuf heures. On passe récupérer, sans attendre.", "voix": "ff_siwis", "vitesse": 0.95},
+ {"cle": "h22", "texte": "Vingt-deux heures. La ville s'endort… sans stress.", "voix": "ff_siwis", "vitesse": 0.9}
+]}

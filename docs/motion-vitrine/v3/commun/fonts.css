@@ -1,0 +1,12 @@
+@font-face { font-family: Inter; font-weight: 400; font-display: swap; src: url(fonts/inter-400-normal.woff2); }
+@font-face { font-family: Inter; font-weight: 500; font-display: swap; src: url(fonts/inter-500-normal.woff2); }
+@font-face { font-family: Inter; font-weight: 600; font-display: swap; src: url(fonts/inter-600-normal.woff2); }
+@font-face { font-family: Inter; font-weight: 700; font-display: swap; src: url(fonts/inter-700-normal.woff2); }
+@font-face { font-family: "Inter Tight"; font-weight: 600; font-display: swap; src: url(fonts/inter-tight-600-normal.woff2); }
+@font-face { font-family: "Inter Tight"; font-weight: 700; font-display: swap; src: url(fonts/inter-tight-700-normal.woff2); }
+@font-face { font-family: "Inter Tight"; font-weight: 800; font-display: swap; src: url(fonts/inter-tight-800-normal.woff2); }
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.prop-bar { position: fixed; left: 12px; bottom: 12px; z-index: 60; display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(15,23,42,.82); backdrop-filter: blur(8px); font: 600 12px Inter, sans-serif; }
+.prop-bar a { color: #fff; text-decoration: none; padding: 6px 12px; border-radius: 999px; white-space: nowrap; }
+.prop-bar a.on { background: #2563eb; }

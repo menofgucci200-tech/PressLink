@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>PressLink — Avant / Après (maquette)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=block" rel="stylesheet">
+<style>
+@font-face { font-family: Inter; font-weight: 500; src: url(../commun/fonts/inter-500-normal.woff2); }
+@font-face { font-family: Inter; font-weight: 600; src: url(../commun/fonts/inter-600-normal.woff2); }
+@font-face { font-family: Inter; font-weight: 700; src: url(../commun/fonts/inter-700-normal.woff2); }
+@font-face { font-family: "Inter Tight"; font-weight: 800; src: url(../commun/fonts/inter-tight-800-normal.woff2); }
+:root { --primary: #2563EB; --ink: #1F1F1F; --paper: #F3EEE3; --navy: #0B1530; --error: #DC2626; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+body { font-family: Inter, sans-serif; -webkit-font-smoothing: antialiased; }
+#stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #111; }
+.abs { position: absolute; left: 0; top: 0; transform-origin: 50% 50%; }
+svg { overflow: visible; }
+
+#gauche { position: absolute; left: 0; top: 0; width: 958px; height: 1080px; overflow: hidden; background: var(--paper);
+    background-image: radial-gradient(rgba(0,0,0,.05) 1px, transparent 1px); background-size: 6px 6px; }
+#droite { position: absolute; left: 962px; top: 0; width: 958px; height: 1080px; overflow: hidden; background: radial-gradient(circle at 50% 30%, #3B82F6, #2563EB 50%, #1D4ED8); }
+#separateur { position: absolute; left: 954px; top: 0; width: 12px; height: 1080px; background: #fff; box-shadow: 0 0 30px rgba(0,0,0,.35); z-index: 5; }
+.voile { position: absolute; inset: 0; background: #0B1530; pointer-events: none; }
+
+.titre-g { position: absolute; font: 700 70px Caveat; color: var(--ink); }
+.titre-d { position: absolute; font: 800 44px "Inter Tight"; color: #fff; letter-spacing: -.01em; display: flex; align-items: center; gap: 14px; }
+.titre-d img { width: 54px; height: 54px; background: #fff; border-radius: 14px; padding: 4px; }
+.bulle { position: absolute; background: #fff; border: 4px solid var(--ink); border-radius: 26px; padding: 10px 24px; font: 700 46px Caveat; color: var(--ink); white-space: nowrap; filter: url(#boil); }
+.bulle.tel { background: #FFF7D1; border-style: dashed; }
+.pense { position: absolute; background: #fff; border: 4px solid var(--ink); border-radius: 50%; filter: url(#boil); }
+.bandeau { position: absolute; left: 50%; top: 120px; transform-origin: 50% 50%; background: #FBBF24; color: #1E293B; font: 800 40px "Inter Tight"; padding: 14px 36px; border-radius: 16px; white-space: nowrap; box-shadow: 0 16px 40px rgba(0,0,0,.35); z-index: 8; }
+
+.notif { position: absolute; width: 620px; background: rgba(255,255,255,.97); border-radius: 28px; padding: 22px 24px; display: flex; gap: 18px; box-shadow: 0 30px 60px rgba(0,0,0,.35); }
+.notif .ic { width: 62px; height: 62px; border-radius: 16px; box-shadow: 0 0 0 2px #E2E8F0 inset; display: grid; place-items: center; flex: none; }
+.notif .app { font: 700 14px Inter; color: #94A3B8; letter-spacing: .08em; display: flex; justify-content: space-between; }
+.notif .t { font: 800 26px Inter; color: #0F172A; margin-top: 3px; }
+.notif .b { font: 500 20px Inter; color: #475569; margin-top: 3px; }
+.badge { position: absolute; display: flex; gap: 10px; align-items: center; background: #ECFDF5; color: #047857; border: 3px solid #10B981; border-radius: 999px; padding: 10px 22px; font: 700 26px Inter; white-space: nowrap; }
+
+.carte { position: absolute; width: 620px; background: #fff; color: #0F172A; border-radius: 24px; padding: 30px 32px; box-shadow: 0 40px 80px rgba(0,0,0,.35); }
+.carte h3 { font: 700 26px Inter; margin-bottom: 14px; }
+.ligne { display: flex; justify-content: space-between; align-items: baseline; font: 500 24px Inter; color: #475569; padding: 8px 0; }
+.ligne b { font-weight: 600; color: #0F172A; }
+.ligne.dep b { color: #DC2626; }
+.ligne.tot { border-top: 3px dashed #E2E8F0; margin-top: 4px; padding-top: 14px; font-weight: 700; color: #0F172A; }
+.depense { display: flex; justify-content: space-between; background: #FEF2F2; border-radius: 12px; padding: 10px 14px; margin: 4px 0 6px; font: 500 20px Inter; color: #7F1D1D; }
+.depense small { display: block; font: 500 15px Inter; color: #B91C1C; }
+.champ { margin-top: 12px; height: 62px; border-radius: 14px; border: 3px solid var(--primary); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; font: 700 28px Inter; }
+.champ small { font: 700 16px Inter; color: #94A3B8; }
+.tampon { position: absolute; padding: 14px 28px; border-radius: 18px; background: #ECFDF5; color: #047857; border: 4px solid #10B981; font: 800 38px "Inter Tight"; white-space: nowrap; }
+.tampon.rouge { background: #FEF2F2; color: #B91C1C; border-color: #DC2626; font: 700 64px Caveat; filter: url(#boil); }
+
+#fin { position: absolute; inset: 0; background: radial-gradient(circle at 50% 40%, #3B82F6, #2563EB 45%, #1D4ED8); z-index: 9; }
+#caption { position: absolute; left: 0; right: 0; bottom: 40px; display: flex; justify-content: center; z-index: 50; }
+#caption span { background: rgba(15,23,42,.82); color: #fff; border-radius: 16px; padding: 12px 26px; font-size: 31px; font-weight: 600; max-width: 1600px; text-align: center; }
+#caption b { color: #FBBF24; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+    <filter id="boil" x="-5%" y="-5%" width="110%" height="110%">
+        <feTurbulence id="boil-t" type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="1"/>
+        <feDisplacementMap in="SourceGraphic" scale="5"/>
+    </filter>
+    <pattern id="wax" width="48" height="48" patternUnits="userSpaceOnUse"><rect width="48" height="48" fill="#E4572E"/><circle cx="12" cy="12" r="9" fill="#FFC145"/><circle cx="12" cy="12" r="4" fill="#2B4C9B"/><path d="M36 24 L48 36 L36 48 L24 36Z" fill="#2B4C9B"/></pattern>
+</defs></svg>
+
+<div id="stage">
+<!-- ====================== AVANT ====================== -->
+<div id="gauche">
+    <div id="g-titre" class="titre-g" style="left:60px; top:36px;">Avant…</div>
+    <!-- comptoir -->
+    <svg class="abs" width="958" height="1080" style="filter:url(#boil)">
+        <path d="M 30 790 L 930 788 L 928 1080 M 30 790 L 32 1080" fill="none" stroke="#1F1F1F" stroke-width="6" stroke-linecap="round"/>
+        <path d="M 30 790 L 930 788 L 930 818 L 30 820 Z" fill="#E9DFC9" stroke="#1F1F1F" stroke-width="6"/>
+        <g stroke="#1F1F1F" stroke-width="3" opacity=".35"><path d="M60 860 l40 30 M120 900 l50 25 M700 870 l40 30 M780 950 l30 20"/></g>
+    </svg>
+    <!-- la patronne -->
+    <svg id="patronne" class="abs" width="420" height="700" viewBox="-210 -380 420 700"><g id="pat-g"></g></svg>
+    <!-- téléphone fixe du comptoir -->
+    <svg id="tel" class="abs" width="200" height="140" viewBox="-100 -70 200 140" style="filter:url(#boil)">
+        <path d="M -80 50 L -60 -10 L 60 -10 L 80 50 Z" fill="#fff" stroke="#1F1F1F" stroke-width="6" stroke-linejoin="round"/>
+        <g fill="#1F1F1F"><circle cx="-25" cy="15" r="6"/><circle cx="0" cy="15" r="6"/><circle cx="25" cy="15" r="6"/><circle cx="-12" cy="34" r="6"/><circle cx="12" cy="34" r="6"/></g>
+        <path id="combine" d="M -85 -20 Q -90 -55 -55 -50 L 55 -50 Q 90 -55 85 -20 L 60 -20 Q 55 -32 40 -32 L -40 -32 Q -55 -32 -60 -20 Z" fill="#fff" stroke="#1F1F1F" stroke-width="6" stroke-linejoin="round"/>
+        <g id="sonne" stroke="#1F1F1F" stroke-width="5" stroke-linecap="round" fill="none"><path d="M -110 -40 q -18 -25 0 -50 M -130 -30 q -28 -38 0 -75 M 110 -40 q 18 -25 0 -50 M 130 -30 q 28 -38 0 -75"/></g>
+    </svg>
+    <div id="feuilles"></div>
+    <div id="b1" class="bulle tel" style="left:520px; top:200px;">Allô ? C'est prêt ?</div>
+    <div id="b2" class="bulle" style="left:60px; top:150px;">Attends, je cherche dans le carnet hein !</div>
+    <div id="b3" class="bulle tel" style="left:470px; top:250px;">Allô ?! Toujours pas prêt ?</div>
+    <div id="bx"></div>
+    <!-- la caisse du soir -->
+    <svg id="billets" class="abs" width="958" height="1080" style="filter:url(#boil)"><g id="billets-g"></g></svg>
+    <svg id="calc" class="abs" width="200" height="250" viewBox="0 0 200 250" style="filter:url(#boil)">
+        <rect x="5" y="5" width="190" height="240" rx="18" fill="#fff" stroke="#1F1F1F" stroke-width="6"/>
+        <rect x="22" y="22" width="156" height="60" rx="6" fill="#E9DFC9" stroke="#1F1F1F" stroke-width="4"/>
+        <text id="calc-n" x="168" y="66" text-anchor="end" font-family="Caveat" font-weight="700" font-size="44" fill="#1F1F1F">43 500</text>
+        <g fill="none" stroke="#1F1F1F" stroke-width="4"><rect x="25" y="100" width="40" height="30" rx="6"/><rect x="80" y="100" width="40" height="30" rx="6"/><rect x="135" y="100" width="40" height="30" rx="6"/><rect x="25" y="145" width="40" height="30" rx="6"/><rect x="80" y="145" width="40" height="30" rx="6"/><rect x="135" y="145" width="40" height="30" rx="6"/><rect x="25" y="190" width="40" height="30" rx="6"/><rect x="80" y="190" width="40" height="30" rx="6"/><rect x="135" y="190" width="40" height="30" rx="6"/></g>
+    </svg>
+    <div id="carnet2" class="bulle" style="left:630px; top:430px; border-radius:6px; font-size:40px; line-height:1.1; padding:14px 20px; background:#FFFDF4; transform-origin:0 0;">Carnet :<br>Total <u>48 500</u></div>
+    <div id="b4" class="bulle" style="left:60px; top:150px;">Il manque cinq mille… 😰</div>
+    <div id="pense1" class="pense" style="left:640px; top:290px; width:26px; height:26px;"></div>
+    <div id="pense2" class="pense" style="left:680px; top:240px; width:40px; height:40px;"></div>
+    <div id="pense3" class="bulle" style="left:440px; top:120px; border-radius:60px; font-size:42px;">🚕 le taxi de ce matin ?</div>
+    <div id="faux" class="tampon rouge" style="left:420px; top:620px;">− 5 000 ???</div>
+    <div id="g-voile" class="voile"></div>
+</div>
+
+<!-- ====================== AVEC PRESSLINK ====================== -->
+<div id="droite">
+    <div id="d-titre" class="titre-d" style="left:60px; top:44px;"><img src="../assets/icon.png">Avec PressLink</div>
+    <!-- situation 1 -->
+    <img id="homme" src="../assets/man.png" class="abs" style="left:150px; top:250px; width:660px; border-radius:36px;">
+    <div id="homme-ecran" class="abs" style="left:368px; top:520px; width:174px; height:348px; border-radius:20px; overflow:hidden;"><img src="../assets/c-detail.jpg" style="width:174px; display:block;"></div>
+    <div id="d-notif" class="notif" style="left:170px; top:150px;">
+        <div class="ic"><img src="../assets/icon.png" style="width:50px;"></div>
+        <div style="flex:1;">
+            <div class="app"><span>PRESSLINK</span><span>maintenant</span></div>
+            <div class="t">Votre commande est prête ! 🎉</div>
+            <div class="b">Pressing du Plateau · PL-286571</div>
+        </div>
+    </div>
+    <div id="d-badge" class="badge" style="left:250px; top:900px;">✓ Prévenu automatiquement</div>
+    <!-- situation 2 -->
+    <div id="carte" class="carte" style="left:170px; top:200px;">
+        <h3>Clôture de caisse</h3>
+        <div id="k1" class="ligne"><span>Espèces encaissées</span><b>48 500 F</b></div>
+        <div id="k2" class="ligne dep"><span>Dépenses de la journée</span><b>− 5 000 F</b></div>
+        <div id="k2a" class="depense"><div>Taxi livraison<small>noté à 9 h 12 par Awa</small></div><b>5 000 F</b></div>
+        <div id="k3" class="ligne tot"><span>Doit être dans la caisse</span><b>43 500 F</b></div>
+        <div id="k4" class="champ"><span id="compte">0</span><small>FCFA</small></div>
+    </div>
+    <div id="tampon" class="tampon" style="left:330px; top:800px;">✓ Aucun écart</div>
+    <div id="d-voile" class="voile"></div>
+</div>
+<div id="separateur"></div>
+
+<div id="bandeau1" class="bandeau">Situation n°1 : « C'est prêt ? »</div>
+<div id="bandeau2" class="bandeau">Situation n°2 : la caisse du soir</div>
+
+<!-- ====================== FIN ====================== -->
+<div id="fin">
+    <svg id="pat-fin" class="abs" width="420" height="700" viewBox="-210 -380 420 700"><g id="patf-g"></g></svg>
+    <div id="f-icon" class="abs" style="left:860px; top:190px; width:200px; height:200px; border-radius:48px; background:#fff; display:grid; place-items:center; box-shadow:0 30px 60px rgba(0,0,0,.25);"><img src="../assets/icon.png" style="width:170px;"></div>
+    <img id="f-mot" src="../assets/wordmark_white.png" class="abs" style="left:630px; top:430px; width:660px;">
+    <div id="f-slogan" class="abs" style="top:620px; width:1920px; text-align:center; color:#fff; font:800 74px 'Inter Tight'; letter-spacing:-.02em;">Fini le stress au pressing.</div>
+    <div id="f-url" class="abs" style="left:760px; top:750px; width:400px; text-align:center; background:#FBBF24; color:#1E293B; border-radius:999px; padding:14px 0; font:700 38px Inter;">presslink.org</div>
+</div>
+<div id="caption"></div>
+</div>
+
+<script src="../commun/anim.js"></script>
+<script>
+/* ---------------------------------------------------------------- la patronne */
+const POSES = {
+    repos:  { g: [[-85, -130], [-115, -40], [-70, 40]],   d: [[85, -130], [115, -40], [70, 40]] },
+    tel:    { g: [[-85, -130], [-115, -40], [-70, 40]],   d: [[85, -130], [175, -190], [78, -262]] },
+    carnet: { g: [[-85, -130], [-120, -50], [-55, -40]],  d: [[85, -130], [120, -50], [55, -40]] },
+    compte: { g: [[-85, -130], [-130, -20], [-90, 30]],   d: [[85, -130], [140, -30], [110, 20]] },
+    salut:  { g: [[-85, -130], [-115, -40], [-70, 40]],   d: [[85, -130], [190, -180], [160, -300]] },
+};
+function mixPose(a, b, x) {
+    const r = {};
+    for (const c of ['g', 'd']) r[c] = a[c].map((pt, i) => [lerp(pt[0], b[c][i][0], x), lerp(pt[1], b[c][i][1], x)]);
+    return r;
+}
+/** Dessine la patronne : en croquis (avant) ou en couleur (fin). */
+function patronne(cible, o) {
+    const coul = o.couleur;
+    const trait = '#1F1F1F', fond = coul ? '#8D5524' : '#FFFDF6', robe = coul ? 'url(#wax)' : '#FFFDF6', foulard = coul ? '#2563EB' : '#FFFDF6';
+    const bras = (b) => { const [s, c, h] = b; return `<path d="M ${s[0]} ${s[1]} Q ${c[0]} ${c[1]} ${h[0]} ${h[1]}" fill="none" stroke="${trait}" stroke-width="34" stroke-linecap="round"/>
+        <path d="M ${s[0]} ${s[1]} Q ${c[0]} ${c[1]} ${h[0]} ${h[1]}" fill="none" stroke="${coul ? '#8D5524' : '#FFFDF6'}" stroke-width="22" stroke-linecap="round"/>
+        <circle cx="${h[0]}" cy="${h[1]}" r="20" fill="${fond}" stroke="${trait}" stroke-width="5"/>`; };
+    const pose = o.pose;
+    let yeux;
+    if (o.yeux === 'spirale') yeux = [-26, 26].map((x) => `<path d="M ${x} -240 m -3 0 a 3 3 0 1 1 6 0 a 6 6 0 1 1 -12 0 a 9 9 0 1 1 18 0 a 12 12 0 1 1 -24 0" fill="none" stroke="${trait}" stroke-width="3.5" transform="rotate(${o.t * 500} ${x} -240)"/>`).join('');
+    else if (o.yeux === 'content') yeux = [-26, 26].map((x) => `<path d="M ${x - 12} -236 q 12 -14 24 0" fill="none" stroke="${trait}" stroke-width="6" stroke-linecap="round"/>`).join('');
+    else yeux = [-26, 26].map((x) => `<ellipse cx="${x + (o.regard ?? 0) * 5}" cy="-240" rx="7" ry="${o.cligne ? 1 : 9}" fill="${trait}"/>`).join('');
+    const bouche = o.parle > 0.05
+        ? `<ellipse cx="0" cy="-196" rx="${13 + o.parle * 6}" ry="${4 + o.parle * 16}" fill="#5B1A1A" stroke="${trait}" stroke-width="4"/>`
+        : (o.yeux === 'content' ? `<path d="M -22 -202 Q 0 -178 22 -202" fill="none" stroke="${trait}" stroke-width="6" stroke-linecap="round"/>` : `<path d="M -16 -194 Q 0 ${o.stress ? -204 : -188} 16 -194" fill="none" stroke="${trait}" stroke-width="6" stroke-linecap="round"/>`);
+    const sourcils = o.stress
+        ? `<path d="M -42 -266 L -12 -258 M 42 -266 L 12 -258" stroke="${trait}" stroke-width="6" stroke-linecap="round"/>`
+        : `<path d="M -40 -262 Q -26 -270 -12 -262 M 40 -262 Q 26 -270 12 -262" fill="none" stroke="${trait}" stroke-width="6" stroke-linecap="round"/>`;
+    const sueur = o.stress ? `<path d="M 88 -270 q 12 22 0 30 q -12 -8 0 -30Z" fill="#7DD3FC" stroke="${trait}" stroke-width="4" transform="translate(0 ${(o.t * 80) % 30})"/><path d="M -92 -250 q 10 18 0 25 q -10 -7 0 -25Z" fill="#7DD3FC" stroke="${trait}" stroke-width="4"/>` : '';
+    const objet = pose.objet === 'tel' ? `<g transform="translate(${pose.d[2][0] + 10} ${pose.d[2][1] - 6}) rotate(-30)"><path d="M -30 -66 Q -50 0 -30 66 L 6 66 Q -12 0 6 -66 Z" fill="#1F1F1F" stroke="${trait}" stroke-width="5"/></g>`
+        : pose.objet === 'carnet' ? `<g transform="translate(0 -70) rotate(${Math.sin(o.t * 30) * 4})"><rect x="-80" y="-50" width="160" height="110" rx="6" fill="#fff" stroke="${trait}" stroke-width="6"/><path d="M 0 -50 L 0 60" stroke="${trait}" stroke-width="4"/><g stroke="${trait}" stroke-width="3" opacity=".6">${[0, 1, 2, 3].map((i) => `<path d="M -66 ${-28 + i * 20} l 54 0 M 12 ${-28 + i * 20} l 54 0"/>`).join('')}</g><path d="M 0 -50 Q ${40 * Math.cos(o.t * 25)} -60 ${80 * Math.cos(o.t * 25)} -50 L ${80 * Math.cos(o.t * 25)} 60 Q ${40 * Math.cos(o.t * 25)} 50 0 60Z" fill="#FFFDF6" stroke="${trait}" stroke-width="5"/></g>`
+        : pose.objet === 'billets' ? `<g transform="translate(0 -40)">${[-2, -1, 0, 1, 2].map((i) => `<rect x="-60" y="-34" width="120" height="66" rx="6" fill="${coul ? '#A7F3D0' : '#fff'}" stroke="${trait}" stroke-width="5" transform="rotate(${i * 9 + Math.sin(o.t * 12 + i) * 4} 0 40)"/>`).join('')}<circle cx="0" cy="0" r="16" fill="none" stroke="${trait}" stroke-width="4"/></g>` : '';
+    $(cible).innerHTML = `
+        ${bras(pose.g)}
+        <path d="M -90 -140 Q 0 -178 90 -140 L 140 320 L -140 320 Z" fill="${robe}" stroke="${trait}" stroke-width="6" stroke-linejoin="round"/>
+        <rect x="-18" y="-180" width="36" height="40" fill="${fond}" stroke="${trait}" stroke-width="5"/>
+        <circle cx="0" cy="-232" r="72" fill="${fond}" stroke="${trait}" stroke-width="6"/>
+        <path d="M -80 -250 Q -74 -334 0 -338 Q 76 -334 82 -250 Q 40 -278 0 -274 Q -40 -278 -80 -250 Z" fill="${foulard}" stroke="${trait}" stroke-width="6" stroke-linejoin="round"/>
+        <path d="M 22 -330 q 44 -44 66 -10 q -22 28 -60 16 M 22 -330 q -12 -50 32 -60 q 12 32 -22 54" fill="${foulard}" stroke="${trait}" stroke-width="6" stroke-linejoin="round"/>
+        ${sourcils}${yeux}${bouche}${sueur}
+        ${bras(pose.d)}${objet}`;
+}
+
+/* ---------------------------------------------------------------- montage */
+function voile(id, x) { $(id).style.opacity = x * 0.62; }
+function bulle(id, t, a, b) { put(id, { s: E.back(p(t, a, a + 0.25)), o: p(t, a, a + 0.08) * (1 - p(t, b, b + 0.15)), r: Math.sin(t * 3 + a) * 1.5 }); }
+
+function draw(t) {
+    const S = TL.scenes;
+    // trait qui « bout » comme un dessin animé fait main
+    $('boil-t').setAttribute('seed', Math.floor(t * 8) % 7 + 1);
+
+    // ouverture : les deux moitiés arrivent
+    const ouv = E.out(p(t, 0, 0.7));
+    put('gauche', { y: (1 - ouv) * -1080 });
+    put('droite', { y: (1 - ouv) * 1080 });
+    put('separateur', { sy: ouv });
+    put('g-titre', { s: E.back(p(t, 0.5, 0.8)), r: -4 });
+    put('d-titre', { s: E.back(p(t, 0.65, 0.95)) });
+    for (const [id, a, b] of [['bandeau1', 1.0, 2.0], ['bandeau2', S.s2, S.s2 + 1.1]]) {
+        put(id, { x: -$(id).offsetWidth / 2, s: E.back(p(t, a, a + 0.3)), o: p(t, a, a + 0.1) * (1 - p(t, b, b + 0.2)), r: -2 });
+    }
+
+    const s1 = t < S.s2, parlePat = niveau('Patronne', t);
+    /* ----- AVANT ----- */
+    let pose = POSES.repos, objet = '';
+    if (s1) {
+        if (t >= 1.8 && t < 3.1) { pose = mixPose(POSES.repos, POSES.tel, E.out(p(t, 1.8, 2.0))); objet = 'tel'; }
+        else if (t >= 3.1) { pose = mixPose(POSES.tel, POSES.carnet, E.out(p(t, 3.1, 3.35))); objet = 'carnet'; }
+    } else {
+        pose = mixPose(POSES.repos, POSES.compte, E.out(p(t, S.s2 + 0.2, S.s2 + 0.5))); objet = 'billets';
+    }
+    pose.objet = objet;
+    const stress = s1 ? t > 4.9 : t > 12.0;
+    patronne('pat-g', { pose, t, parle: parlePat, stress, yeux: (s1 && t > 5.6 && t < 6.9) || (!s1 && t > 13.9 && t < 14.4) ? 'spirale' : 'normal', regard: s1 ? (t > 2 && t < 3.1 ? 1 : 0) : -1, cligne: ((t * 1000) % 2900) < 100 });
+    const tremble = stress ? Math.sin(t * 60) * 3 : 0;
+    put('patronne', { x: 120 + tremble, y: 350 });
+    // téléphone qui sonne
+    const sonne = t > 1.3 && t < 1.85;
+    put('tel', { x: 640 + (sonne ? Math.sin(t * 80) * 6 : 0), y: 720, r: sonne ? Math.sin(t * 60) * 5 : 0, show: s1 });
+    $('sonne').style.opacity = sonne && (t * 4) % 1 < 0.6 ? 1 : 0;
+    $('combine').style.opacity = t > 1.85 && t < 3.1 ? 0 : 1;
+    bulle('b1', t, 2.0, 3.05); bulle('b2', t, 3.1, 4.85); bulle('b3', t, 4.9, 6.7);
+    // les relances s'empilent
+    let bx = '';
+    const relances = ['C\'est prêt ?', 'Allô ??', 'Et mon boubou ?', 'Je passe quand ?', 'C\'est prêt ?', 'Allô !!'];
+    relances.forEach((txt, i) => {
+        const a = 5.3 + i * 0.2;
+        if (t > a && t < 6.8) bx += `<div class="bulle tel" style="left:${[540, 80, 600, 120, 470, 300][i]}px; top:${[380, 300, 560, 470, 120, 610][i]}px; font-size:38px; transform: scale(${E.back(p(t, a, a + 0.2))}) rotate(${(i % 2 ? 1 : -1) * 6}deg);">${txt}</div>`;
+    });
+    $('bx').innerHTML = bx;
+    // feuilles du carnet qui volent
+    let f = '';
+    for (let i = 0; i < 7; i++) {
+        const a = 3.4 + i * 0.4, k = t - a;
+        if (s1 && k > 0 && k < 2.2) f += `<div class="abs" style="width:70px; height:90px; background:#fff; border:4px solid #1F1F1F; filter:url(#boil); transform: translate(${330 + k * (i % 2 ? 260 : -220)}px, ${560 - k * 380 + k * k * 160}px) rotate(${k * (i % 2 ? 300 : -260)}deg);"></div>`;
+    }
+    $('feuilles').innerHTML = f;
+    // la caisse du soir
+    put('billets', { show: !s1 });
+    if (!s1) {
+        let b = '';
+        for (let i = 0; i < 9; i++) b += `<rect x="${430 + (i % 3) * 120 + Math.sin(i) * 10}" y="${745 - Math.floor(i / 3) * 14}" width="110" height="56" rx="6" fill="#fff" stroke="#1F1F1F" stroke-width="5" transform="rotate(${(i * 7) % 11 - 5} ${480 + (i % 3) * 120} 770)"/>`;
+        $('billets-g').innerHTML = b;
+    }
+    put('calc', { x: 700, y: 520, show: !s1, r: 4, s: !s1 && t > 13.9 && t < 14.5 ? 1 + Math.sin(t * 50) * 0.04 : 1 });
+    $('calc-n').style.opacity = (t > 13.9 && (t * 6) % 1 < 0.5) ? 0.2 : 1;
+    put('carnet2', { show: !s1, s: E.back(p(t, S.s2 + 0.5, S.s2 + 0.8)), r: -6, x: 0, y: 0 });
+    bulle('b4', t, 11.0, 12.2);
+    put('pense1', { o: p(t, 12.2, 12.3) * (1 - p(t, 13.75, 13.9)) }); put('pense2', { o: p(t, 12.3, 12.4) * (1 - p(t, 13.75, 13.9)) });
+    bulle('pense3', t, 12.4, 13.75);
+    put('faux', { s: lerp(2.4, 1, E.out(p(t, 13.9, 14.1))), o: p(t, 13.9, 14.0), r: -8, show: !s1 });
+    // la moitié qui « attend » est voilée
+    let gv = 0;
+    if (t >= S.s1_apres && t < S.s2) gv = E.inOut(p(t, S.s1_apres, S.s1_apres + 0.3));
+    else if (t >= S.s2 && t < S.s2_apres) gv = 1 - E.inOut(p(t, S.s2, S.s2 + 0.3));
+    else if (t >= S.s2_apres) gv = E.inOut(p(t, S.s2_apres, S.s2_apres + 0.3));
+    voile('g-voile', gv);
+    let dv = 0;
+    if (t >= S.s1 && t < S.s1_apres) dv = 1;
+    else if (t >= S.s1_apres && t < S.s2) dv = 1 - E.inOut(p(t, S.s1_apres, S.s1_apres + 0.3));
+    else if (t >= S.s2 && t < S.s2_apres) dv = E.inOut(p(t, S.s2, S.s2 + 0.3));
+    else if (t >= S.s2_apres) dv = 1 - E.inOut(p(t, S.s2_apres, S.s2_apres + 0.3));
+    voile('d-voile', dv);
+
+    /* ----- AVEC PRESSLINK ----- */
+    put('homme', { show: s1, y: Math.sin(t * 1.5) * 6 }); put('homme-ecran', { show: s1, y: Math.sin(t * 1.5) * 6 });
+    put('d-notif', { show: s1, y: lerp(-400, 0, E.back(p(t, 7.05, 7.4))) });
+    put('d-badge', { show: s1, s: E.back(p(t, 7.7, 8.0)) });
+    put('carte', { show: !s1, y: (1 - E.out(p(t, S.s2 + 0.2, S.s2 + 0.7))) * 900 });
+    [['k1', 14.5], ['k2', 14.9], ['k2a', 15.1], ['k3', 15.5], ['k4', 15.9]].forEach(([id, a]) => put(id, { o: t < S.s2_apres ? 0.25 : p(t, a, a + 0.15), x: t < S.s2_apres ? 0 : (1 - E.out(p(t, a, a + 0.25))) * 30 }));
+    $('compte').textContent = Math.round(E.out(p(t, 16.0, 16.8)) * 43500).toLocaleString('fr-FR').replace(/ | /g, ' ');
+    put('tampon', { show: !s1, s: lerp(2.2, 1, E.out(p(t, 17.0, 17.2))), o: p(t, 17.0, 17.1), r: -5 });
+
+    /* ----- FIN ----- */
+    const fin = E.inOut(p(t, S.fin, S.fin + 0.6));
+    $('fin').style.clipPath = `circle(${fin * 130}% at 75% 50%)`;
+    $('fin').style.display = t >= S.fin ? '' : 'none';
+    if (t >= S.fin) {
+        patronne('patf-g', { pose: Object.assign(mixPose(POSES.repos, POSES.salut, 0.5 + 0.5 * Math.sin(t * 7)), { objet: '' }), t, parle: 0, couleur: true, yeux: 'content' });
+        put('pat-fin', { x: 120, y: 420 + (1 - E.back(p(t, S.fin + 0.5, S.fin + 1.0))) * 600 });
+        put('f-icon', { s: E.elastic(p(t, S.fin + 0.3, S.fin + 1.2)) });
+        put('f-mot', { o: p(t, S.fin + 0.7, S.fin + 1.0), y: (1 - E.out(p(t, S.fin + 0.7, S.fin + 1.1))) * 30 });
+        put('f-slogan', { s: E.back(p(t, 20.0, 20.35)), o: p(t, 20.0, 20.1) });
+        put('f-url', { s: E.back(p(t, 21.2, 21.5)) });
+        $('stage').style.opacity = 1 - p(t, 23.8, 24.5);
+    } else $('stage').style.opacity = 1;
+}
+</script>
+</body>
+</html>

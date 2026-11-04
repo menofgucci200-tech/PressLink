@@ -1,0 +1,9 @@
+{"repliques": [
+ {"cle": "hero", "qui": "Bouba", "texte": "Salut ! Moi c'est Bouba, la chemise. Suis-moi, je t'emmène au pressing !", "voix": "ff_siwis", "vitesse": 1.05, "hauteur": 4},
+ {"cle": "depot", "qui": "Bouba", "texte": "Au comptoir, on m'enregistre en quelques secondes… et hop, voilà le reçu !", "voix": "ff_siwis", "vitesse": 1.05, "hauteur": 4},
+ {"cle": "suivi", "qui": "Bouba", "texte": "Pendant que je me fais belle, mon propriétaire suit tout depuis son téléphone.", "voix": "ff_siwis", "vitesse": 1.06, "hauteur": 4},
+ {"cle": "prete", "qui": "Bouba", "texte": "Ding ! Je suis prête, et il est prévenu tout de suite. Fini les déplacements pour rien !", "voix": "ff_siwis", "vitesse": 1.05, "hauteur": 4},
+ {"cle": "patron", "qui": "Bouba", "texte": "Et pour le patron du pressing ? Commandes, caisse, équipe… tout est dans un seul tableau de bord.", "voix": "ff_siwis", "vitesse": 1.05, "hauteur": 4},
+ {"cle": "install", "qui": "Bouba", "texte": "Pas besoin de store : scanne le code, et installe l'application en un geste.", "voix": "ff_siwis", "vitesse": 1.05, "hauteur": 4},
+ {"cle": "contact", "qui": "Bouba", "texte": "Une question ? L'équipe PressLink te répond sur WhatsApp. À très vite !", "voix": "ff_siwis", "vitesse": 1.05, "hauteur": 4}
+]}

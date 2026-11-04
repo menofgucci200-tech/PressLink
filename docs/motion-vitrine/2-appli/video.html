@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>PressLink — L'appli prend vie (maquette)</title>
+<style>
+@font-face { font-family: Inter; font-weight: 400; src: url(../commun/fonts/inter-400-normal.woff2); }
+@font-face { font-family: Inter; font-weight: 500; src: url(../commun/fonts/inter-500-normal.woff2); }
+@font-face { font-family: Inter; font-weight: 600; src: url(../commun/fonts/inter-600-normal.woff2); }
+@font-face { font-family: Inter; font-weight: 700; src: url(../commun/fonts/inter-700-normal.woff2); }
+@font-face { font-family: "Inter Tight"; font-weight: 700; src: url(../commun/fonts/inter-tight-700-normal.woff2); }
+@font-face { font-family: "Inter Tight"; font-weight: 800; src: url(../commun/fonts/inter-tight-800-normal.woff2); }
+:root { --primary: #2563EB; --sky: #93C5FD; --navy: #070E24; --ink: #0F172A; --muted: #64748B; --success: #10B981; --warning: #F59E0B; --error: #EF4444; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+body { font-family: Inter, sans-serif; color: #fff; -webkit-font-smoothing: antialiased; }
+#stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--navy); perspective: 1800px; }
+.abs { position: absolute; left: 0; top: 0; transform-origin: 50% 50%; }
+.scene { position: absolute; inset: 0; transform-style: preserve-3d; }
+
+#grille { position: absolute; inset: -200px; background-image: linear-gradient(rgba(147,197,253,.07) 2px, transparent 2px), linear-gradient(90deg, rgba(147,197,253,.07) 2px, transparent 2px); background-size: 120px 120px; }
+.blob { position: absolute; border-radius: 50%; filter: blur(90px); }
+
+.mot { position: absolute; font-family: "Inter Tight"; font-weight: 800; font-size: 190px; letter-spacing: -0.045em; line-height: .9; white-space: nowrap; }
+.mot .pt { color: var(--primary); }
+.sous { position: absolute; font-size: 34px; font-weight: 600; color: #BFDBFE; white-space: nowrap; }
+.chip { position: absolute; display: inline-flex; align-items: center; gap: 12px; padding: 12px 22px 12px 14px; border-radius: 999px; background: rgba(255,255,255,.08); border: 2px solid rgba(147,197,253,.35); font-weight: 700; font-size: 26px; color: #DBEAFE; white-space: nowrap; }
+.chip i { width: 36px; height: 36px; border-radius: 50%; background: var(--primary); display: grid; place-items: center; font-style: normal; font-size: 18px; color: #fff; }
+
+.phone { position: absolute; width: 400px; height: 846px; padding: 12px; background: #05070D; border-radius: 58px; box-shadow: 0 60px 120px rgba(0,0,0,.55), 0 0 0 2px #2A3245 inset, 0 0 80px rgba(37,99,235,.35); }
+.phone .scr { position: relative; width: 376px; height: 822px; border-radius: 46px; overflow: hidden; background: #fff; }
+.phone .scr img { position: absolute; left: 0; top: 0; width: 376px; }
+.tap { position: absolute; width: 90px; height: 90px; margin: -45px 0 0 -45px; border-radius: 50%; border: 5px solid #fff; background: rgba(255,255,255,.35); }
+
+.notif { position: absolute; width: 820px; background: rgba(255,255,255,.97); color: var(--ink); border-radius: 34px; padding: 26px 30px; display: flex; gap: 22px; box-shadow: 0 40px 80px rgba(0,0,0,.45); }
+.notif .ic { width: 74px; height: 74px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 2px #E2E8F0 inset; display: grid; place-items: center; flex: none; }
+.notif .app { font: 700 17px Inter; color: #94A3B8; letter-spacing: .08em; display: flex; justify-content: space-between; }
+.notif .t { font: 800 32px Inter; margin-top: 4px; }
+.notif .b { font: 500 24px Inter; color: #475569; margin-top: 4px; }
+.onde { position: absolute; border-radius: 50%; border: 4px solid var(--sky); }
+
+/* Carte de clôture (nouvelle Caisse du tableau de bord) */
+.carte { position: absolute; width: 640px; background: #fff; color: var(--ink); border-radius: 26px; padding: 34px 36px; box-shadow: 0 50px 100px rgba(0,0,0,.5), 0 0 90px rgba(37,99,235,.3); }
+.carte h3 { font: 700 26px Inter; margin-bottom: 18px; }
+.ligne { display: flex; justify-content: space-between; align-items: baseline; font: 500 25px Inter; color: #475569; padding: 9px 0; }
+.ligne b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.ligne.dep b { color: var(--error); }
+.ligne.tot { border-top: 3px dashed #E2E8F0; margin-top: 6px; padding-top: 16px; font-weight: 700; color: var(--ink); }
+.depense { font: 500 19px Inter; color: #94A3B8; display: flex; justify-content: space-between; padding: 2px 0 2px 18px; }
+.champ { margin-top: 16px; height: 66px; border-radius: 14px; border: 3px solid var(--primary); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; font: 700 30px Inter; font-variant-numeric: tabular-nums; }
+.champ small { font: 700 17px Inter; color: #94A3B8; }
+.tampon { position: absolute; padding: 16px 30px; border-radius: 18px; background: #ECFDF5; color: #047857; border: 4px solid #10B981; font: 800 38px "Inter Tight"; white-space: nowrap; }
+
+.role { position: absolute; width: 440px; background: #fff; color: var(--ink); border-radius: 24px; padding: 26px 28px; box-shadow: 0 40px 80px rgba(0,0,0,.45); }
+.role h4 { font: 800 32px "Inter Tight"; display: flex; align-items: center; gap: 12px; }
+.role h4 i { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-style: normal; font-size: 22px; }
+.acces { display: flex; align-items: center; gap: 12px; font: 500 21px Inter; color: #334155; margin-top: 12px; }
+.acces s { width: 26px; height: 26px; border-radius: 7px; background: var(--primary); display: grid; place-items: center; color: #fff; font: 700 16px Inter; text-decoration: none; flex: none; }
+.acces s.off { background: #E2E8F0; color: transparent; }
+.journal { position: absolute; width: 860px; }
+.entree { display: flex; gap: 18px; align-items: center; background: rgba(255,255,255,.07); border: 2px solid rgba(147,197,253,.25); border-radius: 18px; padding: 16px 22px; margin-bottom: 14px; font: 500 24px Inter; color: #E2E8F0; }
+.entree time { font: 700 22px Inter; color: var(--sky); width: 70px; }
+.entree em { font-style: normal; font: 700 17px Inter; padding: 4px 10px; border-radius: 8px; background: rgba(37,99,235,.35); color: #DBEAFE; margin-left: auto; white-space: nowrap; }
+
+#flash { position: absolute; inset: 0; background: #fff; pointer-events: none; z-index: 30; }
+#caption { position: absolute; left: 0; right: 0; bottom: 44px; display: flex; justify-content: center; z-index: 50; }
+#caption span { background: rgba(7,14,36,.78); border: 2px solid rgba(147,197,253,.25); color: #fff; border-radius: 16px; padding: 12px 26px; font-size: 32px; font-weight: 600; max-width: 1500px; text-align: center; backdrop-filter: blur(6px); }
+</style>
+</head>
+<body>
+<div id="stage">
+    <div id="grille"></div>
+    <div id="blob1" class="blob" style="width:900px; height:900px; background:#1D4ED8; opacity:.45;"></div>
+    <div id="blob2" class="blob" style="width:700px; height:700px; background:#0EA5E9; opacity:.25;"></div>
+    <div id="ligne-intro" class="abs" style="left:0; top:538px; width:1920px; height:4px; background:linear-gradient(90deg, transparent, #93C5FD, transparent);"></div>
+
+    <!-- DÉPOSER -->
+    <div class="scene" id="depot">
+        <div id="m-depot" class="mot" style="left:140px; top:330px;">Déposer<span class="pt">.</span></div>
+        <div id="s-depot" class="sous" style="left:148px; top:530px;">Client, articles, paiement : c'est enregistré.</div>
+        <div id="c-etape" class="chip" style="left:148px; top:610px;"><i id="c-etape-n">1</i><span id="c-etape-t">Le client</span></div>
+        <div id="ph-depot" class="phone" style="left:1240px; top:117px;">
+            <div class="scr">
+                <img id="pn1" src="../assets/p-new1.jpg"><img id="pn2" src="../assets/p-new2.jpg"><img id="pn3" src="../assets/p-new3.jpg"><img id="pn4" src="../assets/p-new4.jpg">
+                <div id="tap1" class="tap"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUIVRE -->
+    <div class="scene" id="suivi">
+        <div id="ph-suivi" class="phone" style="left:300px; top:120px;">
+            <div class="scr"><img id="img-suivi" src="../assets/c-detail.jpg" style="transform-origin: 50% 30%;"></div>
+        </div>
+        <div id="m-suivi" class="mot" style="left:860px; top:330px;">Suivre<span class="pt">.</span></div>
+        <div id="s-suivi" class="sous" style="left:868px; top:530px;">En temps réel, depuis le téléphone du client.</div>
+        <div id="c-suivi1" class="chip" style="left:868px; top:610px;"><i>✓</i>Reçue</div>
+        <div id="c-suivi2" class="chip" style="left:1068px; top:610px;"><i>✓</i>En traitement</div>
+        <div id="c-suivi3" class="chip" style="left:1348px; top:610px;"><i>✓</i>Prête</div>
+    </div>
+
+    <!-- PRÉVENIR -->
+    <div class="scene" id="prevenir">
+        <div id="ondes"></div>
+        <div id="m-prev" class="mot" style="top:640px; width:1920px; text-align:center;">Prévenu<span class="pt">.</span></div>
+        <div id="notif" class="notif" style="left:550px; top:300px;">
+            <div class="ic"><img src="../assets/icon.png" style="width:58px;"></div>
+            <div style="flex:1;">
+                <div class="app"><span>PRESSLINK</span><span>maintenant</span></div>
+                <div class="t">Votre commande est prête ! 🎉</div>
+                <div class="b">Pressing du Plateau · PL-286571. Vous pouvez passer la récupérer.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CAISSE -->
+    <div class="scene" id="caisse">
+        <div id="m-caisse1" class="mot" style="left:140px; top:330px; font-size:170px;">Encaisser<span class="pt">.</span></div>
+        <div id="m-caisse2" class="mot" style="left:140px; top:330px; font-size:170px;">Clôturer<span class="pt">.</span></div>
+        <div id="s-caisse" class="sous" style="left:148px; top:520px;">Dépenses du jour déduites. Écart calculé tout seul.</div>
+        <div id="carte" class="carte" style="left:1110px; top:170px;">
+            <h3>Clôture de caisse</h3>
+            <div id="l1" class="ligne"><span>Espèces encaissées</span><b>48 500 F</b></div>
+            <div id="l2" class="ligne dep"><span>Dépenses de la journée</span><b>− 3 000 F</b></div>
+            <div id="l2a" class="depense"><span>Taxi livraison</span><span>1 000 F</span></div>
+            <div id="l2b" class="depense"><span>Achat de lessive</span><span>2 000 F</span></div>
+            <div id="l3" class="ligne tot"><span>Doit être dans la caisse</span><b>45 500 F</b></div>
+            <div id="l4" style="margin-top:14px; font:600 19px Inter; color:#475569;">Compté dans la caisse</div>
+            <div id="l5" class="champ"><span id="compte">0</span><small>FCFA</small></div>
+        </div>
+        <div id="tampon" class="tampon" style="left:1290px; top:770px;">✓ Aucun écart</div>
+    </div>
+
+    <!-- ÉQUIPE -->
+    <div class="scene" id="equipe">
+        <div id="m-equipe" class="mot" style="top:110px; width:1920px; text-align:center; font-size:150px;">Chacun son rôle<span class="pt">.</span></div>
+        <div id="r1" class="role" style="left:250px; top:360px;">
+            <h4><i style="background:#FEF3C7;">👑</i>Propriétaire</h4>
+            <div class="acces"><s>✓</s>Tous les accès</div><div class="acces"><s>✓</s>Revenus et historique</div><div class="acces"><s>✓</s>Rôles de l'équipe</div>
+        </div>
+        <div id="r2" class="role" style="left:740px; top:360px;">
+            <h4><i style="background:#DBEAFE;">🧑‍💼</i>Gérant</h4>
+            <div class="acces"><s>✓</s>Clôture et dépenses</div><div class="acces"><s>✓</s>Équipe et tarifs</div><div class="acces"><s class="off">✓</s>Revenus</div>
+        </div>
+        <div id="r3" class="role" style="left:1230px; top:360px;">
+            <h4><i style="background:#DCFCE7;">🧺</i>Employé</h4>
+            <div class="acces"><s>✓</s>Dépôts et paiements</div><div class="acces"><s>✓</s>Atelier</div><div class="acces"><s class="off">✓</s>Caisse</div>
+        </div>
+        <div id="journal" class="journal" style="left:530px; top:690px;">
+            <div id="j1" class="entree"><time>08:12</time>Koffi a créé la commande PL-286571<em>Employé</em></div>
+            <div id="j2" class="entree"><time>12:40</time>Dépense de 1 000 F : taxi livraison<em>Gérant</em></div>
+            <div id="j3" class="entree"><time>19:05</time>Caisse clôturée : aucun écart<em>Gérant</em></div>
+        </div>
+    </div>
+
+    <!-- LOGO -->
+    <div class="scene" id="logo">
+        <div id="lg-icon" class="abs" style="left:860px; top:250px; width:200px; height:200px; border-radius:48px; background:#fff; display:grid; place-items:center; box-shadow:0 0 120px rgba(59,130,246,.7);"><img src="../assets/icon.png" style="width:170px;"></div>
+        <img id="lg-mot" src="../assets/wordmark_white.png" class="abs" style="left:630px; top:500px; width:660px;">
+        <div id="lg-slogan" class="abs" style="top:690px; width:1920px; text-align:center; font:800 72px 'Inter Tight'; letter-spacing:-.03em;">Votre pressing, en mode <span style="color:#60A5FA;">simple</span>.</div>
+        <div id="lg-url" class="abs" style="left:770px; top:810px; width:380px; text-align:center; border:2px solid rgba(147,197,253,.5); border-radius:999px; padding:12px 0; font:700 34px Inter; color:#DBEAFE;">presslink.org</div>
+    </div>
+
+    <div id="flash"></div>
+    <div id="caption"></div>
+</div>
+
+<script src="../commun/anim.js"></script>
+<script>
+const BEAT = 0.5;
+/** Pulsation sur chaque temps (0..1, décroissante). */
+const pulse = (t, origine = 0.5) => { const x = ((t - origine) % BEAT + BEAT) % BEAT; return t < origine ? 0 : Math.exp(-x * 9); };
+function vis(id, a, b) { const on = window.__t >= a && window.__t < b; $(id).style.display = on ? '' : 'none'; return on; }
+/** Mot qui claque : arrive grand et flou, se pose sur le temps. */
+function claque(id, t, a, sortie = 99) {
+    const x = p(t, a - 0.12, a + 0.18);
+    const out = E.in(p(t, sortie - 0.2, sortie));
+    put(id, { s: lerp(1.5, 1, E.out(x)) * (1 + pulse(t) * 0.015), o: Math.min(x * 3, 1) * (1 - out), x: -out * 120 });
+    $(id).style.filter = `blur(${(1 - E.out(x)) * 18}px)`;
+}
+
+function draw(t) {
+    window.__t = t;
+    const S = TL.scenes;
+    // fond vivant
+    put('grille', { y: (t * 40) % 120, x: (t * 15) % 120 });
+    put('blob1', { x: 500 + Math.sin(t * 0.4) * 500, y: -100 + Math.cos(t * 0.3) * 200 });
+    put('blob2', { x: 1200 + Math.cos(t * 0.5) * 300, y: 500 + Math.sin(t * 0.35) * 200 });
+    $('blob1').style.opacity = 0.35 + pulse(t) * 0.15;
+    put('ligne-intro', { sx: E.out(p(t, 0, 0.45)), o: 1 - p(t, 0.45, 0.6) });
+    const flashs = [S.depot, S.caisse, S.logo];
+    $('flash').style.opacity = Math.max(...flashs.map((f) => (t >= f ? Math.exp(-(t - f) * 10) * 0.55 : 0)));
+
+    /* DÉPOSER */
+    if (vis('depot', S.depot - 0.15, S.suivi)) {
+        claque('m-depot', t, S.depot, S.suivi);
+        put('s-depot', { o: p(t, 0.9, 1.2) * (1 - p(t, 4.3, 4.5)), y: (1 - E.out(p(t, 0.9, 1.2))) * 20 });
+        const etapes = [[0.5, 'Le client'], [1.5, 'Les articles'], [2.5, 'Le paiement'], [3.0, 'Confirmation ✓']];
+        let n = 0; etapes.forEach(([a], i) => { if (t >= a) n = i; });
+        $('c-etape-n').textContent = n + 1; $('c-etape-t').textContent = etapes[n][1];
+        put('c-etape', { s: 1 + pulse(t, etapes[n][0]) * 0.08 * (t - etapes[n][0] < 0.5 ? 1 : 0), o: p(t, 1.1, 1.3) * (1 - p(t, 4.3, 4.5)) });
+        const entre = E.out(p(t, 0.4, 1.0));
+        put('ph-depot', { s: 0.9, y: (1 - entre) * 500, extra: `rotateY(${-22 + Math.sin(t * 0.8) * 4}deg) rotateX(${6 - entre * 2}deg)`, o: 1 - p(t, 4.3, 4.5) });
+        ['pn1', 'pn2', 'pn3', 'pn4'].forEach((id, i) => { $(id).style.opacity = i === n ? 1 : (i === n - 1 ? 1 - p(t, etapes[n][0], etapes[n][0] + 0.15) : 0); });
+        const tp = etapes[n][0];
+        put('tap1', { x: n === 3 ? 290 : 190, y: n === 3 ? 760 : 700, s: 0.6 + p(t, tp - 0.15, tp + 0.2) * 0.7, o: t > 1 ? Math.max(0, 1 - Math.abs(t - tp + 0.05) * 5) : 0 });
+    }
+
+    /* SUIVRE */
+    if (vis('suivi', S.suivi - 0.1, S.prevenir)) {
+        claque('m-suivi', t, S.suivi, S.prevenir);
+        put('s-suivi', { o: p(t, 4.9, 5.2) * (1 - p(t, 6.8, 7.0)) });
+        const ph = E.out(p(t, S.suivi - 0.1, S.suivi + 0.4));
+        put('ph-suivi', { s: 0.9, x: (1 - ph) * -700, extra: `rotateY(${18 - Math.sin(t) * 3}deg)`, o: 1 - p(t, 6.8, 7.0) });
+        put('img-suivi', { s: 1 + p(t, 4.6, 7) * 0.12 });
+        [5.5, 6.0, 6.5].forEach((a, i) => put('c-suivi' + (i + 1), { s: E.back(p(t, a, a + 0.25)), o: 1 - p(t, 6.8, 7.0) }));
+    }
+
+    /* PRÉVENIR */
+    if (vis('prevenir', S.prevenir - 0.05, S.caisse)) {
+        const d = E.back(p(t, 7.45, 7.8));
+        put('notif', { y: lerp(-500, 0, d), x: Math.sin(t * 90) * (t > 7.5 && t < 7.9 ? 6 : 0), o: 1 - p(t, 9.3, 9.5) });
+        let o = '';
+        for (let i = 0; i < 4; i++) {
+            const k = (t - 7.5 - i * 0.25);
+            if (k > 0 && k < 1.4) { const r = 200 + k * 700; o += `<div class="onde" style="left:${960 - r}px; top:${380 - r}px; width:${2 * r}px; height:${2 * r}px; opacity:${(1 - k / 1.4) * 0.5};"></div>`; }
+        }
+        $('ondes').innerHTML = o;
+        claque('m-prev', t, 8.0, S.caisse);
+    }
+
+    /* CAISSE */
+    if (vis('caisse', S.caisse - 0.1, S.equipe)) {
+        claque('m-caisse1', t, S.caisse, 11.5);
+        claque('m-caisse2', t, 11.5, S.equipe);
+        if (t < 11.3) $('m-caisse2').style.opacity = 0;
+        put('s-caisse', { o: p(t, 10.2, 10.5) * (1 - p(t, 13.8, 14)) });
+        const c = E.out(p(t, 9.5, 10.0));
+        put('carte', { y: (1 - c) * 300, o: c * (1 - p(t, 13.8, 14)), extra: `rotateY(${-16 + c * 6 + Math.sin(t * 0.7) * 2}deg) rotateX(4deg)` });
+        [['l1', 10.0], ['l2', 10.5], ['l2a', 10.7], ['l2b', 10.85], ['l3', 11.0], ['l4', 11.5], ['l5', 11.5]].forEach(([id, a]) => put(id, { o: p(t, a, a + 0.15), x: (1 - E.out(p(t, a, a + 0.25))) * 40 }));
+        const n = Math.round(E.out(p(t, 11.6, 12.6)) * 45500);
+        $('compte').textContent = n.toLocaleString('fr-FR').replace(/ | /g, ' ');
+        put('tampon', { s: lerp(2.2, 1, E.out(p(t, 12.75, 12.95))), o: p(t, 12.75, 12.85) * (1 - p(t, 13.8, 14)), r: -6 });
+    }
+
+    /* ÉQUIPE */
+    if (vis('equipe', S.equipe - 0.1, S.logo)) {
+        claque('m-equipe', t, S.equipe, 16.3);
+        [['r1', 14.5], ['r2', 15.0], ['r3', 15.5]].forEach(([id, a], i) => put(id, { y: (1 - E.back(p(t, a, a + 0.35))) * 200 - (t > 16 ? E.inOut(p(t, 16, 16.4)) * 130 : 0), o: p(t, a, a + 0.12) * (1 - p(t, 17.8, 18)), s: 1 - E.inOut(p(t, 16, 16.4)) * 0.12 }));
+        [['j1', 16.5], ['j2', 17.0], ['j3', 17.5]].forEach(([id, a]) => put(id, { o: p(t, a, a + 0.15) * (1 - p(t, 17.8, 18)), x: (1 - E.out(p(t, a, a + 0.3))) * 80 }));
+        put('journal', { y: -E.inOut(p(t, 16, 16.4)) * 90 });
+    }
+
+    /* LOGO */
+    if (vis('logo', S.logo, 99)) {
+        put('lg-icon', { s: E.elastic(p(t, 18.0, 18.9)) * (1 + pulse(t) * 0.03), r: (1 - E.out(p(t, 18, 18.6))) * -30 });
+        put('lg-mot', { o: p(t, 18.5, 18.8), y: (1 - E.out(p(t, 18.5, 18.9))) * 30 });
+        claque('lg-slogan', t, 19.5);
+        put('lg-url', { o: p(t, 20.5, 20.8), s: E.back(p(t, 20.5, 20.8)) });
+        $('stage').style.opacity = 1 - p(t, 21.8, 22.5);
+    } else $('stage').style.opacity = 1;
+}
+</script>
+</body>
+</html>

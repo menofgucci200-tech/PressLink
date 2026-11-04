@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=block" rel="stylesheet">
+<style>
+:root { --nuit: #0f172a; --bleu: #2563eb; --clair: #60a5fa; --encre: #0b1530; --fond: #f5f7fc; --gris: #475569; --bord: #e2e8f0; --vert: #16a34a; --rouge: #ef4444; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--fond); font-family: "Plus Jakarta Sans", sans-serif; color: var(--encre); -webkit-font-smoothing: antialiased; }
+.abs { position: absolute; }
+.titre { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; letter-spacing: -.035em; }
+.titre b { color: var(--bleu); font-weight: 800; }
+.cache { visibility: hidden; }
+
+/* fond clair vivant */
+#fond { position: absolute; inset: 0; background: radial-gradient(1200px 800px at 15% 85%, #dbe7ff 0, transparent 60%), radial-gradient(1000px 700px at 90% 10%, #e3ecff 0, transparent 60%), var(--fond); }
+.tache { position: absolute; width: 1000px; height: 1000px; margin: -500px 0 0 -500px; border-radius: 50%; background: radial-gradient(closest-side, rgba(147,183,250,.45), rgba(147,183,250,0)); }
+
+/* plans vidéo */
+.plan { position: absolute; overflow: hidden; background: #000; }
+.plan img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; transform-origin: 50% 50%; }
+.voile-g { position: absolute; inset: 0; }
+
+/* habillage permanent */
+#marque { position: absolute; left: 64px; top: 46px; height: 38px; }
+#marque img { position: absolute; left: 0; top: 0; height: 38px; }
+#chap { position: absolute; right: 64px; top: 46px; display: flex; align-items: center; gap: 12px; font: 700 19px "Plus Jakarta Sans"; letter-spacing: .02em; }
+#chap i { font-style: normal; padding: 6px 12px; border-radius: 999px; background: var(--bleu); color: #fff; font-size: 16px; }
+#prog { position: absolute; left: 0; top: 0; height: 5px; background: var(--bleu); }
+#legende { position: absolute; left: 50%; bottom: 44px; transform: translateX(-50%); max-width: 1500px; padding: 14px 30px; border-radius: 16px; background: rgba(11,21,48,.86); color: #fff; font: 600 28px/1.35 "Plus Jakarta Sans"; text-align: center; white-space: nowrap; }
+
+/* blocs de texte */
+.bloc { position: absolute; }
+.kicker { font: 800 19px "Plus Jakarta Sans"; letter-spacing: .18em; text-transform: uppercase; color: var(--bleu); }
+.bloc h2 { font-size: 68px; line-height: 1.02; margin-top: 18px; }
+.puces { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; margin-top: 36px; }
+.puce { display: inline-flex; align-items: center; gap: 14px; padding: 14px 24px 14px 16px; border-radius: 18px; background: #fff; font: 700 24px "Plus Jakarta Sans"; color: var(--encre); box-shadow: 0 16px 36px rgba(15,23,42,.10), 0 0 0 1px var(--bord); }
+.puce i { font-style: normal; font-size: 26px; width: 42px; height: 42px; display: grid; place-items: center; border-radius: 12px; background: #eef3ff; }
+.mot { display: inline-block; }
+
+/* problème */
+.souci { display: inline-flex; align-items: center; gap: 18px; padding: 18px 30px 18px 18px; border-radius: 22px; background: #fff; font: 700 38px "Plus Jakarta Sans"; color: var(--encre); box-shadow: 0 24px 50px rgba(0,0,0,.25); }
+.souci i { font-style: normal; width: 52px; height: 52px; border-radius: 50%; background: #fee2e2; color: var(--rouge); display: grid; place-items: center; font: 800 28px "Plus Jakarta Sans"; }
+
+/* notification */
+#push { position: absolute; display: flex; gap: 16px; align-items: center; padding: 18px 22px; width: 620px; border-radius: 28px; background: rgba(255,255,255,.96); box-shadow: 0 30px 60px rgba(15,23,42,.22), 0 0 0 1px rgba(15,23,42,.05); font: 500 19px/1.35 "Plus Jakarta Sans"; color: var(--gris); }
+#push img { width: 60px; height: 60px; border-radius: 15px; background: #fff; box-shadow: 0 0 0 1px var(--bord); padding: 6px; }
+#push small { display: flex; justify-content: space-between; font-size: 15px; letter-spacing: .06em; color: #64748b; }
+#push b.t { display: block; font-size: 23px; color: var(--encre); margin: 2px 0; }
+
+/* bascule bleue */
+#bascule { position: absolute; inset: 0; background: linear-gradient(135deg, #2563eb, #1d4ed8 60%, #1e40af); display: flex; align-items: center; justify-content: center; flex-direction: column; color: #fff; }
+#bascule .titre { font-size: 110px; color: #fff; }
+#bascule .titre span { color: #bfdbfe; }
+#bascule p { font: 600 32px "Plus Jakarta Sans"; opacity: .92; margin-top: 18px; }
+
+/* fin */
+#fin { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 130px; }
+#fin .message { font-size: 58px; line-height: 1.1; margin-top: 48px; }
+#fin .slogan { font: 600 24px "Plus Jakarta Sans"; color: var(--gris); margin-top: 14px; }
+#fin .qr { width: 520px; padding: 40px; border-radius: 36px; background: linear-gradient(160deg, #2563eb, #1d4ed8); color: #fff; text-align: center; box-shadow: 0 40px 80px rgba(37,99,235,.35); }
+#fin .qr .img { width: 250px; height: 250px; margin: 0 auto; padding: 16px; border-radius: 24px; background: #fff; }
+#fin .qr .img img { width: 100%; }
+#fin .qr .url { font: 800 50px "Bricolage Grotesque"; margin-top: 26px; letter-spacing: -.02em; }
+#fin .qr .petit { font: 500 20px "Plus Jakarta Sans"; opacity: .92; margin-top: 8px; }
+#fin .qr .contacts { display: flex; justify-content: center; gap: 22px; margin-top: 18px; font: 700 21px "Plus Jakarta Sans"; }
+#fin .qr .contacts span { display: inline-flex; align-items: center; gap: 8px; }
+#fin .qr .contacts i { width: 12px; height: 12px; border-radius: 50%; background: #22c55e; }
+</style>
+</head>
+<body>
+<div id="fond"><div class="tache" id="tache1"></div><div class="tache" id="tache2"></div></div>
+
+<!-- plans vidéo (un <img> par plan, l'image courante est posée à chaque instant) -->
+<div id="plans"></div>
+
+<!-- surcouches des plans plein cadre -->
+<div id="ombre-souci" class="abs" style="inset:0; background:linear-gradient(90deg, rgba(11,21,48,.82) 0, rgba(11,21,48,.55) 45%, rgba(11,21,48,0) 75%)"></div>
+<div id="ombre-femme" class="abs" style="inset:0; background:linear-gradient(90deg, rgba(245,247,252,0) 45%, rgba(245,247,252,.78) 70%, rgba(245,247,252,.9) 100%)"></div>
+<div id="ombre-fin" class="abs" style="inset:0; background:linear-gradient(90deg, rgba(11,21,48,.9) 0, rgba(11,21,48,.7) 55%, rgba(11,21,48,.35) 100%)"></div>
+
+<!-- accroche -->
+<div id="accroche" class="bloc" style="left:110px; top:330px; width:700px">
+    <div class="kicker">Gérants de pressing</div>
+    <h2 class="titre" style="font-size:84px" id="accroche-titre"></h2>
+</div>
+
+<!-- problème -->
+<div id="soucis" class="bloc" style="left:110px; top:300px">
+    <div class="kicker" style="color:#93c5fd">Au comptoir, tous les jours</div>
+    <div id="soucis-liste" style="display:flex; flex-direction:column; align-items:flex-start; gap:22px; margin-top:30px"></div>
+</div>
+
+<!-- bascule -->
+<div id="bascule">
+    <img src="img/presslink-symbole-negatif.svg" id="bascule-symbole" style="width:170px; height:170px; margin-bottom:24px">
+    <div class="titre" id="bascule-titre"><span>PressLink</span> simplifie tout.</div>
+    <p id="bascule-sous">Le logiciel du pressing et l'appli de vos clients, reliés.</p>
+</div>
+
+<!-- textes des étapes (à droite) -->
+<div id="etape" class="bloc"><div class="kicker" id="etape-kicker"></div><h2 class="titre" id="etape-titre"></h2><div class="puces" id="etape-puces"></div></div>
+
+<!-- notification -->
+<div id="push"><img src="img/presslink-symbole-couleur.svg"><span style="flex:1"><small><b>PRESSLINK</b><span>maintenant</span></small><b class="t">Votre commande est prête !</b>La commande #PL-992869 est prête à être récupérée au Pressing Élégance.</span></div>
+
+<!-- intro -->
+<div id="intro" class="abs" style="inset:0; background:var(--fond); display:flex; flex-direction:column; align-items:center; justify-content:center">
+    <div id="intro-logo" style="width:900px; height:196px"></div>
+    <div id="intro-slogan" style="font:600 30px 'Plus Jakarta Sans'; color:var(--gris); margin-top:26px">Le lien entre votre pressing et vos clients</div>
+</div>
+
+<!-- conclusion -->
+<div id="conclusion" class="bloc" style="left:110px; top:300px"></div>
+
+<!-- fin -->
+<div id="fin" style="background:var(--fond)">
+    <div>
+        <img src="img/presslink-horizontal-couleur.svg" style="width:640px">
+        <div class="slogan">Le lien entre votre pressing et vos clients</div>
+        <div class="message titre">Moins d'attente.<br>Moins d'appels.<br>Des clients toujours <b>informés</b>.</div>
+    </div>
+    <div class="qr">
+        <div class="img"><img src="img/qr-presslink-site.svg"></div>
+        <div class="url">presslink.org</div>
+        <div class="petit">Testez PressLink ou créez votre compte</div>
+        <div class="contacts"><span><i></i>07 18 00 22 93</span><span>contact@presslink.org</span></div>
+    </div>
+</div>
+
+<div id="marque"><img id="marque-c" src="img/presslink-horizontal-couleur.svg"><img id="marque-n" src="img/presslink-horizontal-negatif.svg"></div>
+<div id="chap"><i id="chap-num">01</i><span id="chap-nom">Côté pressing</span></div>
+<div id="prog"></div>
+<div id="legende"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const p = (t, a, b) => clamp((t - a) / (b - a));
+const sortie = (x) => 1 - Math.pow(1 - x, 3);
+const douce = (x) => x * x * (3 - 2 * x);
+const retour = (x) => { const c = 1.5; return x <= 0 ? 0 : 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const lerp = (a, b, k) => a + (b - a) * k;
+const FPS = 30;
+
+// ------------------------------------------------------------ découpage (secondes), calé sur la voix off
+const S = {
+    intro: [0, 4.0], accroche: [4.0, 10.4], souci: [10.4, 16.6], bascule: [16.6, 19.4],
+    pro1: [19.4, 27.4], pro2: [27.4, 34.6], cli1: [34.6, 40.0], cli2: [40.0, 45.8],
+    conclusion: [45.8, 50.4], fin: [50.4, 57.8],
+};
+const DUREE = S.fin[1];
+// Début de chaque réplique (script.json) ; la légende reprend le texte dit, sauf sur la carte de fin.
+const VOIX = [
+    { cle: 'intro', debut: 0.6 }, { cle: 'accroche', debut: 4.5 }, { cle: 'souci', debut: 10.7 }, { cle: 'bascule', debut: 17.0 },
+    { cle: 'pro1', debut: 20.0 }, { cle: 'pro2', debut: 27.8 }, { cle: 'cli1', debut: 35.0 },
+    { cle: 'cli2', debut: 40.4 }, { cle: 'conclusion', debut: 46.2 }, { cle: 'fin', debut: 51.8, sansLegende: true },
+];
+// Coupes du problème, sur les trois morceaux de la phrase.
+const COUPES = [S.souci[0], 12.0, 14.4];
+
+// Plans vidéo : source, début dans la source, apparition et disparition dans le film, vitesse de lecture.
+const PLANS = [
+    { id: 'presentatrice', src: 'pexels/8873236-hd_1920_1080_25fps.mp4', debut: 0.6, de: S.accroche[0] - 0.3, a: S.accroche[1] + 0.2 },
+    { id: 'tambour', src: 'pexels/8756891-hd_2048_1080_25fps.mp4', debut: 2.0, de: COUPES[0] - 0.2, a: COUPES[1] + 0.15 },
+    { id: 'fer', src: 'pexels/5901661-hd_2048_1080_25fps.mp4', debut: 6.0, de: COUPES[1], a: COUPES[2] + 0.15 },
+    { id: 'texto', src: 'pexels/6967638-hd_1920_1080_25fps.mp4', debut: 2.0, de: COUPES[2], a: S.souci[1] + 0.3 },
+    { id: 'commande', src: 'flow/ordinateur-commande-1.mp4', debut: 0.0, de: S.pro1[0] - 0.4, a: S.pro1[1] + 0.5, vitesse: 0.88, flow: true },
+    { id: 'tableau', src: 'flow/ordinateur-tableau.mp4', debut: 0.2, de: S.pro2[0] - 0.2, a: S.pro2[1] + 0.4, vitesse: 0.9, flow: true },
+    { id: 'femme', src: 'flow/telephone-femme.mp4', debut: 0.2, de: S.cli1[0] - 0.1, a: S.cli1[1] + 0.5, vitesse: 0.9, flow: true },
+    { id: 'homme', src: 'flow/telephone-homme.mp4', debut: 0.4, de: S.cli1[1] - 0.4, a: S.cli2[1] + 0.3, vitesse: 0.9, flow: true },
+    { id: 'gerant', src: 'pexels/5311414-hd_1920_1080_25fps.mp4', debut: 4.0, de: S.conclusion[0] - 0.2, a: S.conclusion[1] + 0.6 },
+];
+
+const ETAPES = [
+    { de: S.pro1[0] + 1.8, a: S.pro2[0], x: 1268, y: 300, w: 590, kicker: '01 · Au comptoir', titre: 'Une commande en <b>quelques clics</b>.',
+      puces: [['👤', 'Client retrouvé par son numéro'], ['👕', 'Articles et tarifs du pressing'], ['🧮', 'Total calculé tout seul']], rythme: [1.2, 2.3, 3.6] },
+    { de: S.pro2[0] + 0.15, a: S.cli1[0] - 0.1, x: 1268, y: 300, w: 590, kicker: '01 · Pour le gérant', titre: "Tout votre pressing d'<b>un coup d'œil</b>.",
+      puces: [['📋', 'Commandes en cours et prêtes'], ['💰', 'Encaissements du jour'], ['⏱️', 'Les retraits à relancer']], rythme: [2.4, 4.4, 5.6] },
+    { de: S.cli1[0] + 1.4, a: S.cli2[0] - 0.1, x: 1150, y: 470, w: 700, kicker: '02 · Côté client', titre: 'Vos clients <b>prévenus</b><br>dès que c\'est prêt.', puces: [] },
+    { de: S.cli2[0] + 0.7, a: S.conclusion[0], x: 1250, y: 330, w: 640, taille: 60, kicker: "02 · L'appli client", titre: 'Gratuite pour<br><b>vos clients</b>.',
+      puces: [['📲', "S'installe depuis presslink.org/app"], ['📦', 'Chaque commande, étape par étape'], ['🧾', "Les reçus dans l'appli"]], kickerCouleur: '#0b1530', bCouleur: '#0b1530' },
+];
+const SOUCIS = [['Des tickets papier qui se perdent', COUPES[0] + 0.35], ['Des clients qui appellent : « C\'est prêt ? »', COUPES[1] + 0.15], ['Du linge qui attend au comptoir', COUPES[2] + 0.25]];
+const CONCLUSION = [["Moins d'attente.", S.conclusion[0] + 0.45], ["Moins d'appels.", S.conclusion[0] + 1.5], ['Des clients toujours <b style="color:#93c5fd">informés</b>.', S.conclusion[0] + 2.55]];
+
+// Repères sonores, lus par son.py.
+const REPERES = [
+    { t: 0.55, son: 'pop' }, { t: 1.0, son: 'signature' }, { t: 1.5, son: 'souffle' },
+    { t: S.accroche[0] - 0.3, son: 'souffle' }, { t: S.souci[0] - 0.15, son: 'souffle' },
+    ...SOUCIS.map(([, t]) => ({ t, son: 'erreur' })),
+    { t: S.bascule[0] - 0.9, son: 'montee' }, { t: S.bascule[0], son: 'impact' },
+    { t: S.pro1[0] - 0.2, son: 'souffle' }, { t: S.pro1[0] + 1.0, son: 'souffle' },
+    ...ETAPES.flatMap((e) => e.puces.map((_, i) => ({ t: e.de + (e.rythme ? e.rythme[i] : 0.55 + i * 0.3), son: 'pop' }))),
+    { t: S.pro2[0] - 0.2, son: 'souffle' }, { t: S.cli1[0] - 0.1, son: 'souffle' }, { t: S.cli1[0] + 1.0, son: 'ding' },
+    { t: S.cli2[0] - 0.4, son: 'souffle' }, { t: S.conclusion[0] - 0.2, son: 'souffle' },
+    ...CONCLUSION.map(([, t]) => ({ t, son: 'pop' })),
+    { t: S.fin[0] - 0.1, son: 'souffle' }, { t: S.fin[0] + 0.6, son: 'signature' },
+];
+window.FILM = { DUREE, FPS, PLANS, REPERES, S, VOIX };
+
+// ------------------------------------------------------------ mise en place
+let IMAGES = {}, LEGENDES = [];
+window.ready = document.fonts.ready.then(() => Promise.all([...document.images].map((i) => (i.complete ? 0 : new Promise((r) => { i.onload = i.onerror = r; })))));
+window.setup = ({ logo, images, repliques }) => {
+    IMAGES = images;
+    LEGENDES = VOIX.filter((v) => !v.sansLegende && repliques[v.cle]).map((v) => [v.debut - 0.05, v.debut + repliques[v.cle].duree + 0.3, repliques[v.cle].texte]);
+    $('plans').innerHTML = PLANS.map((pl) => `<div class="plan" id="plan-${pl.id}"><img></div>`).join('');
+    // logo : le P, ses deux maillons bleus, puis le mot révélé de gauche à droite
+    const box = $('intro-logo');
+    box.innerHTML = logo;
+    const svg = box.querySelector('svg');
+    svg.setAttribute('width', '900'); svg.setAttribute('height', '196');
+    const chemins = [...svg.querySelectorAll('path')];
+    const ns = 'http://www.w3.org/2000/svg';
+    const defs = document.createElementNS(ns, 'defs');
+    defs.innerHTML = '<clipPath id="coupe-mot"><rect id="coupe-rect" x="230" y="0" width="0" height="256"/></clipPath>';
+    svg.prepend(defs);
+    const mot = document.createElementNS(ns, 'g'); mot.setAttribute('clip-path', 'url(#coupe-mot)');
+    chemins.slice(2).forEach((c) => mot.appendChild(c));
+    svg.appendChild(mot);
+    chemins[0].id = 'logo-p'; chemins[1].id = 'logo-maillons';
+    chemins[0].style.transformOrigin = '128px 128px'; chemins[1].style.transformOrigin = '150px 200px';
+    $('accroche-titre').innerHTML = "Votre pressing mérite mieux qu'un <b>cahier</b>.".replace(/(<b>[^<]*<\/b>|[^\s<]+)/g, '<span class="mot">$1</span>');
+    $('soucis-liste').innerHTML = SOUCIS.map(([txt]) => `<div class="souci"><i>✕</i>${txt}</div>`).join('');
+    $('conclusion').innerHTML = CONCLUSION.map(([txt]) => `<div class="titre" style="font-size:104px; line-height:1.08; color:#fff">${txt}</div>`).join('');
+};
+
+// ------------------------------------------------------------ rendu d'un instant
+function rect(el, x, y, w, h, r = 0) { Object.assign(el.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px', borderRadius: r + 'px' }); }
+function montrer(el, oui) { el.style.visibility = oui ? 'visible' : 'hidden'; }
+const dans = (t, [a, b], marge = 0) => t >= a - marge && t < b + marge;
+const plan = (id) => PLANS.find((x) => x.id === id);
+
+async function poserPlans(t) {
+    const attentes = [];
+    for (const pl of PLANS) {
+        const el = $('plan-' + pl.id);
+        const actif = t >= pl.de && t < pl.a;
+        montrer(el, actif);
+        if (!actif) continue;
+        const liste = IMAGES[pl.id];
+        const i = clamp(Math.floor((t - pl.de) * FPS * (pl.vitesse ?? 1)), 0, liste.length - 1);
+        const img = el.firstChild;
+        if (img.dataset.i !== String(i)) { img.dataset.i = i; img.src = liste[i]; attentes.push(img.decode().catch(() => 0)); }
+    }
+    await Promise.all(attentes);
+}
+
+function carte(el, k, cible, depart = { x: 0, y: 0, w: 1920, h: 1080, r: 0 }) {
+    rect(el, lerp(depart.x, cible.x, k), lerp(depart.y, cible.y, k), lerp(depart.w, cible.w, k), lerp(depart.h, cible.h, k), lerp(depart.r, cible.r, k));
+    el.style.boxShadow = `0 ${40 * k}px ${80 * k}px rgba(15,23,42,${0.22 * k})`;
+}
+
+window.renderAt = async (t) => {
+    $('tache1').style.left = 300 + Math.sin(t * 0.25) * 140 + 'px'; $('tache1').style.top = 780 + Math.cos(t * 0.2) * 90 + 'px';
+    $('tache2').style.left = 1640 + Math.cos(t * 0.22) * 120 + 'px'; $('tache2').style.top = 220 + Math.sin(t * 0.3) * 80 + 'px';
+    let sombre = 0; // 0 : habillage sur fond clair, 1 : sur image sombre
+
+    // --- intro
+    const ki = p(t, S.intro[1] - 0.4, S.intro[1]);
+    montrer($('intro'), t < S.intro[1]);
+    $('intro').style.opacity = 1 - ki; $('intro').style.transform = `scale(${1 + ki * 0.08})`;
+    const kp = retour(p(t, 0.3, 0.85)), km = retour(p(t, 0.8, 1.3)), kw = sortie(p(t, 1.3, 2.1));
+    const lp = $('logo-p'), lm = $('logo-maillons');
+    if (lp) {
+        lp.style.transform = `scale(${0.4 + 0.6 * kp})`; lp.style.opacity = clamp(kp * 2);
+        lm.style.transform = `translateY(${(1 - km) * -60}px)`; lm.style.opacity = clamp(km * 2);
+        $('coupe-rect').setAttribute('width', 950 * kw);
+        $('intro-logo').style.transform = `translateX(${(1 - kw) * 340}px)`;
+    }
+    const ks = sortie(p(t, 2.0, 2.6));
+    $('intro-slogan').style.opacity = ks; $('intro-slogan').style.transform = `translateY(${(1 - ks) * 20}px)`;
+
+    // --- accroche : la présentatrice dans une carte à droite
+    const A = S.accroche, pa = $('plan-presentatrice');
+    const ka = sortie(p(t, A[0] - 0.3, A[0] + 0.6));
+    carte(pa, 1, { x: 860, y: 250, w: 980, h: 551, r: 36 });
+    pa.style.transform = `translateX(${(1 - ka) * 500}px) scale(${0.9 + 0.1 * ka})`;
+    pa.style.opacity = ka * (1 - p(t, A[1] - 0.2, A[1] + 0.1));
+    pa.firstChild.style.transform = `scale(${1.12 - 0.08 * p(t, A[0] - 0.3, A[1] + 0.2)})`;
+    montrer($('accroche'), dans(t, A));
+    $('accroche').querySelector('.kicker').style.opacity = sortie(p(t, A[0] + 0.2, A[0] + 0.7)) * (1 - p(t, A[1] - 0.4, A[1] - 0.1));
+    [...$('accroche-titre').children].forEach((m, i) => {
+        const k = retour(p(t, A[0] + 0.4 + i * 0.12, A[0] + 0.9 + i * 0.12));
+        m.style.opacity = clamp(k) * (1 - p(t, A[1] - 0.4, A[1] - 0.1)); m.style.transform = `translateY(${(1 - k) * 40}px)`;
+    });
+
+    // --- le problème : trois plans plein cadre, les soucis s'empilent
+    const P = S.souci;
+    for (const [id, a] of [['tambour', COUPES[0]], ['fer', COUPES[1]], ['texto', COUPES[2]]]) {
+        const pl = $('plan-' + id);
+        carte(pl, 0, { x: 0, y: 0, w: 1920, h: 1080, r: 0 });
+        pl.style.transform = ''; pl.style.opacity = id === 'tambour' ? p(t, P[0] - 0.2, P[0] + 0.05) : p(t, a, a + 0.15);
+        pl.firstChild.style.transform = `scale(${1.04 + 0.08 * p(t, a, a + 3)})`;
+    }
+    const enSouci = dans(t, P, 0.05);
+    montrer($('ombre-souci'), enSouci); montrer($('soucis'), enSouci);
+    $('ombre-souci').style.opacity = p(t, P[0] - 0.2, P[0] + 0.1);
+    if (enSouci) sombre = 1;
+    $('soucis').querySelector('.kicker').style.opacity = sortie(p(t, P[0] + 0.1, P[0] + 0.5));
+    [...$('soucis-liste').children].forEach((el, i) => {
+        const a = SOUCIS[i][1], k = retour(p(t, a, a + 0.5));
+        const recul = i < 2 ? p(t, SOUCIS[i + 1][1], SOUCIS[i + 1][1] + 0.4) : 0;
+        el.style.opacity = clamp(k) * (1 - 0.35 * recul); el.style.transform = `translateX(${(1 - clamp(k)) * -60}px) scale(${(0.85 + 0.15 * k) * (1 - 0.06 * recul)})`;
+        el.style.transformOrigin = 'left center';
+    });
+
+    // --- bascule bleue
+    const b = S.bascule;
+    const kin = sortie(p(t, b[0] - 0.25, b[0] + 0.2)), kout = sortie(p(t, b[1] - 0.3, b[1] + 0.1));
+    montrer($('bascule'), t >= b[0] - 0.25 && t < b[1] + 0.1);
+    $('bascule').style.clipPath = `inset(${kout * 100}% 0 0 ${(1 - kin) * 100}%)`;
+    const kb = retour(p(t, b[0] + 0.1, b[0] + 0.7)), kb2 = sortie(p(t, b[0] + 0.4, b[0] + 1.0)), kb3 = sortie(p(t, b[0] + 0.8, b[0] + 1.3));
+    $('bascule-symbole').style.transform = `scale(${0.3 + 0.7 * kb}) rotate(${(1 - clamp(kb)) * -20}deg)`; $('bascule-symbole').style.opacity = clamp(kb * 2);
+    $('bascule-titre').style.opacity = kb2; $('bascule-titre').style.transform = `translateY(${(1 - kb2) * 40}px)`;
+    $('bascule-sous').style.opacity = kb3; $('bascule-sous').style.transform = `translateY(${(1 - kb3) * 30}px)`;
+    if (t >= b[0] && t < b[1] - 0.1) sombre = 1;
+
+    // --- côté pressing : plein cadre puis carte à gauche
+    const CARTE = { x: 90, y: 240, w: 1104, h: 621, r: 32 };
+    const P1 = S.pro1, P2 = S.pro2, pc = $('plan-commande'), pt = $('plan-tableau');
+    const kc = douce(p(t, P1[0] + 1.0, P1[0] + 1.9));
+    carte(pc, kc, CARTE); pc.style.opacity = 1; pc.style.transform = '';
+    pc.firstChild.style.transform = `scale(${1.06 - 0.06 * p(t, plan('commande').de, plan('commande').a)})`;
+    if (t >= P1[0] && t < P1[0] + 1.2) sombre = 0.6;
+    const kt = sortie(p(t, P2[0] - 0.2, P2[0] + 0.35));
+    carte(pt, 1, CARTE);
+    pt.style.clipPath = `inset(0 0 0 ${(1 - kt) * 100}% round 32px)`;
+    const kx = sortie(p(t, P2[1] - 0.2, P2[1] + 0.3));
+    pt.style.opacity = 1 - kx; pt.style.transform = `translateX(${-kx * 200}px) scale(${1 - 0.08 * kx})`;
+    pt.firstChild.style.transform = `scale(${1.0 + 0.05 * p(t, plan('tableau').de, plan('tableau').a)})`;
+
+    // --- textes d'étape
+    const e = ETAPES.find((x) => t >= x.de - 0.3 && t < x.a + 0.3);
+    montrer($('etape'), !!e);
+    if (e) {
+        const el = $('etape');
+        if (el.dataset.de !== String(e.de)) {
+            el.dataset.de = e.de;
+            Object.assign(el.style, { left: e.x + 'px', top: e.y + 'px', width: e.w + 'px' });
+            $('etape-kicker').textContent = e.kicker; $('etape-kicker').style.color = e.kickerCouleur ?? '';
+            $('etape-titre').innerHTML = e.titre; $('etape-titre').style.fontSize = e.taille ? e.taille + 'px' : '';
+            $('etape-titre').querySelectorAll('b').forEach((x) => (x.style.color = e.bCouleur ?? ''));
+            $('etape-titre').style.color = e.bCouleur ?? '';
+            $('etape-puces').innerHTML = e.puces.map((x) => `<span class="puce"><i>${x[0]}</i>${x[1]}</span>`).join('');
+        }
+        const k = sortie(p(t, e.de, e.de + 0.5)), ko = p(t, e.a - 0.3, e.a);
+        $('etape-kicker').style.opacity = k * (1 - ko);
+        $('etape-titre').style.opacity = k * (1 - ko); $('etape-titre').style.transform = `translateY(${(1 - k) * 30 - ko * 20}px)`;
+        [...$('etape-puces').children].forEach((x, i) => {
+            const d = e.de + (e.rythme ? e.rythme[i] : 0.55 + i * 0.3), kp = retour(p(t, d, d + 0.5));
+            x.style.opacity = clamp(kp) * (1 - ko); x.style.transform = `translateX(${(1 - clamp(kp)) * -30}px) scale(${0.9 + 0.1 * kp})`;
+        });
+    }
+
+    // --- côté client : la femme au téléphone (plein cadre), puis l'homme sur fond bleu
+    const C1 = S.cli1, C2 = S.cli2, pf = $('plan-femme'), ph = $('plan-homme');
+    carte(pf, 0, CARTE); carte(ph, 0, CARTE);
+    const kf = sortie(p(t, C1[0] - 0.1, C1[0] + 0.5));
+    pf.style.clipPath = `circle(${kf * 120}% at 75% 50%)`;
+    pf.firstChild.style.transform = `scale(${1.08 - 0.06 * p(t, plan('femme').de, plan('femme').a)})`;
+    const kh = sortie(p(t, C2[0] - 0.4, C2[0] + 0.2));
+    montrer($('ombre-femme'), t >= plan('femme').de && t < plan('femme').a);
+    $('ombre-femme').style.opacity = kf * (1 - kh);
+    ph.style.transform = `translateX(${(1 - kh) * 1920}px)`;
+    pf.style.transform = `translateX(${-kh * 600}px)`;
+    ph.firstChild.style.transform = `scale(${1.02 + 0.06 * p(t, plan('homme').de, plan('homme').a)})`;
+    const n0 = C1[0] + 1.0;
+    const kn = retour(p(t, n0, n0 + 0.6)) * (1 - p(t, C2[0] - 0.4, C2[0]));
+    montrer($('push'), t >= n0 && t < C2[0]);
+    Object.assign($('push').style, { left: '1150px', top: '250px', opacity: clamp(kn * 2), transform: `translateY(${(1 - clamp(kn)) * -120}px) scale(${0.92 + 0.08 * kn})` });
+
+    // --- conclusion sur le gérant
+    const Z = S.conclusion, pg = $('plan-gerant');
+    carte(pg, 0, CARTE); pg.style.transform = ''; pg.style.opacity = p(t, Z[0] - 0.2, Z[0] + 0.2);
+    pg.firstChild.style.transform = `scale(${1.05 + 0.07 * p(t, plan('gerant').de, plan('gerant').a)})`;
+    const enConcl = t >= Z[0] - 0.2 && t < Z[1] + 0.6;
+    montrer($('ombre-fin'), enConcl); montrer($('conclusion'), enConcl);
+    $('ombre-fin').style.opacity = p(t, Z[0] - 0.2, Z[0] + 0.2);
+    if (t >= Z[0] && t < Z[1] + 0.2) sombre = 1;
+    [...$('conclusion').children].forEach((el, i) => {
+        const k = retour(p(t, CONCLUSION[i][1], CONCLUSION[i][1] + 0.55));
+        el.style.opacity = clamp(k) * (1 - p(t, Z[1] - 0.2, Z[1] + 0.2)); el.style.transform = `translateY(${(1 - clamp(k)) * 50}px)`;
+    });
+
+    // --- carte de fin
+    const N = S.fin[0];
+    const kfi = sortie(p(t, N - 0.1, N + 0.5));
+    montrer($('fin'), t >= N - 0.1);
+    $('fin').style.clipPath = `circle(${kfi * 130}% at 50% 50%)`;
+    [...$('fin').querySelectorAll(':scope > div > *, .qr')].forEach((el, i) => {
+        const k = retour(p(t, N + 0.3 + i * 0.15, N + 0.9 + i * 0.15));
+        el.style.opacity = clamp(k); el.style.transform = `translateY(${(1 - clamp(k)) * 40}px)`;
+    });
+
+    // --- habillage
+    const enFilm = t > S.intro[1] - 0.2 && t < S.fin[0];
+    montrer($('marque'), enFilm);
+    $('marque').style.opacity = p(t, S.intro[1] - 0.2, S.intro[1] + 0.3) * (1 - p(t, S.fin[0] - 0.3, S.fin[0]));
+    $('marque-n').style.opacity = sombre; $('marque-c').style.opacity = 1 - sombre;
+    const chap = t >= S.pro1[0] + 1.2 && t < S.cli1[0] ? ['01', 'Côté pressing'] : t >= S.cli1[0] && t < S.conclusion[0] ? ['02', 'Côté client'] : null;
+    montrer($('chap'), !!chap);
+    if (chap) {
+        $('chap-num').textContent = chap[0]; $('chap-nom').textContent = chap[1];
+        $('chap').style.opacity = sortie(p(t, S.pro1[0] + 1.2, S.pro1[0] + 1.7));
+    }
+    montrer($('prog'), enFilm);
+    $('prog').style.width = clamp((t - S.intro[1]) / (S.fin[0] - S.intro[1])) * 1920 + 'px';
+    const lg = LEGENDES.find(([a, z]) => t >= a && t <= z);
+    montrer($('legende'), !!lg);
+    if (lg) {
+        const el = $('legende');
+        if (el.textContent !== lg[2]) {
+            // une ligne si elle tient, sinon deux lignes équilibrées dans un cadre ajusté
+            Object.assign(el.style, { whiteSpace: 'nowrap', width: '', maxWidth: 'none' }); el.textContent = lg[2];
+            const large = el.offsetWidth;
+            el.style.maxWidth = '';
+            if (large > 1500) Object.assign(el.style, { whiteSpace: 'normal', textWrap: 'balance', width: Math.ceil(large / 2) + 90 + 'px' });
+        }
+        el.style.opacity = clamp(Math.min((t - lg[0]) / 0.2, (lg[1] - t) / 0.2));
+    }
+
+    await poserPlans(t);
+};
+</script>
+</body>
+</html>

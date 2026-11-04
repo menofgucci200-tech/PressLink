@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Proposition 2B · Le chemin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&display=swap">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="parcours.css">
+<style>
+/* 2B : les 3 portes sont posées sur un chemin (Tester → Créer → S'abonner → En ligne).
+   La porte choisie s'élargit sur place, les autres se replient ; la ligne se remplit à chaque étape faite. */
+.entete { position: sticky; top: 0; z-index: 40; background: rgba(255,255,255,.94); backdrop-filter: blur(12px); border-bottom: 1px solid var(--trait); }
+.entete .ligne { display: flex; align-items: center; gap: 24px; min-height: 64px; }
+.entete nav { display: flex; gap: 22px; margin-left: auto; align-items: center; font-weight: 500; color: var(--texte-2); }
+.entete nav a { text-decoration: none; }
+.entete .btn { min-height: 40px; padding: 0 16px; }
+@media (max-width: 760px) { .entete nav .lien { display: none; } }
+
+.hero { padding-block: 48px 24px; text-align: center; background: radial-gradient(70% 60% at 50% 0%, #DCE8FF, transparent 70%); }
+.pour { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border-radius: 99px; background: #fff; border: 1px solid var(--trait); font-size: 13.5px; font-weight: 600; color: var(--texte-2); }
+.hero h1 { font-size: clamp(34px, 5vw, 60px); font-weight: 800; margin: 16px auto 12px; max-width: 900px; }
+.hero h1 span { color: var(--bleu); }
+.hero .chapo { font-size: 18px; color: var(--texte-2); max-width: 620px; margin: 0 auto; }
+
+/* ----- Le chemin ----- */
+.chemin { position: relative; padding-block: 56px 80px; }
+.trace { position: absolute; left: 0; right: 0; top: -60px; height: 60px; pointer-events: none; }
+.trace .fond, .trace .plein { position: absolute; top: 32px; height: 4px; border-radius: 4px; }
+.trace .fond { background: repeating-linear-gradient(90deg, #CBD5E1 0 10px, transparent 10px 18px); }
+.trace .plein { background: linear-gradient(90deg, var(--bleu), var(--vert)); width: 0; transition: width .9s var(--doux), left .6s var(--doux); }
+.jalon { position: absolute; top: 20px; width: 28px; height: 28px; margin-left: -14px; border-radius: 50%; background: #fff; border: 3px solid #CBD5E1; display: grid; place-items: center; font: 800 12px/1 var(--display); color: var(--texte-3); transition: left .6s var(--doux), background .35s, border-color .35s, color .35s, transform .4s var(--ressort); }
+.jalon.fait { background: var(--vert); border-color: var(--vert); color: #fff; }
+.jalon.ici { background: var(--bleu); border-color: var(--bleu); color: #fff; transform: scale(1.18); box-shadow: 0 0 0 6px rgba(37,99,235,.18); }
+.drapeau { position: absolute; top: 12px; margin-left: -20px; width: 40px; height: 40px; border-radius: 12px; background: #fff; border: 2px dashed #CBD5E1; display: grid; place-items: center; font-size: 20px; transition: left .6s var(--doux), all .4s var(--ressort); }
+.drapeau.arrive { background: var(--vert); border: 2px solid var(--vert); transform: scale(1.2) rotate(-6deg); }
+.epingle { position: absolute; top: -12px; padding: 4px 10px; border-radius: 8px; background: var(--bleu); color: #fff; font-size: 12px; font-weight: 700; white-space: nowrap; transform: translateX(-50%); transition: left .6s var(--ressort); }
+.epingle::after { content: ""; position: absolute; left: 50%; bottom: -5px; margin-left: -5px; border: 5px solid transparent; border-bottom: 0; border-top-color: var(--bleu); }
+.legende-fin { position: absolute; top: 58px; transform: translateX(-50%); font-size: 12px; font-weight: 700; color: var(--texte-3); white-space: nowrap; transition: left .6s var(--doux), color .3s; }
+.legende-fin.arrive { color: var(--vert-fonce); }
+
+.panneaux { display: flex; gap: 16px; align-items: stretch; min-height: 520px; margin-right: 52px; }
+.panneau { position: relative; flex: 1 1 0; min-width: 0; border-radius: 26px; background: #fff; border: 1.5px solid var(--trait); overflow: hidden; transition: flex-grow .7s var(--doux), border-color .3s, box-shadow .4s, transform .4s var(--doux); display: flex; flex-direction: column; }
+.panneau:not(.ouvert):not(.replie):hover { transform: translateY(-6px); border-color: var(--bleu); box-shadow: 0 30px 60px -32px rgba(37,99,235,.55); }
+.panneau.vedette { border: 2px solid var(--bleu); box-shadow: 0 30px 70px -36px rgba(37,99,235,.7); }
+.panneau.ouvert { flex-grow: 5.2; border-color: var(--bleu); cursor: default; }
+.panneau.replie { flex-grow: .62; cursor: pointer; }
+.panneau.fait:not(.ouvert) { border-color: rgba(34,197,94,.6); }
+.panneau.fait .etape-n { color: var(--vert-fonce); }
+.panneau.fait .etape-n::after { content: " · ✓ fait"; }
+
+.vue-porte, .vue-replie, .vue-parcours { transition: opacity .35s; }
+.panneau.ouvert .vue-porte, .panneau.replie .vue-porte { display: none; }
+.vue-replie { display: none; }
+.panneau.replie .vue-replie { display: flex; }
+.vue-parcours { display: none; }
+.panneau.ouvert .vue-parcours { display: block; animation: ecran-in .5s .25s var(--doux) both; }
+
+.vue-porte { display: flex; flex-direction: column; flex: 1; }
+.decor { position: relative; height: 196px; overflow: hidden; background: var(--fond); border-bottom: 1px solid var(--trait); }
+.panneau.vedette .decor { background: linear-gradient(160deg, var(--bleu), var(--nuit-2)); }
+.ruban { position: absolute; top: 14px; right: 14px; z-index: 2; padding: 4px 10px; border-radius: 99px; background: var(--or); color: #1E293B; font-size: 12px; font-weight: 800; }
+.vue-porte .corps { padding: 22px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.etape-n { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--bleu); }
+.vue-porte h2 { font-size: 24px; font-weight: 800; }
+.vue-porte p { color: var(--texte-2); }
+.puces { display: flex; flex-wrap: wrap; gap: 6px; }
+.puces span { padding: 3px 10px; border-radius: 99px; background: var(--fond); font-size: 12.5px; font-weight: 600; color: var(--texte-2); }
+.vue-porte .btn { margin-top: auto; }
+
+.vue-replie { flex-direction: column; align-items: center; gap: 14px; padding: 22px 0; height: 100%; }
+.vue-replie .ico { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: var(--bleu-teinte); color: var(--bleu); flex: none; }
+.panneau.fait .vue-replie .ico { background: var(--vert); color: #fff; }
+.vue-replie .ico svg { width: 24px; height: 24px; }
+.vue-replie strong { writing-mode: vertical-rl; transform: rotate(180deg); font: 800 18px/1 var(--display); white-space: nowrap; }
+.vue-replie small { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 12.5px; font-weight: 600; color: var(--texte-3); white-space: nowrap; }
+
+.vue-parcours { padding: 22px 28px 28px; }
+.vue-parcours .tete { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.vue-parcours .tete .ou { font-size: 13px; color: var(--texte-3); }
+.vue-parcours .tete .ou b { color: var(--bleu); }
+.vue-parcours .tete button { margin-left: auto; height: 34px; padding: 0 12px; border-radius: 99px; background: var(--fond); font-weight: 600; font-size: 13.5px; color: var(--texte-2); }
+
+@media (max-width: 900px) {
+    .chemin { padding-top: 24px; }
+    .trace { display: none; }
+    .panneaux { flex-direction: column; margin-right: 0; min-height: 0; }
+    .panneau, .panneau.ouvert, .panneau.replie { flex: none; }
+    .panneau.vedette { order: -1; }
+    .panneau.ouvert { order: -2; }
+    .vue-replie { flex-direction: row; padding: 14px 18px; height: auto; }
+    .vue-replie strong, .vue-replie small { writing-mode: horizontal-tb; transform: none; }
+    .vue-replie small { margin-left: auto; }
+    .vue-parcours { padding: 18px; }
+    .mobile-etapes { display: flex; }
+}
+.mobile-etapes { display: none; gap: 6px; justify-content: center; margin-top: 18px; }
+.mobile-etapes span { height: 8px; width: 36px; border-radius: 8px; background: var(--trait); transition: background .3s, width .4s var(--doux); }
+.mobile-etapes span.fait { background: var(--vert); }
+.mobile-etapes span.ici { background: var(--bleu); width: 56px; }
+
+.bloc { padding-block: 64px; background: #fff; border-top: 1px solid var(--trait); }
+.bloc .grille { display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: center; }
+@media (max-width: 900px) { .bloc .grille { grid-template-columns: 1fr; } }
+.bloc h2 { font-size: clamp(26px, 3vw, 38px); font-weight: 800; }
+.bloc ul { list-style: none; padding: 0; margin: 22px 0 0; display: grid; gap: 12px; color: var(--texte-2); }
+.bloc li b { color: var(--vert-fonce); margin-right: 8px; }
+</style>
+</head>
+<body>
+<div class="maquette">
+    <div class="enveloppe">
+        <span class="pastille">Maquette</span>
+        <span><strong>Proposition 2B · Le chemin</strong><span class="desc"> : les 3 portes posées sur un chemin, la porte choisie s'ouvre sur place</span></span>
+        <span class="droite"><a href="index.html">← Toutes les propositions</a><button class="rejouer" type="button" data-rejouer>▶ Rejouer la démo</button></span>
+    </div>
+</div>
+
+<header class="entete">
+    <div class="enveloppe ligne">
+        <a class="logo" href="#"><img src="img/logo-presslink.png" alt=""><span class="nom">Press<span>Link</span></span></a>
+        <nav>
+            <a class="lien" href="#">Fonctionnalités</a>
+            <a class="lien" href="#" data-ouvrir="formules">Formules</a>
+            <a class="lien" href="#">Se connecter</a>
+            <a class="btn btn-vert" href="#" data-ouvrir="creer">Créer mon espace</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <section class="hero">
+        <div class="enveloppe">
+            <span class="pour">Pour les gérants et propriétaires de pressing</span>
+            <h1>Trois étapes jusqu'à votre pressing en ligne. <span>Commencez où vous voulez.</span></h1>
+            <p class="chapo">Essayer, créer votre espace, choisir votre formule. Le chemin vous montre toujours où vous en êtes. Gratuit jusqu'au 15 novembre.</p>
+            <div class="mobile-etapes" id="mobile-etapes"><span></span><span></span><span></span></div>
+        </div>
+    </section>
+
+    <section class="chemin">
+        <div class="enveloppe" style="position:relative">
+            <div class="trace" id="trace">
+                <span class="fond" id="trace-fond"></span><span class="plein" id="trace-plein"></span>
+                <span class="jalon" data-j="tester">1</span><span class="jalon" data-j="creer">2</span><span class="jalon" data-j="formules">3</span>
+                <span class="drapeau" id="drapeau">🏁</span><span class="legende-fin" id="legende-fin">En ligne</span>
+                <span class="epingle" id="epingle">Vous êtes ici</span>
+            </div>
+            <div class="panneaux" id="panneaux">
+                <article class="panneau" data-porte="tester">
+                    <div class="vue-porte">
+                        <div class="decor" id="sc-test"></div>
+                        <div class="corps">
+                            <span class="etape-n">Étape 1 · facultative</span>
+                            <h2>Essayer d'abord</h2>
+                            <p>Un pressing fictif déjà rempli. Cliquez partout, rien n'est réel.</p>
+                            <div class="puces"><span>3 jours</span><span>Sans inscription</span></div>
+                            <button class="btn btn-contour" style="color:var(--bleu)" type="button" data-ouvrir="tester">Démarrer un test →</button>
+                        </div>
+                    </div>
+                    <div class="vue-replie"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7 15h10"/></svg></span><strong>Tester</strong><small class="statut-txt">Étape 1</small></div>
+                    <div class="vue-parcours"></div>
+                </article>
+                <article class="panneau vedette" data-porte="creer">
+                    <div class="vue-porte">
+                        <div class="decor" id="sc-creer"><span class="ruban">Le plus choisi</span></div>
+                        <div class="corps">
+                            <span class="etape-n">Étape 2</span>
+                            <h2>Créer mon espace pressing</h2>
+                            <p>Votre pressing, puis vous. Notre équipe vous appelle ensuite pour démarrer.</p>
+                            <div class="puces"><span>2 minutes</span><span>Gratuit jusqu'au 15 nov.</span></div>
+                            <button class="btn btn-vert" type="button" data-ouvrir="creer">Créer mon espace →</button>
+                        </div>
+                    </div>
+                    <div class="vue-replie"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span><strong>Mon espace</strong><small class="statut-txt">Étape 2</small></div>
+                    <div class="vue-parcours"></div>
+                </article>
+                <article class="panneau" data-porte="formules">
+                    <div class="vue-porte">
+                        <div class="decor" id="sc-formules"></div>
+                        <div class="corps">
+                            <span class="etape-n">Étape 3</span>
+                            <h2>Choisir ma formule</h2>
+                            <p>Starter, Business ou Premium, selon vos commandes. Sans engagement.</p>
+                            <div class="puces"><span>Dès 20 000 F / mois</span><span>2 mois offerts à l'année</span></div>
+                            <button class="btn btn-contour" style="color:var(--bleu)" type="button" data-ouvrir="formules">Comparer les formules →</button>
+                        </div>
+                    </div>
+                    <div class="vue-replie"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><strong>Ma formule</strong><small class="statut-txt">Étape 3</small></div>
+                    <div class="vue-parcours"></div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="bloc">
+        <div class="enveloppe grille">
+            <div>
+                <h2>Ce que vous aurez dès demain matin</h2>
+                <ul>
+                    <li><b>✓</b>Un dépôt en 4 gestes : client, articles, paiement, ticket.</li>
+                    <li><b>✓</b>Vos clients prévenus quand c'est prêt, et de ce qu'il reste à payer.</li>
+                    <li><b>✓</b>Une caisse juste : espèces, Wave, Orange Money, MTN MoMo, Moov Money.</li>
+                </ul>
+                <a class="btn btn-vert" href="#" data-ouvrir="creer" style="margin-top:24px">Créer mon espace →</a>
+            </div>
+            <div class="capture"><img src="img/launch-dashboard.webp" alt="Tableau de bord PressLink" width="1600" height="1000" loading="lazy"></div>
+        </div>
+    </section>
+</main>
+
+<script src="demo.js"></script>
+<script src="parcours.js"></script>
+<script>
+const panneaux = [...document.querySelectorAll('.panneau')];
+const ORDRE = ['tester', 'creer', 'formules'];
+const NOMS = { tester: 'Tester', creer: 'Créer mon espace', formules: 'Choisir ma formule', pret: 'C\'est parti' };
+let ouvert = null;
+
+Scenes.test(document.getElementById('sc-test'));
+const decorCreer = document.getElementById('sc-creer');
+const ruban = decorCreer.querySelector('.ruban');
+Scenes.creer(decorCreer); decorCreer.appendChild(ruban);
+Scenes.formules(document.getElementById('sc-formules'));
+
+/* Un seul parcours, déplacé dans la porte ouverte */
+const zone = document.createElement('div');
+const parcours = Parcours({ conteneur: zone, surChangement: majChemin });
+
+function ouvrir(cle) {
+    const cible = panneaux.find((p) => p.dataset.porte === cle);
+    ouvert = cle;
+    panneaux.forEach((p) => { p.classList.toggle('ouvert', p === cible); p.classList.toggle('replie', p !== cible); });
+    const vue = cible.querySelector('.vue-parcours');
+    vue.innerHTML = '<div class="tete"><span class="ou">Vous êtes ici : <b></b></span><button type="button" data-fermer>Voir les 3 étapes</button></div>';
+    vue.appendChild(zone);
+    parcours.aller(cle);
+    const haut = document.querySelector('.chemin').getBoundingClientRect().top + scrollY - 80;
+    if (Math.abs(scrollY - haut) > 120) { window.scrollTo({ top: haut, behavior: 'smooth' }); }
+}
+function fermer() {
+    ouvert = null;
+    panneaux.forEach((p) => p.classList.remove('ouvert', 'replie'));
+    parcours.etat.ici = null;
+    majChemin(parcours.etat);
+}
+
+function majChemin(etat) {
+    const ici = etat.ici === 'pret' ? 'formules' : etat.ici;
+    if (ici && ouvert && ici !== ouvert) {
+        // Le parcours passe à la porte suivante : on la déplie, la précédente se replie avec sa coche.
+        ouvert = ici;
+        const cible = panneaux.find((p) => p.dataset.porte === ici);
+        panneaux.forEach((p) => { p.classList.toggle('ouvert', p === cible); p.classList.toggle('replie', p !== cible); });
+        const vue = cible.querySelector('.vue-parcours');
+        vue.innerHTML = '<div class="tete"><span class="ou">Vous êtes ici : <b></b></span><button type="button" data-fermer>Voir les 3 étapes</button></div>';
+        vue.appendChild(zone);
+    }
+    const faits = { tester: etat.teste, creer: etat.cree, formules: etat.paye };
+    panneaux.forEach((p) => {
+        const k = p.dataset.porte;
+        p.classList.toggle('fait', !!faits[k]);
+        p.querySelector('.statut-txt').textContent = faits[k] ? '✓ Fait' : (k === 'tester' ? 'Facultatif' : 'À faire');
+        const ou = p.querySelector('.vue-parcours .ou b');
+        if (ou) { ou.textContent = `${NOMS[etat.ici] || ''} · étape ${ORDRE.indexOf(k) + 1} sur 3`; }
+    });
+    document.querySelectorAll('.jalon').forEach((j) => {
+        const k = j.dataset.j;
+        j.classList.toggle('fait', !!faits[k] && k !== ici);
+        j.classList.toggle('ici', k === ici && !etat.paye);
+        j.textContent = faits[k] ? '✓' : ORDRE.indexOf(k) + 1;
+    });
+    document.getElementById('drapeau').classList.toggle('arrive', !!etat.paye);
+    document.getElementById('legende-fin').classList.toggle('arrive', !!etat.paye);
+    document.getElementById('legende-fin').textContent = etat.paye ? 'En ligne ✓' : 'En ligne';
+    document.querySelectorAll('#mobile-etapes span').forEach((s, i) => {
+        s.className = faits[ORDRE[i]] ? 'fait' : (ORDRE[i] === ici ? 'ici' : '');
+    });
+    requestAnimationFrame(() => placerTrace(etat));
+}
+
+/* La ligne suit les portes, même pendant qu'elles s'élargissent */
+function placerTrace(etat = parcours.etat) {
+    const trace = document.getElementById('trace').getBoundingClientRect();
+    const centres = panneaux.map((p) => { const r = p.getBoundingClientRect(); return r.left + r.width / 2 - trace.left; });
+    const finX = panneaux[2].getBoundingClientRect().right - trace.left + 26;
+    document.querySelectorAll('.jalon').forEach((j, i) => { j.style.left = centres[i] + 'px'; });
+    const drapeau = document.getElementById('drapeau');
+    drapeau.style.left = finX + 'px';
+    document.getElementById('legende-fin').style.left = finX + 'px';
+    const fond = document.getElementById('trace-fond');
+    fond.style.left = centres[0] + 'px'; fond.style.width = (finX - centres[0]) + 'px';
+    let jusque = centres[0];
+    if (etat.teste || etat.cree) { jusque = etat.cree ? centres[1] : centres[0]; }
+    if (etat.cree) { jusque = centres[1]; }
+    if (etat.paye) { jusque = finX; }
+    const plein = document.getElementById('trace-plein');
+    plein.style.left = centres[0] + 'px'; plein.style.width = (jusque - centres[0]) + 'px';
+    const ici = etat.ici === 'pret' ? null : etat.ici;
+    const ep = document.getElementById('epingle');
+    ep.style.left = (ici ? centres[ORDRE.indexOf(ici)] : (etat.paye ? finX : centres[0])) + 'px';
+    ep.textContent = etat.paye ? 'C\'est parti !' : (ici ? 'Vous êtes ici' : 'Départ');
+}
+// Pendant l'animation d'ouverture, on recale la ligne à chaque image.
+let suivi = 0;
+function suivre(duree = 800) { const fin = performance.now() + duree; cancelAnimationFrame(suivi); const pas = () => { placerTrace(); if (performance.now() < fin) { suivi = requestAnimationFrame(pas); } }; pas(); }
+const observateur = new MutationObserver(() => suivre());
+panneaux.forEach((p) => observateur.observe(p, { attributes: true, attributeFilter: ['class'] }));
+addEventListener('resize', () => placerTrace());
+
+document.addEventListener('click', (e) => {
+    const o = e.target.closest('[data-ouvrir]');
+    if (o) { e.preventDefault(); ouvrir(o.dataset.ouvrir); return; }
+    if (e.target.closest('[data-fermer]')) { fermer(); return; }
+    const p = e.target.closest('.panneau.replie');
+    if (p) { ouvrir(p.dataset.porte); }
+});
+majChemin(parcours.etat);
+
+Demo.installer({
+    reinitialiser: () => { parcours.reinitialiser(); fermer(); window.scrollTo({ top: 0 }); },
+    scenario: async ({ cliquer, taper, attendre, defiler, vers }) => {
+        await attendre(2200);
+        await vers('.panneau[data-porte="formules"]');
+        await attendre(700);
+        await cliquer('.panneau[data-porte="tester"] .btn');
+        await attendre(900);
+        await taper('#t-nom', 'Pressing Élégance');
+        await taper('#t-tel', '07 08 45 12 30');
+        await cliquer('[data-action="lancer-test"]');
+        await attendre(3200);
+        await cliquer('.vue-parcours .suite .btn');
+        await attendre(900);
+        await taper('#c-nom', 'Pressing Élégance');
+        await taper('#c-com', 'Cocody');
+        await taper('#c-tel', '07 08 45 12 30');
+        await cliquer('[data-action="creer-2"]');
+        await attendre(500);
+        await taper('#g-nom', 'Awa Koné');
+        await taper('#g-tel', '07 08 45 12 30');
+        await taper('#g-mdp', 'pressing2026');
+        await cliquer('[data-action="creer-ok"]');
+        await attendre(1800);
+        await cliquer('.vue-parcours .suite .btn');
+        await attendre(900);
+        await cliquer('[data-action="annuel"]');
+        await cliquer('[data-plan="Business"]');
+        await attendre(400);
+        await cliquer('[data-moyen="Orange Money"]');
+        await cliquer('[data-action="payer"]');
+        await attendre(3000);
+        await cliquer('[data-fermer]');
+        await attendre(2000);
+        await defiler(0, 900);
+    },
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{"repliques": [
+ {"cle": "hero", "texte": "Le pressing, avant… et avec PressLink. Faites glisser pour voir la différence.", "voix": "ff_siwis", "vitesse": 0.98},
+ {"cle": "s1_avant", "qui": "Client", "texte": "Allô ? C'est prêt ? … Allô ?! Toujours pas prêt ?", "voix": "em_alex", "vitesse": 1.08, "hauteur": -1, "effet": "telephone"},
+ {"cle": "s1_apres", "texte": "Avec PressLink, le client est prévenu tout seul, dès que c'est prêt.", "voix": "ff_siwis", "vitesse": 0.98},
+ {"cle": "s2_avant", "qui": "Patronne", "texte": "Ton ticket est où ? Tu l'as encore perdu ?", "voix": "ff_siwis", "vitesse": 1.12, "hauteur": -2},
+ {"cle": "s2_apres", "texte": "Avec PressLink, le reçu est dans le téléphone. Impossible de le perdre.", "voix": "ff_siwis", "vitesse": 0.98},
+ {"cle": "s3_avant", "qui": "Patronne", "texte": "Il manque cinq mille… C'est le taxi de ce matin ou bien ?", "voix": "ff_siwis", "vitesse": 1.12, "hauteur": -2},
+ {"cle": "s3_apres", "texte": "Avec PressLink, chaque dépense est notée. La caisse tombe juste.", "voix": "ff_siwis", "vitesse": 0.98},
+ {"cle": "s4_avant", "qui": "Patronne", "texte": "Qui a rendu le boubou sans encaisser ? Personne ne sait ?", "voix": "ff_siwis", "vitesse": 1.12, "hauteur": -2},
+ {"cle": "s4_apres", "texte": "Avec PressLink, chaque rôle a ses accès, et chaque action est tracée.", "voix": "ff_siwis", "vitesse": 0.98},
+ {"cle": "fin", "texte": "PressLink. Fini le stress au pressing.", "voix": "ff_siwis", "vitesse": 0.92}
+]}

@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PressLink — Fini le stress au pressing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../commun/base.css">
+<style>
+:root { --encre: #1F1F1F; --papier: #F3EEE3; --bleu: #2563EB; --bleu-f: #1D4ED8; --jaune: #FBBF24; --vert: #10B981; --texte: #475569; }
+body { background: var(--papier); color: var(--encre); background-image: radial-gradient(rgba(0,0,0,.045) 1px, transparent 1px); background-size: 6px 6px; }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 20px; }
+.main { font-family: Caveat, cursive; font-weight: 700; }
+.display { font-family: "Inter Tight", Inter, sans-serif; font-weight: 800; letter-spacing: -.035em; line-height: 1; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 52px; padding: 0 24px; border-radius: 14px; background: var(--bleu); color: #fff; font-weight: 700; font-size: 17px; text-decoration: none; transition: transform .15s; }
+.btn:hover { transform: translateY(-2px); }
+.btn.papier { background: #fff; color: var(--encre); border: 3px solid var(--encre); font-family: Caveat; font-size: 26px; }
+.btn.wa { background: #25D366; }
+
+.nav { position: sticky; top: 0; z-index: 60; background: rgba(243,238,227,.9); backdrop-filter: blur(10px); border-bottom: 3px solid var(--encre); }
+.nav .wrap { display: flex; align-items: center; gap: 22px; height: 70px; }
+.nav img { height: 28px; width: auto; }
+.nav .liens { margin-left: auto; display: flex; gap: 22px; font-weight: 600; }
+.nav .liens a { text-decoration: none; }
+.nav .btn { height: 42px; font-size: 15px; padding: 0 16px; }
+@media (max-width: 900px) { .nav .liens, .nav .btn { display: none; } .nav .son-btn { margin-left: auto; } }
+
+/* Comparateur avant / après */
+.comparo { position: relative; overflow: hidden; border: 3px solid var(--encre); border-radius: 26px; background: var(--papier); user-select: none; touch-action: pan-y; box-shadow: 10px 10px 0 var(--encre); }
+.cote { position: absolute; inset: 0; overflow: hidden; }
+.cote.apres { clip-path: inset(0 0 0 var(--pos, 50%)); background: radial-gradient(circle at 60% 30%, #3B82F6, #2563EB 55%, #1D4ED8); }
+.cote.avant { background: var(--papier); background-image: radial-gradient(rgba(0,0,0,.05) 1px, transparent 1px); background-size: 6px 6px; }
+.toile { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.poignee { position: absolute; top: 0; bottom: 0; left: var(--pos, 50%); width: 6px; margin-left: -3px; background: #fff; box-shadow: 0 0 0 3px var(--encre); cursor: ew-resize; z-index: 5; }
+.poignee span { position: absolute; top: 50%; left: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; background: var(--jaune); border: 3px solid var(--encre); display: grid; place-items: center; font: 800 26px Inter; box-shadow: 4px 4px 0 var(--encre); }
+.etiq { position: absolute; top: 16px; z-index: 4; padding: 6px 16px; border-radius: 12px; font-weight: 700; }
+.etiq.g { left: 16px; background: #fff; border: 3px solid var(--encre); font-family: Caveat; font-size: 28px; }
+.etiq.d { right: 16px; background: #fff; color: var(--bleu); display: flex; align-items: center; gap: 8px; font-size: 16px; }
+.etiq.d img { width: 24px; }
+.comparo input[type=range] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: ew-resize; z-index: 6; margin: 0; }
+
+/* Dessins */
+.croquis { filter: url(#boil); }
+.bulle { position: absolute; background: #fff; border: 4px solid var(--encre); border-radius: 26px; padding: 8px 22px; font: 700 44px Caveat; white-space: nowrap; }
+.bulle.tel { background: #FFF7D1; border-style: dashed; }
+.ui-carte { position: absolute; background: #fff; border-radius: 26px; padding: 26px 30px; box-shadow: 0 30px 60px rgba(0,0,0,.3); font-family: Inter; color: #0F172A; }
+.notif { display: flex; gap: 18px; align-items: center; }
+.notif img { width: 64px; height: 64px; border-radius: 16px; box-shadow: 0 0 0 2px #E2E8F0 inset; }
+.notif b { display: block; font-size: 28px; }
+.notif span { font-size: 21px; color: #64748B; }
+.pastille { position: absolute; display: inline-flex; gap: 10px; align-items: center; padding: 12px 22px; border-radius: 999px; background: #ECFDF5; color: #047857; border: 3px solid var(--vert); font: 700 26px Inter; white-space: nowrap; }
+.ligne { display: flex; justify-content: space-between; padding: 8px 0; font-size: 24px; color: #475569; }
+.ligne b { color: #0F172A; }
+.ligne.tot { border-top: 3px dashed #E2E8F0; margin-top: 4px; padding-top: 14px; font-weight: 700; color: #0F172A; }
+.depense { display: flex; justify-content: space-between; background: #FEF2F2; border-radius: 12px; padding: 10px 14px; margin: 4px 0; font-size: 20px; color: #7F1D1D; }
+.entree { display: flex; gap: 16px; align-items: center; padding: 14px 18px; border-radius: 16px; background: #fff; margin-bottom: 12px; font: 500 22px Inter; color: #0F172A; box-shadow: 0 10px 30px rgba(0,0,0,.2); }
+.entree time { font-weight: 700; color: var(--bleu); }
+.entree em { margin-left: auto; font: 700 16px Inter; font-style: normal; padding: 4px 10px; border-radius: 8px; background: #DBEAFE; color: #1E40AF; }
+
+/* Héros */
+#hero { padding: 50px 0 80px; }
+#hero .entete { text-align: center; max-width: 900px; margin: 0 auto 34px; }
+#hero h1 { font-size: clamp(42px, 6.6vw, 92px); }
+#hero h1 .main { font-size: 1.15em; font-weight: 700; letter-spacing: 0; display: inline-block; transform: rotate(-3deg); }
+#hero h1 .pt { color: var(--bleu); }
+#hero p { margin-top: 18px; font-size: clamp(17px, 1.6vw, 21px); line-height: 1.55; color: var(--texte); }
+.indice { text-align: center; margin-top: 26px; font: 700 30px Caveat; }
+
+/* Situations */
+.situation { padding: 70px 0; }
+.situation .tete { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; margin-bottom: 26px; }
+.situation .num { font: 700 34px Caveat; background: var(--jaune); border: 3px solid var(--encre); border-radius: 12px; padding: 0 14px; transform: rotate(-3deg); }
+.situation h2 { font-size: clamp(32px, 4.4vw, 58px); }
+.legendes { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 26px; }
+.legendes p { font-size: 18px; line-height: 1.5; }
+.legendes .g { font: 700 27px/1.25 Caveat; }
+.legendes .d b { color: var(--bleu); }
+@media (max-width: 700px) { .legendes { grid-template-columns: 1fr; gap: 10px; } .comparo { box-shadow: 6px 6px 0 var(--encre); border-radius: 18px; } .poignee span { width: 46px; height: 46px; margin: -23px 0 0 -23px; font-size: 18px; } .etiq.g { font-size: 20px; } .etiq.d { font-size: 12px; } }
+
+/* Pour qui */
+#pour-qui { padding: 90px 0; }
+.deux { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.pour { background: #fff; border: 3px solid var(--encre); border-radius: 26px; padding: 30px; box-shadow: 8px 8px 0 var(--encre); }
+.pour.bleu { background: var(--bleu); color: #fff; }
+.pour h3 { font-size: 34px; margin-bottom: 18px; }
+.pour li { list-style: none; display: flex; gap: 12px; padding: 8px 0; font-size: 17px; }
+.pour ul { padding: 0; margin: 0; }
+.pour li::before { content: "✓"; flex: none; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; background: var(--vert); color: #fff; font-weight: 700; font-size: 14px; }
+.pour .btn { margin-top: 20px; }
+@media (max-width: 800px) { .deux { grid-template-columns: 1fr; } }
+
+section.bloc { padding: 90px 0; }
+.videos { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; margin-top: 30px; }
+.videos figure { margin: 0; background: #fff; border: 3px solid var(--encre); border-radius: 22px; overflow: hidden; box-shadow: 8px 8px 0 var(--encre); }
+.videos figcaption { padding: 12px 16px; font-weight: 600; }
+.install { display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center; }
+.pas { display: flex; gap: 16px; align-items: flex-start; margin-top: 18px; }
+.pas b { font: 700 48px/1 Caveat; color: var(--bleu); width: 40px; flex: none; }
+.pas h3 { font-size: 20px; }
+.pas p { color: var(--texte); margin-top: 3px; }
+.qr { justify-self: center; background: #fff; border: 3px solid var(--encre); border-radius: 26px; padding: 22px; text-align: center; box-shadow: 8px 8px 0 var(--encre); transform: rotate(2deg); }
+.qr img { width: 240px; }
+#fin { position: relative; overflow: hidden; background: radial-gradient(circle at 50% 30%, #3B82F6, #2563EB 50%, #1D4ED8); color: #fff; padding: 100px 0 120px; border-top: 3px solid var(--encre); }
+#fin .wrap { display: grid; grid-template-columns: 1fr 1.3fr; gap: 30px; align-items: center; }
+#fin h2 { font-size: clamp(44px, 6vw, 84px); }
+#fin p { color: #DBEAFE; font-size: 19px; margin: 18px 0 26px; }
+#fin .ctas { display: flex; gap: 14px; flex-wrap: wrap; }
+#patronne-fin { width: min(360px, 80%); margin: 0 auto; }
+footer { background: var(--encre); color: #CBD5E1; text-align: center; padding: 24px 20px 80px; font-size: 14px; }
+@media (max-width: 800px) { .videos, .install, #fin .wrap { grid-template-columns: 1fr; } #fin { text-align: center; } #fin .ctas { justify-content: center; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+    <filter id="boil" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence id="boil-t" type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="1"/><feDisplacementMap in="SourceGraphic" scale="5"/></filter>
+    <pattern id="wax" width="48" height="48" patternUnits="userSpaceOnUse"><rect width="48" height="48" fill="#E4572E"/><circle cx="12" cy="12" r="9" fill="#FFC145"/><circle cx="12" cy="12" r="4" fill="#2B4C9B"/><path d="M36 24 L48 36 L36 48 L24 36Z" fill="#2B4C9B"/></pattern>
+</defs></svg>
+
+<header class="nav">
+    <div class="wrap">
+        <img src="../commun/img/wordmark_logo.png" alt="PressLink">
+        <nav class="liens"><a href="#s1">Clients</a><a href="#s3">Pressings</a><a href="#installer">Installer</a><a href="#fin">Contact</a></nav>
+        <button class="son-btn" data-son aria-pressed="false"><span class="ondes"><span></span><span></span><span></span></span>Son</button>
+        <a class="btn" href="https://presslink.org/app/">Ouvrir l'appli</a>
+    </div>
+</header>
+
+<main>
+<section id="hero">
+    <div class="wrap">
+        <div class="entete">
+            <h1 class="display">Le pressing, <span class="main">avant…</span><br>et <span class="pt">avec PressLink.</span></h1>
+            <p>Gratuit pour les clients, simple pour les pressings. Faites glisser pour voir la différence.</p>
+        </div>
+        <div class="comparo" data-comparo="hero" data-w="1600" data-h="760">
+            <div class="cote avant"><div class="toile croquis" style="width:1600px;height:760px">
+                <svg class="patronne" data-pose="carnet" data-stress="1" style="position:absolute; left:120px; top:110px; width:420px; height:700px" viewBox="-210 -380 420 700"></svg>
+                <svg style="position:absolute; left:0; top:600px" width="1600" height="200"><path d="M 20 30 L 1580 28 L 1580 200 M 20 30 L 22 200" fill="none" stroke="#1F1F1F" stroke-width="6"/><path d="M 20 30 L 1580 28 L 1580 60 L 20 62 Z" fill="#E9DFC9" stroke="#1F1F1F" stroke-width="6"/></svg>
+                <div class="bulle tel" style="left:560px; top:90px">Allô ? C'est prêt ?</div>
+                <div class="bulle tel" style="left:820px; top:230px; transform:rotate(4deg)">Et mon boubou ??</div>
+                <div class="bulle" style="left:560px; top:380px; transform:rotate(-3deg)">Je cherche dans le carnet hein !</div>
+                <div class="bulle tel" style="left:1100px; top:110px; transform:rotate(-5deg)">Allô ?!</div>
+                <div class="bulle" style="left:1050px; top:470px; transform:rotate(3deg); font-size:40px">Il manque 5 000 F ???</div>
+            </div></div>
+            <div class="cote apres"><div class="toile" style="width:1600px;height:760px">
+                <svg class="patronne" data-pose="salut" data-couleur="1" style="position:absolute; left:120px; top:110px; width:420px; height:700px" viewBox="-210 -380 420 700"></svg>
+                <div class="ui-carte notif" style="left:600px; top:90px; width:680px"><img src="../commun/img/icon.png" alt=""><div><b>Votre commande est prête ! 🎉</b><span>Pressing du Plateau · PL-286571</span></div></div>
+                <div class="ui-carte" style="left:600px; top:290px; width:560px; padding:20px 26px">
+                    <div class="ligne"><span>Doit être dans la caisse</span><b>45 500 F</b></div>
+                    <div class="ligne"><span>Compté</span><b>45 500 F</b></div>
+                </div>
+                <div class="pastille" style="left:1190px; top:330px">✓ Aucun écart</div>
+                <div class="pastille" style="left:600px; top:470px; background:#EFF6FF; color:#1E40AF; border-color:#93C5FD">📒 Tout est tracé dans le journal</div>
+            </div></div>
+            <span class="etiq g">Avant…</span><span class="etiq d"><img src="../commun/img/icon.png" alt="">Avec PressLink</span>
+            <div class="poignee"><span>⟷</span></div>
+            <input type="range" min="0" max="100" value="50" aria-label="Comparer avant et avec PressLink">
+        </div>
+        <div class="indice">← Faites glisser →</div>
+    </div>
+</section>
+
+<!-- Situation 1 -->
+<section class="situation" id="s1">
+    <div class="wrap">
+        <div class="tete"><span class="num">Situation n°1</span><h2 class="display">« C'est prêt ? »</h2></div>
+        <div class="comparo" data-comparo="s1" data-w="1200" data-h="700">
+            <div class="cote avant"><div class="toile croquis" style="width:1200px;height:700px">
+                <svg class="patronne" data-pose="tel" data-stress="1" style="position:absolute; left:120px; top:90px; width:420px; height:700px" viewBox="-210 -380 420 700"></svg>
+                <div class="bulle tel" style="left:520px; top:110px">Allô ? C'est prêt ?</div>
+                <div class="bulle tel" style="left:600px; top:260px; transform:rotate(4deg)">Allô ?! Toujours pas ?</div>
+                <div class="bulle tel" style="left:560px; top:420px; transform:rotate(-4deg)">Je passe quand ?</div>
+            </div></div>
+            <div class="cote apres"><div class="toile" style="width:1200px;height:700px">
+                <img src="../commun/img/man.png" alt="Un client reçoit la notification" style="position:absolute; left:560px; top:120px; width:560px; border-radius:30px">
+                <div style="position:absolute; left:743px; top:388px; width:149px; height:296px; border-radius:16px; overflow:hidden"><img src="../commun/img/c-detail.jpg" alt="" style="width:149px"></div>
+                <div class="ui-carte notif" style="left:80px; top:150px; width:620px"><img src="../commun/img/icon.png" alt=""><div><b>Votre commande est prête ! 🎉</b><span>Pressing du Plateau · PL-286571</span></div></div>
+                <div class="pastille" style="left:110px; top:340px">✓ Prévenu automatiquement</div>
+            </div></div>
+            <span class="etiq g">Avant…</span><span class="etiq d"><img src="../commun/img/icon.png" alt="">Avec PressLink</span>
+            <div class="poignee"><span>⟷</span></div>
+            <input type="range" min="0" max="100" value="100" aria-label="Comparer, situation 1">
+        </div>
+        <div class="legendes"><p class="g">Les clients appellent dix fois par jour pour savoir si c'est prêt.</p><p class="d"><b>Avec PressLink</b>, le client suit sa commande en temps réel et reçoit une notification dès qu'elle est prête.</p></div>
+    </div>
+</section>
+
+<!-- Situation 2 -->
+<section class="situation" id="s2">
+    <div class="wrap">
+        <div class="tete"><span class="num">Situation n°2</span><h2 class="display">Le ticket perdu</h2></div>
+        <div class="comparo" data-comparo="s2" data-w="1200" data-h="700">
+            <div class="cote avant"><div class="toile croquis" style="width:1200px;height:700px">
+                <svg class="patronne" data-pose="bras" data-stress="0" style="position:absolute; left:110px; top:90px; width:420px; height:700px" viewBox="-210 -380 420 700"></svg>
+                <svg class="client" style="position:absolute; left:720px; top:150px; width:360px; height:560px" viewBox="-180 -300 360 560"></svg>
+                <div class="bulle" style="left:330px; top:70px">Ton ticket est où ??</div>
+                <div class="bulle" style="left:760px; top:40px; transform:rotate(4deg); font-size:38px">Euh… je l'ai perdu 😬</div>
+                <svg style="position:absolute; left:560px; top:600px" width="120" height="80" viewBox="0 0 120 80"><path d="M10 40 L30 12 L60 30 L85 8 L110 35 L95 70 L60 55 L25 72 Z" fill="#fff" stroke="#1F1F1F" stroke-width="5" stroke-linejoin="round"/></svg>
+            </div></div>
+            <div class="cote apres"><div class="toile" style="width:1200px;height:700px">
+                <img src="../commun/img/hands.png" alt="" style="position:absolute; left:500px; top:60px; width:700px">
+                <div style="position:absolute; left:753px; top:72px; width:204px; height:395px; border-radius:24px; overflow:hidden; background:#fff"><img src="../commun/img/recu.jpg" alt="Reçu dans l'application" style="width:204px"></div>
+                <div class="ui-carte" style="left:70px; top:140px; width:470px">
+                    <div style="font-size:30px; font-weight:800">Le reçu est dans le téléphone</div>
+                    <div style="font-size:21px; color:#64748B; margin-top:8px">À télécharger ou partager sur WhatsApp, et toujours retrouvé avec le numéro de commande.</div>
+                </div>
+                <div class="pastille" style="left:90px; top:400px">⬇ Télécharger · ↗ Partager</div>
+            </div></div>
+            <span class="etiq g">Avant…</span><span class="etiq d"><img src="../commun/img/icon.png" alt="">Avec PressLink</span>
+            <div class="poignee"><span>⟷</span></div>
+            <input type="range" min="0" max="100" value="100" aria-label="Comparer, situation 2">
+        </div>
+        <div class="legendes"><p class="g">Le ticket papier se perd, se déchire, et le retrait tourne à la dispute.</p><p class="d"><b>Avec PressLink</b>, le reçu est dans l'application du client : impossible de le perdre.</p></div>
+    </div>
+</section>
+
+<!-- Situation 3 -->
+<section class="situation" id="s3">
+    <div class="wrap">
+        <div class="tete"><span class="num">Situation n°3</span><h2 class="display">La caisse du soir</h2></div>
+        <div class="comparo" data-comparo="s3" data-w="1200" data-h="700">
+            <div class="cote avant"><div class="toile croquis" style="width:1200px;height:700px">
+                <svg class="patronne" data-pose="compte" data-stress="1" style="position:absolute; left:120px; top:90px; width:420px; height:700px" viewBox="-210 -380 420 700"></svg>
+                <svg style="position:absolute; left:640px; top:260px" width="220" height="270" viewBox="0 0 200 250"><rect x="5" y="5" width="190" height="240" rx="18" fill="#fff" stroke="#1F1F1F" stroke-width="6"/><rect x="22" y="22" width="156" height="60" rx="6" fill="#E9DFC9" stroke="#1F1F1F" stroke-width="4"/><text x="168" y="66" text-anchor="end" font-family="Caveat" font-weight="700" font-size="44" fill="#1F1F1F">43 500</text><g fill="none" stroke="#1F1F1F" stroke-width="4"><rect x="25" y="100" width="40" height="30" rx="6"/><rect x="80" y="100" width="40" height="30" rx="6"/><rect x="135" y="100" width="40" height="30" rx="6"/><rect x="25" y="145" width="40" height="30" rx="6"/><rect x="80" y="145" width="40" height="30" rx="6"/><rect x="135" y="145" width="40" height="30" rx="6"/><rect x="25" y="190" width="40" height="30" rx="6"/><rect x="80" y="190" width="40" height="30" rx="6"/><rect x="135" y="190" width="40" height="30" rx="6"/></g></svg>
+                <div class="bulle" style="left:880px; top:300px; border-radius:6px; background:#FFFDF4; line-height:1.1">Carnet :<br>Total <u>48 500</u></div>
+                <div class="bulle" style="left:470px; top:70px">Il manque cinq mille… 😰</div>
+                <div class="bulle" style="left:620px; top:560px; background:#FEF2F2; color:#B91C1C; border-color:#DC2626; transform:rotate(-6deg); font-size:56px">− 5 000 ???</div>
+            </div></div>
+            <div class="cote apres"><div class="toile" style="width:1200px;height:700px">
+                <div class="ui-carte" style="left:320px; top:90px; width:600px">
+                    <div style="font-size:26px; font-weight:700; margin-bottom:10px">Clôture de caisse</div>
+                    <div class="ligne"><span>Espèces encaissées</span><b>48 500 F</b></div>
+                    <div class="ligne"><span>Dépenses de la journée</span><b style="color:#DC2626">− 5 000 F</b></div>
+                    <div class="depense"><span>Taxi livraison · noté à 9 h 12 par Awa</span><b>5 000 F</b></div>
+                    <div class="ligne tot"><span>Doit être dans la caisse</span><b>43 500 F</b></div>
+                    <div class="ligne"><span>Compté dans la caisse</span><b>43 500 F</b></div>
+                </div>
+                <div class="pastille" style="left:700px; top:560px; transform:rotate(-4deg); font-size:34px">✓ Aucun écart</div>
+            </div></div>
+            <span class="etiq g">Avant…</span><span class="etiq d"><img src="../commun/img/icon.png" alt="">Avec PressLink</span>
+            <div class="poignee"><span>⟷</span></div>
+            <input type="range" min="0" max="100" value="100" aria-label="Comparer, situation 3">
+        </div>
+        <div class="legendes"><p class="g">Le soir, la caisse ne tombe pas juste et personne ne sait pourquoi.</p><p class="d"><b>Avec PressLink</b>, les dépenses du jour sont notées et déduites : ce qui doit être dans la caisse est calculé, l'écart aussi.</p></div>
+    </div>
+</section>
+
+<!-- Situation 4 -->
+<section class="situation" id="s4">
+    <div class="wrap">
+        <div class="tete"><span class="num">Situation n°4</span><h2 class="display">Qui a fait quoi ?</h2></div>
+        <div class="comparo" data-comparo="s4" data-w="1200" data-h="700">
+            <div class="cote avant"><div class="toile croquis" style="width:1200px;height:700px">
+                <svg class="patronne" data-pose="bras" data-stress="1" style="position:absolute; left:100px; top:90px; width:420px; height:700px" viewBox="-210 -380 420 700"></svg>
+                <svg class="client" data-employe="1" style="position:absolute; left:600px; top:250px; width:250px; height:400px" viewBox="-180 -300 360 560"></svg>
+                <svg class="client" data-employe="1" style="position:absolute; left:860px; top:250px; width:250px; height:400px" viewBox="-180 -300 360 560"></svg>
+                <div class="bulle" style="left:380px; top:60px">Qui a rendu le boubou sans encaisser ?</div>
+                <div class="main" style="position:absolute; left:690px; top:170px; font-size:110px">?</div>
+                <div class="main" style="position:absolute; left:950px; top:170px; font-size:110px">?</div>
+            </div></div>
+            <div class="cote apres"><div class="toile" style="width:1200px;height:700px">
+                <div style="position:absolute; left:160px; top:90px; width:880px">
+                    <div class="entree"><time>08:12</time>Koffi a créé la commande PL-286571<em>Employé</em></div>
+                    <div class="entree"><time>12:40</time>Dépense de 5 000 F : taxi livraison<em>Gérant</em></div>
+                    <div class="entree"><time>16:05</time>Paiement de 7 000 F, commande soldée<em>Employé</em></div>
+                    <div class="entree"><time>16:06</time>Commande PL-286571 remise au client<em>Employé</em></div>
+                </div>
+                <div class="pastille" style="left:200px; top:520px; background:#EFF6FF; color:#1E40AF; border-color:#93C5FD">🔒 Une commande n'est remise que soldée</div>
+            </div></div>
+            <span class="etiq g">Avant…</span><span class="etiq d"><img src="../commun/img/icon.png" alt="">Avec PressLink</span>
+            <div class="poignee"><span>⟷</span></div>
+            <input type="range" min="0" max="100" value="100" aria-label="Comparer, situation 4">
+        </div>
+        <div class="legendes"><p class="g">Un vêtement rendu sans être payé, et personne ne se souvient.</p><p class="d"><b>Avec PressLink</b>, chaque rôle a ses accès, chaque action est inscrite au journal, et une commande n'est remise que soldée.</p></div>
+    </div>
+</section>
+
+<section id="pour-qui">
+    <div class="wrap deux">
+        <div class="pour"><h3 class="display">Pour les clients</h3><ul><li>Suivi de la commande en temps réel</li><li>Notification dès que c'est prêt</li><li>Reçus et historique dans le téléphone</li><li>Tarifs, horaires et contact du pressing</li><li>Gratuit, sans store</li></ul><a class="btn" href="https://presslink.org/app/">Ouvrir l'application</a></div>
+        <div class="pour bleu"><h3 class="display">Pour les pressings</h3><ul><li>Dépôt en quelques secondes, avec reçu</li><li>Paiements : payé, acompte ou au retrait</li><li>Caisse : dépenses, clôture et écart</li><li>Équipe, rôles et journal d'activité</li><li>Plusieurs pressings, exports</li></ul><a class="btn papier" href="#fin">Demander une démo →</a></div>
+    </div>
+</section>
+
+<section class="bloc" id="videos">
+    <div class="wrap">
+        <h2 class="display" style="font-size:clamp(34px,4.4vw,58px)">Le vrai parcours, en vidéo</h2>
+        <div class="videos">
+            <figure><video controls playsinline preload="none" poster="../commun/video/presslink-inscription.jpg" style="width:100%"><source src="../commun/video/presslink-inscription.mp4" type="video/mp4"></video><figcaption>Inscription et connexion · 1 min 44</figcaption></figure>
+            <figure><video controls playsinline preload="none" poster="../commun/video/presslink-suivi-commande.jpg" style="width:100%"><source src="../commun/video/presslink-suivi-commande.mp4" type="video/mp4"></video><figcaption>Le suivi d'une commande · 2 min 18</figcaption></figure>
+        </div>
+    </div>
+</section>
+
+<section class="bloc" id="installer">
+    <div class="wrap install">
+        <div>
+            <h2 class="display" style="font-size:clamp(34px,4.4vw,58px)">Installer, c'est <span class="main" style="color:var(--bleu); font-size:1.2em">3 gestes</span></h2>
+            <div class="pas"><b>1</b><div><h3>Scannez le code</h3><p>Ou ouvrez presslink.org/app dans Chrome ou Safari.</p></div></div>
+            <div class="pas"><b>2</b><div><h3>Ajoutez à l'écran d'accueil</h3><p>Android : « Installer ». iPhone : Partager, puis « Sur l'écran d'accueil ».</p></div></div>
+            <div class="pas"><b>3</b><div><h3>Rejoignez votre pressing</h3><p>Avec son code, par exemple PE-4821.</p></div></div>
+        </div>
+        <div class="qr"><img src="../commun/img/qr.png" alt="Code QR vers presslink.org/app"><p class="main" style="font-size:30px">presslink.org/app</p></div>
+    </div>
+</section>
+
+<section id="fin">
+    <div class="wrap">
+        <svg id="patronne-fin" class="patronne" data-pose="salut" data-couleur="1" viewBox="-210 -380 420 700"></svg>
+        <div>
+            <h2 class="display">Fini le stress au pressing.</h2>
+            <p>L'équipe PressLink vous répond par appel ou sur WhatsApp au 07 18 00 22 93. Démonstration et mise en place offertes.</p>
+            <div class="ctas">
+                <a class="btn wa" href="https://wa.me/2250718002293?text=Bonjour%2C%20je%20souhaite%20en%20savoir%20plus%20sur%20PressLink." target="_blank" rel="noopener">💬 Écrire sur WhatsApp</a>
+                <a class="btn papier" href="tel:+2250718002293">📞 Appeler</a>
+            </div>
+        </div>
+    </div>
+</section>
+</main>
+<footer>© PressLink · Abidjan, Côte d'Ivoire · contact@presslink.org</footer>
+
+<div class="legende" data-legende></div>
+<nav class="maquette-bar"><a href="../">Maquettes</a><a href="../1-bouba/">1 · Bouba</a><a href="../2-appli/">2 · Appli</a><a class="on" href="../3-avant-apres/">3 · Avant/Après</a></nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="../commun/son.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+/* ---------------------------------------------------------------- personnages */
+const POSES = {
+    repos:  { g: [[-85, -130], [-115, -40], [-70, 40]],   d: [[85, -130], [115, -40], [70, 40]] },
+    tel:    { g: [[-85, -130], [-115, -40], [-70, 40]],   d: [[85, -130], [175, -190], [78, -262]], objet: 'tel' },
+    carnet: { g: [[-85, -130], [-120, -50], [-55, -40]],  d: [[85, -130], [120, -50], [55, -40]], objet: 'carnet' },
+    compte: { g: [[-85, -130], [-130, -20], [-90, 30]],   d: [[85, -130], [140, -30], [110, 20]], objet: 'billets' },
+    bras:   { g: [[-85, -130], [-150, -60], [30, -60]],   d: [[85, -130], [150, -60], [-30, -50]] },
+    salut:  { g: [[-85, -130], [-115, -40], [-70, 40]],   d: [[85, -130], [190, -180], [160, -300]] },
+};
+function patronne(svg, t = 0) {
+    const coul = svg.dataset.couleur === '1', stress = svg.dataset.stress === '1';
+    const pose = POSES[svg.dataset.pose || 'repos'];
+    const trait = '#1F1F1F', fond = coul ? '#8D5524' : '#FFFDF6', robe = coul ? 'url(#wax)' : '#FFFDF6', foulard = coul ? '#2563EB' : '#FFFDF6';
+    const bras = ([s, c, h]) => `<path d="M ${s[0]} ${s[1]} Q ${c[0]} ${c[1]} ${h[0]} ${h[1]}" fill="none" stroke="${trait}" stroke-width="34" stroke-linecap="round"/><path d="M ${s[0]} ${s[1]} Q ${c[0]} ${c[1]} ${h[0]} ${h[1]}" fill="none" stroke="${fond}" stroke-width="22" stroke-linecap="round"/><circle cx="${h[0]}" cy="${h[1]}" r="20" fill="${fond}" stroke="${trait}" stroke-width="5"/>`;
+    const yeux = coul ? [-26, 26].map((x) => `<path d="M ${x - 12} -236 q 12 -14 24 0" fill="none" stroke="${trait}" stroke-width="6" stroke-linecap="round"/>`).join('')
+        : [-26, 26].map((x) => `<ellipse cx="${x}" cy="-240" rx="7" ry="9" fill="${trait}"/>`).join('');
+    const bouche = coul ? `<path d="M -24 -204 Q 0 -176 24 -204" fill="#fff" stroke="${trait}" stroke-width="6" stroke-linecap="round"/>`
+        : (stress ? `<ellipse cx="0" cy="-196" rx="16" ry="12" fill="#5B1A1A" stroke="${trait}" stroke-width="4"/>` : `<path d="M -16 -192 L 16 -192" stroke="${trait}" stroke-width="6" stroke-linecap="round"/>`);
+    const sourcils = stress ? `<path d="M -42 -266 L -12 -258 M 42 -266 L 12 -258" stroke="${trait}" stroke-width="6" stroke-linecap="round"/>` : `<path d="M -40 -262 Q -26 -270 -12 -262 M 40 -262 Q 26 -270 12 -262" fill="none" stroke="${trait}" stroke-width="6" stroke-linecap="round"/>`;
+    const sueur = stress ? `<path d="M 88 -270 q 12 22 0 30 q -12 -8 0 -30Z" fill="#7DD3FC" stroke="${trait}" stroke-width="4"/><path d="M -92 -250 q 10 18 0 25 q -10 -7 0 -25Z" fill="#7DD3FC" stroke="${trait}" stroke-width="4"/>` : '';
+    const objet = pose.objet === 'tel' ? `<g transform="translate(${pose.d[2][0] + 10} ${pose.d[2][1] - 6}) rotate(-30)"><path d="M -30 -66 Q -50 0 -30 66 L 6 66 Q -12 0 6 -66 Z" fill="#1F1F1F"/></g>`
+        : pose.objet === 'carnet' ? `<g transform="translate(0 -70)"><rect x="-80" y="-50" width="160" height="110" rx="6" fill="#fff" stroke="${trait}" stroke-width="6"/><path d="M 0 -50 L 0 60" stroke="${trait}" stroke-width="4"/></g>`
+        : pose.objet === 'billets' ? `<g transform="translate(0 -40)">${[-2, -1, 0, 1, 2].map((i) => `<rect x="-60" y="-34" width="120" height="66" rx="6" fill="#fff" stroke="${trait}" stroke-width="5" transform="rotate(${i * 9} 0 40)"/>`).join('')}</g>` : '';
+    svg.innerHTML = `${bras(pose.g)}
+        <path d="M -90 -140 Q 0 -178 90 -140 L 140 320 L -140 320 Z" fill="${robe}" stroke="${trait}" stroke-width="6" stroke-linejoin="round"/>
+        <rect x="-18" y="-180" width="36" height="40" fill="${fond}" stroke="${trait}" stroke-width="5"/>
+        <circle cx="0" cy="-232" r="72" fill="${fond}" stroke="${trait}" stroke-width="6"/>
+        <path d="M -80 -250 Q -74 -334 0 -338 Q 76 -334 82 -250 Q 40 -278 0 -274 Q -40 -278 -80 -250 Z M 22 -330 q 44 -44 66 -10 q -22 28 -60 16 M 22 -330 q -12 -50 32 -60 q 12 32 -22 54" fill="${foulard}" stroke="${trait}" stroke-width="6" stroke-linejoin="round"/>
+        ${sourcils}${yeux}${bouche}${sueur}${bras(pose.d)}${objet}`;
+}
+function client(svg) {
+    const emp = svg.dataset.employe === '1', t = '#1F1F1F';
+    svg.innerHTML = `<circle cx="0" cy="-220" r="62" fill="#FFFDF6" stroke="${t}" stroke-width="6"/>
+        <ellipse cx="-22" cy="-226" rx="6" ry="8" fill="${t}"/><ellipse cx="22" cy="-226" rx="6" ry="8" fill="${t}"/>
+        <path d="M -16 -186 Q 0 ${emp ? -192 : -198} 16 -186" fill="none" stroke="${t}" stroke-width="6" stroke-linecap="round"/>
+        <path d="M -80 -140 Q 0 -170 80 -140 L 100 160 L -100 160 Z" fill="#FFFDF6" stroke="${t}" stroke-width="6" stroke-linejoin="round"/>
+        ${emp ? '<path d="M -40 -120 L 40 -120 L 30 40 L -30 40 Z" fill="none" stroke="#1F1F1F" stroke-width="4"/>' : '<path d="M -100 60 l -40 20 l 10 40 l 40 -10 Z M 100 60 l 40 20 l -10 40 l -40 -10 Z" fill="#fff" stroke="#1F1F1F" stroke-width="5"/>'}
+        <path d="M -80 -130 Q -130 -40 -110 40 M 80 -130 Q 130 -40 110 40" fill="none" stroke="${t}" stroke-width="28" stroke-linecap="round"/>
+        <path d="M -60 160 L -60 250 M 60 160 L 60 250" stroke="${t}" stroke-width="28" stroke-linecap="round"/>`;
+}
+document.querySelectorAll('svg.patronne').forEach((s) => patronne(s));
+document.querySelectorAll('svg.client').forEach((s) => client(s));
+// Le trait du croquis « bout » comme un dessin fait main
+let graine = 1;
+setInterval(() => { graine = (graine % 7) + 1; document.getElementById('boil-t').setAttribute('seed', graine); }, 130);
+
+/* ---------------------------------------------------------------- son */
+const REPLIQUES = {
+    hero: ['', "Le pressing, avant… et avec PressLink. Faites glisser pour voir la différence."],
+    s1_avant: ['Client', "Allô ? C'est prêt ? … Allô ?! Toujours pas prêt ?"], s1_apres: ['', "Avec PressLink, le client est prévenu tout seul, dès que c'est prêt."],
+    s2_avant: ['Patronne', "Ton ticket est où ? Tu l'as encore perdu ?"], s2_apres: ['', "Avec PressLink, le reçu est dans le téléphone. Impossible de le perdre."],
+    s3_avant: ['Patronne', "Il manque cinq mille… C'est le taxi de ce matin ou bien ?"], s3_apres: ['', "Avec PressLink, chaque dépense est notée. La caisse tombe juste."],
+    s4_avant: ['Patronne', "Qui a rendu le boubou sans encaisser ? Personne ne sait ?"], s4_apres: ['', "Avec PressLink, chaque rôle a ses accès, et chaque action est tracée."],
+    fin: ['', "PressLink. Fini le stress au pressing."],
+};
+const dit = new Set();
+const dire = (cle, force = false) => { if (!Son.actif || (!force && dit.has(cle))) return; dit.add(cle); Son.voix(`audio/voix-${cle}.mp3`, REPLIQUES[cle][1], REPLIQUES[cle][0]); };
+let ambiance = 'avant';
+const changerAmbiance = (a) => { if (a === ambiance) return; ambiance = a; Son.jouerMusique(`audio/musique-${a}.mp3`); Son.sfx(a === 'apres' ? 'etincelles' : 'boing', 0.5); };
+Son.brancher({ musique: 'audio/musique-avant.mp3' });
+Son.onChange((on) => { if (on && scrollY < 300) dire('hero'); });
+
+/* ---------------------------------------------------------------- comparateurs */
+function ajuster() {
+    document.querySelectorAll('[data-comparo]').forEach((c) => {
+        const w = +c.dataset.w, h = +c.dataset.h, k = c.clientWidth / w;
+        c.style.height = h * k + 'px';
+        c.querySelectorAll('.toile').forEach((t) => (t.style.transform = `scale(${k})`));
+    });
+}
+ajuster(); addEventListener('resize', ajuster);
+
+document.querySelectorAll('[data-comparo]').forEach((c) => {
+    const cle = c.dataset.comparo, range = c.querySelector('input');
+    const etat = { pos: +range.value, touche: false, cote: null };
+    c.__etat = etat;
+    const poser = (v) => {
+        etat.pos = Math.max(0, Math.min(100, v));
+        c.style.setProperty('--pos', etat.pos + '%'); range.value = etat.pos;
+        const cote = etat.pos < 40 ? 'apres' : etat.pos > 60 ? 'avant' : etat.cote;
+        if (cote !== etat.cote) {
+            etat.cote = cote;
+            if (cle !== 'hero' && etat.vu) { dire(`${cle}_${cote}`); }
+            if (etat.vu) changerAmbiance(cote);
+        }
+    };
+    c.__poser = poser;
+    poser(etat.pos);
+    range.addEventListener('input', () => { etat.touche = true; poser(+range.value); });
+    range.addEventListener('pointerdown', () => { etat.touche = true; Son.sfx('papier', 0.5); });
+});
+
+// Héros : démonstration automatique de la poignée
+const hero = document.querySelector('[data-comparo=hero]');
+const demo = { v: 50 };
+gsap.timeline({ delay: 0.8 })
+    .to(demo, { v: 88, duration: 0.9, ease: 'power2.inOut', onUpdate: () => !hero.__etat.touche && hero.__poser(demo.v) })
+    .to(demo, { v: 12, duration: 1.4, ease: 'power2.inOut', onUpdate: () => !hero.__etat.touche && hero.__poser(demo.v) })
+    .to(demo, { v: 50, duration: 0.9, ease: 'power2.inOut', onUpdate: () => !hero.__etat.touche && hero.__poser(demo.v) });
+gsap.from('#hero .entete > *', { y: 40, opacity: 0, stagger: 0.12, duration: 0.8, ease: 'back.out(1.5)' });
+gsap.to('.indice', { x: 12, duration: 0.6, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+
+// Situations : le défilement fait glisser de « avant » à « avec PressLink »
+['s1', 's2', 's3', 's4'].forEach((cle) => {
+    const c = document.querySelector(`[data-comparo=${cle}]`);
+    ScrollTrigger.create({
+        trigger: c, start: 'top 70%', end: 'bottom 35%',
+        onEnter: () => { c.__etat.vu = true; dire(`${cle}_avant`); changerAmbiance('avant'); },
+        onEnterBack: () => { c.__etat.vu = true; },
+        onUpdate: (st) => { if (!c.__etat.touche) c.__poser(100 - gsap.utils.clamp(0, 100, (st.progress - 0.3) / 0.45 * 100)); },
+    });
+    gsap.from(c, { y: 80, rotation: -2, opacity: 0, duration: 0.9, ease: 'back.out(1.4)', scrollTrigger: { trigger: c, start: 'top 90%' } });
+    gsap.from(c.closest('.situation').querySelector('.num'), { scale: 0, rotation: -30, duration: 0.6, ease: 'back.out(3)', scrollTrigger: { trigger: c, start: 'top 90%' } });
+});
+
+gsap.from('.pour', { y: 80, rotation: (i) => (i ? 3 : -3), opacity: 0, stagger: 0.15, duration: 0.9, ease: 'back.out(1.4)', scrollTrigger: { trigger: '#pour-qui', start: 'top 80%', onEnter: () => changerAmbiance('apres') } });
+gsap.from('.pour li', { x: -30, opacity: 0, stagger: 0.05, duration: 0.4, scrollTrigger: { trigger: '#pour-qui', start: 'top 70%' } });
+gsap.from('.videos figure', { y: 60, opacity: 0, stagger: 0.15, duration: 0.8, scrollTrigger: { trigger: '.videos', start: 'top 85%' } });
+gsap.from('.pas', { x: -50, opacity: 0, stagger: 0.12, duration: 0.6, scrollTrigger: { trigger: '.install', start: 'top 80%' } });
+gsap.from('#patronne-fin', { y: 300, duration: 1, ease: 'back.out(1.4)', scrollTrigger: { trigger: '#fin', start: 'top 70%', onEnter: () => { dire('fin'); Son.sfx('signature', 0.7); } } });
+gsap.to('#patronne-fin', { rotation: 3, duration: 0.5, yoyo: true, repeat: -1, ease: 'sine.inOut', transformOrigin: '50% 100%' });
+document.querySelectorAll('.btn').forEach((b) => b.addEventListener('click', () => Son.sfx('clic')));
+</script>
+</body>
+</html>

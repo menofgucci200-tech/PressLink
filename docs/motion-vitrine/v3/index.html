@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PressLink — Site vitrine en motion : 2 propositions</title>
+<link rel="stylesheet" href="commun/app.css">
+<link rel="stylesheet" href="commun/fonts.css">
+<style>
+.carte { transition: transform .35s cubic-bezier(.2,.8,.2,1), border-color .2s; }
+.carte:hover { transform: translateY(-6px); border-color: var(--color-primary); }
+</style>
+</head>
+<body class="bg-(--color-bg) text-(--color-text-primary)">
+<main class="max-w-6xl mx-auto px-5 py-14">
+    <p class="font-display text-xl font-bold tracking-tight">Press<span class="text-(--color-primary)">Link</span></p>
+    <h1 class="font-display text-4xl md:text-5xl font-extrabold tracking-tight mt-8">Le site vitrine, en motion</h1>
+    <p class="text-lg text-(--color-text-secondary) mt-4 max-w-2xl">Même page, mêmes couleurs, même typographie, même contenu que le site actuel. Seul le mouvement change.</p>
+    <div class="grid md:grid-cols-2 gap-6 mt-10">
+        <a href="1-fluide/" class="carte block bg-(--color-surface) border border-(--color-border) rounded-3xl overflow-hidden">
+            <img src="commun/img/apercu-1.jpg" alt="" class="w-full">
+            <div class="p-6"><h2 class="font-display text-2xl font-bold">1 · Fluide</h2><p class="text-(--color-text-secondary) mt-2">La marque apparaît à l'arrivée, puis chaque élément entre en mouvement : titre mot par mot, téléphone qui se remplit, vidéos, étapes, code QR qui se dessine. Défilement doux.</p><span class="inline-block mt-4 font-semibold text-(--color-primary)">Voir →</span></div>
+        </a>
+        <a href="2-raconte/" class="carte block bg-(--color-surface) border border-(--color-border) rounded-3xl overflow-hidden">
+            <img src="commun/img/apercu-2.jpg" alt="" class="w-full">
+            <div class="p-6"><h2 class="font-display text-2xl font-bold">2 · Raconté</h2><p class="text-(--color-text-secondary) mt-2">Le défilement raconte : le titre se remplit, la commande passe de « Reçue » à « Prête » et la notification arrive ; les étapes d'installation avancent avec le défilement.</p><span class="inline-block mt-4 font-semibold text-(--color-primary)">Voir →</span></div>
+        </a>
+    </div>
+</main>
+</body>
+</html>

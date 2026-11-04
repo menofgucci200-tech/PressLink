@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Proposition 1 · Le Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&display=swap">
+<link rel="stylesheet" href="base.css">
+<style>
+/* Proposition 1 : un guide conversationnel dans le hero. Trois questions, puis le parcours personnalisé. */
+.entete { background: var(--nuit); color: #fff; position: sticky; top: 0; z-index: 40; border-bottom: 1px solid rgba(255,255,255,.08); }
+.entete .enveloppe { display: flex; align-items: center; gap: 24px; min-height: 68px; }
+.entete nav { display: flex; gap: 22px; margin-left: auto; align-items: center; font-weight: 500; color: #CBD5E1; }
+.entete nav a { text-decoration: none; }
+.entete nav a:hover { color: #fff; }
+.entete .btn { min-height: 42px; padding: 0 16px; }
+@media (max-width: 860px) { .entete nav .lien { display: none; } }
+
+.hero { position: relative; background: var(--nuit); color: #fff; overflow: hidden; }
+.hero::before { content: ""; position: absolute; inset: 0; background: radial-gradient(70% 70% at 88% 10%, rgba(37,99,235,.55), transparent 60%), radial-gradient(60% 60% at 0% 100%, var(--nuit-2), transparent 70%); }
+.hero .enveloppe { position: relative; display: grid; grid-template-columns: 1fr minmax(0, 520px); gap: 56px; align-items: center; padding-block: 56px 72px; }
+@media (max-width: 960px) {
+    .hero .enveloppe { grid-template-columns: 1fr; gap: 18px; padding-block: 28px 44px; }
+    .hero .gauche { display: contents; }
+    .hero .surtitre { justify-self: start; }
+    .hero h1 { margin: 0; }
+    .hero .guide { order: 3; margin-block: 6px 10px; }
+    .hero .chapo, .garanties, .raccourcis { order: 4; margin-top: 0; }
+}
+.surtitre { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 14px; border-radius: 99px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); font-size: 14px; font-weight: 600; }
+.surtitre i { width: 8px; height: 8px; border-radius: 50%; background: var(--vert); box-shadow: 0 0 0 4px rgba(34,197,94,.25); animation: pouls 2s infinite; }
+@keyframes pouls { 50% { box-shadow: 0 0 0 7px rgba(34,197,94,0); } }
+.hero h1 { font-size: clamp(36px, 5.2vw, 60px); font-weight: 800; margin: 22px 0 18px; }
+.hero h1 em { font-style: normal; color: var(--bleu-clair); position: relative; white-space: nowrap; }
+.hero h1 em svg { position: absolute; left: 0; bottom: -8px; width: 100%; height: 12px; overflow: visible; }
+.hero h1 em path { stroke: var(--or); stroke-width: 4; fill: none; stroke-linecap: round; stroke-dasharray: 220; stroke-dashoffset: 220; animation: trait 1s .6s var(--doux) forwards; }
+@keyframes trait { to { stroke-dashoffset: 0; } }
+.hero .chapo { font-size: 19px; color: #CBD5E1; max-width: 520px; }
+.garanties { display: flex; flex-wrap: wrap; gap: 10px 20px; margin-top: 26px; font-size: 14.5px; color: #CBD5E1; }
+.garanties span { display: inline-flex; align-items: center; gap: 7px; }
+.garanties svg { width: 17px; height: 17px; color: var(--vert); }
+.raccourcis { margin-top: 34px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.1); }
+.raccourcis p { font-size: 14px; color: #94A3B8; margin-bottom: 10px; }
+.raccourcis div { display: flex; flex-wrap: wrap; gap: 8px; }
+.raccourcis a { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 99px; border: 1px solid rgba(255,255,255,.2); font-size: 14px; font-weight: 600; text-decoration: none; transition: background .2s, border-color .2s; }
+.raccourcis a:hover { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.4); }
+
+/* ----- La carte du guide ----- */
+.guide { background: var(--surface); color: var(--encre); border-radius: 26px; box-shadow: 0 40px 90px -30px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.06); overflow: hidden; display: flex; flex-direction: column; animation: monte .8s .15s var(--doux) both; }
+@keyframes monte { from { opacity: 0; transform: translateY(26px) scale(.98); } }
+.guide-tete { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--trait); }
+.avatar { width: 42px; height: 42px; border-radius: 13px; background: var(--bleu); color: #fff; display: grid; place-items: center; flex: none; }
+.avatar svg { width: 24px; height: 24px; }
+.guide-tete strong { display: block; font: 700 16px/1.2 var(--display); }
+.guide-tete small { display: flex; align-items: center; gap: 6px; color: var(--texte-3); font-size: 13px; }
+.guide-tete small i { width: 7px; height: 7px; border-radius: 50%; background: var(--vert); }
+.etapes { margin-left: auto; text-align: right; }
+.etapes .barres { display: flex; gap: 4px; justify-content: flex-end; }
+.etapes .barres span { width: 26px; height: 6px; border-radius: 9px; background: var(--trait); overflow: hidden; position: relative; }
+.etapes .barres span::after { content: ""; position: absolute; inset: 0; background: var(--bleu); transform: scaleX(0); transform-origin: left; transition: transform .6s var(--doux); }
+.etapes .barres span.plein::after { transform: scaleX(1); }
+.etapes .barres span.fini::after { background: var(--vert); transform: scaleX(1); }
+.etapes small { white-space: nowrap; display: block; margin-top: 5px; font-size: 12px; font-weight: 600; color: var(--texte-3); }
+
+.fil { height: 330px; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; background: linear-gradient(#fff, #F8FAFF); }
+.bulle { max-width: 86%; padding: 11px 15px; border-radius: 18px; font-size: 15.5px; line-height: 1.45; animation: bulle .45s var(--ressort) both; transform-origin: left bottom; }
+.bulle.guide-dit { background: var(--bleu-teinte); border-bottom-left-radius: 6px; align-self: flex-start; }
+.bulle.moi { background: var(--bleu); color: #fff; border-bottom-right-radius: 6px; align-self: flex-end; transform-origin: right bottom; }
+@keyframes bulle { from { opacity: 0; transform: translateY(10px) scale(.92); } }
+.ecrit { align-self: flex-start; display: flex; gap: 4px; padding: 14px 16px; background: var(--bleu-teinte); border-radius: 18px; border-bottom-left-radius: 6px; }
+.ecrit i { width: 7px; height: 7px; border-radius: 50%; background: var(--bleu); opacity: .35; animation: point 1s infinite; }
+.ecrit i:nth-child(2) { animation-delay: .15s; } .ecrit i:nth-child(3) { animation-delay: .3s; }
+@keyframes point { 30% { opacity: 1; transform: translateY(-3px); } }
+
+.choix { padding: 16px 20px 20px; border-top: 1px solid var(--trait); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; min-height: 132px; align-content: start; }
+.choix > button { min-height: 50px; padding: 10px 14px; border-radius: 14px; border: 1.5px solid var(--trait); background: #fff; font-weight: 600; text-align: left; display: flex; align-items: center; gap: 10px; transition: border-color .2s, background .2s, transform .2s var(--doux); animation: bulle .4s var(--ressort) both; }
+.choix > button:hover { border-color: var(--bleu); background: var(--bleu-teinte); transform: translateY(-2px); }
+.choix > button b { width: 26px; height: 26px; border-radius: 8px; background: var(--fond); color: var(--texte-2); display: grid; place-items: center; font-size: 12px; flex: none; }
+.choix > button.large { grid-column: 1 / -1; }
+.choix .lien-discret { grid-column: 1 / -1; justify-self: center; font-size: 13.5px; color: var(--texte-3); text-decoration: underline; min-height: 0; border: 0; padding: 4px; background: none; animation: none; }
+@media (max-width: 480px) { .choix { grid-template-columns: 1fr; } .fil { height: 300px; } }
+
+/* ----- Le parcours personnalisé (résultat) ----- */
+.parcours { grid-column: 1 / -1; position: relative; display: grid; gap: 10px; padding-left: 4px; }
+.parcours::before { content: ""; position: absolute; left: 21px; top: 24px; bottom: 24px; width: 3px; border-radius: 3px; background: linear-gradient(var(--bleu), var(--vert)); transform: scaleY(0); transform-origin: top; animation: ligne 1.1s .2s var(--doux) forwards; }
+@keyframes ligne { to { transform: scaleY(1); } }
+.station { position: relative; display: grid; grid-template-columns: 38px 1fr auto; gap: 12px; align-items: center; padding: 10px 12px 10px 0; border-radius: 16px; animation: bulle .5s var(--ressort) both; }
+.station:nth-child(1) { animation-delay: .25s; } .station:nth-child(2) { animation-delay: .6s; } .station:nth-child(3) { animation-delay: .95s; }
+.station .num { position: relative; z-index: 1; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font: 800 15px/1 var(--display); background: #fff; border: 2.5px solid var(--bleu); color: var(--bleu); }
+.station.conseil { background: var(--bleu-teinte); padding-left: 0; box-shadow: inset 0 0 0 1.5px rgba(37,99,235,.25); }
+.station.conseil .num { background: var(--bleu); color: #fff; animation: halo 1.8s 1.5s infinite; }
+@keyframes halo { 0% { box-shadow: 0 0 0 0 rgba(37,99,235,.45); } 100% { box-shadow: 0 0 0 12px rgba(37,99,235,0); } }
+.station:last-child .num { border-color: var(--vert); color: var(--vert-fonce); }
+.station strong { display: block; font: 700 15.5px/1.25 var(--display); }
+.station small { color: var(--texte-2); font-size: 13px; }
+.station .tag { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 99px; background: var(--or); color: #1E293B; font-size: 11px; font-weight: 700; vertical-align: 2px; }
+.station .btn { min-height: 38px; padding: 0 12px; border-radius: 11px; font-size: 14px; }
+@media (max-width: 480px) { .station { grid-template-columns: 38px 1fr; } .station .btn { grid-column: 2; justify-self: start; } }
+
+/* ----- Volet « écran suivant » ----- */
+.volet-fond { position: fixed; inset: 0; z-index: 70; background: rgba(11,21,48,.45); opacity: 0; pointer-events: none; transition: opacity .3s; }
+.volet { position: fixed; z-index: 71; top: 0; right: 0; bottom: 0; width: min(440px, 100%); background: #fff; box-shadow: -30px 0 60px -20px rgba(0,0,0,.35); transform: translateX(105%); transition: transform .5s var(--doux); display: flex; flex-direction: column; padding: max(20px, env(safe-area-inset-top, 0px)) max(22px, env(safe-area-inset-right, 0px)) 22px 22px; gap: 18px; overflow-y: auto; }
+body.volet-ouvert .volet-fond { opacity: 1; pointer-events: auto; }
+body.volet-ouvert .volet { transform: none; }
+.ariane { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--texte-3); }
+.ariane b { color: var(--encre); }
+.ariane .ici { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 99px; background: var(--bleu); color: #fff; font-weight: 700; }
+.volet h2 { font-size: 26px; }
+.volet .rail { display: flex; gap: 6px; }
+.volet .rail span { flex: 1; height: 6px; border-radius: 6px; background: var(--trait); }
+.volet .rail span.fait { background: var(--vert); }
+.volet .rail span.en-cours { background: var(--bleu); }
+.champ { display: grid; gap: 6px; }
+.champ label { font-size: 14px; font-weight: 600; }
+.champ input { height: 50px; border-radius: 12px; border: 1.5px solid var(--trait); padding: 0 14px; background: var(--fond); }
+.champ input:focus { outline: none; border-color: var(--bleu); background: #fff; box-shadow: 0 0 0 4px rgba(37,99,235,.15); }
+.volet .note { font-size: 13.5px; color: var(--texte-2); background: var(--fond); border-radius: 12px; padding: 12px 14px; }
+.volet .fermer { align-self: flex-end; width: 38px; height: 38px; border-radius: 50%; background: var(--fond); font-size: 20px; }
+.formules-mini { display: grid; gap: 8px; }
+.formules-mini div { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 14px; border: 1.5px solid var(--trait); }
+.formules-mini div.pour-vous { border-color: var(--bleu); background: var(--bleu-teinte); }
+.formules-mini strong { font-family: var(--display); }
+
+/* ----- Sections sous le hero ----- */
+.bloc { padding-block: 72px; }
+.bloc h2 { font-size: clamp(28px, 3.4vw, 40px); font-weight: 800; }
+.bloc .intro { color: var(--texte-2); font-size: 18px; margin-top: 10px; max-width: 620px; }
+.portes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 32px; }
+@media (max-width: 860px) { .portes { grid-template-columns: 1fr; } }
+.porte { display: grid; gap: 10px; padding: 24px; border-radius: 22px; background: #fff; border: 1.5px solid var(--trait); text-decoration: none; transition: transform .3s var(--doux), border-color .2s, box-shadow .3s; }
+.porte:hover { transform: translateY(-5px); border-color: var(--bleu); box-shadow: 0 24px 40px -24px rgba(37,99,235,.45); }
+.porte .ico { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: var(--bleu-teinte); color: var(--bleu); }
+.porte .ico svg { width: 26px; height: 26px; }
+.porte h3 { font-size: 21px; }
+.porte p { color: var(--texte-2); }
+.porte span { font-weight: 700; color: var(--bleu); }
+.porte.vedette { background: var(--bleu); color: #fff; border-color: var(--bleu); }
+.porte.vedette p { color: #DBEAFE; } .porte.vedette span { color: #fff; } .porte.vedette .ico { background: rgba(255,255,255,.15); color: #fff; }
+
+.reprendre { position: fixed; z-index: 50; right: max(18px, env(safe-area-inset-right, 0px)); bottom: max(18px, env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; gap: 10px; padding: 8px 16px 8px 8px; border-radius: 99px; background: var(--nuit); color: #fff; font-weight: 600; box-shadow: 0 18px 40px -12px rgba(11,21,48,.6); transform: translateY(140%); transition: transform .5s var(--ressort); }
+.reprendre.visible { transform: none; }
+.reprendre .avatar { width: 36px; height: 36px; border-radius: 50%; }
+.reprendre small { display: block; font-size: 12px; color: #94A3B8; font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="maquette">
+    <div class="enveloppe">
+        <span class="pastille">Maquette</span>
+        <span><strong>Proposition 1 · Le Guide</strong><span class="desc"> : un conseiller répond à la place d'une page de présentation</span></span>
+        <span class="droite"><a href="index.html">← Les 3 propositions</a><button class="rejouer" type="button" data-rejouer>▶ Rejouer la démo</button></span>
+    </div>
+</div>
+
+<header class="entete sur-nuit">
+    <div class="enveloppe">
+        <a class="logo" href="#"><img src="img/logo-presslink.png" alt=""><span class="nom">Press<span>Link</span></span></a>
+        <nav>
+            <a class="lien" href="#portes">Formules</a>
+            <a class="lien" href="#portes">Tester</a>
+            <a class="lien" href="#">Se connecter</a>
+            <a class="btn btn-vert" href="#" data-ouvrir="creer">Créer mon espace</a>
+        </nav>
+    </div>
+</header>
+
+<section class="hero sur-nuit" id="haut">
+    <div class="enveloppe">
+        <div class="gauche">
+            <span class="surtitre"><i></i>Logiciel de gestion de pressing · Côte d'Ivoire</span>
+            <h1>Votre pressing sur PressLink en <em>3 questions<svg viewBox="0 0 200 12" preserveAspectRatio="none"><path d="M2 9 C 60 2, 140 2, 198 7"/></svg></em>.</h1>
+            <p class="chapo">Répondez au guide : il vous montre exactement par où commencer. Essayer, créer votre espace, choisir votre formule.</p>
+            <div class="garanties">
+                <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Gratuit jusqu'au 15 novembre</span>
+                <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Rien n'est prélevé automatiquement</span>
+                <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Aide sur WhatsApp</span>
+            </div>
+            <div class="raccourcis">
+                <p>Vous savez déjà ce que vous voulez ?</p>
+                <div>
+                    <a href="#" data-ouvrir="tester">Démarrer un test →</a>
+                    <a href="#" data-ouvrir="creer">Créer mon espace →</a>
+                    <a href="#" data-ouvrir="formules">Voir nos formules →</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="guide" aria-live="polite">
+            <div class="guide-tete">
+                <div class="avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5a2 2 0 1 1 2-2c0 1-1 1.4-2 2.2V9l9 6.2c.8.6.4 1.8-.6 1.8H3.6c-1 0-1.4-1.2-.6-1.8L12 9"/></svg></div>
+                <div><strong>Guide PressLink</strong><small><i></i>Répond tout de suite</small></div>
+                <div class="etapes"><div class="barres"><span></span><span></span><span></span></div><small id="etape-texte">Question 1 sur 3</small></div>
+            </div>
+            <div class="fil" id="fil"></div>
+            <div class="choix" id="choix"></div>
+        </div>
+    </div>
+</section>
+
+<section class="bloc" id="portes">
+    <div class="enveloppe">
+        <h2>Ou allez directement à l'essentiel</h2>
+        <p class="intro">Les trois actions du site, toujours au même endroit. Vous ne cherchez jamais où cliquer.</p>
+        <div class="portes">
+            <a class="porte" href="#" data-ouvrir="tester">
+                <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7 15h10"/></svg></div>
+                <h3>Démarrer un test</h3>
+                <p>Un pressing fictif rempli d'exemples, pendant 3 jours. Sans inscription.</p>
+                <span>Essayer maintenant →</span>
+            </a>
+            <a class="porte vedette" href="#" data-ouvrir="creer">
+                <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></div>
+                <h3>Créer mon espace pressing</h3>
+                <p>2 minutes, 2 étapes. Notre équipe vous appelle ensuite pour vous aider à démarrer.</p>
+                <span>Créer mon espace →</span>
+            </a>
+            <a class="porte" href="#" data-ouvrir="formules">
+                <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
+                <h3>Voir nos formules</h3>
+                <p>Starter, Business, Premium : dès 20 000 F par mois, selon vos commandes.</p>
+                <span>Comparer les formules →</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<button class="reprendre" id="reprendre" type="button">
+    <span class="avatar"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7.5a2 2 0 1 1 2-2c0 1-1 1.4-2 2.2V9l9 6.2c.8.6.4 1.8-.6 1.8H3.6c-1 0-1.4-1.2-.6-1.8L12 9"/></svg></span>
+    <span><span id="reprendre-titre">Reprendre avec le guide</span><small id="reprendre-detail">Question 1 sur 3</small></span>
+</button>
+
+<div class="volet-fond" id="volet-fond"></div>
+<aside class="volet" id="volet" aria-hidden="true"></aside>
+
+<script src="demo.js"></script>
+<script>
+const fil = document.getElementById('fil');
+const choix = document.getElementById('choix');
+const barres = [...document.querySelectorAll('.etapes .barres span')];
+const etapeTexte = document.getElementById('etape-texte');
+const reponses = {};
+let jeton = 0;
+
+const pause = (ms) => new Promise((ok) => setTimeout(ok, ms));
+const defile = () => { fil.scrollTop = fil.scrollHeight; };
+
+async function guideDit(texte, n) {
+    const ecrit = document.createElement('div');
+    ecrit.className = 'ecrit';
+    ecrit.innerHTML = '<i></i><i></i><i></i>';
+    fil.appendChild(ecrit); defile();
+    await pause(Math.min(1100, 380 + texte.length * 9));
+    if (n !== jeton) { return false; }
+    ecrit.remove();
+    const b = document.createElement('div');
+    b.className = 'bulle guide-dit';
+    b.innerHTML = texte;
+    fil.appendChild(b); defile();
+    return true;
+}
+
+function moiDit(texte) {
+    const b = document.createElement('div');
+    b.className = 'bulle moi';
+    b.textContent = texte;
+    fil.appendChild(b); defile();
+}
+
+function proposer(liste) {
+    choix.innerHTML = '';
+    liste.forEach((c, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = c.large ? 'large' : (c.discret ? 'lien-discret' : '');
+        btn.style.animationDelay = (i * 70) + 'ms';
+        btn.innerHTML = c.discret ? c.texte : `<b>${String.fromCharCode(65 + i)}</b>${c.texte}`;
+        btn.dataset.choix = c.cle;
+        btn.addEventListener('click', () => c.action(c));
+        choix.appendChild(btn);
+    });
+}
+
+function progression(n, fini = false) {
+    barres.forEach((b, i) => { b.className = fini ? 'fini' : (i < n ? 'plein' : ''); });
+    etapeTexte.textContent = fini ? 'Votre parcours est prêt ✓' : `Question ${n + 1} sur 3`;
+    document.getElementById('reprendre-titre').textContent = fini ? 'Votre parcours vous attend' : 'Reprendre avec le guide';
+    document.getElementById('reprendre-detail').textContent = fini ? 'Étape conseillée : créer mon espace' : `Question ${n + 1} sur 3`;
+}
+
+async function demarrer() {
+    const n = ++jeton;
+    fil.innerHTML = ''; choix.innerHTML = '';
+    progression(0);
+    if (!await guideDit('Bonjour 👋 Je vous guide en 3 questions pour trouver par où commencer.', n)) { return; }
+    if (!await guideDit('D\'abord, vous êtes…', n)) { return; }
+    proposer([
+        { cle: 'pressing', texte: 'Gérant ou propriétaire d\'un pressing', large: true, action: questionCommandes },
+        { cle: 'client', texte: 'Client d\'un pressing', large: true, action: estClient },
+    ]);
+}
+
+async function estClient(c) {
+    const n = ++jeton; moiDit(c.texte); choix.innerHTML = '';
+    if (!await guideDit('Bonne nouvelle : l\'application client est gratuite. Entrez votre numéro, vos commandes sont déjà là.', n)) { return; }
+    proposer([
+        { cle: 'app', texte: 'Ouvrir l\'application client', large: true, action: () => {} },
+        { cle: 'retour', texte: 'En fait, je gère un pressing', discret: true, action: () => { moiDit('En fait, je gère un pressing'); questionCommandes({ texte: '' }, true); } },
+    ]);
+}
+
+async function questionCommandes(c, sansBulle) {
+    const n = ++jeton;
+    if (!sansBulle) { moiDit(c.texte); }
+    choix.innerHTML = ''; progression(1);
+    if (!await guideDit('Combien de commandes enregistrez-vous par jour, à peu près ?', n)) { return; }
+    const suite = (r) => { reponses.volume = r.cle; questionOutil(r); };
+    proposer([
+        { cle: 'petit', texte: 'Moins de 4', action: suite },
+        { cle: 'moyen', texte: 'De 4 à 7', action: suite },
+        { cle: 'grand', texte: '8 ou plus', action: suite },
+        { cle: 'groupe', texte: 'J\'ai plusieurs pressings', action: suite },
+    ]);
+}
+
+async function questionOutil(c) {
+    const n = ++jeton; moiDit(c.texte); choix.innerHTML = ''; progression(2);
+    if (!await guideDit('Et aujourd\'hui, vous notez vos commandes où ?', n)) { return; }
+    const suite = (r) => { reponses.outil = r.cle; resultat(r); };
+    proposer([
+        { cle: 'cahier', texte: 'Dans un cahier', action: suite },
+        { cle: 'tickets', texte: 'Sur des tickets papier', action: suite },
+        { cle: 'logiciel', texte: 'Dans Excel ou un logiciel', large: true, action: suite },
+    ]);
+}
+
+const FORMULES = {
+    petit: ['Starter', '20 000', '100 commandes par mois'],
+    moyen: ['Business', '30 000', '200 commandes par mois'],
+    grand: ['Premium', '50 000', '350 commandes par mois'],
+    groupe: ['Premium', '50 000', 'tous vos pressings sur un écran'],
+};
+const PHRASES = {
+    cahier: 'Fini le cahier : chaque dépôt devient un ticket en 4 gestes.',
+    tickets: 'Vos tickets deviennent des reçus propres, imprimés ou envoyés.',
+    logiciel: 'Vous retrouvez vos habitudes, avec les clients prévenus en plus.',
+};
+
+async function resultat(c) {
+    const n = ++jeton; moiDit(c.texte); choix.innerHTML = '';
+    const [nom, prix, detail] = FORMULES[reponses.volume];
+    if (!await guideDit(`${PHRASES[reponses.outil]} La formule <b>${nom}</b> vous correspond (${detail}).`, n)) { return; }
+    if (!await guideDit('Voici votre parcours. Commencez où vous voulez, je garde votre place.', n)) { return; }
+    progression(3, true);
+    choix.innerHTML = `
+        <div class="parcours">
+            <div class="station"><span class="num">1</span><div><strong>Essayer avec un pressing fictif</strong><small>3 jours, sans inscription</small></div><button class="btn btn-contour" style="color:var(--bleu)" data-ouvrir="tester" type="button">Tester</button></div>
+            <div class="station conseil"><span class="num">2</span><div><strong>Créer mon espace pressing <span class="tag">Conseillé</span></strong><small>2 minutes · gratuit jusqu'au 15 nov.</small></div><button class="btn btn-vert" data-ouvrir="creer" type="button">Créer</button></div>
+            <div class="station"><span class="num">3</span><div><strong>Activer la formule ${nom}</strong><small class="tab">${prix} F / mois · ${detail}</small></div><button class="btn btn-contour" style="color:var(--vert-fonce)" data-ouvrir="formules" type="button">Voir</button></div>
+        </div>
+        <button class="lien-discret" type="button" onclick="demarrer()">Recommencer les questions</button>`;
+    defile();
+}
+
+/* ----- Volet : l'écran suivant, avec le fil d'Ariane ----- */
+const volet = document.getElementById('volet');
+const ECRANS = {
+    tester: () => `
+        <div class="ariane">Accueil › Votre parcours › <span class="ici">● Vous êtes ici</span> <b>Tester</b></div>
+        <div class="rail"><span class="en-cours"></span><span></span><span></span></div>
+        <h2>Votre pressing fictif, prêt en 10 secondes</h2>
+        <div class="champ"><label for="t-nom">Nom de votre pressing</label><input id="t-nom" placeholder="Ex. Pressing Élégance"></div>
+        <div class="champ"><label for="t-tel">Votre numéro WhatsApp</label><input id="t-tel" inputmode="tel" placeholder="07 00 00 00 00"></div>
+        <button class="btn btn-vert" type="button">Lancer mon test de 3 jours</button>
+        <p class="note">Vos articles et vos prix seront gardés si vous créez ensuite votre vrai espace. Étape suivante : <b>Créer mon espace</b>.</p>`,
+    creer: () => `
+        <div class="ariane">Accueil › Votre parcours › <span class="ici">● Vous êtes ici</span> <b>Créer mon espace · 1 sur 2</b></div>
+        <div class="rail"><span class="fait"></span><span class="en-cours"></span><span></span></div>
+        <h2>Votre pressing</h2>
+        <div class="champ"><label for="c-nom">Nom du pressing</label><input id="c-nom" placeholder="Ex. Pressing Élégance"></div>
+        <div class="champ"><label for="c-com">Commune</label><input id="c-com" placeholder="Ex. Cocody"></div>
+        <div class="champ"><label for="c-tel">Téléphone du pressing</label><input id="c-tel" inputmode="tel" placeholder="07 00 00 00 00"></div>
+        <button class="btn btn-vert" type="button">Suivant : vos coordonnées →</button>
+        <p class="note">Ensuite : vos coordonnées de gérant, puis votre formule. Notre équipe vous appelle pour vous aider à démarrer.</p>`,
+    formules: () => {
+        const choisie = FORMULES[reponses.volume || 'moyen'][0];
+        const ligne = (nom, prix, d) => `<div class="${nom === choisie ? 'pour-vous' : ''}"><span><strong>${nom}</strong><br><small>${d}</small></span><span class="tab"><strong>${prix} F</strong> / mois</span></div>`;
+        return `
+        <div class="ariane">Accueil › Votre parcours › <span class="ici">● Vous êtes ici</span> <b>Choisir ma formule</b></div>
+        <div class="rail"><span class="fait"></span><span class="fait"></span><span class="en-cours"></span></div>
+        <h2>La formule qui vous correspond</h2>
+        <div class="formules-mini">${ligne('Starter', '20 000', '100 commandes par mois')}${ligne('Business', '30 000', '200 commandes par mois')}${ligne('Premium', '50 000', '350 commandes, plusieurs pressings')}</div>
+        <button class="btn btn-vert" type="button">Activer ${choisie}</button>
+        <p class="note">Paiement par Wave, Orange Money, MTN MoMo ou Moov Money. 2 mois offerts en payant à l'année.</p>`;
+    },
+};
+function ouvrir(cle) {
+    volet.innerHTML = '<button class="fermer" type="button" aria-label="Fermer">×</button>' + ECRANS[cle]();
+    volet.querySelector('.fermer').addEventListener('click', fermer);
+    volet.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('volet-ouvert');
+}
+function fermer() { document.body.classList.remove('volet-ouvert'); volet.setAttribute('aria-hidden', 'true'); }
+document.getElementById('volet-fond').addEventListener('click', fermer);
+document.addEventListener('click', (e) => {
+    const lien = e.target.closest('[data-ouvrir]');
+    if (lien) { e.preventDefault(); ouvrir(lien.dataset.ouvrir); }
+});
+
+/* ----- Bouton flottant : on sait toujours où on en est ----- */
+const reprendre = document.getElementById('reprendre');
+new IntersectionObserver(([e]) => reprendre.classList.toggle('visible', !e.isIntersecting), { threshold: .15 }).observe(document.querySelector('.guide'));
+reprendre.addEventListener('click', () => document.getElementById('haut').scrollIntoView({ behavior: 'smooth' }));
+
+demarrer();
+
+Demo.installer({
+    reinitialiser: () => { fermer(); window.scrollTo({ top: 0 }); demarrer(); },
+    scenario: async ({ cliquer, taper, attendre, defiler, vers }) => {
+        await attendre(2600);
+        await cliquer('[data-choix="pressing"]');
+        await attendre(1500);
+        await cliquer('[data-choix="moyen"]');
+        await attendre(1300);
+        await cliquer('[data-choix="cahier"]');
+        await attendre(4200);
+        await vers('.station:nth-child(1)');
+        await vers('.station:nth-child(3)');
+        await cliquer('.station.conseil .btn');
+        await attendre(500);
+        await taper('#c-nom', 'Pressing Élégance');
+        await taper('#c-com', 'Cocody');
+        await attendre(900);
+        await cliquer('.volet .fermer');
+        await defiler('#portes', 1200);
+        await vers('.porte.vedette');
+        await attendre(1200);
+        await defiler(0, 1200);
+    },
+});
+</script>
+</body>
+</html>

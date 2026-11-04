@@ -1,0 +1,272 @@
+<title>Vitrine PressLink · 3 pistes</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&display=swap">
+<style>
+/* Page de choix : trois pistes côte à côte, chacune avec sa promesse, ses références et un bouton pour la voir bouger. */
+:root {
+    --fond: #F5F7FB; --surface: #FFFFFF; --encre: #0F172A; --texte-2: #475569; --trait: #E2E8F0;
+    --bleu: #2563EB; --bleu-teinte: #EFF6FF; --vert: #16A34A; --or: #FBBF24; --nuit: #0B1530;
+    --display: 'Inter Tight', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --corps: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --fond: #0B1220; --surface: #121B2E; --encre: #E8EEF8; --texte-2: #A5B4CB; --trait: #24314A; --bleu: #60A5FA; --bleu-teinte: #172554; --vert: #4ADE80; --nuit: #050A18; color-scheme: dark; } }
+:root[data-theme="dark"] { --fond: #0B1220; --surface: #121B2E; --encre: #E8EEF8; --texte-2: #A5B4CB; --trait: #24314A; --bleu: #60A5FA; --bleu-teinte: #172554; --vert: #4ADE80; --nuit: #050A18; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--fond); color: var(--encre); font: 400 16px/1.6 var(--corps); }
+.page { max-width: 1180px; margin: 0 auto; padding-block: 48px 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 40px; }
+h1, h2, h3 { font-family: var(--display); letter-spacing: -.025em; line-height: 1.1; text-wrap: balance; margin: 0; }
+p { margin: 0; }
+.marque { font: 800 20px/1 var(--display); letter-spacing: -.03em; }
+.marque span { color: var(--bleu); }
+.tete { display: grid; gap: 14px; max-width: 760px; }
+.tete h1 { font-size: clamp(32px, 4.6vw, 52px); font-weight: 800; }
+.tete p { font-size: 18px; color: var(--texte-2); }
+.but { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-weight: 600; font-size: 14.5px; }
+.but span { padding: 6px 12px; border-radius: 99px; background: var(--surface); border: 1px solid var(--trait); }
+.but b { color: var(--bleu); }
+.but i { color: var(--texte-2); font-style: normal; }
+
+.pistes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 980px) { .pistes { grid-template-columns: 1fr; } }
+.piste { background: var(--surface); border: 1px solid var(--trait); border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; }
+.apercu { height: 170px; position: relative; overflow: hidden; background: var(--nuit); }
+.corps { padding: 22px; display: grid; gap: 12px; flex: 1; align-content: start; }
+.n { font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--bleu); }
+.piste h2 { font-size: 26px; font-weight: 800; }
+.piste .promesse { color: var(--texte-2); }
+.piste h3 { font-size: 14px; font-weight: 700; margin-top: 4px; }
+.piste ul { margin: 0; padding-left: 18px; color: var(--texte-2); font-size: 14.5px; display: grid; gap: 4px; }
+.refs { font-size: 13px; color: var(--texte-2); border-top: 1px solid var(--trait); padding-top: 12px; }
+.voir { margin: 0 22px 22px; display: inline-flex; justify-content: center; align-items: center; gap: 8px; min-height: 48px; border-radius: 14px; background: var(--bleu); color: #fff; font-weight: 700; text-decoration: none; transition: transform .2s; }
+.voir:hover { transform: translateY(-2px); }
+:focus-visible { outline: 3px solid var(--bleu); outline-offset: 3px; }
+
+/* Petits aperçus animés */
+.a1 .bulle { position: absolute; padding: 8px 12px; border-radius: 14px; font-size: 13px; font-weight: 600; animation: monte 6s infinite; opacity: 0; }
+.a1 .g { left: 18px; background: #EFF6FF; color: #0F172A; border-bottom-left-radius: 4px; }
+.a1 .m { right: 18px; background: #2563EB; color: #fff; border-bottom-right-radius: 4px; }
+.a1 .b1 { top: 18px; animation-delay: 0s; } .a1 .b2 { top: 62px; animation-delay: .8s; } .a1 .b3 { top: 106px; animation-delay: 1.6s; }
+@keyframes monte { 0% { opacity: 0; transform: translateY(10px); } 10%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+.a2 { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 10px; padding: 26px 18px; background: linear-gradient(#E0ECFF, #F5F7FB); }
+.a2 div { border-radius: 14px; background: #fff; border: 1.5px solid #E2E8F0; animation: porte 4.5s infinite; }
+.a2 div:nth-child(2) { border-color: #2563EB; background: #2563EB; animation-delay: .3s; }
+.a2 div:nth-child(3) { animation-delay: .6s; }
+@keyframes porte { 0%, 100% { transform: none; } 20% { transform: translateY(-10px); } 40% { transform: none; } }
+.a3 svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.a3 .l { transform-origin: 50% 0; animation: balance 4s ease-in-out infinite; }
+@keyframes balance { 0%, 100% { rotate: -4deg; } 50% { rotate: 4deg; } }
+.tour { display: grid; gap: 20px; }
+.fusion { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); background: var(--surface); border: 2px solid var(--bleu); border-radius: 26px; overflow: hidden; text-decoration: none; color: inherit; transition: transform .25s; }
+.fusion:hover { transform: translateY(-3px); }
+@media (max-width: 860px) { .fusion { grid-template-columns: 1fr; } }
+.fusion .corps { padding: 26px; }
+.fusion h2 { font-size: 28px; font-weight: 800; }
+.fusion ul { margin: 0; padding-left: 18px; color: var(--texte-2); display: grid; gap: 6px; }
+.fusion .voir { margin: 6px 0 0; justify-self: start; padding: 0 20px; }
+.apercu-fusion { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: center; padding: 30px 26px; background: linear-gradient(#E0ECFF, #F5F7FB); min-height: 220px; }
+.apercu-fusion .g { display: grid; gap: 8px; }
+.apercu-fusion .g i { height: 12px; border-radius: 6px; background: #0F172A; }
+.apercu-fusion .g .a { width: 60%; height: 8px; background: #CBD5E1; }
+.apercu-fusion .g .b { width: 95%; height: 20px; }
+.apercu-fusion .g .c { width: 70%; height: 20px; background: #2563EB; animation: mot 2.4s infinite; transform-origin: left; }
+@keyframes mot { 0%, 100% { width: 70%; } 50% { width: 45%; } }
+.apercu-fusion .g .d { width: 85%; height: 8px; background: #94A3B8; }
+.apercu-fusion .d2 { display: grid; gap: 8px; }
+.apercu-fusion .d2 span { height: 34px; border-radius: 10px; background: #fff; border: 1.5px solid #E2E8F0; animation: glisse 4.5s infinite; }
+.apercu-fusion .d2 span.v { height: 42px; background: #2563EB; border-color: #2563EB; animation-delay: .3s; }
+.apercu-fusion .d2 span:nth-child(3) { animation-delay: .6s; }
+@keyframes glisse { 0%, 100% { transform: none; } 15% { transform: translateX(-6px); } 30% { transform: none; } }
+.tour-tete { display: grid; gap: 8px; max-width: 760px; }
+.tour-tete h2 { font-size: clamp(24px, 3vw, 32px); font-weight: 800; }
+.tour-tete p:last-child { color: var(--texte-2); }
+.tour .piste { border-color: var(--bleu); }
+.b1, .b2, .b3 { background: linear-gradient(#E0ECFF, #F5F7FB); }
+.b1 { display: grid; grid-template-columns: .8fr 1.2fr; gap: 12px; padding: 22px 18px; }
+.b1 .liste { display: grid; gap: 8px; align-content: start; }
+.b1 .liste i { height: 32px; border-radius: 10px; background: #fff; border: 1.5px solid #E2E8F0; animation: tour 6s infinite; }
+.b1 .liste i:nth-child(2) { animation-delay: 2s; } .b1 .liste i:nth-child(3) { animation-delay: 4s; }
+@keyframes tour { 0%, 30% { border-color: #2563EB; box-shadow: 0 6px 16px -8px rgba(37,99,235,.7); } 34%, 100% { border-color: #E2E8F0; box-shadow: none; } }
+.b1 .ecr { border-radius: 12px; background: #fff; border: 1px solid #E2E8F0; display: grid; gap: 8px; padding: 12px; align-content: start; }
+.b1 .ecr span { height: 10px; border-radius: 6px; background: #DBEAFE; animation: ligne 2s infinite alternate; }
+.b1 .ecr span:nth-child(2) { width: 70%; animation-delay: .3s; } .b1 .ecr span:nth-child(3) { width: 45%; animation-delay: .6s; }
+@keyframes ligne { to { background: #93C5FD; } }
+.b2 { display: grid; gap: 14px; padding: 18px; }
+.b2 .rail { display: flex; align-items: center; gap: 0; }
+.b2 .rail i { width: 14px; height: 14px; border-radius: 50%; background: #CBD5E1; flex: none; }
+.b2 .rail i.f { background: #16A34A; }
+.b2 .rail i + i::before { content: ""; }
+.b2 .rail i:not(:first-child) { margin-left: calc((100% - 70px) / 3); position: relative; }
+.b2 .rail b { margin-left: auto; font-size: 14px; }
+.b2 .cols, .b3 .cols { display: flex; gap: 8px; height: 96px; }
+.b2 .cols span, .b3 .cols span { flex: 1; border-radius: 10px; background: #fff; border: 1.5px solid #E2E8F0; transition: flex .6s; }
+.b2 .cols span.o { animation: ouvre 4s infinite; border-color: #2563EB; }
+@keyframes ouvre { 0%, 20% { flex: 1; } 45%, 85% { flex: 4; } 100% { flex: 1; } }
+.b3 { display: grid; gap: 12px; padding: 16px 18px; position: relative; }
+.b3 .chips { display: flex; gap: 6px; justify-content: center; }
+.b3 .chips i { width: 54px; height: 18px; border-radius: 6px; background: #fff; border: 1px solid #E2E8F0; }
+.b3 .chips i.on { background: #2563EB; border-color: #2563EB; }
+.b3 .cols { height: 80px; }
+.b3 .cols span.o { border-color: #2563EB; transform: scale(1.06); }
+.b3 .check { position: absolute; right: 12px; bottom: 12px; display: grid; gap: 4px; padding: 8px; border-radius: 10px; background: #0B1530; }
+.b3 .check i { width: 40px; height: 7px; border-radius: 4px; background: rgba(255,255,255,.2); }
+.b3 .check i.ok { background: #22C55E; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; } .a1 .bulle { opacity: 1; } }
+
+.recherche { background: var(--surface); border: 1px solid var(--trait); border-radius: 24px; padding: 26px; display: grid; gap: 16px; }
+.recherche h2 { font-size: 24px; font-weight: 800; }
+.principes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 28px; }
+@media (max-width: 760px) { .principes { grid-template-columns: 1fr; } }
+.principes div { display: grid; gap: 2px; }
+.principes strong { font-family: var(--display); }
+.principes span { color: var(--texte-2); font-size: 14.5px; }
+.commun { font-size: 14.5px; color: var(--texte-2); }
+</style>
+
+<div class="page">
+    <div class="tete">
+        <p class="marque">Press<span>Link</span></p>
+        <h1>Site vitrine : trois façons de guider le gérant jusqu'à son abonnement</h1>
+        <p>Chaque maquette est animée et cliquable. Une démo se lance seule à l'ouverture : un curseur fait le parcours à la place du visiteur, jusqu'au paiement. Touchez la page pour reprendre la main.</p>
+        <div class="but"><span>Démarrer un test</span><i>→</i><span>Créer mon espace</span><i>→</i><span>Choisir ma formule</span><i>→</i><span><b>Abonné</b></span></div>
+    </div>
+
+    <section class="tour">
+        <div class="tour-tete">
+            <p class="n">Tour 3 · la fusion</p>
+            <h2>Le briefing de la 1, les étapes de la 2</h2>
+            <p>Un seul écran, l'essentiel seulement. À gauche, trois lignes qui disent quoi faire. À droite, trois étapes : Tester, Créer mon pressing, Voir nos formules. Au clic, l'étape devient le formulaire et le briefing de gauche suit.</p>
+        </div>
+        <a class="fusion" href="fusion.html">
+            <div class="apercu-fusion" aria-hidden="true">
+                <div class="g"><i class="a"></i><i class="b"></i><i class="c"></i><i class="d"></i></div>
+                <div class="d2"><span></span><span class="v"></span><span></span></div>
+            </div>
+            <div class="corps">
+                <h2>La fusion</h2>
+                <ul><li>Nouvelles polices, plus chaleureuses : Bricolage Grotesque pour les titres, Plus Jakarta Sans pour le texte</li><li>Un mot qui tourne dans le titre : « enfin simple, organisé, à jour, payé à temps »</li><li>Des icônes vivantes : le flacon bouillonne, la maison fume et ouvre sa porte, les barres poussent</li><li>Au clic, l'étape devient le formulaire et le briefing de gauche change avec elle</li><li>Un rail 1 › 2 › 3 et un fil d'Ariane pour savoir où l'on est</li></ul>
+                <span class="voir">Voir la maquette animée →</span>
+            </div>
+        </a>
+    </section>
+
+    <section class="tour">
+        <div class="tour-tete">
+            <p class="n">Tour 2 · à partir de la proposition 2</p>
+            <h2>Les 3 portes, poussées plus loin</h2>
+            <p>Mêmes trois portes et même but final. Chaque variante change la façon de guider : ce qu'on voit derrière une porte, comment on avance, et comment la page s'adapte au gérant.</p>
+        </div>
+        <div class="pistes">
+            <article class="piste">
+                <div class="apercu b1" aria-hidden="true"><div class="liste"><i class="on"></i><i></i><i></i></div><div class="ecr"><span></span><span></span><span></span></div></div>
+                <div class="corps">
+                    <p class="n">Proposition 2A</p>
+                    <h2>La vitrine vivante</h2>
+                    <p class="promesse">Les portes en liste à gauche, un écran PressLink à droite qui montre en direct ce qu'il y a derrière chacune. Elles défilent seules ; au clic, l'aperçu devient le vrai formulaire, au même endroit.</p>
+                    <h3>Ce qui guide</h3>
+                    <ul><li>Une barre de temps sous la porte active, puis on passe à la suivante</li><li>La barre d'adresse change : /tester, /inscription, /formules</li><li>« Vous êtes ici » dans l'écran et dans le GPS du haut</li><li>Chaque porte affiche « En cours » ou « ✓ Fait »</li></ul>
+                    <h3>À savoir</h3>
+                    <ul><li>Le gérant voit le produit avant même de cliquer</li><li>Le plus « vitrine » des trois, idéal sur ordinateur</li></ul>
+                </div>
+                <a class="voir" href="2a-vitrine.html">Voir la maquette animée →</a>
+            </article>
+            <article class="piste">
+                <div class="apercu b2" aria-hidden="true"><div class="rail"><i class="f"></i><i class="f"></i><i></i><b>🏁</b></div><div class="cols"><span></span><span class="o"></span><span></span></div></div>
+                <div class="corps">
+                    <p class="n">Proposition 2B</p>
+                    <h2>Le chemin</h2>
+                    <p class="promesse">Les trois portes sont posées sur un chemin : Tester, Créer mon espace, Choisir ma formule, puis le drapeau « En ligne ». La porte choisie s'élargit sur place, les autres se replient sur le côté.</p>
+                    <h3>Ce qui guide</h3>
+                    <ul><li>Le chemin se remplit à chaque étape faite</li><li>Une épingle « Vous êtes ici » glisse d'une porte à l'autre</li><li>À la fin d'une étape, la porte suivante s'ouvre toute seule</li><li>On peut commencer par n'importe quelle porte</li></ul>
+                    <h3>À savoir</h3>
+                    <ul><li>Le plus clair sur l'ordre des étapes et la ligne d'arrivée</li><li>Tout se passe dans les portes, sans fenêtre par-dessus</li></ul>
+                </div>
+                <a class="voir" href="2b-chemin.html">Voir la maquette animée →</a>
+            </article>
+            <article class="piste">
+                <div class="apercu b3" aria-hidden="true"><div class="chips"><i></i><i class="on"></i><i></i></div><div class="cols"><span></span><span class="o"></span><span></span></div><div class="check"><i class="ok"></i><i class="ok"></i><i></i></div></div>
+                <div class="corps">
+                    <p class="n">Proposition 2C</p>
+                    <h2>Les portes sur mesure</h2>
+                    <p class="promesse">Une seule question au-dessus des portes : « Je me lance », « Un pressing qui tourne » ou « Plusieurs pressings ». La bonne porte glisse au centre et chaque porte parle au gérant, avec la formule qui lui correspond.</p>
+                    <h3>Ce qui guide</h3>
+                    <ul><li>La porte conseillée passe au centre, avec « Conseillé pour vous »</li><li>Une liste « Votre mise en route » reste dans le coin : 0/3 → 3/3</li><li>Elle s'ouvre pour montrer chaque case cochée, puis se range</li><li>Le parcours s'ouvre dans un volet, avec ses étapes en haut</li></ul>
+                    <h3>À savoir</h3>
+                    <ul><li>Le plus personnel : le petit pressing et le groupe ne voient pas la même chose</li><li>Reprend le meilleur de la proposition 1 (la question) sans le chat</li></ul>
+                </div>
+                <a class="voir" href="2c-sur-mesure.html">Voir la maquette animée →</a>
+            </article>
+        </div>
+    </section>
+
+    <div class="tour-tete">
+        <p class="n">Tour 1 · pour mémoire</p>
+        <h2>Les trois premières pistes</h2>
+    </div>
+
+    <div class="pistes">
+        <article class="piste">
+            <div class="apercu a1" aria-hidden="true"><span class="bulle g b1">Vous êtes… ?</span><span class="bulle m b2">Gérant de pressing</span><span class="bulle g b3">Voici votre parcours ✓</span></div>
+            <div class="corps">
+                <p class="n">Proposition 1</p>
+                <h2>Le Guide</h2>
+                <p class="promesse">Un conseiller occupe le haut de la page. Trois questions, puis il montre au gérant son parcours en trois étapes, avec la formule qui lui correspond.</p>
+                <h3>Ce qui guide</h3>
+                <ul><li>Une question à la fois, jamais plus de 4 réponses</li><li>Barre « Question 2 sur 3 »</li><li>Fil d'Ariane « Vous êtes ici » sur chaque écran</li><li>Bouton flottant « Reprendre mon parcours »</li></ul>
+                <h3>À savoir</h3>
+                <ul><li>Le plus personnel, et celui qui ressemble le plus à une vraie conversation</li><li>Pour le gérant pressé, les raccourcis restent visibles sous le titre</li></ul>
+                <p class="refs">Inspiré de : questionnaire une question à la fois (Typeform), accueil de Notion et d'Asana qui demandent « pour quoi faire ? » avant de montrer la suite.</p>
+            </div>
+            <a class="voir" href="1-guide.html">Voir la maquette animée →</a>
+        </article>
+
+        <article class="piste">
+            <div class="apercu a2" aria-hidden="true"><div></div><div></div><div></div></div>
+            <div class="corps">
+                <p class="n">Proposition 2</p>
+                <h2>Les 3 portes</h2>
+                <p class="promesse">Dès l'arrivée, trois grandes cartes animées : Essayer, Créer mon espace, Voir les formules. Chaque porte s'ouvre sur l'écran suivant, sans changer de page.</p>
+                <h3>Ce qui guide</h3>
+                <ul><li>Un GPS en haut : Découvrir › Tester › Créer › Formule › C'est parti</li><li>Chaque écran se termine par « Étape suivante »</li><li>Une formule choisie sans compte ? On fait créer l'espace d'abord</li><li>Sur téléphone, une barre en bas avec la prochaine action</li></ul>
+                <h3>À savoir</h3>
+                <ul><li>Le plus direct : on va jusqu'au paiement Wave en quelques clics</li><li>Le plus proche de la demande « trois actions en avant »</li></ul>
+                <p class="refs">Inspiré de : pages d'accueil qui demandent « par où commencer » (Shopify, Square), barres d'étapes des tunnels d'inscription, transitions fluides entre écrans.</p>
+            </div>
+            <a class="voir" href="2-portes.html">Voir la maquette animée →</a>
+        </article>
+
+        <article class="piste">
+            <div class="apercu a3" aria-hidden="true">
+                <svg viewBox="0 0 360 170"><path d="M0 22 Q 180 70 360 22" fill="none" stroke="#CBD5E1" stroke-width="2"/>
+                    <g class="l" style="transform-box:fill-box"><rect x="50" y="30" width="6" height="12" rx="2" fill="#FBBF24"/><path d="M41 42l-12 7 4 10 5-2v28h22V57l5 2 4-10-12-7c-2 3-5 5-8 5s-6-2-8-5z" fill="#F8FAFC"/></g>
+                    <g class="l" style="transform-box:fill-box;animation-delay:.6s"><rect x="128" y="44" width="6" height="12" rx="2" fill="#FBBF24"/><path d="M119 56l-12 7 4 10 5-2v28h22V71l5 2 4-10-12-7c-2 3-5 5-8 5s-6-2-8-5z" fill="#93C5FD"/></g>
+                    <g class="l" style="transform-box:fill-box;animation-delay:1.2s"><rect x="206" y="44" width="6" height="12" rx="2" fill="#FBBF24"/><path d="M199 56h20l3 40h-10l-3-24-3 24h-10z" fill="#FDE68A"/></g>
+                    <g class="l" style="transform-box:fill-box;animation-delay:1.8s"><rect x="284" y="30" width="6" height="12" rx="2" fill="#FBBF24"/><path d="M275 42l-12 7 4 10 5-2v28h22V57l5 2 4-10-12-7c-2 3-5 5-8 5s-6-2-8-5z" fill="#86EFAC"/></g>
+                </svg>
+            </div>
+            <div class="corps">
+                <p class="n">Proposition 3</p>
+                <h2>Le Fil</h2>
+                <p class="promesse">Le site devient un fil à linge. Le visiteur avance comme un vêtement dans son propre pressing : de « Déposé » à « Prêt ✓ », cintre après cintre.</p>
+                <h3>Ce qui guide</h3>
+                <ul><li>Cinq cintres : aujourd'hui, PressLink, essayer, ma formule, mon espace</li><li>Un vêtement suit le défilement et change de statut</li><li>Une barre en bas propose toujours la bonne action</li><li>Un curseur choisit la formule à partir des commandes par jour</li></ul>
+                <h3>À savoir</h3>
+                <ul><li>Le plus marquant et le plus « motion », une image que les gérants reconnaissent</li><li>Raconte avant de faire agir : un peu plus long à parcourir</li></ul>
+                <p class="refs">Inspiré de : pages produit animées au défilement (Apple), récits qui avancent avec le défilement, indicateur de progression toujours visible.</p>
+            </div>
+            <a class="voir" href="3-fil.html">Voir la maquette animée →</a>
+        </article>
+    </div>
+
+    <section class="recherche">
+        <h2>Ce que la recherche a confirmé</h2>
+        <div class="principes">
+            <div><strong>Demander avant de montrer</strong><span>Une ou deux questions sur le métier et la taille suffisent pour envoyer chacun vers la bonne première action.</span></div>
+            <div><strong>L'essai et la démo en haut de page</strong><span>Les sites qui vendent en libre-service placent le test et la démo dans le premier écran, pas en bas.</span></div>
+            <div><strong>Toujours savoir où l'on est</strong><span>Étapes numérotées, « Vous êtes ici » et prochaine action visible à chaque écran, sur téléphone comme sur ordinateur.</span></div>
+            <div><strong>Un mouvement qui sert</strong><span>Une animation principale par écran, pas de défilement forcé, et une version calme pour qui la désactive sur son téléphone.</span></div>
+        </div>
+        <p class="commun">Points communs aux trois : les vraies formules (Starter 20 000 F, Business 30 000 F, Premium 50 000 F par mois), le test de 3 jours sans inscription, l'inscription en 2 étapes, le paiement Wave, Orange Money, MTN MoMo ou Moov Money. Les pistes se combinent : par exemple les portes de la 2 avec le GPS, et le calculateur de formule de la 3.</p>
+    </section>
+</div>

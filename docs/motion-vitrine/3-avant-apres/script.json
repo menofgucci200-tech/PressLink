@@ -1,0 +1,9 @@
+{"repliques": [
+  {"cle": "c1", "qui": "Client", "texte": "Allô ? C'est prêt ?", "voix": "em_alex", "vitesse": 1.05, "hauteur": -1, "effet": "telephone"},
+  {"cle": "p1", "qui": "Patronne", "texte": "Attends, je cherche dans le carnet hein !", "voix": "ff_siwis", "vitesse": 1.12, "hauteur": -2},
+  {"cle": "c2", "qui": "Client", "texte": "Allô ?! Toujours pas prêt ?", "voix": "em_alex", "vitesse": 1.1, "hauteur": -1, "effet": "telephone"},
+  {"cle": "n1", "qui": "", "texte": "Avec PressLink, le client est prévenu tout seul.", "voix": "ff_siwis", "vitesse": 0.98},
+  {"cle": "p2", "qui": "Patronne", "texte": "Il manque cinq mille… C'est le taxi de ce matin ou bien ?", "voix": "ff_siwis", "vitesse": 1.12, "hauteur": -2},
+  {"cle": "n2", "qui": "", "texte": "Avec PressLink, chaque dépense est notée. La caisse tombe juste.", "voix": "ff_siwis", "vitesse": 0.98},
+  {"cle": "n3", "qui": "", "texte": "PressLink. Fini le stress au pressing.", "voix": "ff_siwis", "vitesse": 0.92}
+]}

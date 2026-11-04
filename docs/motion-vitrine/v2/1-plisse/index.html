@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PressLink — Plissé</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../commun/v2.css">
+<style>
+:root { --noir: #0A0A0A; --or: #F2B705; --rouge: #E0352B; --vert: #1E9E50; --bleu: #2563EB; --blanc: #F5F1E8; --orange: #F47B20; }
+body { background: var(--noir); color: var(--blanc); }
+.u { font-family: Unbounded, "Archivo Black", sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: -.01em; }
+.mini { font: 600 12px/1.4 Inter; letter-spacing: .16em; text-transform: uppercase; }
+
+/* Interface fixe */
+.hud { position: fixed; inset: 0; z-index: 40; pointer-events: none; mix-blend-mode: difference; color: #fff; }
+.hud > * { position: absolute; pointer-events: auto; }
+.hud .logo { left: 24px; top: 22px; font: 900 16px Unbounded; letter-spacing: .02em; text-decoration: none; }
+.hud .son-btn { right: 22px; top: 16px; }
+.hud .gauche { left: 24px; bottom: 64px; max-width: 280px; }
+.hud .droite { right: 24px; bottom: 64px; text-align: right; }
+.hud .compteur { right: 24px; top: 50%; transform: translateY(-50%); font: 600 12px Unbounded; writing-mode: vertical-rl; letter-spacing: .3em; }
+
+/* 1. L'accordéon */
+#accordeon { position: relative; height: 100vh; overflow: hidden; }
+#rangs { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.rang { position: relative; flex: 1 1 0; min-height: 0; overflow: hidden; cursor: pointer; }
+.rang svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.rang .etiquette { position: absolute; left: 24px; top: 50%; transform: translateY(-50%); font: 600 11px Inter; letter-spacing: .2em; text-transform: uppercase; color: var(--noir); background: currentColor; padding: 0; opacity: 0; pointer-events: none; }
+.rang .etiquette span { color: var(--noir); display: inline-block; padding: 4px 8px; }
+#fer { position: absolute; left: -5%; right: -5%; height: 26px; top: -60px; z-index: 5; border-radius: 13px; background: linear-gradient(#fff, #E6E6E6); box-shadow: 0 0 60px 30px rgba(255,255,255,.45), 0 0 140px 60px rgba(255,255,255,.18); pointer-events: none; }
+.vapeur { position: absolute; border-radius: 50%; background: rgba(255,255,255,.55); filter: blur(18px); pointer-events: none; z-index: 6; }
+#flood { position: absolute; inset: 0; z-index: 7; pointer-events: none; transform-origin: 50% 50%; }
+
+/* 2. Le repassage des phrases */
+#repasse { position: relative; height: 100vh; overflow: hidden; }
+.panneau { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 0 6vw; color: var(--noir); }
+.panneau h2 { font-size: clamp(42px, 8.6vw, 150px); line-height: .92; }
+.panneau h2 .l { display: inline-block; will-change: transform; }
+.panneau p { margin-top: 28px; font: 500 clamp(16px, 1.5vw, 21px)/1.5 Inter; max-width: 560px; opacity: 0; }
+.panneau .num { position: absolute; top: 26px; left: 50%; transform: translateX(-50%); }
+#fer2 { position: absolute; top: 0; bottom: 0; width: 34vw; left: -40vw; z-index: 5; pointer-events: none; }
+#fer2 svg { position: absolute; top: 50%; left: 0; width: 100%; transform: translateY(-50%); filter: drop-shadow(0 30px 40px rgba(0,0,0,.35)); }
+
+/* 3. Les plis qui se déplient */
+#plis { position: relative; height: 100vh; overflow: hidden; background: var(--noir); perspective: 1400px; }
+#tissu { position: absolute; left: 50%; top: 50%; width: min(1200px, 92vw); transform: translate(-50%, -50%); display: flex; flex-direction: column; transform-style: preserve-3d; }
+.pli { position: relative; overflow: hidden; transform-style: preserve-3d; backface-visibility: hidden; }
+.pli .contenu { position: absolute; left: 0; right: 0; }
+.pli .ombre { position: absolute; inset: 0; pointer-events: none; }
+.etoffe { background: var(--bleu); background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.07) 0 2px, transparent 2px 60px), repeating-linear-gradient(0deg, rgba(0,0,0,.06) 0 2px, transparent 2px 24px); color: var(--blanc); display: flex; flex-direction: column; justify-content: center; padding: 0 6%; }
+.etoffe h2 { font-size: clamp(30px, 5.4vw, 86px); line-height: .98; }
+.etoffe h2 em { font-style: normal; color: var(--or); }
+.video-cadre { position: absolute; left: 50%; top: 50%; width: min(980px, 88vw); aspect-ratio: 16/9; transform: translate(-50%, -50%) scale(.6); opacity: 0; border-radius: 22px; overflow: hidden; background: #111; border: 1px solid rgba(255,255,255,.15); display: grid; place-items: center; z-index: 3; }
+.video-cadre .jouer { width: 96px; height: 96px; border-radius: 50%; background: var(--or); display: grid; place-items: center; color: var(--noir); font-size: 34px; }
+.video-cadre .mini { position: absolute; left: 22px; bottom: 18px; color: #aaa; }
+
+/* 4. Fin */
+#fin { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 120px 20px 160px; overflow: hidden; }
+#fin h2 { font-size: clamp(40px, 7vw, 120px); line-height: .95; }
+#fin h2 .c { display: inline-block; }
+#fin .ctas { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin-top: 44px; }
+#fin a.cta { display: inline-flex; align-items: center; height: 58px; padding: 0 28px; border-radius: 999px; font: 900 15px Unbounded; text-transform: uppercase; text-decoration: none; letter-spacing: .03em; }
+#fin a.cta.plein { background: var(--or); color: var(--noir); }
+#fin a.cta.bord { border: 2px solid var(--blanc); }
+.bandes-fin { position: absolute; left: 0; right: 0; bottom: 0; height: 90px; display: flex; flex-direction: column; }
+.bandes-fin div { flex: 1; }
+@media (max-width: 700px) { .hud .gauche, .hud .compteur { display: none; } .hud .droite { bottom: 64px; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="filtres"></defs></svg>
+
+<div class="hud">
+    <a class="logo" href="#accordeon">PressLink</a>
+    <button class="son-btn" data-son aria-pressed="false"><span class="ondes"><span></span><span></span><span></span></span>Son</button>
+    <div class="gauche mini">Le pressing, sans stress.<br>Abidjan · Côte d'Ivoire</div>
+    <div class="droite mini" id="indice">Défilez ↓</div>
+    <div class="compteur" id="compteur">01 / 12</div>
+</div>
+
+<main>
+<section id="accordeon" aria-label="PressLink">
+    <div id="rangs"></div>
+    <div id="fer"></div>
+    <div id="flood"></div>
+</section>
+
+<section id="repasse" aria-label="Fini le stress">
+    <div class="panneau" data-p="0" style="background:var(--or)"><span class="num mini">01 — Le ticket</span><h2 class="u">Fini les tickets perdus.</h2><p>Le reçu de chaque dépôt est dans le téléphone du client. Il ne se perd plus, ne se déchire plus.</p></div>
+    <div class="panneau" data-p="1" style="background:var(--rouge)"><span class="num mini">02 — L'attente</span><h2 class="u">Fini les « C'est prêt&nbsp;? »</h2><p>Le client suit sa commande en temps réel et reçoit une notification dès qu'elle est prête.</p></div>
+    <div class="panneau" data-p="2" style="background:var(--vert)"><span class="num mini">03 — La caisse</span><h2 class="u">Fini la caisse qui ne tombe pas juste.</h2><p>Les dépenses du jour sont notées, l'écart est calculé tout seul. Le soir, tout est clair.</p></div>
+    <div id="fer2"><svg viewBox="0 0 600 340"><path d="M20 300 Q40 120 260 100 L580 100 L580 300 Z" fill="#F5F1E8"/><path d="M20 300 L580 300 L580 326 L36 326 Z" fill="#BDBDBD"/><path d="M270 100 Q300 10 390 10 L540 10 Q568 10 568 40 L568 100" fill="none" stroke="#0A0A0A" stroke-width="22" stroke-linecap="round"/><circle cx="430" cy="200" r="20" fill="#E0352B"/></svg></div>
+</section>
+
+<section id="plis" aria-label="Le lien">
+    <div id="tissu"></div>
+    <div class="video-cadre" id="video"><div class="jouer">▶</div><span class="mini">Vidéo de présentation · bientôt ici</span></div>
+</section>
+
+<section id="fin">
+    <h2 class="u" id="fin-titre">Le pressing,<br>sans stress.</h2>
+    <p class="mini" style="margin-top:22px; color:#aaa">Gratuit pour les clients · Simple pour les pressings</p>
+    <div class="ctas">
+        <a class="cta plein" href="https://presslink.org/app/">Ouvrir l'application</a>
+        <a class="cta bord" href="https://wa.me/2250718002293" target="_blank" rel="noopener">Parlons-en</a>
+    </div>
+    <div class="bandes-fin" id="bandes-fin"></div>
+</section>
+</main>
+
+<div class="legende" data-legende></div>
+<nav class="maquette-bar"><a href="../">Maquettes</a><a class="on" href="../1-plisse/">Plissé</a><a href="../2-fil/">Le Fil</a><a href="../3-abidjan/">Abidjan</a></nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="../commun/son.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+window.lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 0.9 });
+window.lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add((t) => window.lenis.raf(t * 1000));
+gsap.ticker.lagSmoothing(0);
+Son.brancher({ musique: 'audio/musique.mp3' });
+
+const COULEURS = ['#F5F1E8', '#F2B705', '#E0352B', '#1E9E50', '#2563EB', '#F47B20'];
+const CHAPITRES = ['Accueil', 'Le ticket', 'L\'attente', 'La caisse', 'Le lien', 'La vidéo', 'Les clients', 'Les pressings', 'L\'équipe', 'Installer', 'Contact', 'PressLink'];
+const N = 12;
+
+/* ---------------------------------------------------------------- les rangées */
+const rangs = document.getElementById('rangs'), filtres = document.getElementById('filtres');
+const elems = [];
+for (let i = 0; i < N; i++) {
+    const c = COULEURS[i % COULEURS.length];
+    filtres.insertAdjacentHTML('beforeend', `<filter id="fr${i}" x="-2%" y="-20%" width="104%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.012 0.08" numOctaves="2" seed="${i + 3}"/><feDisplacementMap in="SourceGraphic" scale="0"/></filter>`);
+    const r = document.createElement('div');
+    r.className = 'rang';
+    r.innerHTML = `<svg viewBox="0 0 1000 72" preserveAspectRatio="none"><text x="0" y="71.5" textLength="1000" lengthAdjust="spacingAndGlyphs" font-family="Unbounded" font-weight="900" font-size="100" fill="${c}" filter="url(#fr${i})">PRESSLINK</text></svg><span class="etiquette" style="color:${c}"><span>${String(i + 1).padStart(2, '0')} · ${CHAPITRES[i]}</span></span>`;
+    rangs.appendChild(r);
+    elems.push({ r, disp: filtres.querySelector(`#fr${i} feDisplacementMap`), eti: r.querySelector('.etiquette') });
+}
+
+/* Poids des rangées : une bosse (gaussienne) autour de la rangée active */
+const etat = { actif: 6, cible: 6, ampleur: 0, survol: null, froisse: 1, fer: -0.1 };
+function poids(i) { const d = i - etat.actif; return 1 + etat.ampleur * Math.exp(-(d * d) / 0.32); }
+let dernierIndex = -1;
+function dessiner() {
+    const actif = etat.survol ?? etat.cible;
+    etat.actif += (actif - etat.actif) * 0.14;
+    elems.forEach((e, i) => {
+        e.r.style.flexGrow = poids(i);
+        // froissé tant que le fer n'est pas passé sur la rangée
+        const passe = gsap.utils.clamp(0, 1, (etat.fer * N - i) / 1.2);
+        e.disp.setAttribute('scale', (etat.froisse * (1 - passe) * 38).toFixed(1));
+        e.eti.style.opacity = Math.max(0, 1 - Math.abs(i - etat.actif) * 1.4) * (etat.ampleur > 3 ? 1 : 0);
+    });
+    const idx = Math.round(etat.actif);
+    if (idx !== dernierIndex) { dernierIndex = idx; document.getElementById('compteur').textContent = `${String(idx + 1).padStart(2, '0')} / ${N}`; if (etat.ampleur > 3) Son.sfx('swish', 0.25); }
+}
+gsap.ticker.add(dessiner);
+elems.forEach((e, i) => {
+    e.r.addEventListener('pointerenter', () => { if (introFinie) etat.survol = i; });
+    e.r.addEventListener('click', () => Son.sfx('basse', 0.6));
+});
+rangs.addEventListener('pointerleave', () => (etat.survol = null));
+
+/* ---------------------------------------------------------------- intro : froissé puis repassé */
+let introFinie = false;
+gsap.set('.rang svg', { scaleY: 0, transformOrigin: '50% 50%' });
+const intro = gsap.timeline({ delay: 0.3, onComplete: () => (introFinie = true) });
+intro.to('.rang svg', { scaleY: 1, duration: 0.7, stagger: 0.04, ease: 'expo.out' })
+     .to(etat, { ampleur: 9, duration: 0.6, ease: 'power2.out' }, 0.3)
+     .fromTo(etat, { cible: -1 }, { cible: 12, duration: 1.6, ease: 'power1.inOut' }, 0.3)
+     .to(etat, { fer: 1.15, duration: 1.3, ease: 'power2.inOut', onStart: () => Son.sfx('vapeur', 0.7) }, 1.1)
+     .fromTo('#fer', { top: '-6%' }, { top: '106%', duration: 1.3, ease: 'power2.inOut' }, 1.1)
+     .to(etat, { cible: 6, ampleur: 22, duration: 1.1, ease: 'expo.inOut' }, 2.2)
+     .to(etat, { froisse: 0, duration: 0.01 }, 2.4);
+// vapeur derrière le fer
+const vapeurs = [];
+for (let i = 0; i < 14; i++) { const v = document.createElement('div'); v.className = 'vapeur'; document.getElementById('accordeon').appendChild(v); vapeurs.push(v); }
+intro.add(() => {
+    vapeurs.forEach((v, i) => {
+        const s = 60 + Math.random() * 140;
+        gsap.fromTo(v, { width: s, height: s, left: Math.random() * 100 + '%', top: (5 + i * 7) + '%', opacity: 0.8, scale: 0.4 },
+            { opacity: 0, scale: 2.2, y: -120 - Math.random() * 100, duration: 1.6 + Math.random(), delay: i * 0.08, ease: 'power2.out' });
+    });
+}, 1.15);
+
+/* ---------------------------------------------------------------- défilement de l'accordéon */
+const flood = document.getElementById('flood');
+ScrollTrigger.create({
+    trigger: '#accordeon', pin: true, start: 'top top', end: '+=240%', scrub: true,
+    onUpdate: (st) => {
+        if (!introFinie) return;
+        const p = st.progress;
+        etat.cible = gsap.utils.interpolate(6, 1, Math.min(1, p / 0.75));
+        // à la fin, la rangée « or » envahit l'écran
+        const f = gsap.utils.clamp(0, 1, (p - 0.78) / 0.22);
+        flood.style.background = COULEURS[1];
+        flood.style.clipPath = `inset(${(1 - f) * 46}% 0 ${(1 - f) * 46}% 0)`;
+        document.getElementById('indice').textContent = p > 0.05 ? 'Continuez ↓' : 'Défilez ↓';
+    },
+});
+
+/* ---------------------------------------------------------------- le repassage des phrases */
+const panneaux = gsap.utils.toArray('.panneau');
+const lettres = panneaux.map((pn) => {
+    const h = pn.querySelector('h2');
+    const mots = h.innerHTML.split(/(\s|&nbsp;)/);
+    h.innerHTML = mots.map((m) => (m.trim() && m !== '&nbsp;' ? `<span style="display:inline-block; white-space:nowrap">${[...m].map((c) => `<span class="l">${c}</span>`).join('')}</span>` : m)).join('');
+    return [...h.querySelectorAll('.l')].map((el) => ({ el, r: gsap.utils.random(-40, 40), x: gsap.utils.random(-60, 60), y: gsap.utils.random(-80, 80), s: gsap.utils.random(0.6, 1.3), sk: gsap.utils.random(-25, 25) }));
+});
+function mesurer() { lettres.flat().forEach((l) => { l.el.style.transform = 'none'; const b = l.el.getBoundingClientRect(); l.bx = b.left + b.width / 2; }); }
+mesurer();
+lettres.flat().forEach((l) => (l.el.style.transform = `translate(${l.x}px, ${l.y}px) rotate(${l.r}deg) scale(${l.s}) skewX(${l.sk}deg)`));
+addEventListener('resize', () => { mesurer(); });
+panneaux.forEach((pn, i) => { if (i) gsap.set(pn, { clipPath: 'inset(100% 0 0 0)' }); });
+const fer2 = document.getElementById('fer2');
+let panneauSon = -1;
+ScrollTrigger.create({
+    trigger: '#repasse', pin: true, start: 'top top', end: '+=330%', scrub: true,
+    onUpdate: (st) => {
+        const p = st.progress * 3, idx = Math.min(2, Math.floor(p)), k = p - idx;
+        panneaux.forEach((pn, i) => {
+            if (i === 0) return;
+            const ouvert = gsap.utils.clamp(0, 1, (p - i + 0.08) / 0.12);
+            pn.style.clipPath = `inset(${(1 - ouvert) * 100}% 0 0 0)`;
+        });
+        const xFer = gsap.utils.interpolate(-0.4, 1.15, gsap.utils.clamp(0, 1, (k - 0.12) / 0.62)) * innerWidth;
+        fer2.style.transform = `translateX(${xFer + innerWidth * 0.4}px) rotate(${Math.sin(k * 20) * 1.5}deg)`;
+        if (idx !== panneauSon && k > 0.12) { panneauSon = idx; Son.sfx('vapeur', 0.6); Son.sfx('basse', 0.4); }
+        lettres.forEach((ls, i) => {
+            const pn = panneaux[i];
+            ls.forEach((l) => {
+                const reglee = i < idx ? 1 : i > idx ? 0 : gsap.utils.clamp(0, 1, (xFer + innerWidth * 0.16 - l.bx) / 160);
+                const f = 1 - reglee;
+                l.el.style.transform = `translate(${l.x * f}px, ${l.y * f}px) rotate(${l.r * f}deg) scale(${1 + (l.s - 1) * f}) skewX(${l.sk * f}deg)`;
+            });
+            const fin = i < idx ? 1 : i > idx ? 0 : gsap.utils.clamp(0, 1, (k - 0.7) / 0.15);
+            pn.querySelector('p').style.opacity = fin;
+            pn.querySelector('p').style.transform = `translateY(${(1 - fin) * 20}px)`;
+        });
+    },
+});
+
+/* ---------------------------------------------------------------- les plis */
+const tissu = document.getElementById('tissu'), NP = 9;
+const hauteur = () => Math.min(innerHeight * 0.7, 640);
+const contenu = `<div class="etoffe" style="height:${hauteur()}px"><span class="mini" style="opacity:.7; margin-bottom:22px">04 — Le lien</span><h2 class="u">Le lien entre votre <em>pressing</em> et vos <em>clients</em>.</h2><p style="margin-top:26px; font:500 clamp(15px,1.4vw,20px)/1.5 Inter; max-width:620px; opacity:.85">Le client suit ses vêtements, le pressing gère commandes, caisse et équipe. Gratuit pour les clients.</p></div>`;
+const plis = [];
+for (let i = 0; i < NP; i++) {
+    const p = document.createElement('div');
+    p.className = 'pli';
+    p.innerHTML = `<div class="contenu" style="top:${-i * hauteur() / NP}px">${contenu}</div><div class="ombre"></div>`;
+    tissu.appendChild(p);
+    plis.push(p);
+}
+const pliEtat = { a: 88 };
+function plier() {
+    const h = hauteur() / NP, a = pliEtat.a * Math.PI / 180;
+    plis.forEach((p, i) => {
+        const sens = i % 2 ? -1 : 1;
+        p.style.height = h * Math.cos(a) + 'px';
+        p.querySelector('.contenu').style.transform = `translateY(${-(h - h * Math.cos(a)) / 2}px)`;
+        p.style.transform = `rotateX(${sens * pliEtat.a}deg)`;
+        p.querySelector('.ombre').style.background = `rgba(0,0,0,${(sens > 0 ? 0.55 : 0.15) * Math.sin(a)})`;
+    });
+}
+plier();
+const tlPlis = gsap.timeline({ scrollTrigger: { trigger: '#plis', pin: true, start: 'top top', end: '+=260%', scrub: 0.6, onEnter: () => Son.sfx('froisse', 0.7) } });
+tlPlis.to(pliEtat, { a: 0, duration: 1.4, ease: 'power2.out', onUpdate: plier })
+      .to({}, { duration: 0.5 })
+      .to(tissu, { scale: 0.62, opacity: 0, duration: 0.7, ease: 'power2.in' })
+      .to('#video', { scale: 1, opacity: 1, duration: 0.7, ease: 'power2.out', onStart: () => Son.sfx('impact', 0.5) }, '<0.2')
+      .to({}, { duration: 0.6 });
+
+/* ---------------------------------------------------------------- fin */
+const bf = document.getElementById('bandes-fin');
+COULEURS.forEach((c) => bf.insertAdjacentHTML('beforeend', `<div style="background:${c}"></div>`));
+gsap.from('#bandes-fin div', { scaleX: 0, transformOrigin: (i) => (i % 2 ? '100% 50%' : '0% 50%'), stagger: 0.08, duration: 1, ease: 'expo.out', scrollTrigger: { trigger: '#fin', start: 'top 60%' } });
+const ft = document.getElementById('fin-titre');
+ft.innerHTML = ft.innerHTML.split('<br>').map((ligne) => [...ligne].map((c) => (c === ' ' ? ' ' : `<span class="c">${c}</span>`)).join('')).join('<br>');
+gsap.from('#fin-titre .c', { yPercent: 120, scaleY: 3, opacity: 0, stagger: 0.025, duration: 0.9, ease: 'expo.out', scrollTrigger: { trigger: '#fin', start: 'top 60%', onEnter: () => Son.sfx('signature', 0.6) } });
+document.querySelectorAll('a.cta').forEach((a) => {
+    a.addEventListener('pointermove', (e) => { const r = a.getBoundingClientRect(); gsap.to(a, { x: (e.clientX - r.left - r.width / 2) * 0.3, y: (e.clientY - r.top - r.height / 2) * 0.4, duration: 0.3 }); });
+    a.addEventListener('pointerleave', () => gsap.to(a, { x: 0, y: 0, duration: 0.7, ease: 'elastic.out(1,.4)' }));
+});
+addEventListener('resize', () => ScrollTrigger.refresh());
+</script>
+</body>
+</html>

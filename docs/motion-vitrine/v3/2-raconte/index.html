@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>PressLink — Suivi de commandes de pressing en Côte d&#039;Ivoire</title>
+        <meta name="description" content="Suivez vos vêtements au pressing et recevez une notification dès qu&#039;ils sont prêts. Application gratuite et logiciel de gestion pour pressings en Côte d&#039;Ivoire.">
+                    <meta name="keywords" content="pressing Abidjan, application pressing, suivi commande pressing, logiciel gestion pressing, logiciel pressing Côte d&#039;Ivoire, gestion de pressing, pressing en ligne, teinturerie Abidjan, blanchisserie Abidjan, notification vêtements prêts, PressLink">
+                <meta name="robots" content="index, follow, max-image-preview:large">
+        <meta name="author" content="PressLink">
+        <meta name="theme-color" content="#2563EB">
+                    <meta name="google-site-verification" content="-p_mpG-fLnmC1h9wfvAwIEAOT3GEdXL7SoUghpxpJtk">
+                <link rel="canonical" href="https://presslink.org/">
+
+        
+        <link rel="icon" href="https://presslink.org/favicon.ico?v=2" sizes="any">
+        <link rel="icon" type="image/png" href="https://presslink.org/favicon-48.png?v=2" sizes="48x48">
+        <link rel="icon" type="image/png" href="https://presslink.org/favicon-96.png?v=2" sizes="96x96">
+        <link rel="icon" type="image/png" href="https://presslink.org/favicon-192.png?v=2" sizes="192x192">
+        <link rel="apple-touch-icon" href="../commun/img/apple-touch-icon.png?v=2">
+
+        
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="PressLink">
+        <meta property="og:locale" content="fr_CI">
+        <meta property="og:title" content="PressLink — Suivi de commandes de pressing en Côte d&#039;Ivoire">
+        <meta property="og:description" content="Suivez vos vêtements au pressing et recevez une notification dès qu&#039;ils sont prêts. Application gratuite et logiciel de gestion pour pressings en Côte d&#039;Ivoire.">
+        <meta property="og:url" content="https://presslink.org/">
+        <meta property="og:image" content="https://presslink.org/og-image.png">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:alt" content="PressLink — suivi de commandes et gestion de pressing">
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="PressLink — Suivi de commandes de pressing en Côte d&#039;Ivoire">
+        <meta name="twitter:description" content="Suivez vos vêtements au pressing et recevez une notification dès qu&#039;ils sont prêts. Application gratuite et logiciel de gestion pour pressings en Côte d&#039;Ivoire.">
+        <meta name="twitter:image" content="https://presslink.org/og-image.png">
+
+                    <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://presslink.org/#organization","name":"PressLink","url":"https://presslink.org/","logo":{"@type":"ImageObject","@id":"https://presslink.org/#logo","url":"https://presslink.org/images/logo-presslink.png","contentUrl":"https://presslink.org/images/logo-presslink.png","width":512,"height":512,"caption":"PressLink"},"image":{"@id":"https://presslink.org/#logo"},"slogan":"Le lien entre votre pressing et vos clients","areaServed":{"@type":"Country","name":"Côte d'Ivoire"},"contactPoint":{"@type":"ContactPoint","telephone":"+2250718002293","email":"contact@presslink.org","contactType":"customer support","availableLanguage":"fr","areaServed":"CI"}},{"@type":"WebSite","@id":"https://presslink.org/#website","url":"https://presslink.org/","name":"PressLink","inLanguage":"fr-CI","publisher":{"@id":"https://presslink.org/#organization"}},{"@type":"SoftwareApplication","@id":"https://presslink.org/#application","name":"PressLink","applicationCategory":"LifestyleApplication","operatingSystem":"Android, iOS (application web installable)","url":"https://presslink.org/app/","description":"Suivez vos vêtements au pressing et recevez une notification dès qu'ils sont prêts. Application gratuite et logiciel de gestion pour pressings en Côte d'Ivoire.","inLanguage":"fr","offers":{"@type":"Offer","price":"0","priceCurrency":"XOF"},"publisher":{"@id":"https://presslink.org/#organization"}}]}</script>
+                
+        <script>
+    (function () {
+        if (window.PressLinkTheme) {
+            return;
+        }
+
+        var storageKey = 'presslink-theme';
+        var systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+        var themeColor = document.querySelector('meta[name="theme-color"]');
+        var lightThemeColor = themeColor ? themeColor.content : null;
+
+        function stored() {
+            try {
+                var value = localStorage.getItem(storageKey);
+
+                return value === 'dark' || value === 'light' ? value : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function preferred() {
+            return stored() || (systemDark.matches ? 'dark' : 'light');
+        }
+
+        function apply(theme) {
+            var root = document.documentElement;
+            root.setAttribute('data-theme', theme);
+
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta && lightThemeColor) {
+                meta.content = theme === 'dark' ? '#0b1220' : lightThemeColor;
+            }
+        }
+
+        function remember(mode) {
+            try {
+                if (mode === 'system') {
+                    localStorage.removeItem(storageKey);
+                } else {
+                    localStorage.setItem(storageKey, mode);
+                }
+            } catch (e) {}
+        }
+
+        function switchTo(theme) {
+            var root = document.documentElement;
+            root.classList.add('theme-switching');
+            apply(theme);
+            setTimeout(function () {
+                root.classList.remove('theme-switching');
+            }, 300);
+            window.dispatchEvent(new CustomEvent('presslink-theme-changed'));
+        }
+
+        window.PressLinkTheme = {
+            current: function () {
+                return document.documentElement.getAttribute('data-theme') || 'light';
+            },
+            /** Choix enregistré : 'light', 'dark' ou 'system' (réglage de l'appareil). */
+            mode: function () {
+                return stored() || 'system';
+            },
+            set: function (mode) {
+                remember(mode);
+                switchTo(preferred());
+            },
+            toggle: function () {
+                var next = this.current() === 'dark' ? 'light' : 'dark';
+                remember(next);
+                switchTo(next);
+            },
+        };
+
+        apply(preferred());
+
+        systemDark.addEventListener('change', function () {
+            if (!stored()) {
+                apply(preferred());
+            }
+        });
+
+        document.addEventListener('livewire:navigating', function (event) {
+            event.detail.onSwap(function () {
+                apply(preferred());
+            });
+        });
+        document.addEventListener('livewire:navigated', function () {
+            apply(preferred());
+        });
+    })();
+</script>
+        <link rel="preload" as="style" href="../commun/app.css" /><link rel="stylesheet" href="../commun/app.css" data-navigate-track="reload" />    <script id="browser-logger-active">
+(function() {
+    const ENDPOINT = 'https://presslink.org/_boost/browser-logs';
+    const logQueue = [];
+    let flushTimeout = null;
+    const captureTypes = ["error","warning","info","log","debug","table"];
+
+    console.log('🔍 Browser logger active (MCP server detected). Posting to: ' + ENDPOINT);
+
+    // Store original console methods
+    const originalConsole = {
+        log: console.log,
+        debug: console.debug,
+        info: console.info,
+        error: console.error,
+        warn: console.warn,
+        table: console.table
+    };
+
+    // Helper to safely stringify values
+    function safeStringify(obj) {
+        const seen = new WeakSet();
+        return JSON.stringify(obj, (key, value) => {
+            if (typeof value === 'object' && value !== null) {
+                if (seen.has(value)) return '[Circular]';
+                seen.add(value);
+            }
+            if (value instanceof Error) {
+                return {
+                    name: value.name,
+                    message: value.message,
+                    stack: value.stack
+                };
+            }
+            return value;
+        });
+    }
+
+    // Normalize log type for consistency (e.g., 'warn' to 'warning')
+    function normalizeType(type) {
+        return type === 'warn' ? 'warning' : type;
+    }
+
+    // Determine if a log type should be captured based on configured levels
+    function shouldCapture(type) {
+        return captureTypes.includes(normalizeType(type));
+    }
+
+    // Batch and send logs
+    function flushLogs() {
+        if (logQueue.length === 0) return;
+
+        const batch = logQueue.splice(0, logQueue.length);
+
+        fetch(ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ logs: batch })
+        }).catch(err => {
+            // Silently fail to avoid infinite loops
+            originalConsole.error('Failed to send logs:', err);
+        });
+    }
+
+    // Debounced flush (100ms)
+    function scheduleFlush() {
+        if (flushTimeout) clearTimeout(flushTimeout);
+        flushTimeout = setTimeout(flushLogs, 100);
+    }
+
+    // Intercept console methods
+    ['log', 'debug', 'info', 'error', 'warn', 'table'].forEach(method => {
+        console[method] = function(...args) {
+            // Call original method
+            originalConsole[method].apply(console, args);
+
+            // Capture log data
+            try {
+                if (!shouldCapture(method)) {
+                    return;
+                }
+
+                logQueue.push({
+                    type: method,
+                    timestamp: new Date().toISOString(),
+                    data: args.map(arg => {
+                        try {
+                            return typeof arg === 'object' ? JSON.parse(safeStringify(arg)) : arg;
+                        } catch (e) {
+                            return String(arg);
+                        }
+                    }),
+                    url: window.location.href,
+                    userAgent: navigator.userAgent
+                });
+
+                scheduleFlush();
+            } catch (e) {
+                // Fail silently
+            }
+        };
+    });
+
+    // Global error handlers for uncaught errors
+    const originalOnError = window.onerror;
+    window.onerror = function boostErrorHandler(errorMsg, url, lineNumber, colNumber, error) {
+        try {
+            if (shouldCapture('error')) {
+                logQueue.push({
+                    type: 'uncaught_error',
+                    timestamp: new Date().toISOString(),
+                    data: [{
+                        message: errorMsg,
+                        filename: url,
+                        lineno: lineNumber,
+                        colno: colNumber,
+                        error: error ? {
+                            name: error.name,
+                            message: error.message,
+                            stack: error.stack
+                        } : null
+                    }],
+                    url: window.location.href,
+                    userAgent: navigator.userAgent
+                });
+
+                scheduleFlush();
+            }
+
+        } catch (e) {
+            // Fail silently
+        }
+
+        // Call original handler if it exists
+        if (originalOnError && typeof originalOnError === 'function') {
+            return originalOnError(errorMsg, url, lineNumber, colNumber, error);
+        }
+
+        // Let the error continue to propagate
+        return false;
+    }
+    window.addEventListener('error', (event) => {
+        try {
+            if (!shouldCapture('error')) {
+                return false;
+            }
+
+            logQueue.push({
+                type: 'window_error',
+                timestamp: new Date().toISOString(),
+                data: [{
+                    message: event.message,
+                    filename: event.filename,
+                    lineno: event.lineno,
+                    colno: event.colno,
+                    error: event.error ? {
+                        name: event.error.name,
+                        message: event.error.message,
+                        stack: event.error.stack
+                    } : null
+                }],
+                url: window.location.href,
+                userAgent: navigator.userAgent
+            });
+
+            scheduleFlush();
+        } catch (e) {
+            // Fail silently
+        }
+
+        // Let the error continue to propagate
+        return false;
+    });
+    window.addEventListener('unhandledrejection', (event) => {
+        try {
+            if (!shouldCapture('error')) {
+                return false;
+            }
+
+            logQueue.push({
+                type: 'error',
+                timestamp: new Date().toISOString(),
+                data: [{
+                    message: 'Unhandled Promise Rejection',
+                    reason: event.reason instanceof Error ? {
+                        name: event.reason.name,
+                        message: event.reason.message,
+                        stack: event.reason.stack
+                    } : event.reason
+                }],
+                url: window.location.href,
+                userAgent: navigator.userAgent
+            });
+
+            scheduleFlush();
+        } catch (e) {
+            // Fail silently
+        }
+
+        // Let the rejection continue to propagate
+        return false;
+    });
+
+    // Flush on page unload
+    window.addEventListener('beforeunload', () => {
+        if (logQueue.length > 0) {
+            navigator.sendBeacon(ENDPOINT, JSON.stringify({ logs: logQueue }));
+        }
+    });
+})();
+</script>
+<link rel="stylesheet" href="../commun/fonts.css"><link rel="stylesheet" href="motion.css">
+</head>
+    <body class="bg-(--color-surface) text-(--color-text-primary) antialiased">
+        <header class="sticky top-0 z-20 bg-(--color-surface)/90 backdrop-blur border-b border-(--color-border)">
+    <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
+        <a href="https://presslink.org/" class="font-display text-xl font-bold tracking-tight" aria-label="PressLink, accueil">
+            Press<span class="text-(--color-primary)">Link</span>
+        </a>
+        <nav class="hidden lg:flex items-center gap-6 text-sm font-medium text-(--color-text-secondary)" aria-label="Navigation principale">
+                            <a href="https://presslink.org/pour-les-clients" class="hover:text-(--color-primary)" >Pour les clients</a>
+                            <a href="https://presslink.org/pour-les-pressings" class="hover:text-(--color-primary)" >Pour les pressings</a>
+                            <a href="https://presslink.org/comment-ca-marche" class="hover:text-(--color-primary)" >Comment ça marche</a>
+                            <a href="https://presslink.org/installer" class="hover:text-(--color-primary)" >Installer</a>
+                            <a href="https://presslink.org/questions-frequentes" class="hover:text-(--color-primary)" >Questions fréquentes</a>
+                            <a href="https://presslink.org/contact" class="hover:text-(--color-primary)" >Contact</a>
+                    </nav>
+        <div class="flex items-center gap-2">
+            <button type="button" onclick="PressLinkTheme.toggle()" data-tooltip="Mode jour / nuit" data-tooltip-pos="bottom"
+        class="w-9 h-9 flex-none rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary) w-10! h-10!">
+    <svg class="w-4 h-4 dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
+    <svg class="w-4 h-4 hidden dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+    <span class="sr-only dark:hidden">Activer le mode nuit</span>
+    <span class="sr-only hidden dark:inline">Activer le mode jour</span>
+</button>
+            <a href="https://presslink.org/login" class="hidden sm:inline-flex items-center h-10 px-4 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">
+                Espace pressing
+            </a>
+            
+            <details class="lg:hidden relative group">
+                <summary class="list-none cursor-pointer w-10 h-10 rounded-lg border border-(--color-border) flex items-center justify-center" aria-label="Ouvrir le menu">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+                </summary>
+                <nav class="absolute right-0 mt-2 w-64 bg-(--color-surface) border border-(--color-border) rounded-2xl shadow-lg p-2 flex flex-col text-sm font-medium" aria-label="Navigation mobile">
+                                            <a href="https://presslink.org/pour-les-clients" class="px-3 py-2.5 rounded-lg hover:bg-(--color-bg)">Pour les clients</a>
+                                            <a href="https://presslink.org/pour-les-pressings" class="px-3 py-2.5 rounded-lg hover:bg-(--color-bg)">Pour les pressings</a>
+                                            <a href="https://presslink.org/comment-ca-marche" class="px-3 py-2.5 rounded-lg hover:bg-(--color-bg)">Comment ça marche</a>
+                                            <a href="https://presslink.org/installer" class="px-3 py-2.5 rounded-lg hover:bg-(--color-bg)">Installer</a>
+                                            <a href="https://presslink.org/questions-frequentes" class="px-3 py-2.5 rounded-lg hover:bg-(--color-bg)">Questions fréquentes</a>
+                                            <a href="https://presslink.org/contact" class="px-3 py-2.5 rounded-lg hover:bg-(--color-bg)">Contact</a>
+                                        <a href="https://presslink.org/login" class="mt-1 px-3 py-2.5 rounded-lg border-t border-(--color-border) hover:bg-(--color-bg)">Espace pressing</a>
+                </nav>
+            </details>
+        </div>
+    </div>
+</header>
+    <main><section class="bg-(--color-bg) overflow-hidden">
+        <div class="max-w-6xl mx-auto px-5 pt-12 md:pt-16 grid md:grid-cols-[1.1fr_1fr] gap-10 items-center">
+            <div class="pb-4 md:pb-16">
+                <p class="text-xs font-semibold uppercase tracking-widest text-(--color-primary) mb-4">Application de suivi de pressing</p>
+                <h1 class="font-display text-4xl md:text-5xl font-extrabold leading-[1.08] tracking-tight mb-5">
+                    Suivez vos vêtements au pressing et soyez prévenu dès qu'ils sont prêts
+                </h1>
+                <p class="text-lg text-(--color-text-secondary) leading-relaxed mb-8 max-w-xl">
+                    PressLink est l'application de suivi de commandes de pressing en Côte d'Ivoire : <strong class="text-(--color-text-primary)">gratuite pour les clients</strong>, et un logiciel de gestion complet pour les pressings.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <a href="https://presslink.org/app/" class="inline-flex items-center justify-center h-12 px-6 rounded-xl bg-(--color-primary) text-white font-semibold hover:bg-(--color-primary-600)">
+                        Ouvrir l'application
+                    </a>
+                    <a href="https://presslink.org/comment-ca-marche" class="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-xl border border-(--color-border) bg-(--color-surface) font-semibold hover:border-(--color-primary)">
+                        <svg class="w-4 h-4 text-(--color-primary)" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                        Voir comment ça marche
+                    </a>
+                </div>
+                <p class="mt-5 text-sm text-(--color-text-muted)">Aucun téléchargement depuis un store : l'application s'installe en un geste depuis votre navigateur (<a href="https://presslink.org/app/" class="text-(--color-primary) font-semibold">presslink.org/app</a>).</p>
+            </div>
+            <div class="phone-mock phone-mock--hands max-w-md mx-auto w-full self-end">
+                <div class="phone-mock__screen"><div class="mock">
+    <div style="font-weight:800;font-size:1.05em;margin-bottom:.15em">Mes commandes</div>
+    <div style="font-size:.7em;color:var(--color-text-muted);margin-bottom:.8em">Pressing Excellence · PE-4821</div>
+
+    <div class="mock-card" style="margin-bottom:.6em;border-color:#a7f3d0;box-shadow:0 .4em 1em rgb(16 185 129 / .15)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.45em">
+            <span style="font-weight:700;font-size:.8em">PL-204518</span>
+            <span class="mock-pill" style="background:var(--color-success-tint);color:var(--color-success-text)">● Prête</span>
+        </div>
+        <div style="font-size:.68em;color:var(--color-text-secondary);line-height:1.5">3 chemises · 1 costume<br>Total 7 500 FCFA</div>
+        <div style="display:flex;gap:.25em;margin-top:.6em">
+                            <span style="flex:1;height:.28em;border-radius:1em;background:var(--color-success)"></span>
+                            <span style="flex:1;height:.28em;border-radius:1em;background:var(--color-success)"></span>
+                            <span style="flex:1;height:.28em;border-radius:1em;background:var(--color-success)"></span>
+                            <span style="flex:1;height:.28em;border-radius:1em;background:var(--color-border)"></span>
+                    </div>
+    </div>
+
+    <div class="mock-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.45em">
+            <span style="font-weight:700;font-size:.8em">PL-204377</span>
+            <span class="mock-pill" style="background:var(--color-warning-tint);color:var(--color-warning-text)">● En traitement</span>
+        </div>
+        <div style="font-size:.68em;color:var(--color-text-secondary)">2 robes · 1 drap</div>
+    </div>
+
+    <div class="float-y" style="position:absolute;left:.6em;right:.6em;bottom:1.2em;background:rgb(15 23 42 / .92);color:#fff;border-radius:.9em;padding:.6em .7em;display:flex;gap:.55em;align-items:center;box-shadow:0 .6em 1.4em rgb(0 0 0 / .25)">
+        <span style="width:1.9em;height:1.9em;border-radius:.5em;background:var(--color-primary);display:grid;place-items:center;font-weight:800;font-size:.8em">P</span>
+        <span style="font-size:.66em;line-height:1.35"><b>PressLink</b><br>Votre commande PL-204518 est prête ✨</span>
+    </div>
+</div>
+</div>
+                <img src="../commun/img/hands-phone.webp" width="736" height="648" alt="Une cliente consulte sa commande prête dans l'application PressLink" fetchpriority="high">
+            </div>
+        </div>
+    </section>
+
+    
+    <section class="max-w-6xl mx-auto px-5 py-16 md:py-20">
+        <div class="max-w-2xl mb-8">
+            <h2 class="font-display text-3xl font-bold tracking-tight mb-3">Le vrai parcours, en vidéo</h2>
+            <p class="text-(--color-text-secondary) text-lg">Filmé dans l'application et le tableau de bord, commenté pas à pas.</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-8">
+                            <figure>
+                    <video class="w-full rounded-3xl border border-(--color-border) shadow-sm bg-(--color-bg)" controls playsinline preload="none"
+                           poster="../commun/video/presslink-inscription.jpg" width="1280" height="720">
+                        <source src="../commun/video/presslink-inscription.mp4" type="video/mp4">
+                    </video>
+                    <figcaption class="mt-3 font-semibold">Inscription, ajout du pressing et connexion <span class="font-normal text-(--color-text-muted)">· 1 min 44</span></figcaption>
+                </figure>
+                            <figure>
+                    <video class="w-full rounded-3xl border border-(--color-border) shadow-sm bg-(--color-bg)" controls playsinline preload="none"
+                           poster="../commun/video/presslink-suivi-commande.jpg" width="1280" height="720">
+                        <source src="../commun/video/presslink-suivi-commande.mp4" type="video/mp4">
+                    </video>
+                    <figcaption class="mt-3 font-semibold">Le suivi d&#039;une commande, du dépôt au retrait <span class="font-normal text-(--color-text-muted)">· 2 min 18</span></figcaption>
+                </figure>
+                    </div>
+        <a href="https://presslink.org/comment-ca-marche" class="mt-6 inline-block font-semibold text-(--color-primary) hover:underline">Le parcours étape par étape →</a>
+    </section>
+
+    
+    <section class="bg-(--color-bg)">
+        <div class="max-w-6xl mx-auto px-5 py-16 md:py-20">
+            <div class="max-w-2xl mb-10">
+                <h2 class="font-display text-3xl font-bold tracking-tight mb-3">Installez PressLink en 3 étapes</h2>
+                <p class="text-(--color-text-secondary) text-lg">Pas de store : ouvrez <a href="https://presslink.org/app/" class="font-semibold text-(--color-primary) hover:underline">presslink.org/app</a> et ajoutez l'application à votre écran d'accueil.</p>
+            </div>
+            <div class="grid lg:grid-cols-2 gap-8">
+                <div class="bg-(--color-surface) border border-(--color-border) rounded-3xl p-6 md:p-8">
+                    <h3 class="font-display text-2xl font-bold mb-6">Sur Android <span class="text-(--color-text-muted) font-semibold text-base">· Chrome</span></h3>
+                    <div class="grid sm:grid-cols-[minmax(0,15rem)_1fr] gap-8 items-center">
+    <div class="phone-mock phone-mock--hand max-w-60 w-full mx-auto">
+        <div class="phone-mock__screen install-demo">
+            
+            <div class="scene mock" style="padding-top:2.4em">
+                <div style="background:#eef2f7;border-radius:2em;padding:.35em .8em;font-size:.65em;color:var(--color-text-secondary);margin-bottom:1.2em">🔒 presslink.org/app</div>
+                <div style="font-weight:800;font-size:1.1em">Press<span style="color:var(--color-primary)">Link</span></div>
+                <div style="font-weight:700;font-size:.8em;margin:.8em 0 .5em">Votre numéro de téléphone</div>
+                <div class="mock-card" style="font-size:.7em;color:var(--color-text-muted)">+225 · 07 00 00 00 00</div>
+                                    <div class="mock-card" style="margin-top:1em;background:var(--color-primary-tint);border-color:#bfd3fb">
+                        <div style="font-weight:700;font-size:.72em">Installer PressLink</div>
+                        <div style="margin-top:.5em;background:var(--color-primary);color:#fff;text-align:center;border-radius:.5em;padding:.45em;font-size:.7em;font-weight:700">Installer</div>
+                    </div>
+                    <span class="tap-dot" style="left:50%;top:15.2em;animation-delay:0s"></span>
+                            </div>
+
+            
+            <div class="scene mock" style="background:rgb(15 23 42 / .45)">
+                                    <div style="position:absolute;left:.8em;right:.8em;top:38%;background:#fff;border-radius:1em;padding:1em">
+                        <div style="font-weight:700;font-size:.85em;margin-bottom:.7em">Installer l'application ?</div>
+                        <div style="display:flex;align-items:center;gap:.6em;margin-bottom:1em">
+                            <img src="../commun/img/apple-touch-icon.png" alt="" style="width:2.2em;height:2.2em;border-radius:.5em">
+                            <span style="font-size:.7em;line-height:1.3"><b>PressLink</b><br><span style="color:var(--color-text-muted)">presslink.org</span></span>
+                        </div>
+                        <div style="display:flex;justify-content:flex-end;gap:1.2em;font-size:.72em;font-weight:700;color:var(--color-primary)"><span>Annuler</span><span>Installer</span></div>
+                        <span class="tap-dot" style="right:1.4em;left:auto;bottom:.7em;top:auto"></span>
+                    </div>
+                            </div>
+
+            
+            <div class="scene" style="background:linear-gradient(160deg,#1e3a8a,#0ea5e9);padding:3em 1em 1em;display:grid;grid-template-columns:repeat(4,1fr);gap:1.2em .6em;align-content:start;font-size:6.4cqw">
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                <span style="text-align:center">
+                    <img src="../commun/img/apple-touch-icon.png" alt="" style="width:100%;aspect-ratio:1;border-radius:.6em;box-shadow:0 0 0 .2em #fff,0 .5em 1.2em rgb(0 0 0 / .35)">
+                    <span style="display:block;color:#fff;font-size:.5em;margin-top:.4em;font-weight:600">PressLink</span>
+                </span>
+            </div>
+        </div>
+        <img src="../commun/img/hand-phone.webp" width="641" height="874" alt="" loading="lazy">
+    </div>
+
+    <ol class="install-steps space-y-3">
+                    <li class="flex gap-4 items-start border-2 border-(--color-border) rounded-2xl p-4 bg-(--color-surface)">
+                <span class="w-8 h-8 flex-none rounded-full bg-(--color-primary) text-white font-bold flex items-center justify-center text-sm">1</span>
+                <span class="text-(--color-text-secondary) leading-relaxed pt-1">Ouvrez presslink.org/app dans Chrome et appuyez sur « Installer ».</span>
+            </li>
+                    <li class="flex gap-4 items-start border-2 border-(--color-border) rounded-2xl p-4 bg-(--color-surface)">
+                <span class="w-8 h-8 flex-none rounded-full bg-(--color-primary) text-white font-bold flex items-center justify-center text-sm">2</span>
+                <span class="text-(--color-text-secondary) leading-relaxed pt-1">Confirmez avec « Installer » dans la fenêtre de Chrome.</span>
+            </li>
+                    <li class="flex gap-4 items-start border-2 border-(--color-border) rounded-2xl p-4 bg-(--color-surface)">
+                <span class="w-8 h-8 flex-none rounded-full bg-(--color-primary) text-white font-bold flex items-center justify-center text-sm">3</span>
+                <span class="text-(--color-text-secondary) leading-relaxed pt-1">PressLink apparaît sur votre écran d&#039;accueil, comme une application.</span>
+            </li>
+            </ol>
+</div>
+                </div>
+                <div class="bg-(--color-surface) border border-(--color-border) rounded-3xl p-6 md:p-8">
+                    <h3 class="font-display text-2xl font-bold mb-6">Sur iPhone <span class="text-(--color-text-muted) font-semibold text-base">· Safari</span></h3>
+                    <div class="grid sm:grid-cols-[minmax(0,15rem)_1fr] gap-8 items-center">
+    <div class="phone-mock phone-mock--hand max-w-60 w-full mx-auto">
+        <div class="phone-mock__screen install-demo">
+            
+            <div class="scene mock" style="padding-top:2.4em">
+                <div style="background:#eef2f7;border-radius:2em;padding:.35em .8em;font-size:.65em;color:var(--color-text-secondary);margin-bottom:1.2em">🔒 presslink.org/app</div>
+                <div style="font-weight:800;font-size:1.1em">Press<span style="color:var(--color-primary)">Link</span></div>
+                <div style="font-weight:700;font-size:.8em;margin:.8em 0 .5em">Votre numéro de téléphone</div>
+                <div class="mock-card" style="font-size:.7em;color:var(--color-text-muted)">+225 · 07 00 00 00 00</div>
+                                    <div style="position:absolute;left:0;right:0;bottom:0;height:3em;background:#f2f2f7;border-top:1px solid #ddd;display:flex;justify-content:space-around;align-items:center;font-size:1em;color:#0a84ff">
+                        <span>‹</span><span>›</span>
+                        <svg style="width:1.1em;height:1.1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
+                        <span>⧉</span>
+                    </div>
+                    <span class="tap-dot" style="left:50%;bottom:.4em;top:auto;margin-bottom:0"></span>
+                            </div>
+
+            
+            <div class="scene mock" style="background:rgb(15 23 42 / .45)">
+                                    <div style="position:absolute;left:0;right:0;bottom:0;background:#f2f2f7;border-radius:1em 1em 0 0;padding:1em .8em">
+                        <div style="display:flex;align-items:center;gap:.6em;margin-bottom:.9em">
+                            <img src="../commun/img/apple-touch-icon.png" alt="" style="width:2.2em;height:2.2em;border-radius:.5em">
+                            <span style="font-size:.7em;line-height:1.3"><b>PressLink</b><br><span style="color:var(--color-text-muted)">presslink.org</span></span>
+                        </div>
+                                                    <div style="position:relative;background:#fff;padding:.6em .8em;font-size:.68em;border-radius:.8em .8em 0 0border-bottom:1px solid #eee;">
+                                Copier
+                                                            </div>
+                                                    <div style="position:relative;background:#fff;padding:.6em .8em;font-size:.68em;border-bottom:1px solid #eee;font-weight:700;color:var(--color-primary)">
+                                Sur l&#039;écran d&#039;accueil
+                                                                    <span class="tap-dot" style="left:80%;top:50%"></span>
+                                                            </div>
+                                                    <div style="position:relative;background:#fff;padding:.6em .8em;font-size:.68em;border-radius:0 0 .8em .8em;">
+                                Ajouter aux favoris
+                                                            </div>
+                                            </div>
+                            </div>
+
+            
+            <div class="scene" style="background:linear-gradient(160deg,#1e3a8a,#0ea5e9);padding:3em 1em 1em;display:grid;grid-template-columns:repeat(4,1fr);gap:1.2em .6em;align-content:start;font-size:6.4cqw">
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                    <span style="aspect-ratio:1;border-radius:.6em;background:rgb(255 255 255 / .22)"></span>
+                                <span style="text-align:center">
+                    <img src="../commun/img/apple-touch-icon.png" alt="" style="width:100%;aspect-ratio:1;border-radius:.6em;box-shadow:0 0 0 .2em #fff,0 .5em 1.2em rgb(0 0 0 / .35)">
+                    <span style="display:block;color:#fff;font-size:.5em;margin-top:.4em;font-weight:600">PressLink</span>
+                </span>
+            </div>
+        </div>
+        <img src="../commun/img/hand-phone.webp" width="641" height="874" alt="" loading="lazy">
+    </div>
+
+    <ol class="install-steps space-y-3">
+                    <li class="flex gap-4 items-start border-2 border-(--color-border) rounded-2xl p-4 bg-(--color-surface)">
+                <span class="w-8 h-8 flex-none rounded-full bg-(--color-primary) text-white font-bold flex items-center justify-center text-sm">1</span>
+                <span class="text-(--color-text-secondary) leading-relaxed pt-1">Ouvrez presslink.org/app dans Safari et touchez Partager.</span>
+            </li>
+                    <li class="flex gap-4 items-start border-2 border-(--color-border) rounded-2xl p-4 bg-(--color-surface)">
+                <span class="w-8 h-8 flex-none rounded-full bg-(--color-primary) text-white font-bold flex items-center justify-center text-sm">2</span>
+                <span class="text-(--color-text-secondary) leading-relaxed pt-1">Choisissez « Sur l&#039;écran d&#039;accueil », puis « Ajouter ».</span>
+            </li>
+                    <li class="flex gap-4 items-start border-2 border-(--color-border) rounded-2xl p-4 bg-(--color-surface)">
+                <span class="w-8 h-8 flex-none rounded-full bg-(--color-primary) text-white font-bold flex items-center justify-center text-sm">3</span>
+                <span class="text-(--color-text-secondary) leading-relaxed pt-1">Ouvrez PressLink depuis son icône et connectez-vous.</span>
+            </li>
+            </ol>
+</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+    <section>
+        <div class="max-w-6xl mx-auto px-5 py-16 md:py-20 grid gap-5 md:grid-cols-3">
+                            <a href="https://presslink.org/pour-les-clients" class="group bg-(--color-surface) border border-(--color-border) rounded-2xl p-6 hover:border-(--color-primary) hover:-translate-y-0.5">
+                    <h2 class="font-display text-xl font-bold mb-2">Pour les clients</h2>
+                    <p class="text-(--color-text-secondary) leading-relaxed mb-4">Suivi en temps réel, notifications, historique et tarifs de votre pressing.</p>
+                    <span class="font-semibold text-(--color-primary)">Découvrir <span class="inline-block group-hover:translate-x-1 transition-transform">→</span></span>
+                </a>
+                            <a href="https://presslink.org/pour-les-pressings" class="group bg-(--color-surface) border border-(--color-border) rounded-2xl p-6 hover:border-(--color-primary) hover:-translate-y-0.5">
+                    <h2 class="font-display text-xl font-bold mb-2">Pour les pressings</h2>
+                    <p class="text-(--color-text-secondary) leading-relaxed mb-4">Un logiciel de gestion simple : commandes, clients, équipe, exports.</p>
+                    <span class="font-semibold text-(--color-primary)">Découvrir <span class="inline-block group-hover:translate-x-1 transition-transform">→</span></span>
+                </a>
+                            <a href="https://presslink.org/installer" class="group bg-(--color-surface) border border-(--color-border) rounded-2xl p-6 hover:border-(--color-primary) hover:-translate-y-0.5">
+                    <h2 class="font-display text-xl font-bold mb-2">Installer l&#039;application</h2>
+                    <p class="text-(--color-text-secondary) leading-relaxed mb-4">Android ou iPhone : l&#039;installation pas à pas, en images.</p>
+                    <span class="font-semibold text-(--color-primary)">Découvrir <span class="inline-block group-hover:translate-x-1 transition-transform">→</span></span>
+                </a>
+                    </div>
+    </section>
+
+    
+    <section class="max-w-6xl mx-auto px-5 py-16 md:py-20 grid gap-10 md:grid-cols-2 items-center">
+        <div class="bg-(--color-surface) border border-(--color-border) rounded-3xl shadow-sm p-6 text-center max-w-sm mx-auto w-full">
+            <img src="../commun/img/qr-presslink-app.png" width="280" height="280" alt="Code QR pour ouvrir l'application PressLink : presslink.org/app" class="mx-auto rounded-xl" loading="lazy">
+            <p class="mt-4 font-display text-lg font-bold">Scannez pour installer l'application</p>
+            <a href="https://presslink.org/app/" class="mt-1 inline-block text-sm font-semibold text-(--color-primary) hover:underline">presslink.org/app</a>
+        </div>
+        <div>
+            <h2 class="font-display text-3xl font-bold tracking-tight mb-3">Une question ? Parlons-en.</h2>
+            <p class="text-(--color-text-secondary) text-lg mb-2">L'équipe PressLink vous répond par appel ou sur WhatsApp.</p>
+            <p class="font-display text-2xl font-extrabold text-(--color-primary-600) dark:text-(--color-primary) mb-6">07 18 00 22 93</p>
+            <div class="flex flex-wrap gap-3">
+    <a href="tel:+2250718002293" class="inline-flex items-center justify-center gap-3 h-13 pl-2 pr-6 rounded-full font-semibold bg-(--color-surface) border border-(--color-border) hover:border-(--color-text-primary)">
+        <img src="../commun/img/phone.png" alt="" class="w-9 h-9 rounded-full dark:bg-white" width="36" height="36" loading="lazy">
+        Appeler
+    </a>
+    <a href="https://wa.me/2250718002293?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20avec%20PressLink." target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-3 h-13 pl-2 pr-6 rounded-full font-semibold bg-[#25D366] text-white hover:brightness-95">
+        <img src="../commun/img/whatsapp.png" alt="" class="w-9 h-9 rounded-full ring-2 ring-white" width="36" height="36" loading="lazy">
+        WhatsApp
+    </a>
+</div>
+        </div>
+    </section></main>
+    <footer class="border-t border-(--color-border)">
+    <div class="max-w-6xl mx-auto px-5 py-10 grid gap-8 md:grid-cols-[1.4fr_1fr_1fr] text-sm">
+        <div>
+            <p class="font-display text-lg font-bold">Press<span class="text-(--color-primary)">Link</span></p>
+            <p class="mt-2 text-(--color-text-muted)">Le lien entre votre pressing et vos clients.</p>
+            <div class="flex flex-wrap gap-3 mt-4">
+    <a href="tel:+2250718002293" class="inline-flex items-center gap-2 h-10 pl-1.5 pr-4 rounded-full text-sm font-semibold bg-(--color-surface) border border-(--color-border) hover:border-(--color-text-primary)">
+        <img src="../commun/img/phone.png" alt="" class="w-7 h-7 rounded-full dark:bg-white" width="36" height="36" loading="lazy">
+        Appeler
+    </a>
+    <a href="https://wa.me/2250718002293?text=Bonjour%2C%20j%27ai%20besoin%20d%27aide%20avec%20PressLink." target="_blank" rel="noopener" class="inline-flex items-center gap-2 h-10 pl-1.5 pr-4 rounded-full text-sm font-semibold bg-[#25D366] text-white hover:brightness-95">
+        <img src="../commun/img/whatsapp.png" alt="" class="w-7 h-7 rounded-full ring-2 ring-white" width="36" height="36" loading="lazy">
+        WhatsApp
+    </a>
+</div>
+            <a href="mailto:contact@presslink.org" class="mt-3 inline-block font-semibold text-(--color-text-secondary) hover:text-(--color-primary)">contact@presslink.org</a>
+        </div>
+        <nav class="flex flex-col gap-2 text-(--color-text-secondary)" aria-label="Pied de page">
+            <a href="https://presslink.org/pour-les-clients" class="hover:text-(--color-primary)">Pour les clients</a>
+            <a href="https://presslink.org/pour-les-pressings" class="hover:text-(--color-primary)">Pour les pressings</a>
+            <a href="https://presslink.org/comment-ca-marche" class="hover:text-(--color-primary)">Comment ça marche</a>
+        </nav>
+        <nav class="flex flex-col gap-2 text-(--color-text-secondary)" aria-label="Liens utiles">
+            <a href="https://presslink.org/installer" class="hover:text-(--color-primary)">Installer l'application</a>
+            <a href="https://presslink.org/questions-frequentes" class="hover:text-(--color-primary)">Questions fréquentes</a>
+            <a href="https://presslink.org/contact" class="hover:text-(--color-primary)">Contact & support</a>
+            <a href="https://presslink.org/login" class="hover:text-(--color-primary)">Espace pressing</a>
+        </nav>
+    </div>
+    <div class="border-t border-(--color-border) py-5 px-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-(--color-text-muted)">
+        <span>© 2026 PressLink · Côte d'Ivoire</span>
+        <a href="https://presslink.org/mentions-legales" class="hover:text-(--color-primary)">Mentions légales</a>
+        <a href="https://presslink.org/conditions-generales" class="hover:text-(--color-primary)">CGU</a>
+        <a href="https://presslink.org/confidentialite" class="hover:text-(--color-primary)">Confidentialité</a>
+    </div>
+</footer>
+
+    <a href="https://wa.me/2250718002293?text=Bonjour%2C%20j%27ai%20une%20question%20sur%20PressLink."
+       target="_blank" rel="noopener" aria-label="Écrire à PressLink sur WhatsApp"
+       class="fixed bottom-5 right-5 z-30 w-14 h-14 rounded-full shadow-lg shadow-green-600/30 hover:scale-105">
+        <img src="../commun/img/whatsapp.png" alt="" width="56" height="56" class="w-14 h-14">
+    </a>
+    <nav class="prop-bar"><a href="../">Propositions</a><a href="../1-fluide/">1 · Fluide</a><a class="on" href="../2-raconte/">2 · Raconté</a></nav>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="motion.js"></script>
+</body>
+</html>

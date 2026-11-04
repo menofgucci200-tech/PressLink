@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Proposition 2A · La vitrine vivante</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&display=swap">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="parcours.css">
+<style>
+/* 2A : les 3 portes deviennent une liste à gauche ; à droite, un écran PressLink montre ce qu'il y a
+   derrière chaque porte. Les portes défilent seules, et le clic transforme l'aperçu en vrai formulaire. */
+.entete { position: sticky; top: 0; z-index: 40; background: rgba(255,255,255,.94); backdrop-filter: blur(12px); border-bottom: 1px solid var(--trait); }
+.entete .ligne { display: flex; align-items: center; gap: 24px; min-height: 64px; }
+.entete nav { display: flex; gap: 22px; margin-left: auto; align-items: center; font-weight: 500; color: var(--texte-2); }
+.entete nav a { text-decoration: none; }
+.entete .btn { min-height: 40px; padding: 0 16px; }
+@media (max-width: 760px) { .entete nav .lien { display: none; } }
+.gps { border-top: 1px solid var(--trait); }
+.gps .enveloppe { display: flex; align-items: center; gap: 14px; min-height: 50px; }
+.gps .titre { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--texte-3); white-space: nowrap; }
+.gps ol { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); list-style: none; margin: 0; padding: 0; min-width: 0; }
+.gps li { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; color: var(--texte-3); min-width: 0; transition: color .3s; }
+.gps li .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gps li::after { content: ""; flex: 1; height: 2px; min-width: 8px; margin-right: 8px; border-radius: 2px; background: linear-gradient(var(--vert), var(--vert)) no-repeat 0 0 / 0% 100%, var(--trait); transition: background-size .6s var(--doux); }
+.gps li:last-child::after { display: none; }
+.gps li .rond { width: 24px; height: 24px; flex: none; border-radius: 50%; border: 2px solid var(--trait); background: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 800; transition: all .35s var(--ressort); }
+.gps li.fait { color: var(--encre); }
+.gps li.fait .rond { background: var(--vert); border-color: var(--vert); color: #fff; }
+.gps li.fait::after { background-size: 100% 100%, auto; }
+.gps li.ici { color: var(--bleu); }
+.gps li.ici .rond { border-color: var(--bleu); background: var(--bleu); color: #fff; transform: scale(1.12); box-shadow: 0 0 0 5px rgba(37,99,235,.18); }
+@media (max-width: 760px) { .gps .titre { display: none; } .gps li .t { display: none; } .gps li.ici .t { display: inline; } .gps ol { grid-template-columns: auto auto auto auto auto; justify-content: space-between; } .gps li::after { width: 16px; flex: none; } }
+
+.hero { padding-block: 48px 72px; background: radial-gradient(70% 60% at 85% 10%, #DCE8FF, transparent 70%); }
+.hero .grille { display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); gap: 52px; align-items: start; }
+@media (max-width: 980px) { .hero .grille { grid-template-columns: 1fr; gap: 28px; } }
+.pour { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border-radius: 99px; background: #fff; border: 1px solid var(--trait); font-size: 13.5px; font-weight: 600; color: var(--texte-2); }
+.hero h1 { font-size: clamp(34px, 4.4vw, 54px); font-weight: 800; margin: 16px 0 12px; }
+.hero h1 span { color: var(--bleu); }
+.hero .chapo { font-size: 18px; color: var(--texte-2); max-width: 520px; }
+
+/* Les portes, en liste */
+.onglets { display: grid; gap: 10px; margin-top: 28px; }
+.onglet { position: relative; display: grid; grid-template-columns: 46px 1fr 24px; gap: 14px; align-items: start; text-align: left; padding: 16px 16px 18px; border-radius: 20px; border: 1.5px solid transparent; background: transparent; overflow: hidden; transition: background .35s, border-color .35s, box-shadow .35s, transform .35s var(--doux); }
+.onglet:hover { background: rgba(255,255,255,.6); }
+.onglet.actif { background: #fff; border-color: var(--bleu); box-shadow: 0 24px 50px -30px rgba(37,99,235,.6); }
+.onglet .ico { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; background: #fff; border: 1px solid var(--trait); color: var(--texte-2); transition: all .35s var(--ressort); }
+.onglet.actif .ico { background: var(--bleu); border-color: var(--bleu); color: #fff; transform: rotate(-6deg) scale(1.05); }
+.onglet[data-porte="creer"].actif .ico { background: var(--vert); border-color: var(--vert); }
+.onglet .ico svg { width: 24px; height: 24px; }
+.onglet h2 { font-size: 21px; font-weight: 800; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.onglet h2 em { font-style: normal; font: 700 11px/1 var(--corps); padding: 4px 8px; border-radius: 99px; background: var(--or); color: #1E293B; }
+.onglet h2 .etat { background: #DCFCE7; color: var(--vert-fonce); }
+.onglet h2 .etat.encours { background: var(--bleu-teinte); color: var(--bleu-600); }
+.onglet p { color: var(--texte-2); margin-top: 3px; }
+.onglet .plus { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .45s var(--doux); }
+.onglet.actif .plus { grid-template-rows: 1fr; }
+.onglet .plus > div { overflow: hidden; }
+.onglet .puces { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.onglet .puces span { padding: 3px 10px; border-radius: 99px; background: var(--fond); font-size: 12.5px; font-weight: 600; color: var(--texte-2); }
+.onglet .btn { margin-top: 14px; }
+.onglet .fleche { color: var(--texte-3); margin-top: 12px; transition: transform .35s var(--doux), color .3s; }
+.onglet.actif .fleche { transform: rotate(90deg); color: var(--bleu); }
+.onglet .minuteur { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: linear-gradient(90deg, var(--bleu), var(--ciel)); transform: scaleX(0); transform-origin: left; }
+.onglet.actif .minuteur.tourne { animation: minuteur 6s linear forwards; }
+@keyframes minuteur { to { transform: scaleX(1); } }
+
+/* L'écran à droite */
+.cadre-zone { position: sticky; top: 140px; display: grid; gap: 10px; }
+@media (max-width: 980px) { .cadre-zone { position: static; } }
+.retour { justify-self: start; font-weight: 600; color: var(--texte-2); display: inline-flex; gap: 6px; height: 30px; align-items: center; }
+.retour:hover { color: var(--bleu); }
+.cadre { border-radius: 22px; background: #fff; border: 1px solid var(--trait); box-shadow: 0 50px 90px -50px rgba(15,23,42,.55); overflow: hidden; }
+.cadre .barre-nav { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--trait); background: var(--fond); }
+.cadre .points { display: flex; gap: 6px; } .cadre .points i { width: 10px; height: 10px; border-radius: 50%; background: #CBD5E1; }
+.cadre .url { flex: 1; min-width: 0; height: 30px; border-radius: 99px; background: #fff; border: 1px solid var(--trait); display: flex; align-items: center; gap: 8px; padding: 0 12px; font-size: 13px; color: var(--texte-2); overflow: hidden; white-space: nowrap; }
+.cadre .url b { color: var(--encre); font-weight: 600; }
+.cadre .url .chemin { display: inline-block; animation: url .4s var(--doux); }
+@keyframes url { from { opacity: 0; transform: translateY(6px); } }
+.cadre .ici { flex: none; font-size: 12px; font-weight: 700; color: #fff; background: var(--bleu); padding: 4px 9px; border-radius: 99px; }
+.corps-cadre { position: relative; min-height: 470px; }
+.apercus { position: absolute; inset: 0; }
+.apercu { position: absolute; inset: 0; display: grid; grid-template-rows: 1fr auto; opacity: 0; transform: translateX(30px) scale(.98); transition: opacity .5s, transform .6s var(--doux); pointer-events: none; }
+.apercu.visible { opacity: 1; transform: none; pointer-events: auto; }
+.apercu .decor { position: relative; overflow: hidden; }
+.apercu[data-porte="tester"] .decor { background: var(--fond); }
+.apercu[data-porte="creer"] .decor { background: linear-gradient(160deg, var(--bleu), var(--nuit-2)); }
+.apercu[data-porte="formules"] .decor { background: linear-gradient(#fff, var(--bleu-teinte)); }
+.apercu .decor > div { position: absolute; inset: 40px 48px 30px; }
+.apercu .scene-test { inset: 0; padding: 16px; gap: 10px; }
+.apercu .scene-test .mini-ligne { font-size: 13px; }
+.apercu .scene-creer { inset: 20px 10px auto; gap: 14px; }
+.apercu .scene-creer .champ-anime { height: 46px; font-size: 15px; }
+.apercu .scene-formules .b { max-height: 190px; }
+.apercu .legende { padding: 16px 20px; border-top: 1px solid var(--trait); display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
+.apercu .legende strong { font: 700 16px/1.3 var(--display); }
+.apercu .legende span { color: var(--texte-2); font-size: 14px; display: block; }
+.apercu .legende .btn { min-height: 42px; padding: 0 16px; }
+.vrai { padding: 26px; }
+.vrai[hidden] { display: none; }
+@media (max-width: 560px) { .vrai { padding: 18px; } .corps-cadre { min-height: 430px; } .apercu .decor > div { inset: 24px 18px 20px; } }
+
+.bloc { padding-block: 64px; background: #fff; border-top: 1px solid var(--trait); }
+.bloc .grille { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+@media (max-width: 860px) { .bloc .grille { grid-template-columns: 1fr; } }
+.bloc h2 { font-size: clamp(26px, 3vw, 36px); font-weight: 800; margin-bottom: 26px; }
+.bloc h3 { font-size: 19px; margin-bottom: 6px; }
+.bloc p { color: var(--texte-2); }
+.final { padding-block: 56px; background: var(--nuit); color: #fff; }
+.final .enveloppe { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; }
+.final h2 { font-size: clamp(26px, 3vw, 36px); font-weight: 800; }
+.final p { color: #CBD5E1; margin-top: 6px; }
+.final .boutons { display: flex; flex-wrap: wrap; gap: 10px; }
+</style>
+</head>
+<body>
+<div class="maquette">
+    <div class="enveloppe">
+        <span class="pastille">Maquette</span>
+        <span><strong>Proposition 2A · La vitrine vivante</strong><span class="desc"> : les portes à gauche, ce qu'il y a derrière en direct à droite</span></span>
+        <span class="droite"><a href="index.html">← Toutes les propositions</a><button class="rejouer" type="button" data-rejouer>▶ Rejouer la démo</button></span>
+    </div>
+</div>
+
+<header class="entete">
+    <div class="enveloppe ligne">
+        <a class="logo" href="#"><img src="img/logo-presslink.png" alt=""><span class="nom">Press<span>Link</span></span></a>
+        <nav>
+            <a class="lien" href="#">Fonctionnalités</a>
+            <a class="lien" href="#" data-ouvrir="formules">Formules</a>
+            <a class="lien" href="#">Se connecter</a>
+            <a class="btn btn-vert" href="#" data-ouvrir="creer">Créer mon espace</a>
+        </nav>
+    </div>
+    <div class="gps" aria-label="Votre parcours">
+        <div class="enveloppe">
+            <span class="titre">Vous êtes ici</span>
+            <ol id="gps">
+                <li data-etape="decouvrir"><span class="rond">1</span><span class="t">Découvrir</span></li>
+                <li data-etape="tester"><span class="rond">2</span><span class="t">Tester</span></li>
+                <li data-etape="creer"><span class="rond">3</span><span class="t">Créer mon espace</span></li>
+                <li data-etape="formules"><span class="rond">4</span><span class="t">Choisir ma formule</span></li>
+                <li data-etape="pret"><span class="rond">✓</span><span class="t">C'est parti</span></li>
+            </ol>
+        </div>
+    </div>
+</header>
+
+<main>
+    <section class="hero">
+        <div class="enveloppe grille">
+            <div>
+                <span class="pour">Pour les gérants et propriétaires de pressing</span>
+                <h1>Votre pressing sur PressLink. <span>Par quoi on commence ?</span></h1>
+                <p class="chapo">Trois chemins, un seul but : votre pressing en ligne en moins de 5 minutes. Gratuit jusqu'au 15 novembre.</p>
+
+                <div class="onglets" id="onglets">
+                    <button class="onglet" type="button" data-porte="tester">
+                        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3"/><path d="M7 15h10"/></svg></span>
+                        <span>
+                            <h2>Essayer d'abord <span class="etat-place"></span></h2>
+                            <p>Un pressing fictif déjà rempli, pendant 3 jours.</p>
+                            <span class="plus"><div>
+                                <span class="puces"><span>Sans inscription</span><span>10 secondes</span><span>Articles gardés</span></span>
+                                <span class="btn btn-bleu" data-ouvrir="tester" role="button">Démarrer un test →</span>
+                            </div></span>
+                        </span>
+                        <svg class="fleche" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+                        <i class="minuteur"></i>
+                    </button>
+                    <button class="onglet" type="button" data-porte="creer">
+                        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span>
+                        <span>
+                            <h2>Créer mon espace pressing <em>Le plus choisi</em> <span class="etat-place"></span></h2>
+                            <p>Deux étapes, deux minutes. Notre équipe vous appelle ensuite.</p>
+                            <span class="plus"><div>
+                                <span class="puces"><span>2 minutes</span><span>Gratuit jusqu'au 15 nov.</span><span>Accompagné</span></span>
+                                <span class="btn btn-vert" data-ouvrir="creer" role="button">Créer mon espace →</span>
+                            </div></span>
+                        </span>
+                        <svg class="fleche" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+                        <i class="minuteur"></i>
+                    </button>
+                    <button class="onglet" type="button" data-porte="formules">
+                        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
+                        <span>
+                            <h2>Voir nos formules <span class="etat-place"></span></h2>
+                            <p>Starter, Business, Premium : dès 20 000 F par mois.</p>
+                            <span class="plus"><div>
+                                <span class="puces"><span>Sans engagement</span><span>2 mois offerts à l'année</span></span>
+                                <span class="btn btn-bleu" data-ouvrir="formules" role="button">Comparer les formules →</span>
+                            </div></span>
+                        </span>
+                        <svg class="fleche" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+                        <i class="minuteur"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="cadre-zone" id="cadre-zone">
+                <button class="retour" type="button" id="retour" hidden>← Revenir aux aperçus</button>
+                <div class="cadre">
+                    <div class="barre-nav">
+                        <span class="points"><i></i><i></i><i></i></span>
+                        <span class="url">🔒 <span class="chemin" id="url"><b>presslink.org</b>/tester</span></span>
+                        <span class="ici" id="ici">Aperçu</span>
+                    </div>
+                    <div class="corps-cadre">
+                        <div class="apercus" id="apercus">
+                            <div class="apercu" data-porte="tester"><div class="decor"><div id="sc-test"></div></div><div class="legende"><div><strong>Votre pressing de test</strong><span>Commandes, clients, caisse : cliquez partout, rien n'est réel.</span></div><button class="btn btn-bleu" data-ouvrir="tester" type="button">Essayer</button></div></div>
+                            <div class="apercu" data-porte="creer"><div class="decor"><div id="sc-creer"></div></div><div class="legende"><div><strong>Votre espace en 2 étapes</strong><span>Votre pressing, puis vous. C'est tout.</span></div><button class="btn btn-vert" data-ouvrir="creer" type="button">Créer</button></div></div>
+                            <div class="apercu" data-porte="formules"><div class="decor"><div id="sc-formules" style="position:absolute"></div></div><div class="legende"><div><strong>Une formule selon vos commandes</strong><span>Starter 20 000 F · Business 30 000 F · Premium 50 000 F</span></div><button class="btn btn-bleu" data-ouvrir="formules" type="button">Comparer</button></div></div>
+                        </div>
+                        <div class="vrai" id="vrai" hidden></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bloc">
+        <div class="enveloppe">
+            <h2>Ce que vous aurez dès demain matin</h2>
+            <div class="grille">
+                <div><h3>Un dépôt en 4 gestes</h3><p>Client, articles, paiement, ticket. Plus de cahier ni de ticket perdu.</p></div>
+                <div><h3>Vos clients prévenus</h3><p>Ils savent quand c'est prêt et ce qu'il reste à payer. Moins d'appels au comptoir.</p></div>
+                <div><h3>Une caisse qui tombe juste</h3><p>Espèces, Wave, Orange Money, MTN MoMo, Moov Money : tout est compté.</p></div>
+            </div>
+        </div>
+    </section>
+    <section class="final">
+        <div class="enveloppe">
+            <div><h2>Prêt à commencer ?</h2><p>Créez votre espace en 2 minutes, ou essayez d'abord avec un pressing fictif.</p></div>
+            <div class="boutons"><a class="btn btn-vert" href="#" data-ouvrir="creer">Créer mon espace</a><a class="btn btn-contour" href="#" data-ouvrir="tester" style="color:#fff">Démarrer un test</a></div>
+        </div>
+    </section>
+</main>
+
+<script src="demo.js"></script>
+<script src="parcours.js"></script>
+<script>
+const onglets = [...document.querySelectorAll('.onglet')];
+const apercus = [...document.querySelectorAll('.apercu')];
+const vrai = document.getElementById('vrai');
+const URLS = { tester: '/tester', creer: '/inscription', formules: '/formules', pret: '/tableau-de-bord' };
+const NOMS = { tester: 'Tester', creer: 'Créer mon espace', formules: 'Choisir ma formule', pret: 'C\'est parti' };
+let porte = 'tester', auto = true, minuteurAuto = null, enParcours = false;
+
+Scenes.test(document.getElementById('sc-test'));
+Scenes.creer(document.getElementById('sc-creer'));
+Scenes.formules(document.getElementById('sc-formules'));
+
+function majUrl(cle, texte) {
+    document.getElementById('url').outerHTML = `<span class="chemin" id="url"><b>presslink.org</b>${URLS[cle]}</span>`;
+    document.getElementById('ici').textContent = texte;
+}
+
+function montrer(cle) {
+    porte = cle;
+    onglets.forEach((o) => {
+        const actif = o.dataset.porte === cle;
+        o.classList.toggle('actif', actif);
+        const m = o.querySelector('.minuteur');
+        m.classList.remove('tourne'); void m.offsetWidth;
+        if (actif && auto && !enParcours) { m.classList.add('tourne'); }
+    });
+    if (!enParcours) {
+        apercus.forEach((a) => a.classList.toggle('visible', a.dataset.porte === cle));
+        majUrl(cle, 'Aperçu');
+    }
+    clearTimeout(minuteurAuto);
+    if (auto && !enParcours) {
+        minuteurAuto = setTimeout(() => montrer(['tester', 'creer', 'formules'][(['tester', 'creer', 'formules'].indexOf(cle) + 1) % 3]), 6000);
+    }
+}
+function arreterAuto() { auto = false; clearTimeout(minuteurAuto); onglets.forEach((o) => o.querySelector('.minuteur').classList.remove('tourne')); }
+
+/* GPS + état des portes, à chaque écran du parcours */
+function majRepere(etat) {
+    const ici = etat.ici || 'decouvrir';
+    const faits = new Set(['decouvrir']);
+    if (etat.teste) { faits.add('tester'); }
+    if (etat.cree) { faits.add('tester'); faits.add('creer'); }
+    if (etat.paye) { faits.add('formules'); faits.add('pret'); }
+    document.querySelectorAll('#gps li').forEach((li) => {
+        li.classList.toggle('ici', li.dataset.etape === ici);
+        li.classList.toggle('fait', faits.has(li.dataset.etape) && li.dataset.etape !== ici);
+    });
+    onglets.forEach((o) => {
+        const p = o.dataset.porte;
+        const fait = (p === 'tester' && etat.teste) || (p === 'creer' && etat.cree) || (p === 'formules' && etat.paye);
+        const place = o.querySelector('.etat-place');
+        place.outerHTML = fait ? '<em class="etat etat-place">✓ Fait</em>' : (enParcours && ici === p ? '<em class="etat encours etat-place">En cours</em>' : '<span class="etat-place"></span>');
+    });
+    if (enParcours && ['tester', 'creer', 'formules'].includes(ici)) { montrer(ici); }
+    if (enParcours) { majUrl(ici, 'Vous êtes ici'); }
+}
+const parcours = Parcours({ conteneur: vrai, surChangement: majRepere });
+
+function ouvrir(cle) {
+    arreterAuto();
+    enParcours = true;
+    apercus.forEach((a) => a.classList.remove('visible'));
+    vrai.hidden = false;
+    document.getElementById('retour').hidden = false;
+    parcours.aller(cle);
+    if (innerWidth <= 980) { document.getElementById('cadre-zone').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    else if (scrollY > 200) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+}
+function retourApercus() {
+    enParcours = false;
+    vrai.hidden = true;
+    document.getElementById('retour').hidden = true;
+    parcours.etat.ici = null;
+    majRepere(parcours.etat);
+    montrer(porte);
+}
+
+onglets.forEach((o) => {
+    o.addEventListener('click', (e) => {
+        if (e.target.closest('[data-ouvrir]')) { return; }
+        arreterAuto();
+        if (enParcours) { ouvrir(o.dataset.porte); } else { montrer(o.dataset.porte); }
+    });
+    o.addEventListener('mouseenter', () => { if (auto) { clearTimeout(minuteurAuto); o.querySelector('.minuteur').classList.remove('tourne'); } });
+    o.addEventListener('mouseleave', () => { if (auto && !enParcours) { montrer(porte); } });
+});
+document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-ouvrir]');
+    if (b) { e.preventDefault(); e.stopPropagation(); ouvrir(b.dataset.ouvrir); }
+});
+document.getElementById('retour').addEventListener('click', retourApercus);
+montrer('tester');
+majRepere(parcours.etat);
+
+Demo.installer({
+    reinitialiser: () => { parcours.reinitialiser(); auto = true; retourApercus(); montrer('tester'); window.scrollTo({ top: 0 }); },
+    scenario: async ({ cliquer, taper, attendre, defiler, vers }) => {
+        await attendre(7500);
+        await vers('.onglet[data-porte="formules"]');
+        await attendre(1800);
+        await cliquer('.onglet[data-porte="creer"]');
+        await attendre(900);
+        await cliquer('.onglet[data-porte="creer"] .btn');
+        await attendre(600);
+        await taper('#c-nom', 'Pressing Élégance');
+        await taper('#c-com', 'Cocody');
+        await taper('#c-tel', '07 08 45 12 30');
+        await cliquer('[data-action="creer-2"]');
+        await attendre(500);
+        await taper('#g-nom', 'Awa Koné');
+        await taper('#g-tel', '07 08 45 12 30');
+        await taper('#g-mdp', 'pressing2026');
+        await cliquer('[data-action="creer-ok"]');
+        await attendre(1800);
+        await cliquer('.vrai .suite .btn');
+        await attendre(700);
+        await cliquer('[data-plan="Business"]');
+        await attendre(400);
+        await cliquer('[data-moyen="Wave"]');
+        await cliquer('[data-action="payer"]');
+        await attendre(3200);
+        await defiler(0, 900);
+    },
+});
+</script>
+</body>
+</html>

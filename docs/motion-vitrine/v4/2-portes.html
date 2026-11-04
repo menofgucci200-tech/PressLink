@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Proposition 2 · Les 3 portes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&display=swap">
+<link rel="stylesheet" href="base.css">
+<style>
+/* Proposition 2 : trois grandes portes animées dès l'arrivée, un GPS « Vous êtes ici » toujours visible,
+   et chaque porte s'ouvre sur l'écran suivant sans quitter la page. */
+.entete { position: sticky; top: 0; z-index: 40; background: rgba(255,255,255,.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--trait); }
+.entete .ligne { display: flex; align-items: center; gap: 24px; min-height: 64px; }
+.entete nav { display: flex; gap: 22px; margin-left: auto; align-items: center; font-weight: 500; color: var(--texte-2); }
+.entete nav a { text-decoration: none; }
+.entete .btn { min-height: 40px; padding: 0 16px; }
+@media (max-width: 760px) { .entete nav .lien { display: none; } }
+
+/* ----- GPS du parcours ----- */
+.gps { border-top: 1px solid var(--trait); }
+.gps .enveloppe { display: flex; align-items: center; gap: 14px; min-height: 52px; }
+.gps .titre { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--texte-3); white-space: nowrap; }
+.gps ol { position: relative; flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); list-style: none; margin: 0; padding: 0; min-width: 0; }
+.gps li { position: relative; display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; color: var(--texte-3); min-width: 0; transition: color .3s; }
+.gps li span.t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gps li small { font-weight: 500; opacity: .8; }
+.gps li::after { content: ""; flex: 1; height: 2px; min-width: 8px; margin-right: 8px; background: var(--trait); border-radius: 2px; background-image: linear-gradient(var(--vert), var(--vert)); background-size: 0% 100%; background-repeat: no-repeat; transition: background-size .6s var(--doux); }
+.gps li:last-child::after { display: none; }
+.gps li .rond { width: 24px; height: 24px; flex: none; border-radius: 50%; border: 2px solid var(--trait); background: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 800; transition: all .35s var(--ressort); }
+.gps li.fait { color: var(--encre); }
+.gps li.fait .rond { background: var(--vert); border-color: var(--vert); color: #fff; }
+.gps li.fait::after { background-size: 100% 100%; }
+.gps li.ici { color: var(--bleu); }
+.gps li.ici .rond { border-color: var(--bleu); background: var(--bleu); color: #fff; transform: scale(1.12); box-shadow: 0 0 0 5px rgba(37,99,235,.18); }
+.repere { position: absolute; top: -27px; left: 0; padding: 2px 8px; border-radius: 6px; background: var(--bleu); color: #fff; font-size: 11px; font-weight: 700; white-space: nowrap; transition: transform .6s var(--ressort); pointer-events: none; }
+.repere::after { content: ""; position: absolute; left: 9px; bottom: -4px; border: 5px solid transparent; border-bottom: 0; border-top-color: var(--bleu); }
+@media (max-width: 760px) {
+    .gps .titre { display: none; }
+    .gps li span.t { display: none; }
+    .gps li.ici span.t { display: inline; }
+    .gps ol { grid-template-columns: auto auto auto auto auto; justify-content: space-between; }
+    .gps li { gap: 6px; }
+    .gps li::after { min-width: 12px; width: 18px; flex: none; }
+    .repere { display: none; }
+}
+
+/* ----- Hero ----- */
+.hero { padding-block: clamp(28px, 6vw, 56px) clamp(8px, 4vw, 40px); text-align: center; background: radial-gradient(80% 60% at 50% 0%, #E0ECFF, transparent 70%); }
+.hero .pour { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 14px; border-radius: 99px; background: #fff; border: 1px solid var(--trait); font-size: 14px; font-weight: 600; color: var(--texte-2); }
+.hero h1 { font-size: clamp(36px, 5.4vw, 64px); font-weight: 800; margin: 18px auto 14px; max-width: 900px; }
+.hero h1 .mot { display: inline-block; animation: mot .7s var(--doux) both; }
+@keyframes mot { from { opacity: 0; transform: translateY(.45em); filter: blur(6px); } }
+.hero .chapo { font-size: 19px; color: var(--texte-2); max-width: 640px; margin: 0 auto; }
+
+/* ----- Les 3 portes ----- */
+.scene-portes { padding-bottom: 72px; }
+.portes { display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 18px; align-items: stretch; margin-top: 40px; text-align: left; }
+@media (max-width: 960px) { .portes { grid-template-columns: 1fr; max-width: 520px; margin-inline: auto; margin-top: 24px; } .porte.vedette { order: -1; } .decor { height: 170px; } }
+.porte { position: relative; display: flex; flex-direction: column; border-radius: 26px; background: #fff; border: 1.5px solid var(--trait); overflow: hidden; transition: transform .45s var(--doux), box-shadow .45s, border-color .3s; animation: porte .8s var(--doux) both; cursor: pointer; }
+.porte:nth-child(1) { animation-delay: .35s; } .porte:nth-child(2) { animation-delay: .2s; } .porte:nth-child(3) { animation-delay: .5s; }
+@keyframes porte { from { opacity: 0; transform: translateY(40px) rotateX(10deg); } }
+.porte:hover, .porte.survol { transform: translateY(-8px); border-color: var(--bleu); box-shadow: 0 30px 60px -30px rgba(37,99,235,.55); }
+.porte.vedette { border: 2px solid var(--bleu); box-shadow: 0 30px 70px -34px rgba(37,99,235,.7); }
+.porte .ruban { position: absolute; top: 14px; right: 14px; z-index: 2; padding: 4px 10px; border-radius: 99px; background: var(--or); color: #1E293B; font-size: 12px; font-weight: 800; }
+.decor { position: relative; height: 196px; overflow: hidden; background: var(--fond); border-bottom: 1px solid var(--trait); }
+.porte.vedette .decor { background: linear-gradient(160deg, var(--bleu), var(--nuit-2)); }
+.porte .corps { padding: 22px 22px 24px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.porte h2 { font-size: 25px; font-weight: 800; }
+.porte p { color: var(--texte-2); }
+.puces { display: flex; flex-wrap: wrap; gap: 6px; }
+.puces span { padding: 3px 10px; border-radius: 99px; background: var(--fond); font-size: 12.5px; font-weight: 600; color: var(--texte-2); }
+.porte .btn { margin-top: auto; align-self: stretch; }
+
+/* Décor A : un tableau de bord fictif qui vit */
+.mini-tdb { position: absolute; inset: 18px 18px auto; background: #fff; border-radius: 14px; box-shadow: 0 10px 30px -14px rgba(15,23,42,.3); padding: 10px 12px; display: grid; gap: 7px; }
+.mini-tdb .haut { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--texte-3); }
+.mini-tdb .haut b { color: var(--vert-fonce); font-variant-numeric: tabular-nums; }
+.mini-ligne { display: grid; grid-template-columns: 20px 1fr auto; gap: 8px; align-items: center; font-size: 12px; animation: ligne-in .5s var(--doux) both; }
+.mini-ligne i { width: 20px; height: 20px; border-radius: 6px; background: var(--bleu-teinte); }
+.mini-ligne span { height: 7px; border-radius: 4px; background: var(--trait); }
+.statut { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 99px; transition: background .3s, color .3s; white-space: nowrap; }
+.statut.recue { background: #FEF3C7; color: #92400E; }
+.statut.cours { background: var(--bleu-teinte); color: var(--bleu-600); }
+.statut.prete { background: #DCFCE7; color: var(--vert-fonce); }
+@keyframes ligne-in { from { opacity: 0; transform: translateX(-14px); } }
+
+/* Décor B : l'espace se crée sous vos yeux */
+.mini-form { position: absolute; inset: 22px 26px auto; display: grid; gap: 9px; color: #fff; }
+.mini-form .rail { display: flex; gap: 5px; }
+.mini-form .rail span { flex: 1; height: 5px; border-radius: 5px; background: rgba(255,255,255,.25); overflow: hidden; }
+.mini-form .rail span b { display: block; height: 100%; width: 0; background: var(--vert); transition: width .6s var(--doux); }
+.mini-champ { height: 36px; border-radius: 10px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); display: flex; align-items: center; padding: 0 12px; font-size: 13.5px; font-weight: 600; }
+.mini-champ .curseur-texte { width: 2px; height: 16px; background: #fff; margin-left: 2px; animation: clignote 1s steps(1) infinite; }
+@keyframes clignote { 50% { opacity: 0; } }
+.mini-ok { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 8px; color: #fff; font: 800 18px/1.2 var(--display); opacity: 0; transform: scale(.9); transition: opacity .4s, transform .5s var(--ressort); background: linear-gradient(160deg, var(--bleu), var(--nuit-2)); }
+.mini-ok.visible { opacity: 1; transform: none; }
+.mini-ok i { width: 54px; height: 54px; border-radius: 50%; background: var(--vert); display: grid; place-items: center; }
+
+/* Décor C : les formules qui montent */
+.mini-barres { position: absolute; inset: 20px 22px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-items: end; }
+.mini-barres div { display: grid; gap: 6px; text-align: center; font-size: 11.5px; font-weight: 700; color: var(--texte-2); }
+.mini-barres .b { border-radius: 10px 10px 4px 4px; background: #CBD5E1; height: 0; transition: height 1s var(--ressort); display: flex; align-items: flex-start; justify-content: center; padding-top: 6px; color: #fff; font-size: 11px; }
+.mini-barres div.mise .b { background: var(--bleu); }
+.mini-barres .prix { font: 800 14px/1 var(--display); color: var(--encre); font-variant-numeric: tabular-nums; }
+
+/* ----- Panneau : l'écran suivant ----- */
+.panneau { max-width: 760px; margin: 40px auto 0; text-align: left; background: #fff; border: 1.5px solid var(--trait); border-radius: 28px; box-shadow: 0 40px 80px -40px rgba(15,23,42,.35); overflow: hidden; }
+.panneau[hidden] { display: none !important; }
+.panneau-tete { display: flex; align-items: center; gap: 12px; padding: 16px 22px; border-bottom: 1px solid var(--trait); background: var(--fond); }
+.panneau-tete .retour { font-weight: 600; color: var(--texte-2); display: inline-flex; gap: 6px; align-items: center; }
+.panneau-tete .retour:hover { color: var(--bleu); }
+.panneau-tete .ou { margin-left: auto; font-size: 13px; color: var(--texte-3); }
+.panneau-tete .ou b { color: var(--bleu); }
+.panneau-corps { padding: 28px; display: grid; gap: 16px; }
+@media (max-width: 560px) { .panneau-corps { padding: 20px; } }
+.panneau-corps > * { animation: ligne-in .45s var(--doux) both; }
+.panneau-corps > *:nth-child(2) { animation-delay: .05s; } .panneau-corps > *:nth-child(3) { animation-delay: .1s; } .panneau-corps > *:nth-child(4) { animation-delay: .15s; } .panneau-corps > *:nth-child(5) { animation-delay: .2s; } .panneau-corps > *:nth-child(6) { animation-delay: .25s; }
+.panneau h3 { font-size: 28px; font-weight: 800; }
+.panneau .sous { color: var(--texte-2); margin-top: -8px; }
+.deux { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 560px) { .deux { grid-template-columns: 1fr; } }
+.champ { display: grid; gap: 6px; }
+.champ label { font-size: 14px; font-weight: 600; }
+.champ input { height: 50px; border-radius: 12px; border: 1.5px solid var(--trait); padding: 0 14px; background: var(--fond); width: 100%; }
+.champ input:focus { outline: none; border-color: var(--bleu); background: #fff; box-shadow: 0 0 0 4px rgba(37,99,235,.15); }
+.encart { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 16px; background: var(--bleu-teinte); color: var(--bleu-600); font-size: 14.5px; }
+.encart.vert { background: #DCFCE7; color: var(--vert-fonce); }
+.chargement { height: 8px; border-radius: 8px; background: var(--trait); overflow: hidden; }
+.chargement b { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--bleu), var(--ciel)); animation: charge 1.6s var(--doux) forwards; }
+@keyframes charge { to { width: 100%; } }
+.capture { border-radius: 16px; border: 1px solid var(--trait); overflow: hidden; box-shadow: 0 20px 40px -24px rgba(15,23,42,.4); }
+.grand-ok { display: grid; justify-items: center; text-align: center; gap: 12px; padding: 12px 0; }
+.grand-ok .coche { width: 84px; height: 84px; border-radius: 50%; background: var(--vert); display: grid; place-items: center; animation: pop .6s var(--ressort) both; }
+.grand-ok .coche svg { width: 44px; height: 44px; stroke-dasharray: 30; stroke-dashoffset: 30; animation: trait .5s .35s forwards; }
+@keyframes pop { from { transform: scale(0); } }
+@keyframes trait { to { stroke-dashoffset: 0; } }
+.suite { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; border-radius: 18px; border: 2px dashed rgba(37,99,235,.35); flex-wrap: wrap; }
+.suite small { display: block; color: var(--texte-3); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.suite strong { font: 700 17px/1.3 var(--display); }
+
+.bascule { display: inline-flex; padding: 4px; border-radius: 99px; background: var(--fond); border: 1px solid var(--trait); justify-self: start; }
+.bascule button { height: 36px; padding: 0 16px; border-radius: 99px; font-weight: 600; color: var(--texte-2); }
+.bascule button[aria-pressed="true"] { background: #fff; color: var(--encre); box-shadow: 0 2px 8px rgba(15,23,42,.12); }
+.bascule em { font-style: normal; color: var(--vert-fonce); font-size: 12px; font-weight: 700; }
+.plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (max-width: 620px) { .plans { grid-template-columns: 1fr; } }
+.plan { text-align: left; padding: 16px; border-radius: 18px; border: 1.5px solid var(--trait); display: grid; gap: 6px; transition: border-color .2s, transform .3s var(--doux), background .2s; }
+.plan:hover { transform: translateY(-3px); border-color: var(--bleu); }
+.plan[aria-pressed="true"] { border: 2px solid var(--bleu); background: var(--bleu-teinte); }
+.plan strong { font: 800 19px/1 var(--display); }
+.plan .p { font: 800 24px/1 var(--display); font-variant-numeric: tabular-nums; }
+.plan .p small { font: 500 13px var(--corps); color: var(--texte-3); }
+.plan span { font-size: 13px; color: var(--texte-2); }
+.moyens { display: flex; flex-wrap: wrap; gap: 8px; }
+.moyens button { height: 44px; padding: 0 16px; border-radius: 12px; border: 1.5px solid var(--trait); font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }
+.moyens button i { width: 14px; height: 14px; border-radius: 50%; }
+.moyens button[aria-pressed="true"] { border-color: var(--bleu); background: var(--bleu-teinte); }
+
+.confetti { position: fixed; inset: 0; pointer-events: none; z-index: 90; overflow: hidden; }
+.confetti i { position: absolute; top: -12px; width: 9px; height: 14px; border-radius: 2px; animation: tombe linear forwards; }
+@keyframes tombe { to { transform: translateY(105vh) rotate(720deg); } }
+
+/* ----- Sous le hero ----- */
+.bloc { padding-block: 72px; background: #fff; border-top: 1px solid var(--trait); }
+.bloc .grille { display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: center; }
+@media (max-width: 900px) { .bloc .grille { grid-template-columns: 1fr; } }
+.bloc h2 { font-size: clamp(28px, 3.4vw, 40px); font-weight: 800; }
+.bloc ul { list-style: none; padding: 0; margin: 24px 0 0; display: grid; gap: 14px; }
+.bloc li { display: flex; gap: 12px; }
+.bloc li b { flex: none; width: 26px; height: 26px; border-radius: 50%; background: #DCFCE7; color: var(--vert-fonce); display: grid; place-items: center; font-size: 13px; }
+
+.barre-bas { position: fixed; z-index: 45; left: 0; right: 0; bottom: 0; padding: 10px max(16px, env(safe-area-inset-right, 0px)) max(10px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: rgba(255,255,255,.95); backdrop-filter: blur(10px); border-top: 1px solid var(--trait); display: none; align-items: center; gap: 12px; }
+.barre-bas small { display: block; font-size: 11.5px; color: var(--texte-3); font-weight: 600; }
+.barre-bas strong { font-size: 14.5px; }
+.barre-bas .btn { margin-left: auto; min-height: 44px; padding: 0 16px; }
+@media (max-width: 760px) { .barre-bas { display: flex; } body { padding-bottom: 80px; } }
+
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .45s; }
+</style>
+</head>
+<body>
+<div class="maquette">
+    <div class="enveloppe">
+        <span class="pastille">Maquette</span>
+        <span><strong>Proposition 2 · Les 3 portes</strong><span class="desc"> : trois grandes actions animées et un GPS « Vous êtes ici »</span></span>
+        <span class="droite"><a href="index.html">← Les 3 propositions</a><button class="rejouer" type="button" data-rejouer>▶ Rejouer la démo</button></span>
+    </div>
+</div>
+
+<header class="entete">
+    <div class="enveloppe ligne">
+        <a class="logo" href="#"><img src="img/logo-presslink.png" alt=""><span class="nom">Press<span>Link</span></span></a>
+        <nav>
+            <a class="lien" href="#">Fonctionnalités</a>
+            <a class="lien" href="#" data-aller="formules">Formules</a>
+            <a class="lien" href="#">Se connecter</a>
+            <a class="btn btn-vert" href="#" data-aller="creer">Créer mon espace</a>
+        </nav>
+    </div>
+    <div class="gps" aria-label="Votre parcours">
+        <div class="enveloppe">
+            <span class="titre">Votre parcours</span>
+            <ol id="gps">
+                <li data-etape="decouvrir"><span class="rond">1</span><span class="t">Découvrir</span></li>
+                <li data-etape="tester"><span class="rond">2</span><span class="t">Tester <small>(facultatif)</small></span></li>
+                <li data-etape="creer"><span class="rond">3</span><span class="t">Créer mon espace</span></li>
+                <li data-etape="formules"><span class="rond">4</span><span class="t">Choisir ma formule</span></li>
+                <li data-etape="pret"><span class="rond">✓</span><span class="t">C'est parti</span></li>
+                <span class="repere" id="repere">Vous êtes ici</span>
+            </ol>
+        </div>
+    </div>
+</header>
+
+<main>
+    <section class="hero">
+        <div class="enveloppe">
+            <span class="pour">Pour les gérants et propriétaires de pressing</span>
+            <h1 id="titre">Par où voulez-vous commencer ?</h1>
+            <p class="chapo">Trois chemins, un seul objectif : votre pressing sur PressLink en moins de 5 minutes. Gratuit jusqu'au 15 novembre.</p>
+        </div>
+    </section>
+
+    <section class="scene-portes">
+        <div class="enveloppe">
+            <div class="portes" id="portes">
+                <article class="porte" data-aller="tester" tabindex="0">
+                    <div class="decor"><div class="mini-tdb" id="mini-tdb"><div class="haut"><span>Pressing (test) · Aujourd'hui</span><b id="mini-total">0 F</b></div></div></div>
+                    <div class="corps">
+                        <h2>Essayer d'abord</h2>
+                        <p>Un pressing fictif déjà rempli : commandes, clients, caisse. Cliquez partout, rien n'est réel.</p>
+                        <div class="puces"><span>3 jours</span><span>Sans inscription</span><span>10 secondes</span></div>
+                        <button class="btn btn-contour" style="color:var(--bleu)" type="button">Démarrer un test →</button>
+                    </div>
+                </article>
+                <article class="porte vedette" data-aller="creer" tabindex="0">
+                    <span class="ruban">Le plus choisi</span>
+                    <div class="decor">
+                        <div class="mini-form">
+                            <div class="rail"><span><b id="mf-1"></b></span><span><b id="mf-2"></b></span></div>
+                            <div class="mini-champ"><span id="mf-nom"></span><span class="curseur-texte"></span></div>
+                            <div class="mini-champ"><span id="mf-com"></span></div>
+                            <div class="mini-champ"><span id="mf-tel"></span></div>
+                        </div>
+                        <div class="mini-ok" id="mf-ok"><i><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Espace créé</div>
+                    </div>
+                    <div class="corps">
+                        <h2>Créer mon espace pressing</h2>
+                        <p>Deux étapes et c'est fait. Notre équipe vous appelle ensuite pour vos tarifs, vos horaires et votre équipe.</p>
+                        <div class="puces"><span>2 minutes</span><span>Gratuit jusqu'au 15 nov.</span><span>Accompagné</span></div>
+                        <button class="btn btn-vert" type="button">Créer mon espace →</button>
+                    </div>
+                </article>
+                <article class="porte" data-aller="formules" tabindex="0">
+                    <div class="decor">
+                        <div class="mini-barres" id="mini-barres">
+                            <div><span class="prix" data-p="20000">0</span><div class="b" data-h="54"></div>Starter</div>
+                            <div class="mise"><span class="prix" data-p="30000">0</span><div class="b" data-h="92">★</div>Business</div>
+                            <div><span class="prix" data-p="50000">0</span><div class="b" data-h="128"></div>Premium</div>
+                        </div>
+                    </div>
+                    <div class="corps">
+                        <h2>Voir nos formules</h2>
+                        <p>Starter, Business ou Premium selon le nombre de commandes et de pressings. Sans engagement.</p>
+                        <div class="puces"><span>Dès 20 000 F / mois</span><span>2 mois offerts à l'année</span></div>
+                        <button class="btn btn-contour" style="color:var(--bleu)" type="button">Comparer les formules →</button>
+                    </div>
+                </article>
+            </div>
+
+            <div class="panneau" id="panneau" hidden>
+                <div class="panneau-tete">
+                    <button class="retour" type="button" id="retour">← Les 3 chemins</button>
+                    <span class="ou" id="ou"></span>
+                </div>
+                <div class="panneau-corps" id="corps"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="bloc">
+        <div class="enveloppe grille">
+            <div>
+                <h2>Ce que vous aurez dès demain matin</h2>
+                <ul>
+                    <li><b>✓</b><span><strong>Un dépôt en 4 gestes.</strong> Client, articles, paiement, ticket.</span></li>
+                    <li><b>✓</b><span><strong>Vos clients prévenus.</strong> Ils savent quand c'est prêt et ce qu'il reste à payer.</span></li>
+                    <li><b>✓</b><span><strong>Votre caisse juste.</strong> Espèces, Wave, Orange Money, MTN MoMo, Moov Money.</span></li>
+                </ul>
+                <a class="btn btn-vert" href="#" data-aller="creer" style="margin-top:28px">Créer mon espace →</a>
+            </div>
+            <div class="capture"><img src="img/launch-dashboard.webp" alt="Tableau de bord PressLink" width="1600" height="1000" loading="lazy"></div>
+        </div>
+    </section>
+</main>
+
+<div class="barre-bas" id="barre-bas">
+    <div><small id="bb-sur">Étape conseillée</small><strong id="bb-titre">Créer mon espace</strong></div>
+    <a class="btn btn-vert" href="#" id="bb-btn" data-aller="creer">Continuer →</a>
+</div>
+
+<script src="demo.js"></script>
+<script>
+const etat = { teste: false, cree: false, formule: null, annuel: false, moyen: null, ici: 'decouvrir' };
+const PLANS = { Starter: [20000, '100 commandes / mois'], Business: [30000, '200 commandes / mois'], Premium: [50000, '350 commandes, plusieurs pressings'] };
+const fcfa = (n) => n.toLocaleString('fr-FR').replace(/ | /g, ' ');
+const ORDRE = ['decouvrir', 'tester', 'creer', 'formules', 'pret'];
+
+/* ----- Titre mot par mot ----- */
+const titre = document.getElementById('titre');
+titre.innerHTML = titre.textContent.split(' ').map((m, i) => `<span class="mot" style="animation-delay:${i * 70}ms">${m}</span>`).join(' ');
+
+/* ----- GPS ----- */
+function gps() {
+    const faits = new Set(['decouvrir']);
+    if (etat.teste) { faits.add('tester'); }
+    if (etat.cree) { faits.add('tester'); faits.add('creer'); }
+    if (etat.formule && etat.cree && etat.paye) { faits.add('formules'); faits.add('pret'); }
+    document.querySelectorAll('#gps li').forEach((li) => {
+        const e = li.dataset.etape;
+        li.classList.toggle('ici', e === etat.ici);
+        li.classList.toggle('fait', faits.has(e) && e !== etat.ici);
+    });
+    const li = document.querySelector(`#gps li[data-etape="${etat.ici}"]`);
+    const ol = document.getElementById('gps');
+    document.getElementById('repere').style.transform = `translateX(${li.offsetLeft}px)`;
+    // Barre du bas (téléphone) : toujours la prochaine action utile.
+    const prochaine = !etat.cree ? ['creer', 'Créer mon espace', 'Étape conseillée'] : !etat.paye ? ['formules', 'Choisir ma formule', 'Dernière étape'] : ['pret', 'Votre pressing est prêt', 'Terminé'];
+    document.getElementById('bb-sur').textContent = prochaine[2];
+    document.getElementById('bb-titre').textContent = prochaine[1];
+    document.getElementById('bb-btn').dataset.aller = prochaine[0];
+}
+window.addEventListener('resize', gps);
+
+/* ----- Décors vivants ----- */
+const CLIENTS = [['Chemise ×3', 1500], ['Boubou ×1', 3000], ['Costume ×1', 4500], ['Draps ×2', 2000]];
+let tdbTour = 0;
+function animerTdb() {
+    const box = document.getElementById('mini-tdb');
+    box.querySelectorAll('.mini-ligne').forEach((l) => l.remove());
+    let total = 0;
+    CLIENTS.forEach(([, prix], i) => {
+        setTimeout(() => {
+            const l = document.createElement('div');
+            l.className = 'mini-ligne';
+            l.innerHTML = `<i></i><span style="width:${50 + ((i * 23 + tdbTour * 7) % 40)}%"></span><em class="statut recue">Reçue</em>`;
+            box.appendChild(l);
+            total += prix;
+            document.getElementById('mini-total').textContent = fcfa(total) + ' F';
+            setTimeout(() => { const s = l.querySelector('.statut'); s.className = 'statut cours'; s.textContent = 'En cours'; }, 1300);
+            setTimeout(() => { const s = l.querySelector('.statut'); s.className = 'statut prete'; s.textContent = 'Prête'; }, 2600 + i * 250);
+        }, i * 450);
+    });
+    tdbTour++;
+}
+async function animerForm() {
+    const ecrire = async (id, texte) => { const el = document.getElementById(id); el.textContent = ''; for (const c of texte) { el.textContent += c; await new Promise((r) => setTimeout(r, 60)); } };
+    document.getElementById('mf-ok').classList.remove('visible');
+    ['mf-nom', 'mf-com', 'mf-tel'].forEach((id) => { document.getElementById(id).textContent = ''; });
+    document.getElementById('mf-1').style.width = '0'; document.getElementById('mf-2').style.width = '0';
+    await ecrire('mf-nom', 'Pressing Élégance');
+    await ecrire('mf-com', 'Cocody, Riviera 2');
+    document.getElementById('mf-1').style.width = '100%';
+    await ecrire('mf-tel', '07 08 45 12 30');
+    document.getElementById('mf-2').style.width = '100%';
+    await new Promise((r) => setTimeout(r, 500));
+    document.getElementById('mf-ok').classList.add('visible');
+}
+function animerBarres() {
+    document.querySelectorAll('#mini-barres > div').forEach((d, i) => {
+        const b = d.querySelector('.b'), p = d.querySelector('.prix');
+        b.style.height = '0'; p.textContent = '0';
+        setTimeout(() => {
+            b.style.height = b.dataset.h + 'px';
+            const cible = +p.dataset.p, t0 = performance.now();
+            const pas = (t) => { const k = Math.min(1, (t - t0) / 900); p.textContent = fcfa(Math.round(cible * (1 - Math.pow(1 - k, 3)) / 500) * 500); if (k < 1) { requestAnimationFrame(pas); } };
+            requestAnimationFrame(pas);
+        }, 250 + i * 220);
+    });
+}
+function boucleDecors() { animerTdb(); animerForm(); animerBarres(); }
+setTimeout(boucleDecors, 700);
+setInterval(boucleDecors, 7000);
+
+/* ----- Les écrans derrière chaque porte ----- */
+const corps = document.getElementById('corps');
+const ECRANS = {
+    tester: () => `
+        <h3>Votre pressing fictif en 10 secondes</h3>
+        <p class="sous">On le remplit d'exemples : articles, prix, clients et commandes. Il s'efface tout seul après 3 jours.</p>
+        <div class="deux">
+            <div class="champ"><label for="t-nom">Nom de votre pressing</label><input id="t-nom" placeholder="Ex. Pressing Élégance"></div>
+            <div class="champ"><label for="t-tel">Votre numéro WhatsApp</label><input id="t-tel" inputmode="tel" placeholder="07 00 00 00 00"></div>
+        </div>
+        <button class="btn btn-vert" type="button" data-action="lancer-test">Lancer mon test de 3 jours</button>
+        <div class="encart">ⓘ <span>Si vous aimez, vous créez votre vrai espace en gardant vos articles et vos prix.</span></div>`,
+    chargementTest: () => `
+        <h3>On prépare votre pressing…</h3>
+        <p class="sous">Articles, tarifs, 12 commandes d'exemple et la caisse du jour.</p>
+        <div class="chargement"><b></b></div>`,
+    testPret: () => `
+        <h3>Votre pressing fictif est prêt</h3>
+        <div class="capture"><img src="img/launch-dashboard.webp" alt="Tableau de bord du pressing fictif" width="1600" height="1000"></div>
+        <div class="suite"><div><small>Étape suivante</small><strong>Créer mon vrai espace, en gardant mes articles</strong></div><button class="btn btn-vert" type="button" data-aller="creer">Créer mon espace →</button></div>`,
+    creer: () => `
+        <h3>Votre pressing</h3>
+        <p class="sous">Étape 1 sur 2 · ce que vos clients verront sur leurs reçus.</p>
+        <div class="champ"><label for="c-nom">Nom du pressing</label><input id="c-nom" placeholder="Ex. Pressing Élégance"></div>
+        <div class="deux">
+            <div class="champ"><label for="c-com">Commune</label><input id="c-com" placeholder="Ex. Cocody"></div>
+            <div class="champ"><label for="c-tel">Téléphone du pressing</label><input id="c-tel" inputmode="tel" placeholder="07 00 00 00 00"></div>
+        </div>
+        <button class="btn btn-bleu" type="button" data-action="creer-2">Suivant : vous →</button>
+        ${etat.formule ? `<div class="encart">★ <span>Formule choisie : <b>${etat.formule}</b>. Vous l'activerez juste après.</span></div>` : ''}`,
+    creer2: () => `
+        <h3>Vous, le gérant</h3>
+        <p class="sous">Étape 2 sur 2 · pour vous connecter et vous joindre.</p>
+        <div class="deux">
+            <div class="champ"><label for="g-nom">Votre nom</label><input id="g-nom" placeholder="Ex. Awa Koné"></div>
+            <div class="champ"><label for="g-tel">Votre numéro</label><input id="g-tel" inputmode="tel" placeholder="07 00 00 00 00"></div>
+        </div>
+        <div class="champ"><label for="g-mdp">Mot de passe</label><input id="g-mdp" type="password" placeholder="8 caractères minimum"></div>
+        <button class="btn btn-vert" type="button" data-action="creer-ok">Créer mon espace</button>`,
+    creerOk: () => `
+        <div class="grand-ok"><div class="coche"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+        <h3>Votre espace est créé</h3><p class="sous" style="margin:0">Notre équipe vous appelle aujourd'hui pour vous aider à démarrer.</p></div>
+        <div class="suite"><div><small>Dernière étape</small><strong>Choisir ma formule ${etat.formule ? '· ' + etat.formule : ''}</strong></div><button class="btn btn-vert" type="button" data-aller="formules">Choisir ma formule →</button></div>`,
+    formules: () => {
+        const plan = (nom) => { const [prix, d] = PLANS[nom]; const montant = etat.annuel ? prix * 10 : prix; return `<button class="plan" type="button" data-plan="${nom}" aria-pressed="${etat.formule === nom}"><strong>${nom}${nom === 'Business' ? ' ★' : ''}</strong><span class="p">${fcfa(montant)} F <small>/ ${etat.annuel ? 'an' : 'mois'}</small></span><span>${d}</span></button>`; };
+        return `
+        <h3>Choisissez votre formule</h3>
+        <p class="sous">Sans engagement. Vous pouvez changer à tout moment.</p>
+        <div class="bascule"><button type="button" data-action="mensuel" aria-pressed="${!etat.annuel}">Mensuel</button><button type="button" data-action="annuel" aria-pressed="${etat.annuel}">Annuel <em>2 mois offerts</em></button></div>
+        <div class="plans">${plan('Starter')}${plan('Business')}${plan('Premium')}</div>
+        ${etat.formule ? (etat.cree ? `
+            <div><p style="font-weight:600;margin-bottom:8px">Payer avec</p><div class="moyens">
+                <button type="button" data-moyen="Wave" aria-pressed="${etat.moyen === 'Wave'}"><i style="background:#1DC8FF"></i>Wave</button>
+                <button type="button" data-moyen="Orange Money" aria-pressed="${etat.moyen === 'Orange Money'}"><i style="background:#FF7900"></i>Orange Money</button>
+                <button type="button" data-moyen="MTN MoMo" aria-pressed="${etat.moyen === 'MTN MoMo'}"><i style="background:#FFCB05"></i>MTN MoMo</button>
+                <button type="button" data-moyen="Moov Money" aria-pressed="${etat.moyen === 'Moov Money'}"><i style="background:#0055A5"></i>Moov Money</button>
+            </div></div>
+            <button class="btn btn-vert" type="button" data-action="payer">Payer ${fcfa(PLANS[etat.formule][0] * (etat.annuel ? 10 : 1))} F${etat.moyen ? ' avec ' + etat.moyen : ''}</button>`
+            : `<div class="suite"><div><small>Pour activer ${etat.formule}</small><strong>Créez d'abord votre espace (2 minutes)</strong></div><button class="btn btn-vert" type="button" data-aller="creer">Créer mon espace →</button></div>`) : ''}`;
+    },
+    pret: () => `
+        <div class="grand-ok"><div class="coche"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+        <h3>C'est parti !</h3><p class="sous" style="margin:0">Formule ${etat.formule || 'Business'} activée. Votre tableau de bord vous attend.</p>
+        <button class="btn btn-bleu" type="button">Ouvrir mon tableau de bord →</button></div>`,
+};
+const OU = { tester: 'Tester', creer: 'Créer mon espace', formules: 'Choisir ma formule', pret: 'C\'est parti' };
+
+function transition(maj) {
+    if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) { document.startViewTransition(maj); } else { maj(); }
+}
+function afficher(ecran, ici) {
+    transition(() => {
+        document.getElementById('portes').hidden = true;
+        document.getElementById('panneau').hidden = false;
+        corps.innerHTML = ECRANS[ecran]();
+        etat.ici = ici;
+        document.getElementById('ou').innerHTML = `Vous êtes ici : <b>${OU[ici]}</b>`;
+        gps();
+    });
+    const top = document.querySelector('.scene-portes').getBoundingClientRect().top + scrollY - 140;
+    if (scrollY > top + 200 || scrollY < top - 400) { window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' }); }
+}
+function aller(cible) {
+    if (cible === 'tester') { afficher('tester', 'tester'); }
+    if (cible === 'creer') { afficher(etat.cree ? 'creerOk' : 'creer', 'creer'); }
+    if (cible === 'formules') { afficher('formules', 'formules'); }
+    if (cible === 'pret') { afficher('pret', 'pret'); }
+}
+function retourPortes() {
+    transition(() => {
+        document.getElementById('portes').hidden = false;
+        document.getElementById('panneau').hidden = true;
+        etat.ici = etat.paye ? 'pret' : 'decouvrir';
+        gps();
+    });
+}
+function confettis() {
+    const box = document.createElement('div'); box.className = 'confetti';
+    const couleurs = ['#2563EB', '#22C55E', '#FBBF24', '#1DC8FF', '#F43F5E'];
+    for (let i = 0; i < 70; i++) {
+        const c = document.createElement('i');
+        c.style.left = Math.random() * 100 + 'vw';
+        c.style.background = couleurs[i % couleurs.length];
+        c.style.animationDuration = (1.8 + Math.random() * 1.6) + 's';
+        c.style.animationDelay = Math.random() * .4 + 's';
+        box.appendChild(c);
+    }
+    document.body.appendChild(box);
+    setTimeout(() => box.remove(), 4000);
+}
+
+document.addEventListener('click', (e) => {
+    const a = e.target.closest('[data-aller]');
+    if (a) { e.preventDefault(); aller(a.dataset.aller); return; }
+    const p = e.target.closest('[data-plan]');
+    if (p) { etat.formule = p.dataset.plan; corps.innerHTML = ECRANS.formules(); return; }
+    const m = e.target.closest('[data-moyen]');
+    if (m) { etat.moyen = m.dataset.moyen; corps.innerHTML = ECRANS.formules(); return; }
+    const act = e.target.closest('[data-action]');
+    if (!act) { return; }
+    switch (act.dataset.action) {
+        case 'lancer-test':
+            corps.innerHTML = ECRANS.chargementTest();
+            setTimeout(() => { etat.teste = true; afficher('testPret', 'tester'); }, 1700);
+            break;
+        case 'creer-2': afficher('creer2', 'creer'); break;
+        case 'creer-ok': etat.cree = true; afficher('creerOk', 'creer'); break;
+        case 'mensuel': etat.annuel = false; corps.innerHTML = ECRANS.formules(); break;
+        case 'annuel': etat.annuel = true; corps.innerHTML = ECRANS.formules(); break;
+        case 'payer': etat.paye = true; afficher('pret', 'pret'); confettis(); break;
+    }
+});
+document.querySelectorAll('.porte').forEach((p) => p.addEventListener('keydown', (e) => { if (e.key === 'Enter') { aller(p.dataset.aller); } }));
+document.getElementById('retour').addEventListener('click', retourPortes);
+requestAnimationFrame(gps);
+
+Demo.installer({
+    reinitialiser: () => {
+        Object.assign(etat, { teste: false, cree: false, formule: null, annuel: false, moyen: null, paye: false, ici: 'decouvrir' });
+        document.getElementById('portes').hidden = false; document.getElementById('panneau').hidden = true; gps(); window.scrollTo({ top: 0 });
+    },
+    scenario: async ({ cliquer, taper, attendre, vers, defiler }) => {
+        await attendre(1800);
+        for (const sel of ['.porte[data-aller="tester"]', '.porte[data-aller="formules"]', '.porte.vedette']) {
+            const el = document.querySelector(sel);
+            await vers(el); el.classList.add('survol'); await attendre(900); el.classList.remove('survol');
+        }
+        await cliquer('.porte.vedette .btn');
+        await attendre(700);
+        await taper('#c-nom', 'Pressing Élégance');
+        await taper('#c-com', 'Cocody');
+        await taper('#c-tel', '07 08 45 12 30');
+        await cliquer('[data-action="creer-2"]');
+        await attendre(600);
+        await taper('#g-nom', 'Awa Koné');
+        await taper('#g-tel', '07 08 45 12 30');
+        await taper('#g-mdp', 'pressing2026');
+        await cliquer('[data-action="creer-ok"]');
+        await attendre(1800);
+        await cliquer('.suite .btn');
+        await attendre(800);
+        await cliquer('[data-action="annuel"]');
+        await attendre(500);
+        await cliquer('[data-plan="Business"]');
+        await attendre(500);
+        await cliquer('[data-moyen="Wave"]');
+        await cliquer('[data-action="payer"]');
+        await attendre(3200);
+        await defiler(0, 900);
+    },
+});
+</script>
+</body>
+</html>

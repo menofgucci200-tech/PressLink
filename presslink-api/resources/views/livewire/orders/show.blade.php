@@ -29,10 +29,18 @@
                 <span class="font-semibold text-(--color-success-text)">Commande enregistrée.</span>
                 <span class="text-(--color-text-secondary)">Remettez le reçu au client : il y retrouve son numéro, ses articles et ce qu'il lui reste à payer.</span>
             </div>
-            <a href="{{ route('orders.receipt', ['order' => $order, 'imprimer' => 1]) }}" target="_blank" rel="noopener"
-               class="inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
-                Imprimer le reçu
-            </a>
+            <div class="flex flex-wrap gap-2 max-sm:w-full">
+                @if ($canAddPhotos)
+                    <a href="#photos" class="max-sm:flex-1 inline-flex items-center justify-center gap-2 h-11 sm:h-9 px-4 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3.5"/></svg>
+                        Photographier les articles
+                    </a>
+                @endif
+                <a href="{{ route('orders.receipt', ['order' => $order, 'imprimer' => 1]) }}" target="_blank" rel="noopener"
+                   class="max-sm:flex-1 inline-flex items-center justify-center gap-2 h-11 sm:h-9 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
+                    Imprimer le reçu
+                </a>
+            </div>
         </div>
     @endif
 
@@ -111,6 +119,8 @@
                     <span class="font-display text-lg font-bold tabular-nums">{{ number_format($order->total_fcfa, 0, ',', ' ') }} FCFA</span>
                 </div>
             </div>
+
+            @include('livewire.orders._photos')
 
             <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
                 <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-3">Historique</div>

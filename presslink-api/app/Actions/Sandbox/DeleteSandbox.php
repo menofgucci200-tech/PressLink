@@ -4,6 +4,7 @@ namespace App\Actions\Sandbox;
 
 use App\Models\ActivityLog;
 use App\Models\Customer;
+use App\Models\OrderPhoto;
 use App\Models\Pressing;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -12,7 +13,7 @@ use InvalidArgumentException;
 /**
  * Supprime un pressing de test et tout ce qui lui appartient : ses clients
  * fictifs (et leurs notifications), les comptes de son équipe qui ne servent
- * nulle part ailleurs, son logo, puis le pressing lui-même (commandes,
+ * nulle part ailleurs, son logo et les photos des commandes, puis le pressing lui-même (commandes,
  * services, caisse, journal… partent en cascade). La fiche du test
  * (SandboxTrial) reste, pour le suivi commercial.
  */
@@ -43,5 +44,6 @@ class DeleteSandbox
         if ($pressing->logo_path !== null) {
             Storage::disk('public')->delete($pressing->logo_path);
         }
+        Storage::disk(OrderPhoto::DISK)->deleteDirectory(OrderPhoto::directoryFor($pressing->id));
     }
 }

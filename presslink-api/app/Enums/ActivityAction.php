@@ -20,6 +20,7 @@ enum ActivityAction: string
     case StorageFeeWaived = 'storage_fee_waived';
     case IssueReported = 'issue_reported';
     case IssueResolved = 'issue_resolved';
+    case OrderPhotoRemoved = 'order_photo_removed';
 
     // Paiements
     case PaymentRecorded = 'payment_recorded';
@@ -60,6 +61,7 @@ enum ActivityAction: string
             self::StorageFeeWaived => 'Droit de magasinage offert',
             self::IssueReported => 'Signalement reçu',
             self::IssueResolved => 'Signalement résolu',
+            self::OrderPhotoRemoved => 'Photo supprimée',
             self::PaymentRecorded => 'Paiement encaissé',
             self::PaymentRefunded => 'Remboursement',
             self::PaymentRemoved => 'Paiement supprimé',
@@ -85,7 +87,7 @@ enum ActivityAction: string
     {
         return match ($this) {
             self::OrderCreated, self::OrderStatusChanged, self::OrderHandedOver, self::RecoveredUnpaid,
-            self::OrderCancelled, self::IssueReported, self::IssueResolved => 'orders',
+            self::OrderCancelled, self::IssueReported, self::IssueResolved, self::OrderPhotoRemoved => 'orders',
             self::StorageFeeCharged, self::StorageFeeWaived => 'payments',
             self::PaymentRecorded, self::PaymentRefunded, self::PaymentRemoved => 'payments',
             self::CustomerAdded => 'customers',

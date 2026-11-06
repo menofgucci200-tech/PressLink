@@ -117,6 +117,12 @@ class Order extends Model
         return $this->hasMany(OrderStatusHistory::class)->orderBy('created_at');
     }
 
+    /** @return HasMany<OrderPhoto, $this> */
+    public function photos(): HasMany
+    {
+        return $this->hasMany(OrderPhoto::class)->orderBy('id');
+    }
+
     /** @return HasMany<OrderIssue, $this> */
     public function issues(): HasMany
     {

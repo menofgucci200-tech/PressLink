@@ -23,6 +23,9 @@ Schedule::command('presslink:trial-reminders')->dailyAt('09:00');
 // Pressings de test arrivés à expiration : supprimés avec leurs données fictives.
 Schedule::command('presslink:purge-sandboxes')->hourly();
 
+// Photos des commandes remises ou annulées depuis 30 jours : supprimées (espace disque).
+Schedule::command('presslink:purge-order-photos')->dailyAt('03:30');
+
 // Paiements en ligne restés en cours au-delà de la durée d'une page de paiement : « Expiré ».
 Schedule::command('presslink:expire-payments')->hourly();
 

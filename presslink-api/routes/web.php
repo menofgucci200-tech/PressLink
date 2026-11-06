@@ -6,6 +6,7 @@ use App\Http\Controllers\GroupExportController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OfflineCounterController;
 use App\Http\Controllers\OrderExportController;
+use App\Http\Controllers\OrderPhotoController;
 use App\Http\Controllers\OrderReceiptController;
 use App\Http\Controllers\PublicReceiptController;
 use App\Http\Controllers\SitemapController;
@@ -87,6 +88,11 @@ Route::middleware(['signed', 'throttle:60,1'])->group(function () {
     Route::get('/recus/commande/{order}', [PublicReceiptController::class, 'order'])->name('receipts.order');
     Route::get('/recus/paiement/{payment}', [PublicReceiptController::class, 'payment'])->name('receipts.payment');
 });
+
+// Photos des commandes (pressing et appli client) : lien signé, valable quelques heures.
+Route::get('/photos-commandes/{photo}', [OrderPhotoController::class, 'show'])
+    ->middleware(['signed', 'throttle:600,1'])
+    ->name('order-photos.show');
 
 // Lien « Ne plus recevoir ces emails » (signé : impossible à forger).
 Route::get('/emails/desabonnement/{customer}', function (Customer $customer) {

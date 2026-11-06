@@ -57,6 +57,26 @@ class OrderPaymentModel {
       );
 }
 
+/// Photo des articles prise par le pressing au dépôt (liens valables 24 h).
+class OrderPhotoModel {
+  const OrderPhotoModel({
+    required this.id,
+    required this.url,
+    required this.thumbUrl,
+  });
+
+  final int id;
+  final String url;
+  final String thumbUrl;
+
+  factory OrderPhotoModel.fromJson(Map<String, dynamic> json) =>
+      OrderPhotoModel(
+        id: json['id'] as int,
+        url: json['url'] as String,
+        thumbUrl: json['thumb_url'] as String? ?? json['url'] as String,
+      );
+}
+
 class OrderStatusEvent {
   const OrderStatusEvent({required this.status, required this.at});
 
@@ -153,6 +173,7 @@ class OrderModel {
     this.balanceDueFcfa = 0,
     this.paymentState = PaymentState.unpaid,
     this.payments = const [],
+    this.photos = const [],
     this.cancellationReason,
     this.receipt,
     this.storageFeeAmount,
@@ -178,6 +199,9 @@ class OrderModel {
   final int balanceDueFcfa;
   final PaymentState paymentState;
   final List<OrderPaymentModel> payments;
+
+  /// Photos des articles prises par le pressing (détail de la commande seulement).
+  final List<OrderPhotoModel> photos;
 
   /// Motif d'annulation (« Erreur de saisie », « Le client a renoncé »…).
   final String? cancellationReason;
@@ -223,6 +247,9 @@ class OrderModel {
     paymentState: _paymentStateFromApi(json['payment_status'] as String?),
     payments: (json['payments'] as List? ?? [])
         .map((e) => OrderPaymentModel.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    photos: (json['photos'] as List? ?? [])
+        .map((e) => OrderPhotoModel.fromJson(e as Map<String, dynamic>))
         .toList(),
     cancellationReason: json['cancellation_reason_label'] as String?,
     receipt: json['receipt'] is Map<String, dynamic>

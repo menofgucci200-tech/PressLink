@@ -37,12 +37,13 @@ class OrderController extends Controller
     {
         abort_unless($order->customer_id === $request->user()->id, 403);
 
-        $order->load(['pressing', 'items', 'statusHistory', 'issues', 'payments:id,order_id,amount_fcfa,method,paid_at']);
+        $order->load(['pressing', 'items', 'statusHistory', 'issues', 'payments:id,order_id,amount_fcfa,method,paid_at', 'photos']);
 
         // Reçu de dépôt : à ouvrir, télécharger ou partager depuis l'appli.
         $storageFee = $order->storageFee();
 
-        return response()->json([...$order->toArray(), 'storage_fee' => $storageFee === null ? null : [
+        // Photos des articles prises au dépôt : liens signés, valables 24 h.
+        return response()->json([...$order->toArray(), 'photos' => $order->photos->map->toClientArray()->all(), 'storage_fee' => $storageFee === null ? null : [
             'days' => $storageFee['days'],
             'amount' => $storageFee['amount'],
             'since' => $storageFee['since']->toDateString(),

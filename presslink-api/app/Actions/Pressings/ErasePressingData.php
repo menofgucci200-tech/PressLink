@@ -9,9 +9,11 @@ use App\Models\CashExpense;
 use App\Models\Customer;
 use App\Models\OfflineOperation;
 use App\Models\Order;
+use App\Models\OrderPhoto;
 use App\Models\Pressing;
 use App\Models\Service;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Efface une partie des données d'un pressing sans supprimer le pressing
@@ -85,7 +87,7 @@ class ErasePressingData
 
     /**
      * Commandes du pressing (articles, historique, paiements et signalements
-     * suivent en cascade), notifications des clients qui en parlent,
+     * suivent en cascade), leurs photos, notifications des clients qui en parlent,
      * opérations hors connexion, et quota du mois remis à zéro.
      */
     private function eraseOrders(Pressing $pressing): int
@@ -101,6 +103,7 @@ class ErasePressingData
             $count += Order::whereKey($ids)->delete();
         });
 
+        Storage::disk(OrderPhoto::DISK)->deleteDirectory(OrderPhoto::directoryFor($pressing->id));
         OfflineOperation::where('pressing_id', $pressing->id)->delete();
         $pressing->subscription?->update(['orders_used' => 0]);
 

@@ -392,6 +392,17 @@ class _OrderDetailBody extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
 
+          // Photos prises au dépôt : le client vérifie qu'il ne manque rien.
+          if (order.photos.isNotEmpty) ...[
+            Text(
+              'PHOTOS DU DÉPÔT',
+              style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6),
+            ),
+            const SizedBox(height: AppSpacing.sm + 4),
+            _PhotosCard(order: order),
+            const SizedBox(height: AppSpacing.lg),
+          ],
+
           // Paiement : ce qui a été payé au pressing et ce qu'il reste à régler.
           if (order.status != OrderStatus.annulee && order.totalFcfa > 0) ...[
             Text(
@@ -559,6 +570,173 @@ class _OrderDetailBody extends ConsumerWidget {
       buffer.write(s[i]);
     }
     return buffer.toString();
+  }
+}
+
+/// Miniatures des photos du dépôt, avec le lien pour signaler un article
+/// manquant ou qui n'appartient pas au client.
+class _PhotosCard extends StatelessWidget {
+  const _PhotosCard({required this.order});
+
+  final OrderModel order;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final photos = order.photos;
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color,
+        border: Border.all(color: theme.dividerTheme.color!),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Vos articles photographiés par le pressing à la réception.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: context.textMuted,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm + 4),
+          GridView.count(
+            crossAxisCount: 3,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              for (var i = 0; i < photos.length; i++)
+                Semantics(
+                  button: true,
+                  label: 'Agrandir la photo ${i + 1}',
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        fullscreenDialog: true,
+                        builder: (_) =>
+                            _PhotoViewer(photos: photos, initialIndex: i),
+                      ),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.network(
+                        photos[i].thumbUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => Container(
+                          color: theme.dividerTheme.color,
+                          child: Icon(
+                            Icons.image_not_supported_outlined,
+                            color: context.textMuted,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm + 4),
+          Text.rich(
+            TextSpan(
+              text: 'Un article n\'est pas à vous ou il en manque un ? ',
+              children: [
+                WidgetSpan(
+                  alignment: PlaceholderAlignment.baseline,
+                  baseline: TextBaseline.alphabetic,
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).push(
+                      AppPageRoute(
+                        builder: (_) => ReportIssueScreen(
+                          orderId: order.id,
+                          orderNumber: order.orderNumber,
+                        ),
+                      ),
+                    ),
+                    child: const Text(
+                      'Le signaler',
+                      style: TextStyle(
+                        color: AppColors.error,
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            style: theme.textTheme.bodySmall,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Photos en plein écran : glisser pour passer à la suivante, pincer pour zoomer.
+class _PhotoViewer extends StatefulWidget {
+  const _PhotoViewer({required this.photos, required this.initialIndex});
+
+  final List<OrderPhotoModel> photos;
+  final int initialIndex;
+
+  @override
+  State<_PhotoViewer> createState() => _PhotoViewerState();
+}
+
+class _PhotoViewerState extends State<_PhotoViewer> {
+  late final PageController _controller = PageController(
+    initialPage: widget.initialIndex,
+  );
+  late int _index = widget.initialIndex;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: Text(
+          'Photo ${_index + 1} / ${widget.photos.length}',
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+        ),
+      ),
+      body: PageView.builder(
+        controller: _controller,
+        itemCount: widget.photos.length,
+        onPageChanged: (i) => setState(() => _index = i),
+        itemBuilder: (_, i) => InteractiveViewer(
+          maxScale: 4,
+          child: Center(
+            child: Image.network(
+              widget.photos[i].url,
+              fit: BoxFit.contain,
+              loadingBuilder: (_, child, progress) => progress == null
+                  ? child
+                  : const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
+              errorBuilder: (_, _, _) => const Text(
+                'Photo indisponible. Revenez à la commande pour la recharger.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white70),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

@@ -6,22 +6,22 @@
         <a href="{{ route('clients.index') }}" data-back aria-label="Retour" data-tooltip="Retour" data-tooltip-pos="bottom" class="w-9 h-9 rounded-lg border border-(--color-border) flex items-center justify-center hover:border-(--color-primary)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
         </a>
-        <div class="min-w-0 flex-1">
+        <div class="min-w-0 flex-1 max-sm:basis-[calc(100%-3rem)]">
             <div class="font-semibold">
                 {{ $customer->fullName() }}
                 @unless ($customer->is_active)
                     <span class="ml-1.5 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-(--color-error-tint) text-(--color-error)" title="Compte désactivé par PressLink : le client ne peut plus se connecter à l'application.">Compte désactivé</span>
                 @endunless
             </div>
-            <div class="text-xs text-(--color-text-muted) tabular-nums whitespace-nowrap flex items-center gap-0.5">{{ \App\Support\PhoneNumber::format($customer->phone) }} <x-copy-button :value="$customer->phone" label="Copier le téléphone" /></div>
+            <div class="text-xs text-(--color-text-muted) tabular-nums whitespace-nowrap flex items-center gap-1">{{ \App\Support\PhoneNumber::format($customer->phone) }} <x-copy-button :value="$customer->phone" label="Copier le téléphone" /></div>
         </div>
         @if ($customer->hasAppAccount())
-            <span class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold bg-(--color-success-tint) text-(--color-success-text)"
+            <span class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold bg-(--color-success-tint) text-(--color-success-text) max-sm:ml-12 max-sm:h-7"
                   data-tooltip="Le client suit ses commandes dans l'application PressLink.">
                 <span class="w-1.5 h-1.5 rounded-full bg-current"></span>Utilise l'application
             </span>
         @else
-            <span class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold bg-(--color-bg) border border-(--color-border) text-(--color-text-secondary)"
+            <span class="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold bg-(--color-bg) border border-(--color-border) text-(--color-text-secondary) max-sm:ml-12 max-sm:h-7"
                   data-tooltip="En installant PressLink avec ce numéro, il retrouvera toutes ses commandes.">
                 <span class="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>Pas encore sur l'application
             </span>
@@ -57,7 +57,7 @@
             <div class="font-display text-base sm:text-2xl font-bold tabular-nums">{{ number_format($totalSpentFcfa, 0, ',', ' ') }} F</div>
         </div>
         <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-3 sm:p-5 transition-all duration-150 hover:border-(--color-text-muted) hover:-translate-y-px animate-step">
-            <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1.5 truncate">Client depuis</div>
+            <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-1.5 truncate"><span class="sm:hidden">Depuis</span><span class="max-sm:hidden">Client depuis</span></div>
             <div class="font-display text-base sm:text-2xl font-bold tabular-nums"><span class="sm:hidden">{{ $joinedAt?->format('d/m/y') ?? '—' }}</span><span class="max-sm:hidden">{{ $joinedAt?->format('d/m/Y') ?? '—' }}</span></div>
         </div>
     </div>

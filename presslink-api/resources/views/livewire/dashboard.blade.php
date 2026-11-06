@@ -53,7 +53,7 @@
         <div class="flex items-center gap-2 mb-4 flex-wrap">
             @foreach (['today' => "Aujourd'hui", '7d' => '7 jours', '30d' => '30 jours', 'custom' => 'Personnalisé'] as $value => $label)
                 <button type="button" wire:click="setPeriod('{{ $value }}')"
-                        class="h-8 px-3 rounded-lg text-[12.5px] font-semibold transition-colors duration-150 {{ $period === $value ? 'bg-(--color-primary) text-white' : 'bg-(--color-surface) border border-(--color-border) text-(--color-text-secondary) hover:border-(--color-primary)' }}">
+                        class="h-10 sm:h-8 px-2.5 sm:px-3 rounded-lg text-[13px] sm:text-[12.5px] font-semibold whitespace-nowrap transition-colors duration-150 max-sm:flex-1 {{ $period === $value ? 'bg-(--color-primary) text-white' : 'bg-(--color-surface) border border-(--color-border) text-(--color-text-secondary) hover:border-(--color-primary)' }}">
                     {{ $label }}
                 </button>
             @endforeach

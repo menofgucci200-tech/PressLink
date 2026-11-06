@@ -342,7 +342,7 @@
                         <div class="grid grid-cols-3 gap-1 p-1 rounded-xl bg-(--color-bg)" role="radiogroup" aria-label="Paiement">
                             @foreach (['later' => 'Au retrait', 'full' => 'Payée', 'partial' => 'Acompte'] as $value => $label)
                                 <button type="button" role="radio" :aria-checked="paymentChoice === '{{ $value }}'" @click="choisirPaiement('{{ $value }}')"
-                                        class="h-9 rounded-lg text-[13px] font-semibold transition-colors"
+                                        class="h-11 sm:h-9 rounded-lg text-[13px] font-semibold transition-colors"
                                         :class="paymentChoice === '{{ $value }}' ? 'bg-(--color-surface) text-(--color-primary) shadow-sm' : 'text-(--color-text-secondary) hover:text-(--color-text-primary)'">{{ $label }}</button>
                             @endforeach
                         </div>
@@ -358,12 +358,13 @@
                             @error('depositAmount') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                         </div>
 
-                        <div x-show="paymentChoice === 'full' || paymentChoice === 'partial'" x-cloak class="mt-2.5 flex flex-wrap gap-1.5">
+                        <div x-show="paymentChoice === 'full' || paymentChoice === 'partial'" x-cloak class="mt-2.5 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Payé en">
                             @foreach ($paymentMethods as $method)
-                                <button type="button" @click="paymentMethod = '{{ $method->value }}'"
-                                        class="h-8 px-3 rounded-full border text-xs font-medium transition-colors"
-                                        :class="paymentMethod === '{{ $method->value }}' ? 'border-(--color-primary) bg-(--color-primary) text-white' : 'border-(--color-border) hover:border-(--color-text-muted)'">
-                                    {{ $method->label() }}
+                                <button type="button" role="radio" :aria-checked="paymentMethod === '{{ $method->value }}'" @click="paymentMethod = '{{ $method->value }}'"
+                                        class="flex items-center gap-2 min-w-0 h-11 pl-1.5 pr-2.5 rounded-xl border text-[13px] font-semibold transition-colors"
+                                        :class="paymentMethod === '{{ $method->value }}' ? 'border-(--color-primary) bg-(--color-primary-tint) text-(--color-primary) ring-2 ring-(--color-primary)/20' : 'border-(--color-border) bg-(--color-surface) hover:border-(--color-text-muted)'">
+                                    <x-payment-method-logo :method="$method" :size="28" />
+                                    <span class="truncate">{{ $method->label() }}</span>
                                 </button>
                             @endforeach
                         </div>

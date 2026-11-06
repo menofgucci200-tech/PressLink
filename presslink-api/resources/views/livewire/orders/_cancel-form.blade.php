@@ -39,11 +39,12 @@
 
         @if ($cancelMoney === \App\Actions\Orders\CancelOrderAction::REFUND)
             <div class="text-xs font-medium text-(--color-text-secondary) mt-3 mb-1.5">Rendu en</div>
-            <div class="flex flex-wrap gap-1.5">
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" role="radiogroup" aria-label="Rendu en">
                 @foreach ($paymentMethods as $method)
-                    <button type="button" wire:key="refund-{{ $method->value }}" wire:click="$set('refundMethod', '{{ $method->value }}')"
-                            class="h-8 px-3 rounded-full border text-xs font-medium transition-colors {{ $refundMethod === $method->value ? 'border-(--color-text-primary) bg-(--color-text-primary) text-(--color-surface)' : 'border-(--color-border) bg-(--color-surface) hover:border-(--color-text-muted)' }}">
-                        {{ $method->label() }}
+                    <button type="button" wire:key="refund-{{ $method->value }}" wire:click="$set('refundMethod', '{{ $method->value }}')" role="radio" aria-checked="{{ $refundMethod === $method->value ? 'true' : 'false' }}"
+                            class="flex items-center gap-2 min-w-0 h-11 pl-1.5 pr-2.5 rounded-xl border text-[13px] font-semibold transition-colors {{ $refundMethod === $method->value ? 'border-(--color-text-primary) bg-(--color-bg) ring-2 ring-(--color-text-primary)/15' : 'border-(--color-border) bg-(--color-surface) hover:border-(--color-text-muted)' }}">
+                        <x-payment-method-logo :method="$method" :size="28" />
+                        <span class="truncate">{{ $method->label() }}</span>
                     </button>
                 @endforeach
             </div>

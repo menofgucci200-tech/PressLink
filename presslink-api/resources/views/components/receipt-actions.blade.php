@@ -4,7 +4,7 @@
 --}}
 @props(['download', 'share', 'label' => 'le reçu', 'size' => 'md'])
 @php
-    $box = $size === 'sm' ? 'w-7 h-7 rounded-md' : 'w-9 h-9 rounded-lg border border-(--color-border)';
+    $box = $size === 'sm' ? 'w-7 h-7 rounded-md tap-zone tap-zone--sm' : 'w-9 h-9 rounded-lg border border-(--color-border)';
     $icon = $size === 'sm' ? 14 : 16;
 @endphp
 <span {{ $attributes->merge(['class' => 'inline-flex items-center gap-1']) }} x-data="{ share: @js($share) }">

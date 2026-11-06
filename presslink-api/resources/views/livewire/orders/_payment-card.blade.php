@@ -30,7 +30,8 @@
     @if ($order->payments->isNotEmpty())
         <div class="mt-4 pt-3 border-t border-(--color-border) flex flex-col gap-2">
             @foreach ($order->payments as $payment)
-                <div wire:key="payment-{{ $payment->id }}" class="flex items-start gap-2 text-[13px]">
+                <div wire:key="payment-{{ $payment->id }}" class="flex items-start gap-2.5 text-[13px]">
+                    <x-payment-method-logo :method="$payment->method" :size="28" class="mt-0.5" />
                     <div class="flex-1 min-w-0">
                         <div class="font-medium {{ $payment->isRefund() ? 'text-(--color-error)' : '' }}">{{ $payment->isRefund() ? 'Remboursement · ' : '' }}{{ $fcfa($payment->amount_fcfa) }} F · {{ $payment->method->label() }}</div>
                         <div class="text-xs text-(--color-text-muted)">
@@ -57,14 +58,18 @@
                     </div>
                     @error('paymentAmount') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                 </div>
-                <div>
-                    <label for="payment-method" class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Moyen de paiement</label>
-                    <select id="payment-method" wire:model="paymentMethod" class="w-full h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm">
+                <fieldset>
+                    <legend class="block text-xs font-medium text-(--color-text-secondary) mb-1.5">Moyen de paiement</legend>
+                    <div class="grid grid-cols-2 gap-2">
                         @foreach ($paymentMethods as $method)
-                            <option value="{{ $method->value }}">{{ $method->label() }}</option>
+                            <label wire:key="pay-{{ $method->value }}" class="flex items-center gap-2 min-w-0 h-11 pl-1.5 pr-2.5 rounded-xl border text-[13px] font-semibold transition-colors cursor-pointer {{ $paymentMethod === $method->value ? 'border-(--color-primary) bg-(--color-primary-tint) text-(--color-primary) ring-2 ring-(--color-primary)/20' : 'border-(--color-border) bg-(--color-surface) hover:border-(--color-text-muted)' }}">
+                                <input type="radio" wire:model.live="paymentMethod" value="{{ $method->value }}" class="sr-only">
+                                <x-payment-method-logo :method="$method" :size="28" />
+                                <span class="truncate">{{ $method->label() }}</span>
+                            </label>
                         @endforeach
-                    </select>
-                </div>
+                    </div>
+                </fieldset>
                 <div class="flex gap-2">
                     <button type="submit" wire:loading.attr="disabled" wire:target="recordPayment"
                             class="flex-1 h-10 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600) disabled:opacity-60">

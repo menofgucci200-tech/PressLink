@@ -100,11 +100,12 @@
                         </div>
                     @endif
                     @if ($status === OrderStatus::Prete && $balance > 0 && ! $handOverClosed && $primaryAllowed)
-                        <div class="flex flex-wrap gap-1.5 mt-2" role="radiogroup" aria-label="Payé en">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2" role="radiogroup" aria-label="Payé en">
                             @foreach ($paymentMethods as $method)
                                 <button type="button" wire:key="settle-{{ $method->value }}" wire:click="$set('paymentMethod', '{{ $method->value }}')" role="radio" aria-checked="{{ $paymentMethod === $method->value ? 'true' : 'false' }}"
-                                        class="h-8 px-3 rounded-full border text-xs font-medium transition-colors {{ $paymentMethod === $method->value ? 'border-(--color-primary) bg-(--color-primary) text-white' : 'border-(--color-border) hover:border-(--color-text-muted)' }}">
-                                    {{ $method->label() }}
+                                        class="flex items-center gap-2 min-w-0 h-11 pl-1.5 pr-2.5 rounded-xl border text-[13px] font-semibold transition-colors {{ $paymentMethod === $method->value ? 'border-(--color-primary) bg-(--color-primary-tint) text-(--color-primary) ring-2 ring-(--color-primary)/20' : 'border-(--color-border) bg-(--color-surface) hover:border-(--color-text-muted)' }}">
+                                    <x-payment-method-logo :method="$method" :size="28" />
+                                    <span class="truncate">{{ $method->label() }}</span>
                                 </button>
                             @endforeach
                         </div>

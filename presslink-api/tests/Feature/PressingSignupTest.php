@@ -139,7 +139,8 @@ class PressingSignupTest extends TestCase
         $this->get(route('dashboard'))->assertOk()
             ->assertSee('Bien démarrer avec PressLink')
             ->assertSee('Ajoutez vos articles et vos prix')
-            ->assertSee("Essai gratuit : encore 26 jours, jusqu'au 22/11/2026", false)
+            ->assertSee('Essai gratuit : encore 26 jours')
+            ->assertSee("jusqu'au 22/11/2026", false)
             ->assertSee('Choisir ma formule');
     }
 

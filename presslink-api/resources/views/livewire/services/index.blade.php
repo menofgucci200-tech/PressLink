@@ -65,25 +65,25 @@
                         <div class="flex items-center justify-between gap-1 pt-3 border-t border-(--color-border)">
                             <div class="flex items-center gap-1">
                                 <button type="button" wire:click="movePrestation({{ $prestation->id }}, 'left')" @disabled($loop->first) title="Avancer" aria-label="Avancer {{ $prestation->name }}"
-                                        class="w-8 h-8 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary) disabled:opacity-30 disabled:pointer-events-none">
+                                        class="w-10 h-10 sm:w-8 sm:h-8 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary) disabled:opacity-30 disabled:pointer-events-none">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
                                 </button>
                                 <button type="button" wire:click="movePrestation({{ $prestation->id }}, 'right')" @disabled($loop->last) title="Reculer" aria-label="Reculer {{ $prestation->name }}"
-                                        class="w-8 h-8 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary) disabled:opacity-30 disabled:pointer-events-none">
+                                        class="w-10 h-10 sm:w-8 sm:h-8 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary) disabled:opacity-30 disabled:pointer-events-none">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
                                 </button>
                             </div>
                             <div class="flex items-center gap-1">
                                 <button type="button" wire:click="editPrestation({{ $prestation->id }})" title="Modifier" aria-label="Modifier {{ $prestation->name }}"
-                                        class="w-8 h-8 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary)">
+                                        class="w-10 h-10 sm:w-8 sm:h-8 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary)">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
                                 </button>
                                 <button type="button" wire:click="togglePrestation({{ $prestation->id }})" title="{{ $prestation->is_active ? 'Désactiver' : 'Réactiver' }}" aria-label="{{ $prestation->is_active ? 'Désactiver' : 'Réactiver' }} {{ $prestation->name }}"
-                                        class="h-8 px-2.5 rounded-lg border border-(--color-border) text-xs font-medium text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary)">{{ $prestation->is_active ? 'Désactiver' : 'Réactiver' }}</button>
+                                        class="h-10 sm:h-8 px-3 sm:px-2.5 rounded-lg border border-(--color-border) text-xs font-medium text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary)">{{ $prestation->is_active ? 'Désactiver' : 'Réactiver' }}</button>
                                 <button type="button" wire:click="deletePrestation({{ $prestation->id }})" title="Supprimer" aria-label="Supprimer {{ $prestation->name }}"
                                         data-confirm-title="Supprimer ce service" data-confirm-label="Supprimer" data-confirm-tone="danger"
                                         wire:confirm="Supprimer le service « {{ $prestation->name }} » et ses prix ? S'il figure déjà dans des commandes, il sera seulement désactivé."
-                                        class="w-8 h-8 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-muted) hover:border-(--color-error) hover:text-(--color-error)">
+                                        class="w-10 h-10 sm:w-8 sm:h-8 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-muted) hover:border-(--color-error) hover:text-(--color-error)">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
                                 </button>
                             </div>
@@ -278,17 +278,17 @@
                                 <td class="px-3 py-2.5">
                                     <div class="flex items-center justify-end gap-1">
                                         <button type="button" wire:click="newVariant({{ $piece->id }})" title="Ajouter une variante (ex. manche longue)"
-                                                class="h-8 px-2.5 rounded-lg border border-(--color-border) text-xs font-medium text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary) whitespace-nowrap">+ Variante</button>
+                                                class="h-10 sm:h-8 px-3 sm:px-2.5 rounded-lg border border-(--color-border) text-xs font-medium text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary) whitespace-nowrap">+ Variante</button>
                                         <button type="button" wire:click="editPiece({{ $piece->id }})" title="Modifier" aria-label="Modifier {{ $piece->name }}"
-                                                class="w-8 h-8 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary)">
+                                                class="w-10 h-10 sm:w-8 sm:h-8 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary)">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
                                         </button>
                                         <button type="button" wire:click="togglePiece({{ $piece->id }})" title="{{ $piece->is_active ? 'Désactiver' : 'Réactiver' }}" aria-label="{{ $piece->is_active ? 'Désactiver' : 'Réactiver' }} {{ $piece->name }}"
-                                                class="h-8 px-2.5 rounded-lg border border-(--color-border) text-xs font-medium text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary)">{{ $piece->is_active ? 'Désactiver' : 'Réactiver' }}</button>
+                                                class="h-10 sm:h-8 px-3 sm:px-2.5 rounded-lg border border-(--color-border) text-xs font-medium text-(--color-text-secondary) hover:border-(--color-primary) hover:text-(--color-primary)">{{ $piece->is_active ? 'Désactiver' : 'Réactiver' }}</button>
                                         <button type="button" wire:click="deletePiece({{ $piece->id }})" title="Supprimer" aria-label="Supprimer {{ $piece->name }}"
                                                 data-confirm-title="Supprimer cette pièce" data-confirm-label="Supprimer" data-confirm-tone="danger"
                                                 wire:confirm="Supprimer la pièce « {{ $piece->name }} » et tous ses prix ? Si elle figure déjà dans des commandes, elle sera seulement désactivée."
-                                                class="w-8 h-8 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-muted) hover:border-(--color-error) hover:text-(--color-error)">
+                                                class="w-10 h-10 sm:w-8 sm:h-8 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-muted) hover:border-(--color-error) hover:text-(--color-error)">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
                                         </button>
                                     </div>
@@ -310,7 +310,7 @@
                                         <button type="button" wire:click="deleteVariant({{ $variant->id }})" title="Supprimer la variante" aria-label="Supprimer {{ $variant->name }}"
                                                 data-confirm-title="Supprimer cette variante" data-confirm-label="Supprimer" data-confirm-tone="danger"
                                                 wire:confirm="Supprimer la variante « {{ $variant->name }} » ? Si elle figure déjà dans des commandes, elle sera seulement désactivée."
-                                                class="w-8 h-8 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-muted) hover:border-(--color-error) hover:text-(--color-error) ml-auto">
+                                                class="w-10 h-10 sm:w-8 sm:h-8 rounded-lg border border-(--color-border) flex items-center justify-center text-(--color-text-muted) hover:border-(--color-error) hover:text-(--color-error) ml-auto">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
                                         </button>
                                     </td>

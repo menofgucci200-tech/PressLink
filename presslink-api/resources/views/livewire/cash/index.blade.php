@@ -55,7 +55,7 @@
                         <h2 class="font-semibold text-sm">Dépenses de la journée</h2>
                         <p class="text-xs text-(--color-text-muted)">Argent sorti de la caisse : produits, transport, monnaie rendue…</p>
                     </div>
-                    <span class="font-semibold tabular-nums {{ $summary['expenses_total'] > 0 ? 'text-(--color-error)' : 'text-(--color-text-muted)' }}">{{ $summary['expenses_total'] > 0 ? '− '.$fcfa($summary['expenses_total']).' F' : '0 F' }}</span>
+                    <span class="font-semibold tabular-nums whitespace-nowrap {{ $summary['expenses_total'] > 0 ? 'text-(--color-error)' : 'text-(--color-text-muted)' }}">{{ $summary['expenses_total'] > 0 ? '− '.$fcfa($summary['expenses_total']).' F' : '0 F' }}</span>
                 </div>
                 @forelse ($summary['expenses'] as $expense)
                     <div wire:key="exp-{{ $expense->id }}" class="flex items-center gap-3 px-5 py-3 border-b border-(--color-border) text-sm">
@@ -84,9 +84,9 @@
                             <input type="text" wire:model="expenseLabel" maxlength="150" placeholder="Motif (ex. achat de lessive)" aria-label="Motif de la dépense" class="{{ $input }} w-full">
                             @error('expenseLabel') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror
                         </div>
-                        <div>
+                        <div class="max-sm:flex-1">
                             <div class="relative">
-                                <input type="number" inputmode="numeric" min="1" wire:model="expenseAmount" placeholder="Montant" aria-label="Montant de la dépense" class="{{ $input }} w-36 pr-10 tabular-nums">
+                                <input type="number" inputmode="numeric" min="1" wire:model="expenseAmount" placeholder="Montant" aria-label="Montant de la dépense" class="{{ $input }} w-full sm:w-36 pr-10 tabular-nums">
                                 <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-(--color-text-muted)">F</span>
                             </div>
                             @error('expenseAmount') <p class="text-xs text-(--color-error) mt-1">{{ $message }}</p> @enderror

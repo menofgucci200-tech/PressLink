@@ -653,6 +653,25 @@ tr:focus-within .copy-btn--reveal,
     opacity: 1;
 }
 
+/* Au doigt : les petites icônes (copier, partager, réordonner…) gardent leur taille
+   mais reçoivent une zone de toucher invisible d'environ 44 px. ::before, car
+   ::after sert déjà aux bulles d'aide. */
+@media (pointer: coarse) {
+    .copy-btn,
+    .tap-zone {
+        position: relative;
+    }
+    .copy-btn::before,
+    .tap-zone::before {
+        content: '';
+        position: absolute;
+        inset: -10px;
+    }
+    .tap-zone--sm::before {
+        inset: -6px;
+    }
+}
+
 /* Focus clavier toujours visible (Tab), discret à la souris. */
 :where(a, button, summary, [role='button'], [role='link'], [tabindex]:not([tabindex='-1']), input[type='checkbox'], input[type='radio']):focus-visible {
     outline: 2px solid var(--color-primary);

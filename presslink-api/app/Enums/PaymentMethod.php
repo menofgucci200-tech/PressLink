@@ -25,4 +25,18 @@ enum PaymentMethod: string
             self::Card => 'Carte bancaire',
         };
     }
+
+    /**
+     * Logo de l'opérateur (public/images/paiement) ; les espèces et la carte sont dessinées.
+     */
+    public function logo(): ?string
+    {
+        return match ($this) {
+            self::Wave => 'images/paiement/wave.webp',
+            self::OrangeMoney => 'images/paiement/orange-money.webp',
+            self::MtnMomo => 'images/paiement/mtn-momo.webp',
+            self::MoovMoney => 'images/paiement/moov-money.webp',
+            self::Cash, self::Card => null,
+        };
+    }
 }

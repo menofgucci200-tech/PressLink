@@ -84,7 +84,7 @@
         @foreach ($steps as $step)
             <li class="flex gap-4 items-start border-2 border-(--color-border) rounded-2xl p-4 bg-(--color-surface)">
                 <span class="w-8 h-8 flex-none rounded-full bg-(--color-primary) text-white font-bold flex items-center justify-center text-sm">{{ $loop->iteration }}</span>
-                <span class="text-(--color-text-secondary) leading-relaxed pt-1">{{ $step }}</span>
+                <span class="min-w-0 text-(--color-text-secondary) leading-relaxed pt-1 [overflow-wrap:anywhere]">{{ $step }}</span>
             </li>
         @endforeach
     </ol>

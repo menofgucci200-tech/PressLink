@@ -195,7 +195,7 @@
     {{-- ===== Et les clients ===== --}}
     <section class="max-w-6xl mx-auto px-5 py-16 md:py-20 grid lg:grid-cols-[1.1fr_1fr] gap-12 items-center">
         <div class="order-2 lg:order-1 grid sm:grid-cols-[auto_1fr] gap-8 items-center">
-            <div class="mx-auto w-52 rounded-[2rem] bg-[#0B0F19] p-2 shadow-xl">
+            <div class="mx-auto w-52 max-w-full rounded-[2rem] bg-[#0B0F19] p-2 shadow-xl">
                 <img src="{{ asset('images/launch-app.webp') }}" width="600" height="1290" alt="Détail d'une commande prête dans l'application PressLink" class="rounded-[1.6rem] w-full h-auto" loading="lazy">
             </div>
             <div class="bg-(--color-surface) border border-(--color-border) rounded-3xl p-6 text-center">

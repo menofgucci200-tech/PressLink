@@ -12,7 +12,7 @@
     };
 @endphp
 <a href="{{ route('signup') }}"
-   {{ $attributes->merge(['class' => "inline-flex flex-col items-center justify-center min-h-12 px-6 py-1.5 rounded-xl font-semibold leading-tight {$classes}"]) }}>
+   {{ $attributes->merge(['class' => "inline-flex flex-col items-center justify-center min-h-12 px-6 py-1.5 rounded-xl font-semibold leading-tight text-center {$classes}"]) }}>
     <span>{{ $label }}</span>
     <span class="text-[11px] font-medium opacity-80">en 2 minutes · sans engagement</span>
 </a>

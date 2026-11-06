@@ -584,6 +584,15 @@ main.is-navigating {
     color: #fff;
 }
 
+/* Téléphone réglé en « grand texte » : une colonne de grille ne s'élargit pas
+   au mot le plus long (adresse e-mail, démo…), sinon toute la page déborde et
+   le navigateur la dézoome. Un min-w-* explicite reste prioritaire. */
+@layer base {
+    .grid > * {
+        min-width: 0;
+    }
+}
+
 /* Bulles d'aide ([data-tooltip]) : au survol ou au focus clavier, après un
    court délai, au-dessus de l'élément (data-tooltip-pos="bottom" : dessous). */
 /* Dans la couche base : un utilitaire (absolute, fixed…) reste prioritaire. */
@@ -612,6 +621,12 @@ main.is-navigating {
     transition:
         opacity 120ms ease,
         transform 120ms ease;
+}
+/* Écran tactile : pas de survol, et une bulle cachée près du bord élargirait la page. */
+@media (hover: none) {
+    [data-tooltip]::after {
+        display: none;
+    }
 }
 [data-tooltip][data-tooltip-pos='bottom']::after {
     bottom: auto;

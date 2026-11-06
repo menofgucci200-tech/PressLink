@@ -23,9 +23,9 @@
                     <span class="w-12 h-12 flex-none rounded-2xl bg-(--color-primary) text-white flex items-center justify-center">
                         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
                     </span>
-                    <span>
+                    <span class="min-w-0">
                         <span class="block text-sm font-semibold text-(--color-text-secondary)">Email</span>
-                        <span class="block font-display text-xl font-bold">{{ $supportEmail }}</span>
+                        <span class="block font-display text-lg sm:text-xl font-bold [overflow-wrap:anywhere]">{{ $supportEmail }}</span>
                     </span>
                 </a>
                 <div class="border border-(--color-border) rounded-3xl p-6 text-sm text-(--color-text-secondary) leading-relaxed">
@@ -86,7 +86,7 @@
                 @else
                     {{-- Envoi serveur indisponible : on ouvre la messagerie du visiteur. --}}
                     <a href="mailto:{{ $supportEmail }}?subject={{ rawurlencode('Contact PressLink') }}"
-                       class="flex items-center justify-center gap-2 w-full h-12 rounded-xl bg-(--color-primary) text-white font-semibold hover:bg-(--color-primary-600)">
+                       class="flex items-center justify-center gap-2 w-full min-h-12 px-4 py-2 rounded-xl bg-(--color-primary) text-white font-semibold text-center [overflow-wrap:anywhere] hover:bg-(--color-primary-600)">
                         Écrire à {{ $supportEmail }}
                     </a>
                 @endif

@@ -2,7 +2,7 @@
     title="Application de suivi de pressing gratuite — PressLink"
     description="Suivez vos commandes de pressing en temps réel, recevez une notification quand vos vêtements sont prêts et retrouvez tout votre historique. Gratuit."
     path="/pour-les-clients">
-    <section class="bg-(--color-bg) overflow-hidden">
+    <section class="bg-(--color-bg) overflow-clip">
         <div class="max-w-6xl mx-auto px-5 pt-12 md:pt-16 grid md:grid-cols-2 gap-10 items-center">
             <div class="md:pb-16">
                 <p class="text-xs font-semibold uppercase tracking-widest text-(--color-primary) mb-4">Pour les clients</p>

@@ -90,7 +90,7 @@ class OrderPhotosTest extends TestCase
 
         Livewire::actingAs($this->staff())->test(OrdersShow::class, ['order' => $order])
             ->assertSee('Photos des articles')
-            ->assertSee('Prendre une photo')
+            ->assertSee('data-testid="photo-camera"', false)
             ->assertSee('Galerie')
             ->assertSee('/photos-commandes/', false);
     }
@@ -111,7 +111,7 @@ class OrderPhotosTest extends TestCase
         $cancelled->refresh();
 
         Livewire::actingAs($admin)->test(OrdersShow::class, ['order' => $cancelled])
-            ->assertDontSee('Prendre une photo')
+            ->assertDontSee('data-testid="photo-camera"', false)
             ->set('photo', UploadedFile::fake()->image('a.jpg', 800, 600))
             ->call('savePhoto')
             ->assertHasErrors('photo');

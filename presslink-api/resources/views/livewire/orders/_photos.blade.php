@@ -41,7 +41,7 @@
         <div class="grid grid-cols-2 gap-2">
             <label class="inline-flex items-center justify-center gap-2 h-11 sm:h-10 rounded-lg bg-(--color-primary) text-white text-sm font-semibold cursor-pointer hover:bg-(--color-primary-600)" :class="enCours && 'opacity-60 pointer-events-none'">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3.5"/></svg>
-                Prendre une photo
+                Photo
                 <input type="file" accept="image/*" capture="environment" class="sr-only" @change="envoyer($event)" data-testid="photo-camera">
             </label>
             <label class="inline-flex items-center justify-center gap-2 h-11 sm:h-10 rounded-lg border border-(--color-border) text-sm font-semibold cursor-pointer hover:border-(--color-primary) hover:text-(--color-primary)" :class="enCours && 'opacity-60 pointer-events-none'">

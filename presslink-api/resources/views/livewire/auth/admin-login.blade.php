@@ -1,6 +1,6 @@
 {{-- Portail « Console super admin » : sombre, violet, volontairement différent
      de l'espace pressing pour qu'on sache toujours où l'on se connecte. --}}
-<div class="relative min-h-screen overflow-hidden bg-slate-950 text-white flex items-center justify-center px-5 py-12">
+<div class="relative min-h-screen overflow-clip bg-slate-950 text-white flex items-center justify-center px-5 py-12">
     {{-- Décor : grille + halos --}}
     <div class="absolute inset-0 opacity-[.07] [background-image:linear-gradient(#fff_1px,transparent_1px),linear-gradient(90deg,#fff_1px,transparent_1px)] [background-size:44px_44px] [mask-image:radial-gradient(ellipse_at_center,#000_30%,transparent_75%)]" aria-hidden="true"></div>
     <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[46rem] h-[46rem] rounded-full bg-violet-600/25 blur-3xl" aria-hidden="true"></div>

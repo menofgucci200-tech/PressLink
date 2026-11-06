@@ -15,7 +15,7 @@
         :root[data-theme=dark]{color-scheme:dark;--p:#3b82f6;--t:#f1f5f9;--m:#a9b7cc;--b:#223049;--bg:#0b1220;--s:#121b2e}
         *{box-sizing:border-box;margin:0}
         body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg);color:var(--t);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden;position:relative}
-        .halo{position:absolute;width:640px;height:640px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--accent) 18%,transparent),transparent 65%);top:50%;left:50%;transform:translate(-50%,-55%);pointer-events:none}
+        .halo{position:absolute;width:min(640px,100vw);height:min(640px,100vw);border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--accent) 18%,transparent),transparent 65%);top:50%;left:50%;transform:translate(-50%,-55%);pointer-events:none}
         main{position:relative;max-width:480px;width:100%;text-align:center;animation:in .6s cubic-bezier(.2,.8,.2,1) both}
         .logo{font-weight:800;font-size:20px;letter-spacing:-.02em;color:var(--t);text-decoration:none}.logo span{color:var(--p)}
         .code{font-size:clamp(88px,22vw,140px);font-weight:800;letter-spacing:-.06em;line-height:1;margin:28px 0 8px;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 45%,var(--t)));-webkit-background-clip:text;background-clip:text;color:transparent}

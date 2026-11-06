@@ -32,7 +32,7 @@
         </a>
     @endif
     <x-site.header />
-    <main id="contenu">{{ $slot }}</main>
+    <main id="contenu" class="overflow-x-clip">{{ $slot }}</main>
     <x-site.footer />
 
     <a href="https://wa.me/{{ ltrim($e164, '+') }}?text={{ rawurlencode('Bonjour, j\'ai une question sur PressLink.') }}"

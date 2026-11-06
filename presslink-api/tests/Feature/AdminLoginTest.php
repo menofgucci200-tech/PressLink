@@ -28,7 +28,7 @@ class AdminLoginTest extends TestCase
     public function test_guests_hitting_admin_pages_land_on_the_admin_portal(): void
     {
         $this->get('/admin')->assertRedirect(route('admin.login'));
-        $this->get('/tableau-de-bord')->assertRedirect(route('login'));
+        $this->get('/espace/tableau-de-bord')->assertRedirect(route('login'));
     }
 
     public function test_super_admin_can_log_in_through_the_admin_portal(): void

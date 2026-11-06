@@ -49,7 +49,7 @@
                             <td class="px-5 py-3">
                                 <div class="flex flex-wrap gap-1.5">
                                     @foreach ($customer->pressings as $p)
-                                        <a href="{{ route('pressings.switch', ['pressing' => $p, 'vers' => '/clients/'.$customer->id]) }}"
+                                        <a href="{{ route('pressings.switch', ['pressing' => $p, 'vers' => '/espace/clients/'.$customer->id]) }}"
                                            class="text-[11.5px] font-medium px-2 py-0.5 rounded-full bg-(--color-primary-tint) text-(--color-primary) hover:underline">{{ $p->name }}</a>
                                     @endforeach
                                 </div>

@@ -18,7 +18,7 @@ function bandeau(texte) {
     if (!el) {
         el = document.createElement('a');
         el.id = 'bandeau-hors-ligne';
-        el.href = '/comptoir-hors-ligne';
+        el.href = '/espace/comptoir-hors-ligne';
         el.className = 'fixed bottom-4 right-4 z-40 rounded-xl bg-(--color-info) text-white text-sm font-semibold px-4 py-2.5 shadow-lg';
         document.body.appendChild(el);
     }

@@ -1,6 +1,7 @@
 'use strict';
-// PressLink (espace pressing) — appli installable sur PC et comptoir hors
-// connexion.
+// PressLink (espace pressing) — logiciel installable (PC et téléphone) et
+// comptoir hors connexion. Périmètre : /espace/ (le site et l'appli client
+// /app/ n'en font pas partie).
 //
 // En ligne, tout vient du serveur comme d'habitude. Sans connexion, ouvrir
 // une page de l'espace pressing affiche le comptoir hors connexion (gardé
@@ -9,12 +10,9 @@
 // connexion ». Les requêtes du tableau de bord (Livewire) ne sont jamais
 // interceptées.
 
-const CACHE = 'presslink-espace-v2';
+const CACHE = 'presslink-espace-v3';
 const OFFLINE_PAGE = '/hors-connexion.html';
-const COUNTER_PAGE = '/comptoir-hors-ligne';
-
-// Pages du site public : sans connexion, simple page « hors connexion ».
-const PUBLIC_PAGES = /^\/($|pour-les-|offres|formules|comment-ca-marche|installer|questions-frequentes|contact|mentions-legales|conditions-generales|confidentialite|sitemap)/;
+const COUNTER_PAGE = '/espace/comptoir-hors-ligne';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -32,15 +30,9 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-async function offlineFallback(url) {
+async function offlineFallback() {
   const cache = await caches.open(CACHE);
-  if (!PUBLIC_PAGES.test(url.pathname)) {
-    const counter = await cache.match(COUNTER_PAGE);
-    if (counter) {
-      return counter;
-    }
-  }
-  return (await cache.match(OFFLINE_PAGE)) || Response.error();
+  return (await cache.match(COUNTER_PAGE)) || (await cache.match(OFFLINE_PAGE)) || Response.error();
 }
 
 self.addEventListener('fetch', (event) => {
@@ -55,7 +47,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).catch(() => offlineFallback(url)));
+    event.respondWith(fetch(request).catch(() => offlineFallback()));
     return;
   }
 

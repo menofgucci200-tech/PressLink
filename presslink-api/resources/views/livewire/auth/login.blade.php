@@ -48,7 +48,9 @@
                 <span class="block mt-1">Mot de passe oublié ? <a href="{{ route('site.contact') }}" class="font-semibold text-(--color-primary) hover:underline">Contactez PressLink</a> ou demandez à l'administrateur de votre pressing.</span>
             </div>
 
-            <div class="mt-4">
+            <x-install-card class="mt-4" />
+
+            <div class="mt-4 max-lg:hidden">
                 <x-install-button variant="link" class="text-sm" />
             </div>
 

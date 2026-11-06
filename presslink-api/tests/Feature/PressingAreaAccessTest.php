@@ -13,12 +13,12 @@ class PressingAreaAccessTest extends TestCase
     public function test_super_admin_is_redirected_to_the_console_instead_of_an_error(): void
     {
         $this->actingAs(User::factory()->create(['is_super_admin' => true]))
-            ->get('/commandes')
+            ->get('/espace/commandes')
             ->assertRedirect(route('admin.dashboard'));
     }
 
     public function test_user_without_pressing_is_forbidden(): void
     {
-        $this->actingAs(User::factory()->create())->get('/clients')->assertForbidden();
+        $this->actingAs(User::factory()->create())->get('/espace/clients')->assertForbidden();
     }
 }

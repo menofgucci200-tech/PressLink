@@ -46,6 +46,23 @@ class MobileLayoutTest extends TestCase
         $this->get(route('orders.create'))->assertOk()->assertDontSee('aria-label="Navigation rapide"', false);
     }
 
+    public function test_the_software_offers_to_install_itself_on_the_phone(): void
+    {
+        // Accueil : carte « Installer », bouton du menu et gestes quand le navigateur n'a pas d'invite.
+        $this->get(route('dashboard'))->assertOk()
+            ->assertSee('data-install-card', false)
+            ->assertSee('Installer PressLink')
+            ->assertSee('data-install-steps', false)
+            ->assertSee('data-install-case="ios-safari"', false)
+            ->assertSee('data-install-case="android-chrome"', false)
+            ->assertSee('Ouvrir dans Chrome pour installer');
+
+        auth()->logout();
+        $this->get(route('login'))->assertOk()
+            ->assertSee('data-install-card', false)
+            ->assertSee('data-install-steps', false);
+    }
+
     public function test_a_new_order_from_a_client_page_starts_with_the_client_chosen(): void
     {
         $customer = Customer::factory()->create();

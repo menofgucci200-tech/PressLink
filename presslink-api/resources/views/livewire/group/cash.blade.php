@@ -15,7 +15,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
         @foreach ($today as $row)
             @php $p = $row['pressing']; $s = $row['summary']; $c = $row['closing']; @endphp
-            <a href="{{ route('pressings.switch', ['pressing' => $p, 'vers' => '/caisse']) }}" wire:key="ct-{{ $p->id }}" class="kpi-link block bg-(--color-surface) border border-(--color-border) rounded-xl p-4">
+            <a href="{{ route('pressings.switch', ['pressing' => $p, 'vers' => '/espace/caisse']) }}" wire:key="ct-{{ $p->id }}" class="kpi-link block bg-(--color-surface) border border-(--color-border) rounded-xl p-4">
                 <div class="flex items-center justify-between gap-2">
                     <span class="font-semibold text-sm truncate">{{ $p->name }}</span>
                     @if ($c)

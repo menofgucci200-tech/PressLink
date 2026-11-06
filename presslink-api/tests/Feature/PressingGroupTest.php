@@ -133,8 +133,8 @@ class PressingGroupTest extends TestCase
     public function test_switching_pressing_only_redirects_to_internal_pages(): void
     {
         $this->actingAs($this->owner)
-            ->get(route('pressings.switch', ['pressing' => $this->north, 'vers' => '/commandes?status=prete']))
-            ->assertRedirect('/commandes?status=prete');
+            ->get(route('pressings.switch', ['pressing' => $this->north, 'vers' => '/espace/commandes?status=prete']))
+            ->assertRedirect('/espace/commandes?status=prete');
 
         $this->actingAs($this->owner)
             ->get(route('pressings.switch', ['pressing' => $this->north, 'vers' => '//evil.example']))

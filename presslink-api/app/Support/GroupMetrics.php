@@ -173,20 +173,20 @@ class GroupMetrics
             $p = $row['pressing'];
 
             if ($row['open_issues'] > 0) {
-                $alerts[] = ['tone' => 'error', 'pressing' => $p, 'title' => $plural($row['open_issues'], 'signalement').' ouvert'.($row['open_issues'] > 1 ? 's' : ''), 'hint' => 'Des clients attendent une réponse.', 'url' => $switch($p, '/signalements')];
+                $alerts[] = ['tone' => 'error', 'pressing' => $p, 'title' => $plural($row['open_issues'], 'signalement').' ouvert'.($row['open_issues'] > 1 ? 's' : ''), 'hint' => 'Des clients attendent une réponse.', 'url' => $switch($p, '/espace/signalements')];
             }
             if ($row['late'] > 0) {
-                $alerts[] = ['tone' => 'error', 'pressing' => $p, 'title' => $plural($row['late'], 'commande').' en retard', 'hint' => 'Date de retrait prévue dépassée.', 'url' => $switch($p, '/commandes')];
+                $alerts[] = ['tone' => 'error', 'pressing' => $p, 'title' => $plural($row['late'], 'commande').' en retard', 'hint' => 'Date de retrait prévue dépassée.', 'url' => $switch($p, '/espace/commandes')];
             }
             if ($row['ready_overdue'] > 0) {
-                $alerts[] = ['tone' => 'warning', 'pressing' => $p, 'title' => $plural($row['ready_overdue'], 'commande').' prête'.($row['ready_overdue'] > 1 ? 's' : '').' depuis plus de '.Order::READY_REMINDER_DAYS.' jours', 'hint' => 'Relancer les clients.', 'url' => $switch($p, '/commandes?status=prete')];
+                $alerts[] = ['tone' => 'warning', 'pressing' => $p, 'title' => $plural($row['ready_overdue'], 'commande').' prête'.($row['ready_overdue'] > 1 ? 's' : '').' depuis plus de '.Order::READY_REMINDER_DAYS.' jours', 'hint' => 'Relancer les clients.', 'url' => $switch($p, '/espace/commandes?status=prete')];
             }
             if (in_array($p->id, $usesCashClosing, true) && in_array($p->id, $paidYesterday, true) && ! in_array($p->id, $closedYesterday, true)) {
-                $alerts[] = ['tone' => 'warning', 'pressing' => $p, 'title' => 'Caisse d\'hier non clôturée', 'hint' => 'Des paiements ont été encaissés sans clôture.', 'url' => $switch($p, '/caisse')];
+                $alerts[] = ['tone' => 'warning', 'pressing' => $p, 'title' => 'Caisse d\'hier non clôturée', 'hint' => 'Des paiements ont été encaissés sans clôture.', 'url' => $switch($p, '/espace/caisse')];
             }
             $last = isset($lastOrderAt[$p->id]) ? Carbon::parse($lastOrderAt[$p->id]) : null;
             if ($last && $last->lt(now()->subDays(self::DORMANT_AFTER_DAYS))) {
-                $alerts[] = ['tone' => 'info', 'pressing' => $p, 'title' => 'Aucune commande depuis '.(int) $last->diffInDays(now()).' jours', 'hint' => 'Le pressing utilise-t-il toujours PressLink ?', 'url' => $switch($p, '/tableau-de-bord')];
+                $alerts[] = ['tone' => 'info', 'pressing' => $p, 'title' => 'Aucune commande depuis '.(int) $last->diffInDays(now()).' jours', 'hint' => 'Le pressing utilise-t-il toujours PressLink ?', 'url' => $switch($p, '/espace/tableau-de-bord')];
             }
         }
 

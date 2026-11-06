@@ -141,7 +141,7 @@ class CommandPalette extends Component
             ->map(fn (Customer $customer) => [
                 'title' => $customer->fullName(),
                 'subtitle' => $customer->phone.' · '.$customer->pressings->pluck('name')->implode(', '),
-                'url' => route('pressings.switch', ['pressing' => $customer->pressings->first(), 'vers' => '/clients/'.$customer->id]),
+                'url' => route('pressings.switch', ['pressing' => $customer->pressings->first(), 'vers' => '/espace/clients/'.$customer->id]),
                 'icon' => 'client',
             ])->all();
 

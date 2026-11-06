@@ -22,6 +22,7 @@
         {{ $slot }}
 
         <x-feedback />
+        <x-install-steps />
         @livewireScripts
     </body>
 </html>

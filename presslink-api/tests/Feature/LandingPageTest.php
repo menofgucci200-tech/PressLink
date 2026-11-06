@@ -181,7 +181,7 @@ class LandingPageTest extends TestCase
 
     public function test_private_pages_are_not_indexable(): void
     {
-        $this->get('/login')
+        $this->get(route('login'))
             ->assertOk()
             ->assertSee('<meta name="robots" content="noindex, nofollow">', false);
     }

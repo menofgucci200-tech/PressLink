@@ -95,7 +95,7 @@ export class StockHorsLigne {
     /** Reprend la copie des données depuis le serveur. Renvoie false hors connexion. */
     async rafraichir() {
         try {
-            const reponse = await fetch('/comptoir-hors-ligne/donnees', {
+            const reponse = await fetch('/espace/comptoir-hors-ligne/donnees', {
                 headers: { Accept: 'application/json' },
                 credentials: 'same-origin',
                 cache: 'no-store',
@@ -190,7 +190,7 @@ export class StockHorsLigne {
 
     poster(operations) {
         const csrf = this.donnees()?.csrf || document.querySelector('meta[name="csrf-token"]')?.content || '';
-        return fetch('/comptoir-hors-ligne/envoyer', {
+        return fetch('/espace/comptoir-hors-ligne/envoyer', {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf },

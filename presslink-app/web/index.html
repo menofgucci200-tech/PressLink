@@ -157,6 +157,7 @@
     // chargement) pour refléter l'état réel au moment de l'affichage.
     (function () {
       var deferredPrompt = null;
+      var installed = false;
       var listeners = [];
       function notify() { listeners.forEach(function (cb) { try { cb(); } catch (e) {} }); }
 
@@ -167,6 +168,7 @@
       });
       window.addEventListener('appinstalled', function () {
         deferredPrompt = null;
+        installed = true;
         notify();
       });
 
@@ -182,7 +184,37 @@
           var isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
           return isIos && isSafari;
         },
+        isIos: function () {
+          var ua = window.navigator.userAgent || '';
+          return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        },
         isAndroid: function () { return /Android/i.test(window.navigator.userAgent || ''); },
+        // Navigateur, pour expliquer le bon geste : chrome, samsung, inapp
+        // (navigateur intégré de Facebook, Instagram…), safari ou other.
+        browser: function () {
+          var ua = window.navigator.userAgent || '';
+          if (/FBAN|FBAV|FB_IAB|Instagram|Line\/|Snapchat|TikTok|; wv\)/.test(ua)) return 'inapp';
+          if (/SamsungBrowser/.test(ua)) return 'samsung';
+          if (/CriOS/.test(ua)) return 'chrome';
+          if (/FxiOS|EdgiOS|OPiOS|Firefox|OPR\/|EdgA/.test(ua)) return 'other';
+          if (/Android/.test(ua) && /Chrome\//.test(ua)) return 'chrome';
+          if (/Safari/.test(ua)) return 'safari';
+          return 'other';
+        },
+        // Android : l'appli est-elle déjà installée sur ce téléphone ? (voir
+        // related_applications dans manifest.json). Chrome ne propose alors
+        // plus de l'installer : on invite à l'ouvrir depuis l'écran d'accueil.
+        checkInstalled: function () {
+          if (!navigator.getInstalledRelatedApps) return Promise.resolve(false);
+          return navigator.getInstalledRelatedApps()
+            .then(function (apps) { installed = apps.length > 0; notify(); return installed; })
+            .catch(function () { return false; });
+        },
+        isInstalled: function () { return installed; },
+        // Rouvre presslink.org/app dans Chrome, depuis un autre navigateur Android.
+        openInChrome: function () {
+          window.location.href = 'intent://' + location.host + location.pathname + '#Intent;scheme=https;package=com.android.chrome;end';
+        },
         canInstall: function () { return deferredPrompt !== null; },
         promptInstall: function () {
           if (!deferredPrompt) return Promise.resolve('unavailable');

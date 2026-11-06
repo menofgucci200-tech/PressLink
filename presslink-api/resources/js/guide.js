@@ -225,7 +225,7 @@ function terminer(complet) {
             <p class="guide-texte">Revenez au guide pour l'étape suivante.</p>
             <div class="guide-actions">
                 <button type="button" class="guide-passer">Rester ici</button>
-                <a class="guide-suivant" href="/tableau-de-bord">Retour au guide</a>
+                <a class="guide-suivant" href="/espace/tableau-de-bord">Retour au guide</a>
             </div>`;
         fin.querySelector('.guide-passer').addEventListener('click', () => fin.remove());
         document.body.append(fin);

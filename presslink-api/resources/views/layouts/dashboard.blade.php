@@ -396,6 +396,7 @@
             <livewire:command-palette />
         @endif
         <x-shortcuts-help />
+        <x-install-steps />
         @include('orders._share-script')
         {{-- Raccourcis du layout, lus par resources/js/app.js à chaque page. --}}
         <script type="application/json" id="shortcut-map">@json($shortcuts ?? [])</script>

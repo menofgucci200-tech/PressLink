@@ -5,6 +5,7 @@
 User-agent: *
 Allow: /
 Disallow: /login
+Disallow: /espace/
 Disallow: /admin
 Disallow: /api/
 Disallow: /tableau-de-bord

@@ -15,7 +15,28 @@ class StaffLoginTest extends TestCase
 
     public function test_dashboard_redirects_guests_to_login(): void
     {
-        $this->get('/tableau-de-bord')->assertRedirect('/login');
+        $this->get('/espace/tableau-de-bord')->assertRedirect(route('login'));
+    }
+
+    public function test_old_addresses_lead_to_the_same_page_under_espace(): void
+    {
+        $this->get('/login')->assertRedirect('/espace/connexion');
+        $this->get('/tableau-de-bord')->assertRedirect('/espace/tableau-de-bord')->assertStatus(308);
+        $this->get('/commandes/12?status=prete')->assertRedirect('/espace/commandes/12?status=prete');
+        $this->post('/comptoir-hors-ligne/envoyer')->assertStatus(308)->assertRedirect('/espace/comptoir-hors-ligne/envoyer');
+        $this->get('/pour-les-pressings')->assertOk();
+    }
+
+    public function test_the_installed_pro_software_does_not_cover_the_customer_app(): void
+    {
+        $manifest = json_decode(file_get_contents(public_path('manifest-espace.json')), true);
+
+        // L'identité ne change pas (logiciels déjà installés sur les PC) ; le périmètre exclut /app/.
+        $this->assertSame('/tableau-de-bord', $manifest['id']);
+        $this->assertSame('/espace/', $manifest['scope']);
+        $this->assertStringStartsWith('/espace/', $manifest['start_url']);
+        $this->assertStringStartsWith('/espace/', parse_url(route('dashboard'), PHP_URL_PATH));
+        $this->assertStringStartsWith('/espace/', parse_url(route('login'), PHP_URL_PATH));
     }
 
     public function test_staff_can_log_in_with_email(): void

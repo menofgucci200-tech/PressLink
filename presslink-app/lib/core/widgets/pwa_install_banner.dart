@@ -10,10 +10,11 @@ import '../theme/app_spacing.dart';
 /// installée, ou si l'utilisateur l'a fermée il y a moins de 7 jours (sauf
 /// [alwaysVisible], utilisé par l'entrée « Installer l'application » du menu).
 ///
-/// - Android avec invite Chrome disponible : bouton « Installer ».
-/// - Android sans invite (Chrome ne la propose qu'après un temps
-///   d'utilisation, et plus après un refus) : passage par le menu ⋮.
-/// - iOS/Safari : aucune invite n'existe, on explique « Partager ».
+/// Toujours un bouton « Installer » :
+/// - Android avec invite du navigateur : l'installation se lance directement ;
+/// - sinon (iPhone, navigateur sans invite) : les gestes à faire, selon le
+///   navigateur ; navigateur intégré (Facebook…) : « Ouvrir dans Chrome ».
+/// - Android, appli déjà installée : on invite à l'ouvrir.
 class PwaInstallBanner extends StatefulWidget {
   const PwaInstallBanner({
     super.key,
@@ -47,6 +48,7 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
     PwaInstall.onChange(() {
       if (mounted) setState(() {});
     });
+    PwaInstall.checkInstalled();
     if (widget.alwaysVisible) {
       _dismissed = false;
     } else {
@@ -78,6 +80,26 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
     }
   }
 
+  Future<void> _showSteps() => showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Theme.of(context).cardTheme.color,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.lg,
+          AppSpacing.md,
+          AppSpacing.md,
+        ),
+        child: PwaInstallSteps(showReloginNote: widget.showReloginNote),
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final mode = PwaInstall.mode;
@@ -86,58 +108,11 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
     }
 
     final theme = Theme.of(context);
-    final textStyle = theme.textTheme.bodyMedium?.copyWith(
-      fontSize: 12.5,
-      color: context.textSecondary,
-    );
-
-    Widget instructions;
-    switch (mode) {
-      case PwaInstallMode.iosInstructions:
-        instructions = Text.rich(
-          TextSpan(
-            style: textStyle,
-            children: const [
-              TextSpan(text: 'Touchez '),
-              WidgetSpan(
-                alignment: PlaceholderAlignment.middle,
-                child: Icon(
-                  Icons.ios_share,
-                  size: 15,
-                  color: AppColors.primary,
-                ),
-              ),
-              TextSpan(text: ' puis « Sur l\'écran d\'accueil »'),
-            ],
-          ),
-        );
-      case PwaInstallMode.androidInstructions:
-        instructions = Text.rich(
-          TextSpan(
-            style: textStyle,
-            children: const [
-              TextSpan(text: 'Ouvrez le menu '),
-              WidgetSpan(
-                alignment: PlaceholderAlignment.middle,
-                child: Icon(
-                  Icons.more_vert,
-                  size: 15,
-                  color: AppColors.primary,
-                ),
-              ),
-              TextSpan(
-                text: ' du navigateur puis « Installer l\'application ».',
-              ),
-            ],
-          ),
-        );
-      case PwaInstallMode.nativePrompt:
-      case PwaInstallMode.none:
-        instructions = Text(
-          'Ajoutez-la à votre écran d\'accueil.',
-          style: textStyle,
-        );
-    }
+    final installed = mode == PwaInstallMode.alreadyInstalled;
+    // Navigateur intégré (Facebook, Instagram…) : l'installation se fait dans Chrome.
+    final openInChrome =
+        mode == PwaInstallMode.androidInstructions &&
+        PwaInstall.browser == PwaBrowser.inapp;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -178,7 +153,9 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Installer PressLink',
+                          installed
+                              ? 'PressLink est déjà installée'
+                              : 'Installer PressLink',
                           style: theme.textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
@@ -186,17 +163,15 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
                           ),
                         ),
                         const SizedBox(height: 2),
-                        instructions,
-                        if (mode == PwaInstallMode.iosInstructions &&
-                            widget.showReloginNote) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            'Vous devrez vous reconnecter dans l\'application installée.',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: context.textSecondary,
-                            ),
+                        Text(
+                          installed
+                              ? 'Ouvrez-la depuis l\'écran d\'accueil de votre téléphone.'
+                              : 'Sur votre écran d\'accueil, comme une application : vos commandes en un toucher.',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontSize: 12.5,
+                            color: context.textSecondary,
                           ),
-                        ],
+                        ),
                       ],
                     ),
                   ),
@@ -214,27 +189,257 @@ class _PwaInstallBannerState extends State<PwaInstallBanner> {
                   ),
               ],
             ),
-            if (mode == PwaInstallMode.nativePrompt) ...[
+            if (!installed) ...[
               const SizedBox(height: AppSpacing.sm + 4),
-              Padding(
-                padding: EdgeInsets.only(
-                  right: widget.alwaysVisible ? 0 : AppSpacing.sm,
-                ),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _install,
-                    child: const Text('Installer'),
+              if (widget.alwaysVisible &&
+                  mode != PwaInstallMode.nativePrompt &&
+                  !openInChrome)
+                PwaInstallSteps(
+                  showReloginNote: widget.showReloginNote,
+                  showTitle: false,
+                )
+              else
+                Padding(
+                  padding: EdgeInsets.only(
+                    right: widget.alwaysVisible ? 0 : AppSpacing.sm,
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      onPressed: switch (mode) {
+                        PwaInstallMode.nativePrompt => _install,
+                        _ when openInChrome => PwaInstall.openInChrome,
+                        _ => _showSteps,
+                      },
+                      icon: Icon(
+                        openInChrome
+                            ? Icons.open_in_browser_rounded
+                            : Icons.download_rounded,
+                        size: 20,
+                      ),
+                      label: Text(
+                        openInChrome ? 'Ouvrir dans Chrome' : 'Installer',
+                      ),
+                    ),
                   ),
                 ),
-              ),
             ],
           ],
         ),
       ),
     );
   }
+}
+
+/// Les gestes pour installer PressLink quand le navigateur n'a pas d'invite :
+/// iPhone (Safari, Chrome), Android (Chrome, Samsung Internet, autres).
+class PwaInstallSteps extends StatelessWidget {
+  const PwaInstallSteps({
+    super.key,
+    this.showReloginNote = false,
+    this.showTitle = true,
+  });
+
+  final bool showReloginNote;
+  final bool showTitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final ios = PwaInstall.mode == PwaInstallMode.iosInstructions;
+    final browser = PwaInstall.browser;
+
+    final List<List<InlineSpan>> steps;
+    String? intro;
+    var offerChrome = false;
+
+    if (ios) {
+      switch (browser) {
+        case PwaBrowser.safari:
+          steps = [
+            [
+              const TextSpan(text: 'Touchez le bouton Partager '),
+              _icon(Icons.ios_share),
+              const TextSpan(
+                text:
+                    ' en bas de l\'écran (sur les iPhone récents, il est dans le menu « ••• »).',
+              ),
+            ],
+            [
+              const TextSpan(
+                text:
+                    'Faites défiler, puis touchez « Sur l\'écran d\'accueil » ',
+              ),
+              _icon(Icons.add_box_outlined),
+              const TextSpan(text: '.'),
+            ],
+            [const TextSpan(text: 'Touchez « Ajouter » en haut à droite.')],
+          ];
+        case PwaBrowser.chrome:
+          steps = [
+            [
+              const TextSpan(text: 'Touchez Partager '),
+              _icon(Icons.ios_share),
+              const TextSpan(text: ' dans la barre d\'adresse, en haut.'),
+            ],
+            [const TextSpan(text: 'Touchez « Sur l\'écran d\'accueil ».')],
+            [const TextSpan(text: 'Touchez « Ajouter ».')],
+          ];
+        default:
+          intro =
+              'Ce navigateur ne permet pas d\'installer l\'application : ouvrez la page dans Safari.';
+          steps = [
+            [
+              const TextSpan(text: 'Touchez le menu « ••• » ou '),
+              _icon(Icons.ios_share),
+              const TextSpan(text: ', puis « Ouvrir dans Safari ».'),
+            ],
+            [
+              const TextSpan(text: 'Dans Safari : Partager '),
+              _icon(Icons.ios_share),
+              const TextSpan(text: ', puis « Sur l\'écran d\'accueil ».'),
+            ],
+          ];
+      }
+    } else {
+      switch (browser) {
+        case PwaBrowser.chrome:
+          steps = [
+            [
+              const TextSpan(text: 'Touchez le menu '),
+              _icon(Icons.more_vert),
+              const TextSpan(text: ' en haut à droite de Chrome.'),
+            ],
+            [
+              const TextSpan(
+                text:
+                    'Touchez « Installer l\'application » (ou « Ajouter à l\'écran d\'accueil »).',
+              ),
+            ],
+            [const TextSpan(text: 'Confirmez avec « Installer ».')],
+          ];
+        case PwaBrowser.samsung:
+          offerChrome = true;
+          steps = [
+            [
+              const TextSpan(text: 'Touchez le menu '),
+              _icon(Icons.menu),
+              const TextSpan(text: ' en bas à droite.'),
+            ],
+            [
+              const TextSpan(
+                text:
+                    'Touchez « Ajouter la page à », puis « Écran d\'accueil ».',
+              ),
+            ],
+            [const TextSpan(text: 'Confirmez avec « Ajouter ».')],
+          ];
+        default:
+          offerChrome = true;
+          intro =
+              'Ce navigateur ne permet pas toujours l\'installation. Dans Chrome, elle se fait en un toucher.';
+          steps = [
+            [
+              const TextSpan(
+                text:
+                    'Ou cherchez « Installer » / « Ajouter à l\'écran d\'accueil » dans le menu de votre navigateur.',
+              ),
+            ],
+          ];
+      }
+    }
+
+    final textStyle = theme.textTheme.bodyMedium?.copyWith(
+      fontSize: 13.5,
+      color: context.textPrimary,
+      height: 1.4,
+    );
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (showTitle) ...[
+          Text(
+            'Installer PressLink',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
+        if (intro != null) ...[
+          Text(intro, style: textStyle?.copyWith(color: context.textSecondary)),
+          const SizedBox(height: AppSpacing.sm + 4),
+        ],
+        if (offerChrome) ...[
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton.icon(
+              onPressed: PwaInstall.openInChrome,
+              icon: const Icon(Icons.open_in_browser_rounded, size: 20),
+              label: const Text('Ouvrir dans Chrome'),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm + 4),
+          if (steps.length > 1) ...[
+            Text(
+              'Ou, dans ce navigateur :',
+              style: textStyle?.copyWith(color: context.textSecondary),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+          ],
+        ],
+        for (var i = 0; i < steps.length; i++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm + 2),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (steps.length > 1)
+                  Container(
+                    width: 24,
+                    height: 24,
+                    margin: const EdgeInsets.only(right: AppSpacing.sm + 2),
+                    alignment: Alignment.center,
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      '${i + 1}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(style: textStyle, children: steps[i]),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (ios && showReloginNote)
+          Text(
+            'Vous devrez vous reconnecter dans l\'application installée.',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: context.textSecondary,
+            ),
+          ),
+      ],
+    );
+  }
+
+  static WidgetSpan _icon(IconData icon) => WidgetSpan(
+    alignment: PlaceholderAlignment.middle,
+    child: Icon(icon, size: 17, color: AppColors.primary),
+  );
 }
 
 /// Ouvre la carte d'installation à la demande (entrée de menu), même si la

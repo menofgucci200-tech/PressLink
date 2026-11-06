@@ -190,7 +190,7 @@ class ServiceCreationTest extends TestCase
         $pressing = Pressing::factory()->create();
 
         $this->actingAs($this->makeStaff($pressing, PressingRole::Admin))
-            ->get('/tarifs')->assertRedirect('/services')->assertStatus(301);
+            ->get('/espace/tarifs')->assertRedirect('/espace/services')->assertStatus(301);
     }
 
     public function test_employee_cannot_access_the_services_page(): void

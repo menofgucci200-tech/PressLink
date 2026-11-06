@@ -12,6 +12,9 @@
     "description": "Suivez vos commandes de pressing en temps réel : statut, notifications et historique.",
     "categories": ["lifestyle", "utilities"],
     "prefer_related_applications": false,
+    "related_applications": [
+        { "platform": "webapp", "url": "https://presslink.org/app/manifest.json" }
+    ],
     "icons": [
         {
             "src": "icons/Icon-192.png?v=3",

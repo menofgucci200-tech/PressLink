@@ -1,21 +1,28 @@
 /// Comment proposer l'installation de la PWA à l'utilisateur.
 enum PwaInstallMode {
-  /// Rien à proposer : app native (APK/IPA), PWA déjà installée, ou
-  /// navigateur sans installation possible.
+  /// Rien à proposer : app native (APK/IPA), PWA déjà installée et ouverte,
+  /// ou ordinateur.
   none,
 
-  /// Android/Chrome : l'invite d'installation native est disponible.
+  /// Android : l'invite d'installation du navigateur est disponible, un
+  /// toucher sur « Installer » suffit.
   nativePrompt,
 
-  /// iOS/Safari : aucune invite n'existe, il faut expliquer le geste
+  /// Android : l'appli est déjà installée sur ce téléphone (le navigateur
+  /// ne propose donc plus de l'installer) — il suffit de l'ouvrir.
+  alreadyInstalled,
+
+  /// iPhone/iPad : aucune invite n'existe, on montre les gestes
   /// « Partager > Sur l'écran d'accueil ».
   iosInstructions,
 
-  /// Android, mais Chrome n'a pas (encore) proposé son invite — il ne le
-  /// fait qu'après un temps d'utilisation, et plus du tout après un refus.
-  /// On explique alors le passage par le menu du navigateur.
+  /// Android sans invite disponible (navigateur intégré, Samsung Internet,
+  /// invite refusée récemment…) : on montre les gestes du navigateur.
   androidInstructions,
 }
+
+/// Navigateur, pour montrer le bon geste.
+enum PwaBrowser { chrome, samsung, inapp, safari, other }
 
 /// Version hors navigateur (Android/iOS natifs, tests) : jamais d'invite.
 class PwaInstall {
@@ -23,7 +30,13 @@ class PwaInstall {
 
   static PwaInstallMode get mode => PwaInstallMode.none;
 
+  static PwaBrowser get browser => PwaBrowser.other;
+
   static Future<bool> promptInstall() async => false;
+
+  static void checkInstalled() {}
+
+  static void openInChrome() {}
 
   static void onChange(void Function() callback) {}
 }

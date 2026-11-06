@@ -48,6 +48,8 @@
             </div>
         </div>
 
+        <x-install-card class="mb-5" />
+
         <x-onboarding-guide :pressing="$pressing" />
 
         <div class="flex items-center gap-2 mb-4 flex-wrap">

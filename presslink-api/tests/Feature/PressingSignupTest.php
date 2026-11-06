@@ -176,11 +176,11 @@ class PressingSignupTest extends TestCase
             'equipe?guide=equipe' => ['ajouter-membre'],
             'commandes/nouvelle?guide=commande' => ['commande-client', 'commande-pieces', 'commande-ticket', 'commande-valider'],
         ] as $path => $markers) {
-            $dashboard->assertSee(url($path), false);
+            $dashboard->assertSee(url('espace/'.$path), false);
 
             // Les éléments que l'accompagnement met en lumière sont bien sur la page
             // (ceux des formulaires apparaissent à l'ouverture du formulaire).
-            $page = $this->get(url($path))->assertOk();
+            $page = $this->get(url('espace/'.$path))->assertOk();
             foreach ($markers as $marker) {
                 if (in_array($marker, ['piece-nom', 'piece-prix', 'piece-enregistrer'], true)) {
                     continue;

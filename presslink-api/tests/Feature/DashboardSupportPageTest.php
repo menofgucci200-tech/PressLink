@@ -25,7 +25,7 @@ class DashboardSupportPageTest extends TestCase
 
     public function test_guests_are_redirected_to_login(): void
     {
-        $this->get('/support')->assertRedirect('/login');
+        $this->get('/espace/support')->assertRedirect(route('login'));
     }
 
     public function test_employees_and_admins_can_open_the_support_page(): void
@@ -34,7 +34,7 @@ class DashboardSupportPageTest extends TestCase
             [, $user] = $this->staff($role);
 
             $this->actingAs($user)
-                ->get('/support')
+                ->get('/espace/support')
                 ->assertOk()
                 ->assertSee(config('presslink.support.phone_display'))
                 ->assertSee('tel:'.config('presslink.support.phone_e164'), false)

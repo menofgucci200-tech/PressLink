@@ -275,7 +275,7 @@ class OrderFiltersAndExportsTest extends TestCase
         $admin = $this->makeStaff($pressing, PressingRole::Admin);
 
         $this->actingAs($admin)
-            ->get('/commandes/export/doc')
+            ->get('/espace/commandes/export/doc')
             ->assertNotFound();
     }
 }

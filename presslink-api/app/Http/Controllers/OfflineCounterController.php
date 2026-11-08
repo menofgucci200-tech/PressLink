@@ -71,7 +71,9 @@ class OfflineCounterController extends Controller
 
         $pieces = $pressing->services()->where('is_active', true)->with(['variants' => fn ($q) => $q->where('is_active', true)->orderBy('name')])->orderBy('name')->get();
 
+        // Un dépôt à compléter n'a ni pièces ni prix à proposer hors connexion.
         $orders = $pressing->orders()
+            ->where('details_pending', false)
             ->where(fn ($q) => $q->whereIn('status', [OrderStatus::Recue->value, OrderStatus::Traitement->value, OrderStatus::Attente->value, OrderStatus::Prete->value])
                 ->orWhere('dropped_off_at', '>=', now()->subDays(self::RECENT_DAYS)))
             ->with(['items', 'payments'])

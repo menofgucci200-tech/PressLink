@@ -2,7 +2,8 @@
 @php
     $paymentState = $order->paymentStatus();
     $balance = $order->balance_due_fcfa;
-    $pieces = (int) $order->items->sum('quantity');
+    $pieces = $order->pieceCount();
+    $pending = $order->awaitsDetails();
     $piecesLabel = $pieces.' pièce'.($pieces > 1 ? 's' : '');
     $pickupLabel = $order->expected_at?->translatedFormat('D j M');
 @endphp
@@ -35,10 +36,13 @@
                     <td><div class="label">{{ $size === 'ticket' ? 'Retrait' : 'Retrait prévu' }}</div><div class="key key--accent">{{ $pickupLabel ?? '—' }}</div></td>
                 @endif
                 <td><div class="label">Pièces</div><div class="key">{{ $pieces }}</div></td>
-                <td><div class="label">{{ $size === 'ticket' ? 'À payer' : 'Reste à payer' }}</div><div class="key">{{ $fcfa(max(0, $balance)) }} F</div></td>
+                <td><div class="label">{{ $size === 'ticket' ? 'À payer' : 'Reste à payer' }}</div><div class="key">{{ $pending ? 'À définir' : $fcfa(max(0, $balance)).' F' }}</div></td>
             </tr>
         </table>
 
+        @if ($pending)
+            <div class="note small"><span class="bold">Dépôt de {{ $piecesLabel }}.</span> Le détail et le prix seront communiqués après le tri.</div>
+        @else
         <table class="items">
             @foreach ($order->items as $item)
                 <tr>
@@ -68,6 +72,7 @@
                 <td class="r">{{ $balance > 0 ? $fcfa($balance).' F' : '0 F' }}</td>
             </tr>
         </table>
+        @endif
 
         @if ($order->notes)
             <div class="note small"><span class="bold">Note :</span> {{ $order->notes }}</div>

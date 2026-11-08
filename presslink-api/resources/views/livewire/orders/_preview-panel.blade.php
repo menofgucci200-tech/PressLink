@@ -17,7 +17,8 @@
     // L'annulation demande un motif : elle se fait depuis la fiche (lien plus bas).
     // La remise n'est possible que soldée (bouton « Encaisser et remettre » sinon).
     $nextActions = array_values(array_filter($previewOrder->status->allowedTransitions(), fn ($action) => $action !== \App\Enums\OrderStatus::Annulee
-        && ! ($action === \App\Enums\OrderStatus::Recuperee && $balance > 0)));
+        && ! ($action === \App\Enums\OrderStatus::Recuperee && $balance > 0)
+        && ! ($action === \App\Enums\OrderStatus::Prete && $previewOrder->awaitsDetails())));
     $previewCanCancel = \App\Actions\Orders\CancelOrderAction::canCancel(auth()->user(), $previewOrder);
 @endphp
 <div wire:key="preview-{{ $previewOrder->id }}"
@@ -90,10 +91,10 @@
                             <span class="tabular-nums font-medium">{{ $fcfa($item->subtotal_fcfa) }} F</span>
                         </div>
                     @empty
-                        <div class="px-3 py-3 text-center text-(--color-text-muted)">Aucun article.</div>
+                        <div class="px-3 py-3 text-center text-(--color-text-muted)">{{ $previewOrder->awaitsDetails() ? $previewOrder->declared_pieces.' pièce(s) comptée(s) au dépôt.' : 'Aucun article.' }}</div>
                     @endforelse
                     <div class="flex justify-between px-3 py-2.5 bg-(--color-bg) font-bold">
-                        <span>Total</span><span class="tabular-nums">{{ $fcfa($previewOrder->total_fcfa) }} F</span>
+                        <span>Total</span><span class="tabular-nums">{{ $previewOrder->totalLabel() }}</span>
                     </div>
                 </div>
                 @if ($previewOrder->notes)
@@ -176,7 +177,10 @@
             @endif
         </div>
 
-        <div class="flex gap-2 px-5 py-4 border-t border-(--color-border)">
+        <div class="flex flex-wrap gap-2 px-5 py-4 border-t border-(--color-border)">
+            @if ($previewOrder->awaitsDetails() && auth()->user()->may(\App\Enums\Permission::OrdersCreate, $previewOrder->pressing))
+                <a href="{{ route('orders.complete', $previewOrder) }}" wire:navigate class="basis-full h-10 rounded-lg bg-(--color-primary) text-white text-sm font-semibold inline-flex items-center justify-center hover:bg-(--color-primary-600)">Compléter le dépôt</a>
+            @endif
             <a href="{{ route('orders.show', $previewOrder) }}" wire:navigate
                class="flex-1 h-10 rounded-lg border border-(--color-border) text-sm font-semibold inline-flex items-center justify-center gap-2 hover:border-(--color-primary) hover:text-(--color-primary)">
                 Ouvrir la fiche

@@ -5,6 +5,9 @@ Bonjour {{ $customer->first_name }},
 
 {!! $intro !!}
 
+@if ($order->details_pending)
+**{{ $order->declared_pieces }} pièce(s)** déposée(s) · prix à venir
+@else
 <x-mail::table>
 | Article | Qté | Montant |
 |:--------|:---:|--------:|
@@ -13,6 +16,7 @@ Bonjour {{ $customer->first_name }},
 @endforeach
 | **Total** | | **{{ number_format($order->total_fcfa, 0, ',', ' ') }} FCFA** |
 </x-mail::table>
+@endif
 
 @if ($pressing->address || $pressing->phone)
 <x-mail::panel>

@@ -108,6 +108,9 @@
 
             <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
                 <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-3">Articles</div>
+                @if ($order->awaitsDetails())
+                    <p class="text-sm py-2"><span class="font-semibold">{{ $order->declared_pieces }} pièce{{ $order->declared_pieces > 1 ? 's' : '' }}</span> <span class="text-(--color-text-secondary)">comptée{{ $order->declared_pieces > 1 ? 's' : '' }} au dépôt. Le détail reste à saisir.</span></p>
+                @endif
                 @foreach ($order->items as $item)
                     <div class="flex justify-between text-sm py-2 border-b border-(--color-border) last:border-b-0">
                         <span>{{ $item->name }} × {{ $item->quantity }}</span>
@@ -116,8 +119,11 @@
                 @endforeach
                 <div class="flex justify-between pt-3 mt-1">
                     <span class="text-sm font-semibold">Total</span>
-                    <span class="font-display text-lg font-bold tabular-nums">{{ number_format($order->total_fcfa, 0, ',', ' ') }} FCFA</span>
+                    <span class="font-display text-lg font-bold tabular-nums">{{ $order->awaitsDetails() ? 'À compléter' : number_format($order->total_fcfa, 0, ',', ' ').' FCFA' }}</span>
                 </div>
+                @if ($order->declared_pieces !== null && ! $order->details_pending && $order->pieceCount() !== $order->declared_pieces)
+                    <p class="mt-2 text-xs text-(--color-warning-text)">{{ $order->declared_pieces }} pièce{{ $order->declared_pieces > 1 ? 's' : '' }} comptée{{ $order->declared_pieces > 1 ? 's' : '' }} au dépôt, {{ $order->pieceCount() }} saisie{{ $order->pieceCount() > 1 ? 's' : '' }} ensuite.</p>
+                @endif
             </div>
 
             @include('livewire.orders._photos')
@@ -177,7 +183,14 @@
                 </div>
             </div>
 
-            @include('livewire.orders._payment-card')
+            @if ($order->awaitsDetails())
+                <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5" id="paiement">
+                    <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-2">Paiement</div>
+                    <p class="text-sm text-(--color-text-secondary)">Le montant sera connu quand le dépôt sera complété. Le paiement s'enregistre à ce moment-là.</p>
+                </div>
+            @else
+                @include('livewire.orders._payment-card')
+            @endif
 
             <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5">
                 <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-3">Dates</div>

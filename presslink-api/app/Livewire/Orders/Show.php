@@ -10,23 +10,19 @@ use App\Enums\OrderIssueStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\Permission;
+use App\Livewire\Concerns\ManagesOrderPhotos;
 use App\Livewire\Concerns\ShowsToasts;
 use App\Models\ActivityLog;
 use App\Models\Order;
 use App\Models\OrderPhoto;
-use App\Support\ImageOptimizer;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use Livewire\WithFileUploads;
 use RuntimeException;
 
 class Show extends Component
 {
-    use ShowsToasts, WithFileUploads;
-
-    /** Photo en cours d'envoi (réduite dans le navigateur, une à la fois). */
-    public $photo = null;
+    use ManagesOrderPhotos, ShowsToasts;
 
     public Order $order;
 
@@ -227,39 +223,9 @@ class Show extends Component
         $this->toast('Solde encaissé et commande remise au client.');
     }
 
-    /** Enregistre la photo qui vient d'être envoyée. */
-    public function savePhoto(OrderPhotos $photos): void
+    protected function photoOrder(): Order
     {
-        $this->validate([
-            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240', 'dimensions:max_width='.ImageOptimizer::MAX_DIMENSION.',max_height='.ImageOptimizer::MAX_DIMENSION],
-        ], [
-            'photo.required' => 'Aucune photo reçue. Réessayez.',
-            'photo.image' => 'Ce fichier n\'est pas une photo.',
-            'photo.mimes' => 'Format accepté : JPG, PNG ou WebP.',
-            'photo.max' => 'Cette photo est trop lourde (10 Mo maximum).',
-            'photo.dimensions' => 'Cette photo est trop grande.',
-        ]);
-
-        try {
-            $photos->add($this->order, $this->photo, auth()->user());
-        } catch (RuntimeException $e) {
-            $this->addError('photo', $e->getMessage());
-        } finally {
-            $this->photo = null;
-        }
-    }
-
-    public function removePhoto(int $photoId, OrderPhotos $photos): void
-    {
-        try {
-            $photos->remove($this->order->photos()->findOrFail($photoId), auth()->user());
-        } catch (RuntimeException $e) {
-            $this->errorMessage = $e->getMessage();
-
-            return;
-        }
-
-        $this->toast('Photo supprimée.');
+        return $this->order;
     }
 
     public function startResolving(int $issueId): void
@@ -310,6 +276,7 @@ class Show extends Component
             'cancellationReasons' => CancellationReason::cases(),
             'canAddPhotos' => OrderPhotos::canAdd(auth()->user(), $this->order),
             'maxPhotos' => OrderPhoto::MAX_PER_ORDER,
+            'canCompleteDeposit' => $this->order->awaitsDetails() && auth()->user()->may(Permission::OrdersCreate, $this->order->pressing),
         ]);
     }
 }

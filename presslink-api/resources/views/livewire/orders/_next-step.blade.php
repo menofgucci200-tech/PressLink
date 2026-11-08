@@ -27,6 +27,11 @@
     };
     // Accès du rôle : remise (et encaissement) d'un côté, atelier de l'autre.
     $allowedAction = fn (OrderStatus $action) => $action === OrderStatus::Recuperee ? $canRecordPayments : $canWorkshop;
+    // Dépôt rapide : il peut partir au traitement, mais pas être marqué prêt sans prix.
+    $waitingForDetails = $order->awaitsDetails() && $status === OrderStatus::Traitement;
+    if ($waitingForDetails) {
+        $primary['hint'] = 'Complétez le dépôt pour pouvoir le marquer prêt.';
+    }
     $primaryAllowed = $primary !== null && $allowedAction($primary['action']);
     // La remise n'est possible que soldée : elle passe par le bouton principal.
     $secondary = collect($nextActions)->reject(fn ($action) => ($primary !== null && $action === $primary['action']) || $action === OrderStatus::Annulee
@@ -35,6 +40,18 @@
     // Pressing fermé : la remise au client attend l'ouverture (l'atelier continue).
     $handOverClosed = ! $acceptsCustomers && $status === OrderStatus::Prete;
 @endphp
+
+@if ($order->awaitsDetails())
+    <div class="mb-4 flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl bg-(--color-warning-tint) border border-[color-mix(in_srgb,var(--color-warning-text)_20%,transparent)]" data-testid="deposit-pending">
+        <div class="flex-1 min-w-0">
+            <div class="font-semibold text-(--color-warning-text)">Dépôt à compléter</div>
+            <div class="text-sm text-(--color-text-secondary)">Saisissez le détail et les prix, en vous aidant des photos. Le client verra alors son total.</div>
+        </div>
+        @if ($canCompleteDeposit)
+            <a href="{{ route('orders.complete', $order) }}" wire:navigate class="h-12 px-6 rounded-xl bg-(--color-primary) text-white text-[15px] font-semibold shadow-sm hover:bg-(--color-primary-600) flex items-center justify-center">Compléter le dépôt</a>
+        @endif
+    </div>
+@endif
 
 @if ($status === OrderStatus::Annulee)
     @php
@@ -112,7 +129,9 @@
                     @endif
                 </div>
 
-                @if (! $primaryAllowed)
+                @if ($waitingForDetails)
+                    <span class="h-12 px-5 rounded-xl bg-(--color-bg) text-(--color-text-muted) text-sm font-semibold flex items-center justify-center text-center">Marquer prête</span>
+                @elseif (! $primaryAllowed)
                     <span class="h-12 px-5 rounded-xl bg-(--color-bg) text-(--color-text-muted) text-sm font-semibold flex items-center justify-center text-center">
                         {{ $primary['action'] === OrderStatus::Recuperee ? 'Remise faite par un collègue habilité' : 'Statut changé par l\'atelier' }}
                     </span>

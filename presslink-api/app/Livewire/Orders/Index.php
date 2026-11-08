@@ -51,6 +51,10 @@ class Index extends Component
     #[Url(as: 'paiement')]
     public string $payment = '';
 
+    /** Dépôts rapides dont le détail et les prix restent à saisir. */
+    #[Url(as: 'a_completer', except: false)]
+    public bool $awaitingDetails = false;
+
     /** Tri : 'recent' (dernières créées) ou une clé de SORTABLE. */
     #[Url(as: 'tri', except: 'recent')]
     public string $sort = 'recent';
@@ -93,7 +97,7 @@ class Index extends Component
 
     public function updating(string $property): void
     {
-        if (in_array($property, ['search', 'status', 'dateFrom', 'dateTo', 'payment'], true)) {
+        if (in_array($property, ['search', 'status', 'dateFrom', 'dateTo', 'payment', 'awaitingDetails'], true)) {
             $this->resetPage();
             // Pas d'action groupée sur des commandes qui ne sont plus affichées.
             $this->selected = [];
@@ -102,7 +106,7 @@ class Index extends Component
 
     public function resetFilters(): void
     {
-        $this->reset(['search', 'status', 'dateFrom', 'dateTo', 'payment', 'sort', 'direction']);
+        $this->reset(['search', 'status', 'dateFrom', 'dateTo', 'payment', 'awaitingDetails', 'sort', 'direction']);
         $this->resetPage();
     }
 
@@ -283,7 +287,7 @@ class Index extends Component
         return auth()->user()->currentPressing();
     }
 
-    /** @return array{search: ?string, date_from: ?string, date_to: ?string, payment: ?string} */
+    /** @return array{search: ?string, date_from: ?string, date_to: ?string, payment: ?string, awaiting_details: bool} */
     private function filters(): array
     {
         return [
@@ -291,6 +295,7 @@ class Index extends Component
             'date_from' => $this->dateFrom ?: null,
             'date_to' => $this->dateTo ?: null,
             'payment' => $this->payment ?: null,
+            'awaiting_details' => $this->awaitingDetails,
         ];
     }
 
@@ -326,8 +331,10 @@ class Index extends Component
         $orders = collect();
         $counts = [];
         $previewOrder = null;
+        $awaitingDetailsCount = 0;
 
         if ($pressing !== null) {
+            $awaitingDetailsCount = $pressing->orders()->awaitingDetails()->count();
             $filters = $this->filters();
             $shown = fn (HasMany $query) => $this->baselineOrderId > 0
                 ? $query->where('orders.id', '<=', $this->baselineOrderId)
@@ -356,6 +363,7 @@ class Index extends Component
             'counts' => $counts,
             'statuses' => OrderStatus::cases(),
             'previewOrder' => $previewOrder,
+            'awaitingDetailsCount' => $awaitingDetailsCount,
             'paymentMethods' => PaymentMethod::cases(),
         ]);
     }

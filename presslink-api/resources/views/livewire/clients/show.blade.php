@@ -79,7 +79,7 @@
                                 <span class="block text-xs text-(--color-text-muted)">{{ $order->dropped_off_at->format('d/m/Y') }}</span>
                             </span>
                             <span class="flex-none text-right">
-                                <span class="block font-semibold tabular-nums">{{ number_format($order->total_fcfa, 0, ',', ' ') }} F</span>
+                                <span class="block font-semibold tabular-nums">{{ $order->totalLabel() }}</span>
                                 <x-status-badge :status="$order->status" />
                             </span>
                         </a>
@@ -100,7 +100,7 @@
                         <tr class="border-t border-(--color-border) hover:bg-(--color-bg) cursor-pointer" onclick="window.location='{{ route('orders.show', $order) }}'">
                             <td class="px-5 py-3.5 font-medium tabular-nums">{{ $order->order_number }}</td>
                             <td class="px-5 py-3.5 text-(--color-text-secondary)">{{ $order->dropped_off_at->format('d/m/Y') }}</td>
-                            <td class="px-5 py-3.5 text-right tabular-nums font-medium">{{ number_format($order->total_fcfa, 0, ',', ' ') }} F</td>
+                            <td class="px-5 py-3.5 text-right tabular-nums font-medium">{{ $order->totalLabel() }}</td>
                             <td class="px-5 py-3.5 text-right"><x-status-badge :status="$order->status" /></td>
                         </tr>
                     @endforeach

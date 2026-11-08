@@ -47,6 +47,7 @@ use App\Livewire\Group\Team as GroupTeam;
 use App\Livewire\Issues\Index as IssuesIndex;
 use App\Livewire\Orders\Create as OrdersCreate;
 use App\Livewire\Orders\Index as OrdersIndex;
+use App\Livewire\Orders\QuickDeposit as OrdersQuickDeposit;
 use App\Livewire\Orders\Show as OrdersShow;
 use App\Livewire\Pressing\Settings as PressingSettings;
 use App\Livewire\Services\Index as ServicesIndex;
@@ -141,6 +142,8 @@ Route::middleware(['auth', HandleSandboxPressing::class])->group(function () {
         Route::middleware(EnsureUserHasPressing::class)->group(function () {
             Route::get('/commandes', OrdersIndex::class)->name('orders.index');
             Route::get('/commandes/nouvelle', OrdersCreate::class)->name('orders.create');
+            Route::get('/commandes/depot-rapide', OrdersQuickDeposit::class)->name('orders.quick-deposit');
+            Route::get('/commandes/{order}/completer', OrdersCreate::class)->whereNumber('order')->name('orders.complete');
             Route::get('/commandes/export/{format}', OrderExportController::class)
                 ->name('orders.export')
                 ->where('format', 'csv|xlsx|pdf');

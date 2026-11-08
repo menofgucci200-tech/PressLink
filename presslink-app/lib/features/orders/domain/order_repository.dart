@@ -167,6 +167,8 @@ class OrderModel {
     required this.droppedOffAt,
     required this.items,
     this.expectedAt,
+    this.detailsPending = false,
+    this.declaredPieces,
     this.history = const [],
     this.issues = const [],
     this.amountPaidFcfa = 0,
@@ -191,6 +193,12 @@ class OrderModel {
   final DateTime droppedOffAt;
   final DateTime? expectedAt;
   final List<OrderItemModel> items;
+
+  /// Dépôt rapide : le pressing n'a pas encore saisi le détail et les prix.
+  final bool detailsPending;
+
+  /// Nombre de pièces comptées au dépôt.
+  final int? declaredPieces;
   final List<OrderStatusEvent> history;
   final List<OrderIssueModel> issues;
   final int amountPaidFcfa;
@@ -217,8 +225,9 @@ class OrderModel {
   /// Comment joindre le pressing (bouton « Contacter le pressing »).
   final PressingContact? pressingContact;
 
-  String get itemsLabel =>
-      items.map((i) => libelleArticle(i.quantity, i.name)).join(' · ');
+  String get itemsLabel => detailsPending
+      ? '${declaredPieces ?? 0} pièce${(declaredPieces ?? 0) > 1 ? 's' : ''} déposée${(declaredPieces ?? 0) > 1 ? 's' : ''}'
+      : items.map((i) => libelleArticle(i.quantity, i.name)).join(' · ');
 
   factory OrderModel.fromJson(Map<String, dynamic> json) => OrderModel(
     id: json['id'] as int,
@@ -235,6 +244,8 @@ class OrderModel {
     items: (json['items'] as List? ?? [])
         .map((e) => OrderItemModel.fromJson(e as Map<String, dynamic>))
         .toList(),
+    detailsPending: json['details_pending'] == true,
+    declaredPieces: json['declared_pieces'] as int?,
     history: (json['status_history'] as List? ?? [])
         .map((e) => OrderStatusEvent.fromJson(e as Map<String, dynamic>))
         .toList(),

@@ -104,7 +104,7 @@
                                 </button>
                             </td>
                             <td class="px-5 py-3.5 text-right tabular-nums">{{ $order->items_count }}</td>
-                            <td class="px-5 py-3.5 text-right font-semibold tabular-nums">{{ $fcfa($order->total_fcfa) }} F</td>
+                            <td class="px-5 py-3.5 text-right font-semibold tabular-nums">{{ $order->totalLabel() }}</td>
                             <td class="px-5 py-3.5 text-(--color-text-secondary)" title="{{ $order->dropped_off_at?->translatedFormat('l j F Y à H:i') }}">
                                 {{ $order->dropped_off_at?->format('d/m/Y') ?? '—' }}
                                 @if ($order->dropped_off_at)

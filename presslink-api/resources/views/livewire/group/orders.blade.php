@@ -111,7 +111,7 @@
                                 </div>
                             </td>
                             <td class="px-5 py-3.5 text-right">
-                                <div class="font-semibold tabular-nums">{{ $fcfa($order->total_fcfa) }} F</div>
+                                <div class="font-semibold tabular-nums">{{ $order->totalLabel() }}</div>
                                 @if ($order->status !== \App\Enums\OrderStatus::Annulee)
                                     <x-payment-badge :order="$order" compact class="mt-0.5" />
                                 @endif

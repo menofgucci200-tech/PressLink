@@ -45,6 +45,12 @@ class OrderObserver
             throw new RuntimeException("Transition de statut invalide : {$from->label()} → {$to->label()}.");
         }
 
+        // Dépôt rapide : sans détail ni prix, rien à encaisser au retrait. Il
+        // peut partir au traitement, mais pas être annoncé prêt au client.
+        if ($order->details_pending && in_array($to, [OrderStatus::Prete, OrderStatus::Recuperee], true)) {
+            throw new RuntimeException("Complétez d'abord le détail et les prix du dépôt {$order->order_number}.");
+        }
+
         // Une commande n'est remise au client que soldée (plus de « remise sans
         // encaissement ») : le reste se règle au moment de la remise.
         if ($to === OrderStatus::Recuperee && $order->balance_due_fcfa > 0) {

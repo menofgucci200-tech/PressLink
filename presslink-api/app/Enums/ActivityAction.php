@@ -21,6 +21,8 @@ enum ActivityAction: string
     case IssueReported = 'issue_reported';
     case IssueResolved = 'issue_resolved';
     case OrderPhotoRemoved = 'order_photo_removed';
+    case QuickDepositCreated = 'quick_deposit_created';
+    case QuickDepositCompleted = 'quick_deposit_completed';
 
     // Paiements
     case PaymentRecorded = 'payment_recorded';
@@ -62,6 +64,8 @@ enum ActivityAction: string
             self::IssueReported => 'Signalement reçu',
             self::IssueResolved => 'Signalement résolu',
             self::OrderPhotoRemoved => 'Photo supprimée',
+            self::QuickDepositCreated => 'Dépôt rapide',
+            self::QuickDepositCompleted => 'Dépôt complété',
             self::PaymentRecorded => 'Paiement encaissé',
             self::PaymentRefunded => 'Remboursement',
             self::PaymentRemoved => 'Paiement supprimé',
@@ -87,7 +91,8 @@ enum ActivityAction: string
     {
         return match ($this) {
             self::OrderCreated, self::OrderStatusChanged, self::OrderHandedOver, self::RecoveredUnpaid,
-            self::OrderCancelled, self::IssueReported, self::IssueResolved, self::OrderPhotoRemoved => 'orders',
+            self::OrderCancelled, self::IssueReported, self::IssueResolved, self::OrderPhotoRemoved,
+            self::QuickDepositCreated, self::QuickDepositCompleted => 'orders',
             self::StorageFeeCharged, self::StorageFeeWaived => 'payments',
             self::PaymentRecorded, self::PaymentRefunded, self::PaymentRemoved => 'payments',
             self::CustomerAdded => 'customers',

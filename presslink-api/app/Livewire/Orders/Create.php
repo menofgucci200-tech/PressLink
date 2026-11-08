@@ -3,17 +3,19 @@
 namespace App\Livewire\Orders;
 
 use App\Actions\Orders\CreateOrderAction;
+use App\Actions\Orders\OrderPhotos;
 use App\Enums\PaymentMethod;
 use App\Enums\Permission;
-use App\Models\Customer;
+use App\Livewire\Concerns\ManagesOrderPhotos;
+use App\Livewire\Concerns\PicksOrderCustomer;
+use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Order;
+use App\Models\OrderPhoto;
 use App\Models\Pressing;
 use App\Models\Prestation;
 use App\Models\Service;
 use App\Models\ServiceVariant;
-use App\Rules\IvorianPhone;
 use App\Support\ColorPalette;
-use App\Support\PhoneNumber;
 use App\Support\ReceiptLinks;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
@@ -32,34 +34,16 @@ use RuntimeException;
  *
  * La commande en cours est gardée en brouillon (par pressing) : un employé
  * interrompu la retrouve en revenant sur l'écran.
+ *
+ * Le même écran complète un dépôt rapide (`/commandes/{id}/completer`) : le
+ * client est déjà connu et les photos du dépôt aident à saisir le détail.
  */
 class Create extends Component
 {
+    use ManagesOrderPhotos, PicksOrderCustomer, ShowsToasts;
+
     /** Quantité maximale d'une ligne (garde-fou contre une faute de frappe). */
     public const MAX_QUANTITY = 999;
-
-    // Client
-    public string $clientSearch = '';
-
-    public ?int $selectedCustomerId = null;
-
-    public bool $showNewClientForm = false;
-
-    public string $newFirstName = '';
-
-    public string $newLastName = '';
-
-    public string $newPhone = '';
-
-    /**
-     * Numéro déjà enregistré (par un autre pressing ou par le client) : on
-     * montre le nom connu et le staff confirme qu'il s'agit bien de son
-     * client, ce qui rattrape aussi une erreur de saisie du numéro.
-     */
-    #[Locked]
-    public ?int $knownCustomerId = null;
-
-    public string $knownCustomerName = '';
 
     // Services et pièces
     /** @var array<int, array{service_id: ?int, service_variant_id: ?int, prestation_id: ?int, prestation_name: ?string, base_name: string, name: string, color: ?string, unit_price_fcfa: int, quantity: int}> */
@@ -100,14 +84,36 @@ class Create extends Component
     /** @var array{id: int, number: string, customer: string, total: int, pdf: string, share: array{url: string, text: string, file: string, phone: string}}|null Dernière commande validée (bandeau « Imprimer le reçu »). */
     public ?array $lastCreated = null;
 
+    /** Dépôt rapide en cours de complément (sinon : nouvelle commande). */
+    #[Locked]
+    public ?int $completingOrderId = null;
+
     /** Champs gardés en brouillon. */
     private const DRAFT_FIELDS = ['selectedCustomerId', 'items', 'prestationId', 'activeColor', 'expectedAt', 'notes', 'paymentChoice', 'depositAmount', 'paymentMethod'];
 
-    public function mount(): void
+    public function mount(?string $order = null): void
     {
         abort_unless(auth()->user()->may(Permission::OrdersCreate), 403);
 
         $this->expectedAt = $this->defaultExpectedAt();
+
+        $deposit = $order !== null ? $this->pressing()->orders()->findOrFail((int) $order) : null;
+        if ($deposit !== null) {
+            abort_unless(auth()->user()->can('update', $deposit), 403);
+
+            if (! $deposit->awaitsDetails()) {
+                $this->flashToast('Ce dépôt est déjà complété.', 'info');
+                $this->redirectRoute('orders.show', $deposit, navigate: true);
+
+                return;
+            }
+
+            $this->completingOrderId = $deposit->id;
+            $this->notes = (string) $deposit->notes;
+            if ($deposit->expected_at?->gte(today())) {
+                $this->expectedAt = $deposit->expected_at->format('Y-m-d');
+            }
+        }
 
         $draft = session($this->draftKey());
         if (is_array($draft) && ($draft['items'] ?? []) !== []) {
@@ -127,6 +133,12 @@ class Create extends Component
             $this->prestationId = $this->defaultPrestationId();
         }
 
+        if ($deposit !== null) {
+            $this->selectedCustomerId = $deposit->customer_id;
+
+            return;
+        }
+
         // Depuis la fiche d'un client (« Nouvelle commande ») : déjà choisi.
         $clientId = request()->query('client');
         if (is_numeric($clientId) && $this->pressing()->customers()->where('customers.id', (int) $clientId)->where('customers.is_active', true)->exists()) {
@@ -137,7 +149,7 @@ class Create extends Component
     /** Sauvegarde du brouillon à chaque échange avec le serveur. */
     public function dehydrate(): void
     {
-        if ($this->items === [] && $this->selectedCustomerId === null) {
+        if ($this->items === [] && ($this->selectedCustomerId === null || $this->completingOrderId !== null)) {
             session()->forget($this->draftKey());
 
             return;
@@ -153,150 +165,20 @@ class Create extends Component
         $this->dispatch('comptoir-focus', target: 'client');
     }
 
-    // ── Client ────────────────────────────────────────────────────────────
-
-    public function pickCustomer(int $customerId): void
+    protected function customerPicked(): void
     {
-        $customer = $this->pressing()->customers()->where('customers.id', $customerId)->first();
-        abort_if($customer === null, 403);
-
-        if ($customer->is_active === false) {
-            $this->dispatch('toast', type: 'error', message: CreateOrderAction::INACTIVE_CUSTOMER_MESSAGE);
-
-            return;
-        }
-
-        $this->selectedCustomerId = $customerId;
-        $this->showNewClientForm = false;
-        $this->clientSearch = '';
         $this->lastCreated = null;
         $this->dispatch('comptoir-focus', target: 'pieces');
     }
 
-    /** Touche Entrée dans la recherche : prend le premier client trouvé. */
-    public function pickFirstCustomer(): void
+    protected function photoOrder(): Order
     {
-        $first = $this->searchCustomers($this->pressing())->first();
-
-        if ($first !== null) {
-            $this->pickCustomer($first->id);
-        } elseif (trim($this->clientSearch) !== '') {
-            $this->startNewCustomer();
-        }
+        return $this->completingOrder() ?? abort(404);
     }
 
-    public function clearCustomer(): void
+    private function completingOrder(): ?Order
     {
-        $this->selectedCustomerId = null;
-        $this->dispatch('comptoir-focus', target: 'client');
-    }
-
-    /** Ouvre la création de client, préremplie avec ce qui a été tapé (numéro ou nom). */
-    public function startNewCustomer(): void
-    {
-        $typed = trim($this->clientSearch);
-
-        if (preg_match('/^[+\d\s.\-]{8,}$/', $typed)) {
-            $this->newPhone = PhoneNumber::normalize($typed);
-        } elseif ($typed !== '') {
-            $parts = preg_split('/\s+/', $typed, 2);
-            $this->newFirstName = $parts[0];
-            $this->newLastName = $parts[1] ?? '';
-        }
-
-        $this->showNewClientForm = true;
-    }
-
-    public function createAndPickCustomer(): void
-    {
-        $pressing = $this->pressing();
-        abort_unless(auth()->user()->may(Permission::OrdersCreate, $pressing), 403);
-
-        if (! $pressing->acceptsCustomers()) {
-            $this->addError('newPhone', $pressing->closedMessage());
-
-            return;
-        }
-
-        $this->newPhone = PhoneNumber::normalize($this->newPhone);
-        $this->reset(['knownCustomerId', 'knownCustomerName']);
-
-        $this->validate(['newPhone' => ['required', 'string', new IvorianPhone]]);
-
-        $known = Customer::inDirectoryOf($pressing)->where('phone', $this->newPhone)->first();
-
-        if ($known !== null) {
-            // Déjà dans le fichier de ce pressing : on le choisit directement.
-            if ($pressing->customers()->whereKey($known->id)->exists()) {
-                $this->pickCreatedCustomer($known);
-
-                return;
-            }
-
-            $this->knownCustomerId = $known->id;
-            $this->knownCustomerName = $known->fullName();
-
-            return;
-        }
-
-        $this->validate([
-            'newFirstName' => ['required', 'string', 'max:100'],
-            'newLastName' => ['required', 'string', 'max:100'],
-        ]);
-
-        $customer = DB::transaction(function () use ($pressing) {
-            $customer = Customer::create([
-                'phone' => $this->newPhone,
-                'sandbox_pressing_id' => $pressing->customerDirectoryId(),
-                'first_name' => $this->newFirstName,
-                'last_name' => $this->newLastName,
-            ]);
-            $pressing->customers()->attach($customer->id, ['joined_at' => now()]);
-
-            return $customer;
-        });
-
-        $this->pickCreatedCustomer($customer);
-    }
-
-    /** « Oui, c'est mon client » : rattaché au pressing avec le nom déjà connu. */
-    public function confirmKnownCustomer(): void
-    {
-        abort_unless(auth()->user()->may(Permission::OrdersCreate, $this->pressing()), 403);
-
-        if (! $this->pressing()->acceptsCustomers()) {
-            $this->addError('newPhone', $this->pressing()->closedMessage());
-
-            return;
-        }
-
-        // Le client confirmé doit être celui du numéro saisi (jamais un autre id).
-        $customer = Customer::inDirectoryOf($this->pressing())->whereKey($this->knownCustomerId)->where('phone', PhoneNumber::normalize($this->newPhone))->firstOrFail();
-        $this->pressing()->customers()->syncWithoutDetaching([$customer->id => ['joined_at' => now()]]);
-
-        $this->pickCreatedCustomer($customer);
-    }
-
-    /** « Corriger le numéro » : on revient au formulaire. */
-    public function dismissKnownCustomer(): void
-    {
-        $this->reset(['knownCustomerId', 'knownCustomerName']);
-    }
-
-    private function pickCreatedCustomer(Customer $customer): void
-    {
-        $this->showNewClientForm = false;
-        $this->reset(['newFirstName', 'newLastName', 'newPhone', 'knownCustomerId', 'knownCustomerName', 'clientSearch']);
-
-        if ($customer->is_active === false) {
-            $this->dispatch('toast', type: 'error', message: CreateOrderAction::INACTIVE_CUSTOMER_MESSAGE);
-
-            return;
-        }
-
-        $this->selectedCustomerId = $customer->id;
-        $this->lastCreated = null;
-        $this->dispatch('comptoir-focus', target: 'pieces');
+        return $this->completingOrderId !== null ? $this->pressing()->orders()->find($this->completingOrderId) : null;
     }
 
     /**
@@ -706,14 +588,16 @@ class Create extends Component
     public function create(): void
     {
         $this->errorMessage = null;
+        $deposit = $this->completingOrder();
 
-        if (! $this->pressing()->acceptsCustomers()) {
+        // Compléter un dépôt, c'est du travail d'atelier : possible hors des horaires.
+        if ($deposit === null && ! $this->pressing()->acceptsCustomers()) {
             $this->errorMessage = $this->pressing()->closedMessage();
 
             return;
         }
 
-        if ($this->selectedCustomerId === null) {
+        if ($deposit === null && $this->selectedCustomerId === null) {
             $this->dispatch('toast', type: 'error', message: 'Choisissez d\'abord le client.');
             $this->dispatch('comptoir-focus', target: 'client');
 
@@ -736,7 +620,7 @@ class Create extends Component
         }
 
         $pressing = $this->pressing();
-        $customer = $pressing->customers()->find($this->selectedCustomerId);
+        $customer = $deposit?->customer ?? $pressing->customers()->find($this->selectedCustomerId);
         abort_if($customer === null, 403);
 
         $this->validatePayment();
@@ -749,16 +633,28 @@ class Create extends Component
             'notes.max' => 'La remarque est trop longue (1 000 caractères au plus).',
         ]);
 
+        // Encaisser reste réservé aux heures d'ouverture.
+        if ($deposit !== null && $this->amountPaidNow > 0 && ! $pressing->acceptsCustomers()) {
+            $this->errorMessage = $pressing->closedMessage();
+
+            return;
+        }
+
+        $items = array_map(fn (array $item) => collect($item)->except('base_name')->all(), $this->items);
+        $paymentMethod = PaymentMethod::from($this->paymentMethod);
+
         try {
-            $order = (new CreateOrderAction)->handle(
-                pressing: $pressing,
-                customer: $customer,
-                items: array_map(fn (array $item) => collect($item)->except('base_name')->all(), $this->items),
-                expectedAt: $this->expectedAt ?: null,
-                notes: $this->notes ?: null,
-                amountPaidFcfa: $this->amountPaidNow,
-                paymentMethod: PaymentMethod::from($this->paymentMethod),
-            );
+            $order = $deposit !== null
+                ? (new CreateOrderAction)->completeQuickDeposit($deposit, $items, $this->expectedAt ?: null, $this->notes ?: null, $this->amountPaidNow, $paymentMethod)
+                : (new CreateOrderAction)->handle(
+                    pressing: $pressing,
+                    customer: $customer,
+                    items: $items,
+                    expectedAt: $this->expectedAt ?: null,
+                    notes: $this->notes ?: null,
+                    amountPaidFcfa: $this->amountPaidNow,
+                    paymentMethod: $paymentMethod,
+                );
         } catch (QueryException $e) {
             // Jamais de détail technique (requête, base) à l'écran.
             report($e);
@@ -767,6 +663,14 @@ class Create extends Component
             return;
         } catch (RuntimeException $e) {
             $this->errorMessage = $e->getMessage();
+
+            return;
+        }
+
+        if ($deposit !== null) {
+            $this->resetOrder();
+            $this->flashToast('Dépôt complété : le client voit le détail et le prix.');
+            $this->redirectRoute('orders.show', $order, navigate: true);
 
             return;
         }
@@ -861,6 +765,8 @@ class Create extends Component
             'items', 'activeColor', 'variantPieceId', 'showCustomForm', 'customName', 'customPrice',
             'notes', 'paymentChoice', 'depositAmount', 'paymentMethod', 'errorMessage', 'draftRestored', 'lastCreated']);
         $this->expectedAt = $this->defaultExpectedAt();
+        // Dépôt à compléter : on vide le ticket, le client reste celui du dépôt.
+        $this->selectedCustomerId = $this->completingOrder()?->customer_id;
         session()->forget($this->draftKey());
         // Totaux calculés de la commande précédente : oubliés.
         unset($this->total, $this->pieceCount, $this->amountPaidNow);
@@ -875,7 +781,7 @@ class Create extends Component
 
     private function draftKey(): string
     {
-        return 'order_draft.'.$this->pressing()->id;
+        return 'order_draft.'.$this->pressing()->id.($this->completingOrderId !== null ? '.'.$this->completingOrderId : '');
     }
 
     private function defaultExpectedAt(): string
@@ -910,35 +816,6 @@ class Create extends Component
             ->get());
     }
 
-    /** @return Collection<int, Customer> */
-    private function searchCustomers(Pressing $pressing): Collection
-    {
-        $term = trim($this->clientSearch);
-
-        if ($term === '') {
-            return $pressing->customers()->orderByDesc('pressing_customers.joined_at')->limit(6)->get();
-        }
-
-        // « Awa Tra » : chaque mot doit se retrouver dans le prénom ou le nom ;
-        // « 07 08 12 44 » : on compare les chiffres au numéro.
-        $words = preg_split('/\s+/', $term) ?: [];
-        $digits = preg_replace('/\D/', '', $term);
-
-        return $pressing->customers()
-            ->where(function ($q) use ($words, $digits) {
-                $q->where(function ($names) use ($words) {
-                    foreach ($words as $word) {
-                        $names->where(fn ($n) => $n->where('first_name', 'like', "%{$word}%")->orWhere('last_name', 'like', "%{$word}%"));
-                    }
-                });
-
-                if (strlen($digits) >= 3) {
-                    $q->orWhere('phone', 'like', "%{$digits}%");
-                }
-            })
-            ->limit(6)->get();
-    }
-
     private function lastOrderOf(?int $customerId): ?Order
     {
         if ($customerId === null) {
@@ -948,6 +825,7 @@ class Create extends Component
         return Order::query()
             ->where('pressing_id', $this->pressing()->id)
             ->where('customer_id', $customerId)
+            ->where('details_pending', false)
             ->with('items')
             ->latest('id')
             ->first();
@@ -966,7 +844,9 @@ class Create extends Component
         // ensuite, le ticket se règle dans le navigateur et cette zone n'est plus redessinée.
         [$pieceGroups, $catalogue] = Livewire::isLivewireRequest() ? [[], []] : $this->catalogue($pressing, $prestations);
 
-        $lastOrder = $selectedCustomer !== null ? $this->lastOrderOf($selectedCustomer->id) : null;
+        $deposit = $this->completingOrder()?->load('photos');
+        $selectedCustomer = $deposit?->customer ?? $selectedCustomer;
+        $lastOrder = $selectedCustomer !== null && $deposit === null ? $this->lastOrderOf($selectedCustomer->id) : null;
 
         return view('livewire.orders.create', [
             'clients' => $clients,
@@ -975,8 +855,11 @@ class Create extends Component
             'pieceGroups' => $pieceGroups,
             'catalogue' => $catalogue,
             'lastOrder' => $lastOrder,
-            'acceptsCustomers' => $pressing->acceptsCustomers(),
+            'acceptsCustomers' => $deposit !== null || $pressing->acceptsCustomers(),
             'paymentMethods' => PaymentMethod::cases(),
+            'deposit' => $deposit,
+            'canAddPhotos' => $deposit !== null && OrderPhotos::canAdd(auth()->user(), $deposit),
+            'maxPhotos' => OrderPhoto::MAX_PER_ORDER,
         ]);
     }
 

@@ -27,7 +27,7 @@
                 <div class="min-w-0 flex-1">
                     <div class="flex items-baseline justify-between gap-3">
                         <span class="font-semibold truncate">{{ $order->customer->fullName() }}</span>
-                        <span class="flex-none font-semibold tabular-nums">{{ number_format($order->total_fcfa, 0, ',', ' ') }} F</span>
+                        <span class="flex-none font-semibold tabular-nums">{{ $order->totalLabel() }}</span>
                     </div>
                     <div class="mt-0.5 flex items-center justify-between gap-3 text-xs text-(--color-text-muted)">
                         <span class="tabular-nums truncate">{{ $order->order_number }} · {{ $order->dropped_off_at->format('d/m') }}</span>
@@ -152,7 +152,7 @@
                         </div>
                     </td>
                     <td class="px-5 py-3.5 text-right">
-                        <div class="font-semibold tabular-nums">{{ number_format($order->total_fcfa, 0, ',', ' ') }} F</div>
+                        <div class="font-semibold tabular-nums">{{ $order->totalLabel() }}</div>
                         @if ($order->status !== \App\Enums\OrderStatus::Annulee)
                             @if ($paymentFilterable ?? false)
                                 <button type="button" wire:click="$set('payment', '{{ $order->payment_status }}')" title="Afficher seulement les commandes « {{ $order->payment_status_label }} »" class="mt-0.5 rounded-full hover:ring-2 hover:ring-(--color-border)">

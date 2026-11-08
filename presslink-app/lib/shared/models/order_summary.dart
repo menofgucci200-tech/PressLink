@@ -21,6 +21,7 @@ class OrderSummary {
     required this.status,
     required this.totalFcfa,
     this.balanceDueFcfa,
+    this.detailsPending = false,
   });
 
   final String orderNumber;
@@ -32,5 +33,9 @@ class OrderSummary {
   /// Reste à payer ; `null` quand l'info n'est pas connue (pas d'affichage).
   final int? balanceDueFcfa;
 
-  String get formattedTotal => '${formatFcfa(totalFcfa)} FCFA';
+  /// Dépôt rapide : le prix n'est pas encore connu.
+  final bool detailsPending;
+
+  String get formattedTotal =>
+      detailsPending ? 'Prix à venir' : '${formatFcfa(totalFcfa)} FCFA';
 }

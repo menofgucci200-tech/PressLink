@@ -29,6 +29,8 @@ class Order extends Model
         'pressing_id',
         'customer_id',
         'status',
+        'details_pending',
+        'declared_pieces',
         'total_fcfa',
         'amount_paid_fcfa',
         'notes',
@@ -55,6 +57,8 @@ class Order extends Model
     {
         return [
             'status' => OrderStatus::class,
+            'details_pending' => 'boolean',
+            'declared_pieces' => 'integer',
             'cancellation_reason' => CancellationReason::class,
             'total_fcfa' => 'integer',
             'amount_paid_fcfa' => 'integer',
@@ -157,7 +161,7 @@ class Order extends Model
         }
 
         match (PaymentStatus::tryFrom((string) ($filters['payment'] ?? ''))) {
-            PaymentStatus::Paid => $query->whereColumn('amount_paid_fcfa', '>=', 'total_fcfa'),
+            PaymentStatus::Paid => $query->whereColumn('amount_paid_fcfa', '>=', 'total_fcfa')->where('details_pending', false),
             PaymentStatus::Partial => $query->where('amount_paid_fcfa', '>', 0)->whereColumn('amount_paid_fcfa', '<', 'total_fcfa'),
             PaymentStatus::Unpaid => $query->where('amount_paid_fcfa', 0)->where('total_fcfa', '>', 0),
             null => null,
@@ -165,6 +169,10 @@ class Order extends Model
 
         if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
+        }
+
+        if (! empty($filters['awaiting_details'])) {
+            $query->awaitingDetails();
         }
 
         if (! empty($filters['search'])) {
@@ -198,6 +206,16 @@ class Order extends Model
         if (! empty($filters['date_to'])) {
             $query->whereDate('dropped_off_at', '<=', $filters['date_to']);
         }
+    }
+
+    /**
+     * Dépôts rapides dont le détail et les prix restent à saisir.
+     *
+     * @param  Builder<Order>  $query
+     */
+    public function scopeAwaitingDetails(Builder $query): void
+    {
+        $query->where('details_pending', true)->where('status', '!=', OrderStatus::Annulee->value);
     }
 
     public function scopeWithReadySince(Builder $query): void
@@ -323,8 +341,31 @@ class Order extends Model
         return $this->cancellation_reason?->label();
     }
 
+    /** Dépôt rapide : le détail et les prix restent à saisir. */
+    public function awaitsDetails(): bool
+    {
+        return $this->details_pending && $this->status !== OrderStatus::Annulee;
+    }
+
+    /** Montant à afficher dans les listes : un dépôt à compléter n'a pas encore de prix. */
+    public function totalLabel(): string
+    {
+        return $this->awaitsDetails() ? 'À compléter' : number_format((int) $this->total_fcfa, 0, ',', ' ').' F';
+    }
+
+    /** Nombre de pièces : les lignes saisies ou, sur un dépôt à compléter, celles comptées au dépôt. */
+    public function pieceCount(): int
+    {
+        return $this->details_pending ? (int) $this->declared_pieces : (int) $this->items->sum('quantity');
+    }
+
     public function paymentStatus(): PaymentStatus
     {
+        // Pas encore de prix : surtout pas « Payée » à cause d'un total à 0.
+        if ($this->details_pending) {
+            return PaymentStatus::Unpaid;
+        }
+
         return PaymentStatus::for((int) $this->total_fcfa, (int) $this->amount_paid_fcfa);
     }
 

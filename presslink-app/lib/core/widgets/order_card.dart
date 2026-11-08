@@ -75,6 +75,7 @@ class OrderCard extends StatelessWidget {
                           ),
                         ),
                         if (order.balanceDueFcfa != null &&
+                            !order.detailsPending &&
                             order.status != OrderStatus.annulee)
                           Text(
                             order.balanceDueFcfa! > 0

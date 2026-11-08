@@ -40,6 +40,7 @@
                 <x-locked-export />
                 @endif
                 @if (auth()->user()->may(\App\Enums\Permission::OrdersCreate))
+                <a href="{{ route('orders.quick-deposit') }}" wire:navigate class="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">Dépôt rapide</a>
                 <a href="{{ route('orders.create') }}" wire:navigate class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     Nouvelle commande
@@ -176,7 +177,7 @@
                                     <span class="min-w-0 flex-1">
                                         <span class="flex items-baseline justify-between gap-3">
                                             <span class="text-sm font-semibold truncate">{{ $order->customer->fullName() }}</span>
-                                            <span class="flex-none text-sm font-bold tabular-nums">{{ number_format($order->total_fcfa, 0, ',', ' ') }} F</span>
+                                            <span class="flex-none text-sm font-bold tabular-nums">{{ $order->totalLabel() }}</span>
                                         </span>
                                         <span class="mt-1 flex items-center justify-between gap-3">
                                             <span class="text-xs text-(--color-text-muted) tabular-nums truncate">{{ $order->order_number }} · {{ $order->dropped_off_at->diffForHumans(['short' => true]) }}</span>
@@ -201,7 +202,7 @@
                                         @endif
                                     </div>
                                     <div class="text-right">
-                                        <div class="text-sm font-bold tabular-nums">{{ number_format($order->total_fcfa, 0, ',', ' ') }} F</div>
+                                        <div class="text-sm font-bold tabular-nums">{{ $order->totalLabel() }}</div>
                                         @if ($order->status !== \App\Enums\OrderStatus::Annulee)
                                             <x-payment-badge :order="$order" compact class="mt-0.5" />
                                         @endif

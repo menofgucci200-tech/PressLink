@@ -338,6 +338,14 @@ class _OrderDetailBody extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             child: Column(
               children: [
+                if (order.detailsPending)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    child: Text(
+                      '${order.itemsLabel}. Le pressing saisira le détail et le prix après le tri.',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ),
                 for (final item in order.items)
                   Container(
                     padding: const EdgeInsets.symmetric(vertical: 13),
@@ -379,7 +387,9 @@ class _OrderDetailBody extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        '${_formatFcfa(order.totalFcfa)} FCFA',
+                        order.detailsPending
+                            ? 'À venir'
+                            : '${_formatFcfa(order.totalFcfa)} FCFA',
                         style: theme.textTheme.headlineSmall?.copyWith(
                           fontSize: 18,
                         ),

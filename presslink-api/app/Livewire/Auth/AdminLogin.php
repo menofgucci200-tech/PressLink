@@ -12,6 +12,9 @@ use Livewire\Attributes\Layout;
  */
 class AdminLogin extends Login
 {
+    /** La console reste en session courte, sauf demande explicite. */
+    public bool $remember = false;
+
     protected function allowsUser(User $user): bool
     {
         return (bool) $user->is_super_admin;

@@ -23,7 +23,8 @@ class Login extends Component
 
     public string $password = '';
 
-    public bool $remember = false;
+    /** Coché d'office : le logiciel installé ne redemande pas la connexion à chaque ouverture. */
+    public bool $remember = true;
 
     public function authenticate(): void
     {

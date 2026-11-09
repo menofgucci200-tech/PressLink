@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Livewire\Auth\Login;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -49,6 +51,34 @@ class StaffLoginTest extends TestCase
             ->call('authenticate');
 
         $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_staff_stay_logged_in_by_default(): void
+    {
+        $user = User::factory()->create(['password' => Hash::make('secret123')]);
+
+        Livewire::test(Login::class)
+            ->assertSet('remember', true)
+            ->set('login', $user->email)
+            ->set('password', 'secret123')
+            ->call('authenticate');
+
+        $this->assertAuthenticatedAs($user);
+        $this->assertTrue(Cookie::hasQueued(Auth::guard()->getRecallerName()));
+    }
+
+    public function test_staff_can_untick_stay_logged_in_on_a_shared_computer(): void
+    {
+        $user = User::factory()->create(['password' => Hash::make('secret123')]);
+
+        Livewire::test(Login::class)
+            ->set('login', $user->email)
+            ->set('password', 'secret123')
+            ->set('remember', false)
+            ->call('authenticate');
+
+        $this->assertAuthenticatedAs($user);
+        $this->assertFalse(Cookie::hasQueued(Auth::guard()->getRecallerName()));
     }
 
     public function test_staff_can_log_in_with_phone(): void

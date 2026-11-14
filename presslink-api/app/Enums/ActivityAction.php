@@ -27,6 +27,12 @@ enum ActivityAction: string
     case PickupAccepted = 'pickup_accepted';
     case PickupRefused = 'pickup_refused';
     case PickupCancelled = 'pickup_cancelled';
+    case PickupCollected = 'pickup_collected';
+    case PickupMissed = 'pickup_missed';
+    case DeliveryRequested = 'delivery_requested';
+    case DeliveryRescheduled = 'delivery_rescheduled';
+    case DeliveryCancelled = 'delivery_cancelled';
+    case DeliveryMissed = 'delivery_missed';
 
     // Paiements
     case PaymentRecorded = 'payment_recorded';
@@ -74,6 +80,12 @@ enum ActivityAction: string
             self::PickupAccepted => 'Ramassage accepté',
             self::PickupRefused => 'Ramassage refusé',
             self::PickupCancelled => 'Ramassage annulé',
+            self::PickupCollected => 'Linge ramassé',
+            self::PickupMissed => 'Ramassage manqué',
+            self::DeliveryRequested => 'Livraison demandée',
+            self::DeliveryRescheduled => 'Livraison reprogrammée',
+            self::DeliveryCancelled => 'Livraison annulée',
+            self::DeliveryMissed => 'Livraison manquée',
             self::PaymentRecorded => 'Paiement encaissé',
             self::PaymentRefunded => 'Remboursement',
             self::PaymentRemoved => 'Paiement supprimé',
@@ -101,7 +113,9 @@ enum ActivityAction: string
             self::OrderCreated, self::OrderStatusChanged, self::OrderHandedOver, self::RecoveredUnpaid,
             self::OrderCancelled, self::IssueReported, self::IssueResolved, self::OrderPhotoRemoved,
             self::QuickDepositCreated, self::QuickDepositCompleted,
-            self::PickupRequested, self::PickupAccepted, self::PickupRefused, self::PickupCancelled => 'orders',
+            self::PickupRequested, self::PickupAccepted, self::PickupRefused, self::PickupCancelled,
+            self::PickupCollected, self::PickupMissed, self::DeliveryRequested, self::DeliveryRescheduled,
+            self::DeliveryCancelled, self::DeliveryMissed => 'orders',
             self::StorageFeeCharged, self::StorageFeeWaived => 'payments',
             self::PaymentRecorded, self::PaymentRefunded, self::PaymentRemoved => 'payments',
             self::CustomerAdded => 'customers',

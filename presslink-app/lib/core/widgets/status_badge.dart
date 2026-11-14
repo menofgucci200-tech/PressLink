@@ -7,9 +7,13 @@ import '../theme/app_spacing.dart';
 /// Le libellé est toujours affiché : la couleur seule ne porte jamais
 /// l'information (règle d'accessibilité, Design System §25).
 class StatusBadge extends StatelessWidget {
-  const StatusBadge({required this.status, super.key});
+  const StatusBadge({required this.status, this.label, super.key});
 
   final OrderStatus status;
+
+  /// Libellé à la place de celui du statut (« Livrée » pour une commande
+  /// récupérée par livraison).
+  final String? label;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +39,7 @@ class StatusBadge extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            status.label,
+            label ?? status.label,
             style: TextStyle(
               color: status.colorFor(context),
               fontSize: 12,

@@ -9,6 +9,7 @@ use App\Models\CashExpense;
 use App\Models\Customer;
 use App\Models\OfflineOperation;
 use App\Models\Order;
+use App\Models\OrderDelivery;
 use App\Models\OrderPhoto;
 use App\Models\PickupRequest;
 use App\Models\PickupRequestPhoto;
@@ -107,7 +108,8 @@ class ErasePressingData
 
         Storage::disk(OrderPhoto::DISK)->deleteDirectory(OrderPhoto::directoryFor($pressing->id));
 
-        // Les demandes de ramassage partent avec les commandes.
+        // Les livraisons et les demandes de ramassage partent avec les commandes.
+        OrderDelivery::where('pressing_id', $pressing->id)->delete();
         $pickupIds = PickupRequest::where('pressing_id', $pressing->id)->pluck('id');
         DB::table('notifications')
             ->where('notifiable_type', (new Customer)->getMorphClass())

@@ -61,3 +61,10 @@ final pendingIssuesProvider = FutureProvider.autoDispose
       ref.watch(orderDetailProvider(id));
       return ref.watch(orderRepositoryProvider).pendingIssues(id);
     });
+
+/// Livraison à domicile proposée pour une commande prête.
+final deliveryOfferProvider = FutureProvider.autoDispose
+    .family<DeliveryOffer, int>(
+      (ref, orderId) =>
+          ref.watch(orderRepositoryProvider).deliveryOffer(orderId),
+    );

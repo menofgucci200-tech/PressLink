@@ -6,11 +6,15 @@ class OrderCreatedNotification extends OrderNotification
 {
     public function title(): string
     {
-        return 'Commande enregistrée';
+        return $this->order->pickupRequest()->exists() ? 'Linge ramassé' : 'Commande enregistrée';
     }
 
     public function body(): string
     {
+        if ($this->order->pickupRequest()->exists()) {
+            return "{$this->order->pressing->name} a ramassé votre linge : {$this->order->declared_pieces} pièce(s), commande #{$this->order->order_number}. Le détail et le prix suivront.";
+        }
+
         if ($this->order->details_pending) {
             return "Votre dépôt #{$this->order->order_number} est enregistré chez {$this->order->pressing->name} : {$this->order->declared_pieces} pièce(s). Le détail et le prix suivront.";
         }

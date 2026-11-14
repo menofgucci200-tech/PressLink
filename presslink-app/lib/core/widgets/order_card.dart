@@ -54,7 +54,10 @@ class OrderCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
-                    StatusBadge(status: order.status),
+                    StatusBadge(
+                      status: order.status,
+                      label: order.delivered ? 'Livrée' : null,
+                    ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.sm + 2),

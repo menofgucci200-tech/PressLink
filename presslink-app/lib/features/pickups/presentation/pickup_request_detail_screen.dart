@@ -6,9 +6,11 @@ import '../../../core/network/api_error.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_feedback.dart';
+import '../../../core/widgets/app_page_route.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/presslink_top_bar.dart';
 import '../../../shared/models/order_summary.dart';
+import '../../orders/presentation/order_detail_screen.dart';
 import '../../pressings/presentation/pressing_contact.dart';
 import '../domain/pickup_repository.dart';
 import 'pickups_controller.dart';
@@ -172,6 +174,22 @@ class _PickupRequestDetailScreenState
           ),
         ],
         const SizedBox(height: AppSpacing.lg),
+        if (request.orderId != null) ...[
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: FilledButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                AppPageRoute(
+                  builder: (_) => OrderDetailScreen(orderId: request.orderId!),
+                ),
+              ),
+              icon: const Icon(Icons.receipt_long_outlined, size: 18),
+              label: const Text('Voir la commande'),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
         if (phone != null && phone.isNotEmpty)
           SizedBox(
             width: double.infinity,
@@ -251,6 +269,18 @@ class PickupStatusBanner extends StatelessWidget {
         context.textMuted,
         context.primaryTint,
         'Le pressing n\'a pas répondu à temps. Vous pouvez envoyer une nouvelle demande.',
+      ),
+      PickupStatus.pickedUp => (
+        Icons.check_circle_outline,
+        AppColors.successText,
+        context.successTint,
+        'Votre linge est au pressing. Il saisira le détail et le prix ; vous suivez la suite dans la commande.',
+      ),
+      PickupStatus.missed => (
+        Icons.person_off_outlined,
+        context.textMuted,
+        context.primaryTint,
+        'Le pressing est passé mais n\'a trouvé personne. Vous pouvez envoyer une nouvelle demande.',
       ),
     };
 

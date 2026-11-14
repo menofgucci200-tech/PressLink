@@ -27,13 +27,17 @@ use RuntimeException;
  * Avec `$settleBalanceWith`, le reste à payer est encaissé dans la même
  * transaction (remise au client avec paiement du solde) : le paiement et le
  * changement de statut réussissent ou échouent ensemble.
+ *
+ * Avec `$atDoor`, la remise se fait chez le client par le coursier (voir
+ * OrderDeliveries::deliver) : il faut l'accès « Tournée », et pas les heures
+ * d'ouverture.
  */
 class ChangeOrderStatusAction
 {
     /**
      * @throws RuntimeException transition interdite (voir OrderObserver)
      */
-    public function handle(Order $order, OrderStatus $target, ?PaymentMethod $settleBalanceWith = null, bool $waiveStorageFee = false, bool $offline = false, ?CarbonInterface $performedAt = null): Order
+    public function handle(Order $order, OrderStatus $target, ?PaymentMethod $settleBalanceWith = null, bool $waiveStorageFee = false, bool $offline = false, ?CarbonInterface $performedAt = null, bool $atDoor = false): Order
     {
         if ($target === OrderStatus::Annulee) {
             throw new RuntimeException('Pour annuler une commande, ouvrez sa fiche et indiquez le motif.');
@@ -42,7 +46,11 @@ class ChangeOrderStatusAction
         // Accès du rôle : remise et encaissement d'un côté, atelier de l'autre.
         $user = Auth::guard('web')->user();
         if ($user !== null && ! $user->is_super_admin) {
-            $needed = $target === OrderStatus::Recuperee ? Permission::PaymentsRecord : Permission::OrdersWorkshop;
+            $needed = match (true) {
+                $target === OrderStatus::Recuperee && $atDoor => Permission::DeliveriesRun,
+                $target === OrderStatus::Recuperee => Permission::PaymentsRecord,
+                default => Permission::OrdersWorkshop,
+            };
             if (! $user->may($needed, $order->pressing)) {
                 throw new RuntimeException($target === OrderStatus::Recuperee
                     ? 'Votre rôle ne permet pas de remettre une commande au client.'
@@ -53,7 +61,7 @@ class ChangeOrderStatusAction
         // Remise au client : seulement pendant les heures d'ouverture. Le
         // travail d'atelier (en traitement, prête, en attente) reste possible.
         // (Comptoir hors connexion : la remise a déjà eu lieu.)
-        if ($target === OrderStatus::Recuperee && ! $offline) {
+        if ($target === OrderStatus::Recuperee && ! $offline && ! $atDoor) {
             $order->pressing->ensureAcceptsCustomers();
         }
 

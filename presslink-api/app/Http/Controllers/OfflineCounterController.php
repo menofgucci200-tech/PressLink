@@ -193,7 +193,7 @@ class OfflineCounterController extends Controller
 
         return Order::query()->whereIn('id', $lastIds)->with('items')->get(['id', 'customer_id'])
             ->mapWithKeys(fn (Order $order) => [$order->customer_id => $order->items
-                ->reject(fn ($item) => str_starts_with($item->name, Order::STORAGE_FEE_LINE))
+                ->reject->isFee()
                 ->map(fn ($item) => [$item->service_id, $item->service_variant_id, $item->prestation_id, $item->prestation_name, $item->name, $item->color, (int) $item->unit_price_fcfa, (int) $item->quantity])
                 ->values()->all()])
             ->all();

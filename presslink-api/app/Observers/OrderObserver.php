@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Actions\Deliveries\OrderDeliveries;
 use App\Enums\ActivityAction;
 use App\Enums\OrderStatus;
 use App\Models\ActivityLog;
@@ -87,8 +88,14 @@ class OrderObserver
                 "Commande {$order->order_number} annulée".($cancellationNote ? " — {$cancellationNote}" : '').($order->amount_paid_fcfa > 0 ? ' ('.number_format($order->amount_paid_fcfa, 0, ',', ' ').' F payés et conservés)' : ''),
                 $order, ['amount_paid_fcfa' => $order->amount_paid_fcfa, 'total_fcfa' => $order->total_fcfa, 'reason' => $order->cancellation_reason?->value]);
         } elseif ($order->status === OrderStatus::Recuperee) {
+            $delivered = $order->wasDelivered();
             ActivityLog::record($order->pressing_id, ActivityAction::OrderHandedOver,
-                "Commande {$order->order_number} remise à {$order->customer->fullName()}", $order);
+                "Commande {$order->order_number} ".($delivered ? 'livrée' : 'remise')." à {$order->customer->fullName()}", $order);
+
+            // Remise au comptoir : une livraison encore prévue n'a plus lieu d'être.
+            if (! $delivered) {
+                app(OrderDeliveries::class)->cancelForCounterHandover($order);
+            }
         } else {
             $from = $this->toStatus($order->getOriginal('status'));
             ActivityLog::record($order->pressing_id, ActivityAction::OrderStatusChanged,

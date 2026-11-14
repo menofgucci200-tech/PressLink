@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\CustomerAuthController;
 use App\Http\Controllers\Api\V1\CustomerProfileController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\OrderController;
+use App\Http\Controllers\Api\V1\OrderDeliveryController;
 use App\Http\Controllers\Api\V1\OrderIssueController;
 use App\Http\Controllers\Api\V1\PickupRequestController;
 use App\Http\Controllers\Api\V1\PressingController;
@@ -57,6 +58,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/orders/{order}', [OrderController::class, 'show']);
         Route::get('/orders/{order}/issues', [OrderIssueController::class, 'index']);
         Route::post('/orders/{order}/issues', [OrderIssueController::class, 'store']);
+        Route::get('/orders/{order}/delivery', [OrderDeliveryController::class, 'offer']);
+        Route::post('/orders/{order}/delivery', [OrderDeliveryController::class, 'store'])->middleware('throttle:10,1');
+        Route::post('/orders/{order}/delivery/cancel', [OrderDeliveryController::class, 'cancel']);
 
         Route::get('/pressings/mine', [PressingController::class, 'mine']);
         Route::post('/pressings/join', [PressingController::class, 'join']);

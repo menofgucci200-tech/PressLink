@@ -208,7 +208,7 @@ class _NewPickupRequestScreenState
       children: [
         // ===== Pressing =====
         if (eligible.length > 1) ...[
-          const _SectionTitle('PRESSING'),
+          const FormSectionTitle('PRESSING'),
           Wrap(
             spacing: AppSpacing.sm,
             runSpacing: AppSpacing.sm,
@@ -233,7 +233,7 @@ class _NewPickupRequestScreenState
           ),
 
         // ===== Adresse =====
-        const _SectionTitle('OÙ PASSER ?'),
+        const FormSectionTitle('OÙ PASSER ?'),
         addressesAsync.when(
           loading: () => const LinearProgressIndicator(),
           error: (e, _) => TextButton.icon(
@@ -261,7 +261,7 @@ class _NewPickupRequestScreenState
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 for (final address in addresses) ...[
-                  _AddressOption(
+                  AddressOption(
                     address: address,
                     served: services.communes.contains(address.commune),
                     selected: address.id == _addressId,
@@ -291,7 +291,7 @@ class _NewPickupRequestScreenState
         ),
 
         // ===== Jour et créneau =====
-        const _SectionTitle('QUAND ?'),
+        const FormSectionTitle('QUAND ?'),
         daysAsync.when(
           loading: () => const LinearProgressIndicator(),
           error: (e, _) => TextButton.icon(
@@ -354,7 +354,7 @@ class _NewPickupRequestScreenState
         ),
 
         // ===== Linge =====
-        const _SectionTitle('VOTRE LINGE (FACULTATIF)'),
+        const FormSectionTitle('VOTRE LINGE (FACULTATIF)'),
         Row(
           children: [
             const Expanded(
@@ -510,8 +510,9 @@ class _NewPickupRequestScreenState
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text);
+/// Titre de section des formulaires de ramassage et de livraison.
+class FormSectionTitle extends StatelessWidget {
+  const FormSectionTitle(this.text, {super.key});
 
   final String text;
 
@@ -532,8 +533,10 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-class _AddressOption extends StatelessWidget {
-  const _AddressOption({
+/// Adresse à choisir, grisée quand le pressing ne dessert pas sa commune.
+class AddressOption extends StatelessWidget {
+  const AddressOption({
+    super.key,
     required this.address,
     required this.served,
     required this.selected,

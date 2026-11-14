@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CancellationReason;
+use App\Enums\OrderDeliveryStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -131,6 +133,38 @@ class Order extends Model
     public function issues(): HasMany
     {
         return $this->hasMany(OrderIssue::class)->latest();
+    }
+
+    /**
+     * Demande de ramassage d'où vient la commande (linge ramassé à domicile).
+     *
+     * @return HasOne<PickupRequest, $this>
+     */
+    public function pickupRequest(): HasOne
+    {
+        return $this->hasOne(PickupRequest::class);
+    }
+
+    /** @return HasMany<OrderDelivery, $this> */
+    public function deliveries(): HasMany
+    {
+        return $this->hasMany(OrderDelivery::class)->latest('id');
+    }
+
+    /**
+     * Livraison prévue, pas encore faite.
+     *
+     * @return HasOne<OrderDelivery, $this>
+     */
+    public function scheduledDelivery(): HasOne
+    {
+        return $this->hasOne(OrderDelivery::class)->where('status', OrderDeliveryStatus::Scheduled->value)->latestOfMany();
+    }
+
+    /** Remise au client par livraison à domicile. */
+    public function wasDelivered(): bool
+    {
+        return $this->deliveries()->where('status', OrderDeliveryStatus::Delivered->value)->exists();
     }
 
     /** Prête depuis ce nombre de jours : à relancer (orange). */
@@ -267,6 +301,12 @@ class Order extends Model
     /** Nom de la ligne ajoutée à la remise quand un droit de magasinage est dû. */
     public const STORAGE_FEE_LINE = 'Droit de magasinage';
 
+    /** Ligne des frais de ramassage, ajoutée quand le détail d'un linge ramassé est saisi. */
+    public const PICKUP_FEE_LINE = 'Ramassage à domicile';
+
+    /** Ligne des frais de livraison, ajoutée à la livraison. */
+    public const DELIVERY_FEE_LINE = 'Livraison à domicile';
+
     /** Date à laquelle la commande a été prête (dernier passage « Prête »). */
     public function readyAt(): ?Carbon
     {
@@ -305,7 +345,7 @@ class Order extends Model
 
         // Quantités par pièce du catalogue (0 = pièce hors catalogue), hors frais déjà facturés.
         $piecesById = [];
-        foreach ($this->items()->where('name', 'not like', self::STORAGE_FEE_LINE.'%')->get(['service_id', 'quantity']) as $item) {
+        foreach ($this->items()->get(['service_id', 'name', 'quantity'])->reject->isFee() as $item) {
             $piecesById[(int) $item->service_id] = ($piecesById[(int) $item->service_id] ?? 0) + (int) $item->quantity;
         }
 
@@ -356,7 +396,7 @@ class Order extends Model
     /** Nombre de pièces : les lignes saisies ou, sur un dépôt à compléter, celles comptées au dépôt. */
     public function pieceCount(): int
     {
-        return $this->details_pending ? (int) $this->declared_pieces : (int) $this->items->sum('quantity');
+        return $this->details_pending ? (int) $this->declared_pieces : (int) $this->items->reject->isFee()->sum('quantity');
     }
 
     public function paymentStatus(): PaymentStatus

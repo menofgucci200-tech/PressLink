@@ -19,6 +19,7 @@ enum Permission: string
     case StorageFeeWaive = 'orders.waive_storage_fee';
     case IssuesManage = 'issues.manage';
     case OpenExceptionally = 'pressing.open_exceptionally';
+    case DeliveriesRun = 'deliveries.run';
 
     // Caisse
     case CashExpenses = 'cash.expenses';
@@ -48,6 +49,7 @@ enum Permission: string
             self::StorageFeeWaive => 'Offrir le droit de magasinage à la remise',
             self::IssuesManage => 'Traiter les signalements des clients',
             self::OpenExceptionally => 'Ouvrir exceptionnellement hors horaires',
+            self::DeliveriesRun => 'Tournée : ramasser et livrer chez les clients, encaisser à la porte',
             self::CashExpenses => 'Enregistrer les dépenses de caisse',
             self::CashClose => 'Clôturer la caisse du jour (espèces attendues du jour)',
             self::CashHistory => 'Historique de la caisse, des clôtures et des écarts',
@@ -66,7 +68,8 @@ enum Permission: string
     {
         return match ($this) {
             self::OrdersCreate, self::PaymentsRecord, self::OrdersWorkshop, self::OrdersCancel,
-            self::OrdersCancelInProgress, self::StorageFeeWaive, self::IssuesManage, self::OpenExceptionally => 'Accueil et commandes',
+            self::OrdersCancelInProgress, self::StorageFeeWaive, self::IssuesManage, self::OpenExceptionally,
+            self::DeliveriesRun => 'Accueil et commandes',
             self::CashExpenses, self::CashClose, self::CashHistory => 'Caisse',
             self::RevenueView, self::ReportsExport => 'Revenus et pilotage',
             default => 'Gestion',

@@ -185,7 +185,7 @@ class Index extends Component
     #[Layout('layouts.dashboard', ['active' => 'pickups', 'title' => 'Ramassages'])]
     public function render()
     {
-        $base = fn () => $this->pressing->pickupRequests()->with(['customer', 'photos', 'respondedBy']);
+        $base = fn () => $this->pressing->pickupRequests()->with(['customer', 'photos', 'respondedBy', 'order']);
 
         $requests = match ($this->tab) {
             'accepted' => $base()->where('status', PickupRequestStatus::Accepted->value)->orderBy('pickup_date')->orderBy('slot_from'),

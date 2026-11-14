@@ -259,7 +259,7 @@ class Show extends Component
     #[Layout('layouts.dashboard', ['active' => 'orders', 'title' => 'Commande'])]
     public function render()
     {
-        $this->order->load(['customer', 'items', 'statusHistory.changedBy', 'issues', 'payments.recorder', 'photos']);
+        $this->order->load(['customer', 'items', 'statusHistory.changedBy', 'issues', 'payments.recorder', 'photos', 'pickupRequest', 'deliveries']);
 
         return view('livewire.orders.show', [
             'nextActions' => $this->order->status->allowedTransitions(),

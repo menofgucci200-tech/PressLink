@@ -48,6 +48,22 @@
         <div class="mb-5 p-3 rounded-lg bg-(--color-error-tint) text-(--color-error) text-sm">{{ $errorMessage }}</div>
     @endif
 
+    @php
+        $homeDelivery = $order->deliveries->first(fn ($delivery) => in_array($delivery->status->value, ['scheduled', 'delivered'], true));
+    @endphp
+    @if ($order->pickupRequest || $homeDelivery)
+        <div class="mb-5 flex flex-col gap-1 p-3.5 rounded-xl bg-(--color-primary-tint) text-sm" data-testid="home-service">
+            @if ($order->pickupRequest)
+                <div><span class="font-semibold">Ramassée à domicile</span>{{ $order->pickupRequest->picked_up_at ? ' le '.$order->pickupRequest->picked_up_at->locale('fr')->isoFormat('D MMMM [à] HH:mm') : '' }} · {{ $order->pickupRequest->place() }}</div>
+            @endif
+            @if ($homeDelivery?->isScheduled())
+                <div><span class="font-semibold">Livraison prévue {{ $homeDelivery->scheduleLabel() }}</span> · {{ $homeDelivery->place() }}, {{ $homeDelivery->landmark }} · <a href="{{ route('round.index', ['jour' => $homeDelivery->delivery_date->toDateString()]) }}" wire:navigate class="font-medium text-(--color-primary) hover:underline">voir la tournée</a></div>
+            @elseif ($homeDelivery)
+                <div><span class="font-semibold">Livrée</span> le {{ $homeDelivery->delivered_at?->locale('fr')->isoFormat('D MMMM [à] HH:mm') }} · {{ $homeDelivery->place() }}</div>
+            @endif
+        </div>
+    @endif
+
     @include('livewire.orders._next-step')
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/link.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/widgets/app_page_route.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -19,6 +20,7 @@ import '../../pressings/presentation/pressing_detail_screen.dart';
 import '../../pressings/presentation/pressings_controller.dart';
 import '../../../shared/models/order_summary.dart';
 import '../domain/order_repository.dart';
+import 'new_delivery_screen.dart';
 import 'orders_controller.dart';
 import 'report_issue_screen.dart';
 
@@ -166,7 +168,8 @@ class _OrderDetailBody extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.sm + 6),
                 Text(
-                  order.status.label.toUpperCase(),
+                  (order.delivered ? 'Livrée' : order.status.label)
+                      .toUpperCase(),
                   style: TextStyle(
                     fontSize: 19,
                     fontWeight: FontWeight.w700,
@@ -184,6 +187,11 @@ class _OrderDetailBody extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
+
+          if (AppConfig.deliveryEnabled && _DeliverySection.shows(order)) ...[
+            _DeliverySection(order: order),
+            const SizedBox(height: AppSpacing.lg),
+          ],
 
           if (order.issues.isNotEmpty || pendingIssues.isNotEmpty) ...[
             Text(
@@ -319,6 +327,10 @@ class _OrderDetailBody extends ConsumerWidget {
               isDone: currentIndex >= 0 && i <= currentIndex,
               isLast: i == canonicalSteps.length - 1,
               time: _timeFor(canonicalSteps[i]),
+              label:
+                  order.delivered && canonicalSteps[i] == OrderStatus.recuperee
+                  ? 'Livrée'
+                  : null,
             ),
 
           const SizedBox(height: AppSpacing.lg),
@@ -554,16 +566,26 @@ class _OrderDetailBody extends ConsumerWidget {
   };
 
   String _heroMessage(OrderModel order) => switch (order.status) {
-    OrderStatus.prete => 'Votre commande est prête à être récupérée.',
+    OrderStatus.prete =>
+      order.delivery?.status == DeliveryStatus.scheduled
+          ? 'Votre commande est prête : elle vous sera livrée ${order.delivery!.scheduleLabel}.'
+          : order.canRequestDelivery && AppConfig.deliveryEnabled
+          ? 'Votre commande est prête : passez la chercher, ou faites-vous la livrer.'
+          : 'Votre commande est prête à être récupérée.',
     OrderStatus.recuperee =>
-      'Cette commande a été récupérée. Merci de votre confiance !',
+      order.delivered
+          ? 'Cette commande vous a été livrée. Merci de votre confiance !'
+          : 'Cette commande a été récupérée. Merci de votre confiance !',
     OrderStatus.traitement => 'Vos vêtements sont en cours de traitement.',
     OrderStatus.attente => 'Votre commande est en attente.',
     OrderStatus.annulee =>
       order.cancellationReason != null
           ? 'Cette commande a été annulée. Motif : ${order.cancellationReason}.'
           : 'Cette commande a été annulée.',
-    OrderStatus.recue => 'Votre commande a bien été enregistrée.',
+    OrderStatus.recue =>
+      order.pickedUp
+          ? 'Votre linge a été ramassé : le pressing va le trier et saisir le prix.'
+          : 'Votre commande a bien été enregistrée.',
   };
 
   String? _timeFor(OrderStatus status) {
@@ -756,9 +778,13 @@ class _TimelineRow extends StatelessWidget {
     required this.isDone,
     required this.isLast,
     this.time,
+    this.label,
   });
 
   final OrderStatus status;
+
+  /// Libellé à la place de celui du statut (« Livrée »).
+  final String? label;
   final bool isDone;
   final bool isLast;
   final String? time;
@@ -834,7 +860,7 @@ class _TimelineRow extends StatelessWidget {
                               : context.textMuted,
                         ) ??
                         const TextStyle(),
-                    child: Text(status.label),
+                    child: Text(label ?? status.label),
                   ),
                   if (time != null) ...[
                     const SizedBox(height: 2),
@@ -1110,4 +1136,154 @@ class _DateCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Livraison à domicile : la proposer quand la commande est prête, puis
+/// suivre la livraison prévue (créneau, adresse, montant à payer au livreur).
+class _DeliverySection extends ConsumerStatefulWidget {
+  const _DeliverySection({required this.order});
+
+  final OrderModel order;
+
+  static bool shows(OrderModel order) =>
+      order.canRequestDelivery ||
+      order.delivery?.status == DeliveryStatus.scheduled;
+
+  @override
+  ConsumerState<_DeliverySection> createState() => _DeliverySectionState();
+}
+
+class _DeliverySectionState extends ConsumerState<_DeliverySection> {
+  bool _cancelling = false;
+
+  Future<void> _cancel(OrderDeliveryModel delivery) async {
+    final confirmed = await showAppConfirm(
+      context,
+      title: 'Annuler la livraison ?',
+      message:
+          'Vous passerez chercher la commande chez ${widget.order.pressingName}.',
+      confirmLabel: 'Annuler la livraison',
+      cancelLabel: 'Garder',
+      tone: AppConfirmTone.danger,
+      icon: Icons.event_busy_outlined,
+    );
+    if (!confirmed || !mounted) return;
+
+    setState(() => _cancelling = true);
+    try {
+      await ref.read(orderRepositoryProvider).cancelDelivery(widget.order.id);
+      if (!mounted) return;
+      ref.invalidate(orderDetailProvider(widget.order.id));
+      showAppToast(context, 'Livraison annulée.');
+    } catch (error) {
+      if (!mounted) return;
+      showAppToast(context, apiErrorMessage(error), type: AppToastType.error);
+    } finally {
+      if (mounted) setState(() => _cancelling = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final order = widget.order;
+    final delivery = order.delivery;
+    final scheduled = delivery?.status == DeliveryStatus.scheduled
+        ? delivery
+        : null;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color,
+        border: Border.all(color: theme.dividerTheme.color!),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.local_shipping_outlined, size: 20),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                scheduled != null
+                    ? (scheduled.rescheduled
+                          ? 'Livraison reprogrammée'
+                          : 'Livraison prévue')
+                    : 'Me faire livrer',
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          if (scheduled != null) ...[
+            Text(
+              _capitalize(scheduled.scheduleLabel),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '${scheduled.addressLabel} · ${scheduled.place}\n${scheduled.landmark}',
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              scheduled.amountToCollectFcfa > 0
+                  ? 'À payer au livreur : ${formatFcfa(scheduled.amountToCollectFcfa)} F'
+                        '${scheduled.feeFcfa > 0 ? ', frais de livraison compris' : ''}.'
+                  : 'Rien à payer au livreur : la commande est réglée.',
+              style: const TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            if (scheduled.canCancel)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: _cancelling ? null : () => _cancel(scheduled),
+                  icon: const Icon(Icons.close, size: 18),
+                  label: const Text('Annuler la livraison'),
+                  style: TextButton.styleFrom(foregroundColor: AppColors.error),
+                ),
+              ),
+          ] else ...[
+            if (delivery?.status == DeliveryStatus.missed) ...[
+              Text(
+                'Le livreur est passé mais n\'a trouvé personne. Choisissez un autre créneau, ou passez la chercher.',
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+            ],
+            Text(
+              (order.deliveryOfferFeeFcfa ?? 0) > 0
+                  ? 'Livraison à domicile : ${formatFcfa(order.deliveryOfferFeeFcfa!)} F, à payer au livreur avec le reste de la commande.'
+                  : 'Livraison à domicile gratuite. Vous payez le reste de la commande au livreur.',
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: AppSpacing.sm + 4),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: FilledButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  AppPageRoute(builder: (_) => NewDeliveryScreen(order: order)),
+                ),
+                icon: const Icon(Icons.local_shipping_outlined, size: 18),
+                label: const Text('Choisir le jour et l\'adresse'),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  static String _capitalize(String text) =>
+      text.isEmpty ? text : text[0].toUpperCase() + text.substring(1);
 }

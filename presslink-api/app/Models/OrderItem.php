@@ -35,6 +35,13 @@ class OrderItem extends Model
         static::deleted(fn (self $item) => $item->order->recalculateTotal());
     }
 
+    /** Ligne de frais (magasinage, ramassage, livraison) : pas une pièce du client. */
+    public function isFee(): bool
+    {
+        return $this->service_id === null && (str_starts_with((string) $this->name, Order::STORAGE_FEE_LINE)
+            || in_array($this->name, [Order::PICKUP_FEE_LINE, Order::DELIVERY_FEE_LINE], true));
+    }
+
     /** @return BelongsTo<Order, $this> */
     public function order(): BelongsTo
     {

@@ -46,6 +46,7 @@
                 $navItem('issues', 'issues.index', 'Signalements', 'M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z|M12 9v4|M12 17h.01'),
                 // Ramassages : une fois le service lancé, pour les pressings qui l'ont dans leur formule.
                 $showsPickups ? $navItem('pickups', 'pickups.index', 'Ramassages', 'M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2|M15 18H9|M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14|M15 18a2 2 0 1 0 4 0a2 2 0 1 0-4 0|M5 18a2 2 0 1 0 4 0a2 2 0 1 0-4 0') : null,
+                $showsPickups ? $navItem('round', 'round.index', 'Tournée', 'M3 19a3 3 0 1 0 6 0a3 3 0 1 0-6 0|M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15|M15 5a3 3 0 1 0 6 0a3 3 0 1 0-6 0') : null,
                 $canCash ? $navItem('cash', 'cash.index', 'Caisse', 'M2 7h20v12H2Z|M16 13h.01|M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2')
                     : ($lockedFor(\App\Enums\Feature::Cash) ? $navItem('cash', 'cash.index', 'Caisse', 'M2 7h20v12H2Z|M16 13h.01|M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2', $optionUrl(\App\Enums\Feature::Cash)) : null),
             ];
@@ -73,6 +74,12 @@
 
             $pendingPickupsCount = $showsPickups
                 ? $pressing->pickupRequests()->where('status', \App\Enums\PickupRequestStatus::Pending->value)->count()
+                : 0;
+
+            // Tournée : passages prévus aujourd'hui (et ceux en retard).
+            $roundStopsCount = $showsPickups
+                ? $pressing->pickupRequests()->where('status', \App\Enums\PickupRequestStatus::Accepted->value)->whereDate('pickup_date', '<=', today())->count()
+                    + $pressing->orderDeliveries()->where('status', \App\Enums\OrderDeliveryStatus::Scheduled->value)->whereDate('delivery_date', '<=', today())->count()
                 : 0;
 
             $subscription = $pressing?->subscription;
@@ -157,6 +164,11 @@
                             @if ($item['key'] === 'pickups' && $pendingPickupsCount > 0)
                                 <span class="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-(--color-warning) text-white text-[11px] font-semibold" data-testid="pickups-badge">
                                     {{ $pendingPickupsCount }}
+                                </span>
+                            @endif
+                            @if ($item['key'] === 'round' && $roundStopsCount > 0)
+                                <span class="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-(--color-primary) text-white text-[11px] font-semibold" data-testid="round-badge">
+                                    {{ $roundStopsCount }}
                                 </span>
                             @endif
                             @if ($item['key'] === 'issues' && $openIssuesCount > 0)

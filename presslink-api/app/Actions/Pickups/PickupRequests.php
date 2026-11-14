@@ -2,18 +2,22 @@
 
 namespace App\Actions\Pickups;
 
+use App\Actions\Orders\CreateOrderAction;
 use App\Enums\ActivityAction;
+use App\Enums\Permission;
 use App\Enums\PickupRequestStatus;
 use App\Mail\PickupRequestAlert;
 use App\Models\ActivityLog;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
+use App\Models\Order;
 use App\Models\PickupRequest;
 use App\Models\PickupRequestPhoto;
 use App\Models\Pressing;
 use App\Models\User;
 use App\Notifications\PickupAcceptedNotification;
 use App\Notifications\PickupExpiredNotification;
+use App\Notifications\PickupMissedNotification;
 use App\Notifications\PickupRefusedNotification;
 use App\Support\ImageOptimizer;
 use Illuminate\Http\UploadedFile;
@@ -30,11 +34,15 @@ use function Illuminate\Support\defer;
 /**
  * Demandes de ramassage, mode « Mon pressing » : le client demande à l'un
  * de ses pressings de passer chercher son linge ; le pressing accepte (en
- * gardant ou en changeant le créneau) ou refuse. Les règles métier sont
- * ici ; un refus de règle lève une RuntimeException au message affichable.
+ * gardant ou en changeant le créneau) ou refuse. Sur place, le coursier
+ * marque le linge ramassé (la demande devient un dépôt rapide) ou le client
+ * absent. Les règles métier sont ici ; un refus de règle lève une
+ * RuntimeException au message affichable.
  */
 class PickupRequests
 {
+    public function __construct(private CreateOrderAction $createOrder) {}
+
     /**
      * @param  array{pickup_date: string, slot_from: string, slot_to: string, items_estimate?: ?int, note?: ?string}  $data
      */
@@ -197,6 +205,71 @@ class PickupRequests
             "Ramassage refusé pour {$locked->customer->fullName()} : {$locked->refusal_reason}", null, ['pickup_request_id' => $locked->id]);
 
         $locked->customer->notify(new PickupRefusedNotification($locked));
+    }
+
+    /**
+     * Linge ramassé chez le client : le dépôt rapide est créé avec les pièces
+     * comptées sur place ; le détail et les prix se saisissent à l'atelier.
+     */
+    public function markPickedUp(PickupRequest $request, User $user, int $countedPieces, ?string $note = null): Order
+    {
+        $this->ensureRunsRounds($request, $user);
+
+        return DB::transaction(function () use ($request, $user, $countedPieces, $note) {
+            $locked = $this->lockOpen($request);
+            if ($locked->status !== PickupRequestStatus::Accepted) {
+                throw new RuntimeException('Acceptez d\'abord la demande avant de ramasser le linge.');
+            }
+
+            $notes = collect([filled($note) ? trim($note) : null, $locked->note ? "Message du client : {$locked->note}" : null])
+                ->filter()->implode("\n") ?: null;
+            $order = $this->createOrder->pickedUpDeposit($locked, $countedPieces, $notes !== null ? mb_substr($notes, 0, 1000) : null);
+
+            $locked->update([
+                'status' => PickupRequestStatus::PickedUp,
+                'order_id' => $order->id,
+                'picked_up_at' => now(),
+                'picked_up_by' => $user->id,
+                'closed_at' => now(),
+            ]);
+
+            ActivityLog::record($locked->pressing_id, ActivityAction::PickupCollected,
+                "Linge de {$locked->customer->fullName()} ramassé ({$locked->place()}) : dépôt {$order->order_number}", $order, ['pickup_request_id' => $locked->id]);
+
+            $request->refresh();
+
+            return $order;
+        });
+    }
+
+    /** Le coursier est passé, le client n'était pas là : la demande se termine, le client est prévenu. */
+    public function markMissed(PickupRequest $request, User $user): void
+    {
+        $this->ensureRunsRounds($request, $user);
+
+        DB::transaction(function () use ($request, $user) {
+            $locked = $this->lockOpen($request);
+            if ($locked->status !== PickupRequestStatus::Accepted) {
+                throw new RuntimeException('Ce ramassage n\'était pas prévu.');
+            }
+
+            $locked->update(['picked_up_by' => $user->id]);
+            $this->close($locked, PickupRequestStatus::Missed);
+
+            ActivityLog::record($locked->pressing_id, ActivityAction::PickupMissed,
+                "Ramassage manqué chez {$locked->customer->fullName()} ({$locked->place()}) : client absent", null, ['pickup_request_id' => $locked->id]);
+
+            $locked->customer->notify(new PickupMissedNotification($locked));
+        });
+
+        $request->refresh();
+    }
+
+    private function ensureRunsRounds(PickupRequest $request, User $user): void
+    {
+        if (! $user->is_super_admin && ! $user->may(Permission::DeliveriesRun, $request->pressing)) {
+            throw new RuntimeException('Votre rôle ne permet pas de faire la tournée.');
+        }
     }
 
     /** Demandes restées sans réponse après la fin de leur créneau. */

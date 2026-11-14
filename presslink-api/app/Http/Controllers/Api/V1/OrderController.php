@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Actions\Deliveries\OrderDeliveries;
+use App\Enums\OrderDeliveryStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Support\ReceiptLinks;
@@ -14,6 +16,8 @@ use Illuminate\Http\Request;
  */
 class OrderController extends Controller
 {
+    public function __construct(private OrderDeliveries $deliveries) {}
+
     /**
      * Pagination conservée (anciennes versions de l'appli : 20 par page),
      * mais l'appli peut demander jusqu'à 100 commandes par page et lit
@@ -26,6 +30,7 @@ class OrderController extends Controller
 
         $orders = $request->user()->orders()
             ->with(['pressing', 'items'])
+            ->withExists(['deliveries as delivered' => fn ($query) => $query->where('status', OrderDeliveryStatus::Delivered->value)])
             ->latest()
             ->orderByDesc('id')
             ->paginate($perPage);
@@ -43,7 +48,16 @@ class OrderController extends Controller
         $storageFee = $order->storageFee();
 
         // Photos des articles prises au dépôt : liens signés, valables 24 h.
-        return response()->json([...$order->toArray(), 'photos' => $order->photos->map->toClientArray()->all(), 'storage_fee' => $storageFee === null ? null : [
+        // Ramassage à domicile et livraison (la dernière, sauf une annulation ancienne).
+        $delivery = $order->deliveries()->first();
+        $homeService = [
+            'picked_up' => $order->pickupRequest()->exists(),
+            'delivered' => $delivery?->status === OrderDeliveryStatus::Delivered,
+            'delivery' => $delivery?->toClientArray(),
+            'delivery_offer' => ($offer = $this->deliveries->offer($order))['available'] ? ['fee_fcfa' => $offer['fee_fcfa']] : null,
+        ];
+
+        return response()->json([...$order->toArray(), ...$homeService, 'photos' => $order->photos->map->toClientArray()->all(), 'storage_fee' => $storageFee === null ? null : [
             'days' => $storageFee['days'],
             'amount' => $storageFee['amount'],
             'since' => $storageFee['since']->toDateString(),

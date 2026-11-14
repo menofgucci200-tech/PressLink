@@ -14,9 +14,13 @@ class OrderReadyNotification extends OrderNotification
         $body = "La commande #{$this->order->order_number} est prête à être récupérée au {$this->order->pressing->name}.";
         $balance = $this->order->balance_due_fcfa;
 
-        return $balance > 0
+        $body = $balance > 0
             ? $body.' Reste à payer au retrait : '.number_format($balance, 0, ',', ' ').' F.'
             : $body.' Elle est déjà payée.';
+
+        return ($this->order->pressing->deliveryServices()['delivery'] ?? false)
+            ? $body.' Vous pouvez aussi vous la faire livrer depuis l\'appli.'
+            : $body;
     }
 
     protected function sendsEmail(): bool

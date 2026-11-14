@@ -197,7 +197,7 @@ class Create extends Component
         $variants = ServiceVariant::query()->whereIn('service_id', $pieces->keys())->where('is_active', true)->get()->keyBy('id');
         $prestations = $pressing->prestations()->where('is_active', true)->get()->keyBy('id');
 
-        foreach ($order->items as $item) {
+        foreach ($order->items->reject->isFee() as $item) {
             $piece = $item->service_id !== null ? $pieces->get($item->service_id) : null;
             $variant = $item->service_variant_id !== null ? $variants->get($item->service_variant_id) : null;
             $prestation = $item->prestation_id !== null ? $prestations->get($item->prestation_id) : null;

@@ -32,7 +32,7 @@ class Role extends Model
     {
         $employee = [
             Permission::OrdersCreate, Permission::PaymentsRecord, Permission::OrdersWorkshop,
-            Permission::OrdersCancel, Permission::IssuesManage,
+            Permission::OrdersCancel, Permission::IssuesManage, Permission::DeliveriesRun,
         ];
         $manager = [
             ...$employee,

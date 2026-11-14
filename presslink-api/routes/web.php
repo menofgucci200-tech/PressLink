@@ -54,6 +54,7 @@ use App\Livewire\Orders\Show as OrdersShow;
 use App\Livewire\Pickups\Index as PickupsIndex;
 use App\Livewire\Pressing\Delivery as PressingDelivery;
 use App\Livewire\Pressing\Settings as PressingSettings;
+use App\Livewire\Round\Index as RoundIndex;
 use App\Livewire\Services\Index as ServicesIndex;
 use App\Livewire\Subscription\Checkout as SubscriptionCheckout;
 use App\Livewire\Subscription\Plans as SubscriptionPlans;
@@ -199,6 +200,7 @@ Route::middleware(['auth', HandleSandboxPressing::class])->group(function () {
 
             Route::get('/signalements', IssuesIndex::class)->name('issues.index');
             Route::get('/ramassages', PickupsIndex::class)->name('pickups.index');
+            Route::get('/tournee', RoundIndex::class)->name('round.index');
 
             Route::get('/services', ServicesIndex::class)->name('services.index');
             // Ancienne adresse du module « Tarifs » (favoris, liens enregistrés).

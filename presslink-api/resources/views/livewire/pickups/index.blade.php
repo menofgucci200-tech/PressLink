@@ -10,6 +10,8 @@
         'refused' => 'text-(--color-error) bg-(--color-error-tint)',
         'cancelled' => 'text-(--color-text-muted) bg-(--color-bg)',
         'expired' => 'text-(--color-text-muted) bg-(--color-bg)',
+        'picked_up' => 'text-(--color-primary) bg-(--color-primary-tint)',
+        'missed' => 'text-(--color-text-muted) bg-(--color-bg)',
     ];
     $select = 'w-full h-10 px-3 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm focus:outline-none focus:border-(--color-primary)';
 @endphp
@@ -47,15 +49,18 @@
                 </x-empty-state>
             @elseif ($tab === 'accepted')
                 <x-empty-state icon="box" title="Aucun ramassage prévu">
-                    Les demandes que vous acceptez s'affichent ici, dans l'ordre de passage.
+                    Les demandes que vous acceptez s'affichent ici et dans la tournée du jour, dans l'ordre de passage.
                 </x-empty-state>
             @else
                 <x-empty-state icon="box" title="Aucune demande terminée">
-                    Les demandes refusées, annulées par le client ou restées sans réponse sont conservées ici.
+                    Les ramassages faits, et les demandes refusées, annulées par le client ou restées sans réponse sont conservés ici.
                 </x-empty-state>
             @endif
         </div>
     @else
+        @if ($tab === 'accepted')
+            <p class="mb-3 text-sm text-(--color-text-secondary)">Le jour venu, le coursier marque le linge ramassé depuis la <a href="{{ route('round.index') }}" wire:navigate class="font-medium text-(--color-primary) hover:underline">tournée</a> : le dépôt est créé avec les pièces comptées.</p>
+        @endif
         <ul class="flex flex-col gap-3">
             @foreach ($requests as $request)
                 @php
@@ -111,6 +116,9 @@
 
                     @if ($request->status->value === 'refused' && $request->refusal_reason)
                         <p class="mt-3 text-xs text-(--color-text-secondary)">Motif : {{ $request->refusal_reason }}</p>
+                    @endif
+                    @if ($request->order)
+                        <p class="mt-3 text-sm">Dépôt créé au ramassage : <a href="{{ route('orders.show', $request->order) }}" wire:navigate class="font-medium text-(--color-primary) hover:underline">{{ $request->order->order_number }}</a></p>
                     @endif
                     @if (! $request->status->isOpen() && $request->closed_at)
                         <p class="mt-1 text-xs text-(--color-text-muted)">{{ $request->status->label() }} le {{ $request->closed_at->locale('fr')->isoFormat('D MMMM [à] HH:mm') }}{{ $request->respondedBy && $request->status->value === 'refused' ? ' par '.$request->respondedBy->name : '' }}</p>

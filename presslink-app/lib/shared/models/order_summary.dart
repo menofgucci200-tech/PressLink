@@ -22,6 +22,7 @@ class OrderSummary {
     required this.totalFcfa,
     this.balanceDueFcfa,
     this.detailsPending = false,
+    this.delivered = false,
   });
 
   final String orderNumber;
@@ -35,6 +36,9 @@ class OrderSummary {
 
   /// Dépôt rapide : le prix n'est pas encore connu.
   final bool detailsPending;
+
+  /// Remise par livraison à domicile : affichée « Livrée ».
+  final bool delivered;
 
   String get formattedTotal =>
       detailsPending ? 'Prix à venir' : '${formatFcfa(totalFcfa)} FCFA';

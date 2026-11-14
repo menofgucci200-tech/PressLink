@@ -10,10 +10,21 @@ enum PickupStatus {
   accepted,
   refused,
   cancelled,
-  expired;
+  expired,
 
-  static PickupStatus fromValue(String? value) => PickupStatus.values
-      .firstWhere((s) => s.name == value, orElse: () => PickupStatus.pending);
+  /// Linge ramassé : la demande est devenue une commande ([PickupRequest.orderId]).
+  pickedUp,
+
+  /// Le coursier est passé, personne n'était là.
+  missed;
+
+  static PickupStatus fromValue(String? value) => switch (value) {
+    'picked_up' => PickupStatus.pickedUp,
+    _ => PickupStatus.values.firstWhere(
+      (s) => s.name == value,
+      orElse: () => PickupStatus.pending,
+    ),
+  };
 
   bool get isOpen => this == pending || this == accepted;
 }
@@ -100,6 +111,7 @@ class PickupRequest {
     this.note,
     this.refusalReason,
     this.photos = const [],
+    this.orderId,
   });
 
   final int id;
@@ -124,6 +136,9 @@ class PickupRequest {
   final bool canCancel;
   final bool canAddPhotos;
   final DateTime createdAt;
+
+  /// Commande créée au ramassage.
+  final int? orderId;
 
   String get place =>
       [commune, if ((neighborhood ?? '').isNotEmpty) neighborhood!].join(', ');
@@ -154,6 +169,7 @@ class PickupRequest {
       canCancel: json['can_cancel'] as bool? ?? false,
       canAddPhotos: json['can_add_photos'] as bool? ?? false,
       createdAt: DateTime.parse(json['created_at'] as String),
+      orderId: json['order_id'] as int?,
     );
   }
 }

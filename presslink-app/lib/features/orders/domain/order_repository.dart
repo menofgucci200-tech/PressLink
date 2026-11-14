@@ -1,4 +1,5 @@
 import '../../../core/network/api_client.dart';
+import '../../pickups/domain/pickup_repository.dart';
 import '../../pressings/domain/pressing_repository.dart';
 import '../../../core/network/api_error.dart';
 import '../../../core/theme/app_colors.dart';
@@ -182,6 +183,10 @@ class OrderModel {
     this.storageFeeDays,
     this.storageFeeClause,
     this.pressingContact,
+    this.pickedUp = false,
+    this.delivered = false,
+    this.delivery,
+    this.deliveryOfferFeeFcfa,
   });
 
   final int id;
@@ -224,6 +229,21 @@ class OrderModel {
 
   /// Comment joindre le pressing (bouton « Contacter le pressing »).
   final PressingContact? pressingContact;
+
+  /// Linge ramassé à domicile par le pressing.
+  final bool pickedUp;
+
+  /// Remise par livraison à domicile.
+  final bool delivered;
+
+  /// Dernière livraison demandée (prévue, faite, manquée ou annulée).
+  final OrderDeliveryModel? delivery;
+
+  /// Frais de livraison quand le client peut se faire livrer maintenant
+  /// (commande prête, service proposé, pas de livraison prévue) ; sinon null.
+  final int? deliveryOfferFeeFcfa;
+
+  bool get canRequestDelivery => deliveryOfferFeeFcfa != null;
 
   String get itemsLabel => detailsPending
       ? '${declaredPieces ?? 0} pièce${(declaredPieces ?? 0) > 1 ? 's' : ''} déposée${(declaredPieces ?? 0) > 1 ? 's' : ''}'
@@ -272,6 +292,113 @@ class OrderModel {
         (json['storage_fee'] as Map<String, dynamic>?)?['days'] as int?,
     storageFeeClause: json['storage_fee_clause'] as String?,
     pressingContact: PressingContact.fromJson(json['pressing_contact']),
+    pickedUp: json['picked_up'] == true,
+    delivered: json['delivered'] == true,
+    delivery: json['delivery'] is Map<String, dynamic>
+        ? OrderDeliveryModel.fromJson(json['delivery'] as Map<String, dynamic>)
+        : null,
+    deliveryOfferFeeFcfa:
+        (json['delivery_offer'] as Map<String, dynamic>?)?['fee_fcfa'] as int?,
+  );
+}
+
+/// Statut d'une livraison (mêmes valeurs que l'API).
+enum DeliveryStatus {
+  scheduled,
+  delivered,
+  missed,
+  cancelled;
+
+  static DeliveryStatus fromValue(String? value) =>
+      DeliveryStatus.values.firstWhere(
+        (s) => s.name == value,
+        orElse: () => DeliveryStatus.cancelled,
+      );
+}
+
+/// Livraison à domicile d'une commande prête.
+class OrderDeliveryModel {
+  const OrderDeliveryModel({
+    required this.status,
+    required this.statusLabel,
+    required this.addressLabel,
+    required this.commune,
+    required this.landmark,
+    required this.scheduleLabel,
+    required this.rescheduled,
+    required this.feeFcfa,
+    required this.amountToCollectFcfa,
+    required this.canCancel,
+    this.neighborhood,
+    this.note,
+    this.cancelReason,
+  });
+
+  final DeliveryStatus status;
+  final String statusLabel;
+  final String addressLabel;
+  final String commune;
+  final String? neighborhood;
+  final String landmark;
+
+  /// « demain, 14:00 – 18:00 »
+  final String scheduleLabel;
+  final bool rescheduled;
+  final String? note;
+  final int feeFcfa;
+
+  /// À payer au livreur : le reste de la commande et les frais.
+  final int amountToCollectFcfa;
+  final String? cancelReason;
+  final bool canCancel;
+
+  String get place =>
+      [commune, if ((neighborhood ?? '').isNotEmpty) neighborhood!].join(', ');
+
+  factory OrderDeliveryModel.fromJson(Map<String, dynamic> json) {
+    final address = json['address'] as Map<String, dynamic>? ?? const {};
+    return OrderDeliveryModel(
+      status: DeliveryStatus.fromValue(json['status'] as String?),
+      statusLabel: json['status_label'] as String? ?? '',
+      addressLabel: address['label'] as String? ?? '',
+      commune: address['commune'] as String? ?? '',
+      neighborhood: address['neighborhood'] as String?,
+      landmark: address['landmark'] as String? ?? '',
+      scheduleLabel: json['schedule_label'] as String? ?? '',
+      rescheduled: json['rescheduled'] as bool? ?? false,
+      note: json['note'] as String?,
+      feeFcfa: json['delivery_fee_fcfa'] as int? ?? 0,
+      amountToCollectFcfa: json['amount_to_collect_fcfa'] as int? ?? 0,
+      cancelReason: json['cancel_reason'] as String?,
+      canCancel: json['can_cancel'] as bool? ?? false,
+    );
+  }
+}
+
+/// Ce que le pressing propose pour livrer une commande prête.
+class DeliveryOffer {
+  const DeliveryOffer({
+    required this.available,
+    required this.feeFcfa,
+    required this.communes,
+    required this.days,
+    this.reason,
+  });
+
+  final bool available;
+  final String? reason;
+  final int feeFcfa;
+  final List<String> communes;
+  final List<PickupDay> days;
+
+  factory DeliveryOffer.fromJson(Map<String, dynamic> json) => DeliveryOffer(
+    available: json['available'] == true,
+    reason: json['reason'] as String?,
+    feeFcfa: json['fee_fcfa'] as int? ?? 0,
+    communes: (json['communes'] as List? ?? []).cast<String>(),
+    days: (json['days'] as List? ?? [])
+        .map((e) => PickupDay.fromJson(e as Map<String, dynamic>))
+        .toList(),
   );
 }
 
@@ -355,6 +482,36 @@ class OrderRepository {
             ),
           )
           .toList();
+
+  /// Livraison à domicile : frais, jours et créneaux proposés.
+  Future<DeliveryOffer> deliveryOffer(int orderId) async {
+    final response = await _apiClient.dio.get('/orders/$orderId/delivery');
+    return DeliveryOffer.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  Future<OrderDeliveryModel> requestDelivery({
+    required int orderId,
+    required int addressId,
+    required String date,
+    required PickupSlot slot,
+    String? note,
+  }) async {
+    final response = await _apiClient.dio.post(
+      '/orders/$orderId/delivery',
+      data: {
+        'address_id': addressId,
+        'delivery_date': date,
+        'slot_from': slot.from,
+        'slot_to': slot.to,
+        'note': (note ?? '').trim().isEmpty ? null : note!.trim(),
+      },
+    );
+    return OrderDeliveryModel.fromJson(response.data as Map<String, dynamic>);
+  }
+
+  Future<void> cancelDelivery(int orderId) async {
+    await _apiClient.dio.post('/orders/$orderId/delivery/cancel');
+  }
 
   static String errorMessage(Object error) => apiErrorMessage(error);
 }

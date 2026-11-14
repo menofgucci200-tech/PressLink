@@ -583,16 +583,36 @@ class Pressing extends Model
     }
 
     /**
-     * Jours et créneaux de ramassage que le client peut choisir : les
-     * prochains jours d'ouverture, sans les créneaux du jour trop proches
-     * de leur fin.
+     * Jours et créneaux de ramassage que le client peut choisir.
      *
      * @return list<array{date: string, label: string, slots: list<array{from: string, to: string}>}>
      */
     public function pickupAvailability(?Carbon $now = null): array
     {
+        return $this->bookingAvailability('pickup', $now);
+    }
+
+    /**
+     * Jours et créneaux de livraison que le client peut choisir.
+     *
+     * @return list<array{date: string, label: string, slots: list<array{from: string, to: string}>}>
+     */
+    public function deliveryAvailability(?Carbon $now = null): array
+    {
+        return $this->bookingAvailability('delivery', $now);
+    }
+
+    /**
+     * Les prochains jours d'ouverture, sans les créneaux du jour trop proches
+     * de leur fin.
+     *
+     * @param  'pickup'|'delivery'  $service
+     * @return list<array{date: string, label: string, slots: list<array{from: string, to: string}>}>
+     */
+    private function bookingAvailability(string $service, ?Carbon $now): array
+    {
         $services = $this->deliveryServices();
-        if ($services === null || ! $services['pickup']) {
+        if ($services === null || ! $services[$service]) {
             return [];
         }
 
@@ -621,10 +641,22 @@ class Pressing extends Model
         return $days;
     }
 
+    /** Frais de ramassage ou de livraison pour une commande de ce montant (« Gratuit dès »). */
+    public function homeServiceFee(int $baseFeeFcfa, int $orderTotalFcfa): int
+    {
+        return $this->delivery_free_from_fcfa !== null && $orderTotalFcfa >= $this->delivery_free_from_fcfa ? 0 : $baseFeeFcfa;
+    }
+
     /** @return HasMany<PickupRequest, $this> */
     public function pickupRequests(): HasMany
     {
         return $this->hasMany(PickupRequest::class);
+    }
+
+    /** @return HasMany<OrderDelivery, $this> */
+    public function orderDeliveries(): HasMany
+    {
+        return $this->hasMany(OrderDelivery::class);
     }
 
     /** @return HasMany<SubscriptionRequest, $this> */

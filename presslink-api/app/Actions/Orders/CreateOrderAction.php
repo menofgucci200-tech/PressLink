@@ -10,6 +10,7 @@ use App\Enums\PressingStatus;
 use App\Models\ActivityLog;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\PickupRequest;
 use App\Models\Pressing;
 use App\Models\ServiceVariant;
 use App\Models\Subscription;
@@ -39,6 +40,12 @@ use RuntimeException;
  * et le nombre de pièces sont saisis au comptoir. La commande existe et a son
  * numéro, mais reste « à compléter » jusqu'à `completeQuickDeposit`, seule
  * exception à RB-04 : elle ne peut pas être prête tant qu'elle n'a pas de prix.
+ *
+ * Linge ramassé à domicile (`pickedUpDeposit`) : le coursier compte les
+ * pièces chez le client et la demande devient un dépôt rapide. Le ramassage
+ * était promis : il n'est refusé ni hors des horaires ni pour un quota
+ * atteint (il compte quand même). Les frais de ramassage s'ajoutent quand le
+ * détail est saisi, sauf si la commande atteint le montant de gratuité.
  */
 class CreateOrderAction
 {
@@ -69,7 +76,7 @@ class CreateOrderAction
             throw new RuntimeException('Le montant payé doit être compris entre 0 et le total de la commande.');
         }
 
-        $this->ensureCanCreate($pressing, $customer, $offline);
+        $this->ensureCanCreate($pressing, $customer, checkHours: ! $offline);
 
         $this->ensureItemsAreValid($pressing, $items);
 
@@ -147,6 +154,44 @@ class CreateOrderAction
     }
 
     /**
+     * Dépôt rapide créé chez le client, au ramassage (voir PickupRequests::markPickedUp,
+     * qui relie la demande à la commande dans la même transaction).
+     */
+    public function pickedUpDeposit(PickupRequest $request, int $declaredPieces, ?string $notes = null): Order
+    {
+        if ($declaredPieces < 1) {
+            throw new InvalidArgumentException('Un dépôt doit compter au moins une pièce.');
+        }
+
+        $pressing = $request->pressing;
+        $customer = $request->customer;
+        $this->ensureCanCreate($pressing, $customer, checkHours: false, permission: Permission::DeliveriesRun);
+
+        $expectedAt = $pressing->turnaround_hours !== null
+            ? now()->addHours($pressing->turnaround_hours)->toDateString()
+            : now()->addDays(2)->toDateString();
+
+        $order = Order::create([
+            'pressing_id' => $pressing->id,
+            'customer_id' => $customer->id,
+            'status' => OrderStatus::Recue,
+            'details_pending' => true,
+            'declared_pieces' => $declaredPieces,
+            'expected_at' => $expectedAt,
+            'notes' => $notes,
+            'created_by' => Auth::guard('web')->id(),
+        ]);
+
+        ActivityLog::record($pressing->id, ActivityAction::QuickDepositCreated,
+            "Linge de {$customer->fullName()} ramassé à domicile : dépôt {$order->order_number} · {$declaredPieces} pièce".($declaredPieces > 1 ? 's' : '').' comptée'.($declaredPieces > 1 ? 's' : ''),
+            $order, ['customer_id' => $customer->id, 'declared_pieces' => $declaredPieces, 'pickup_request_id' => $request->id]);
+
+        $pressing->subscription?->incrementOrdersUsed();
+
+        return $order;
+    }
+
+    /**
      * Saisit le détail et les prix d'un dépôt rapide : la commande devient une
      * commande normale. Un écart avec le nombre compté au dépôt ne bloque pas
      * (on a pu se tromper au comptoir) mais reste inscrit au journal. Verrou :
@@ -195,6 +240,13 @@ class CreateOrderAction
             $locked->notes = $notes;
             $locked->recalculateTotal();
 
+            // Linge ramassé à domicile : les frais convenus avec le client.
+            $pickupFee = (int) $locked->pickupRequest?->pickup_fee_fcfa;
+            if ($pickupFee > 0 && $locked->pressing->homeServiceFee($pickupFee, (int) $locked->total_fcfa) > 0) {
+                $locked->items()->create(['service_id' => null, 'name' => Order::PICKUP_FEE_LINE, 'unit_price_fcfa' => $pickupFee, 'quantity' => 1]);
+                $locked->refresh();
+            }
+
             $pieces = (int) array_sum(array_column($items, 'quantity'));
             $declared = (int) $locked->declared_pieces;
             ActivityLog::record($locked->pressing_id, ActivityAction::QuickDepositCompleted,
@@ -215,18 +267,18 @@ class CreateOrderAction
     }
 
     /** Le pressing peut recevoir ce client maintenant, et l'employé a le droit de créer. */
-    private function ensureCanCreate(Pressing $pressing, Customer $customer, bool $offline = false): void
+    private function ensureCanCreate(Pressing $pressing, Customer $customer, bool $checkHours = true, Permission $permission = Permission::OrdersCreate): void
     {
         if ($pressing->status !== PressingStatus::Active) {
             throw new RuntimeException('Ce pressing est suspendu : impossible de créer une commande.');
         }
 
-        if (! $offline) {
+        if ($checkHours) {
             $pressing->ensureAcceptsCustomers();
         }
 
         $staff = Auth::guard('web')->user();
-        if ($staff !== null && ! $staff->is_super_admin && ! $staff->may(Permission::OrdersCreate, $pressing)) {
+        if ($staff !== null && ! $staff->is_super_admin && ! $staff->may($permission, $pressing)) {
             throw new RuntimeException('Votre rôle ne permet pas de créer une commande.');
         }
 

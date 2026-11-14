@@ -43,6 +43,7 @@ class PickupRequest extends Model
     protected $fillable = [
         'pressing_id',
         'customer_id',
+        'order_id',
         'status',
         'address_label',
         'commune',
@@ -58,6 +59,8 @@ class PickupRequest extends Model
         'refusal_reason',
         'responded_by',
         'responded_at',
+        'picked_up_at',
+        'picked_up_by',
         'closed_at',
     ];
 
@@ -68,6 +71,7 @@ class PickupRequest extends Model
             'pickup_date' => 'date',
             'rescheduled' => 'boolean',
             'responded_at' => 'datetime',
+            'picked_up_at' => 'datetime',
             'closed_at' => 'datetime',
         ];
     }
@@ -88,6 +92,22 @@ class PickupRequest extends Model
     public function respondedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'responded_by');
+    }
+
+    /**
+     * Commande (dépôt rapide) créée au ramassage.
+     *
+     * @return BelongsTo<Order, $this>
+     */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function pickedUpBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'picked_up_by');
     }
 
     /** @return HasMany<PickupRequestPhoto, $this> */
@@ -165,6 +185,8 @@ class PickupRequest extends Model
             'can_add_photos' => $this->status === PickupRequestStatus::Pending && $this->photos->count() < PickupRequestPhoto::MAX_PER_REQUEST,
             'created_at' => $this->created_at->toIso8601String(),
             'responded_at' => $this->responded_at?->toIso8601String(),
+            'order_id' => $this->order_id,
+            'picked_up_at' => $this->picked_up_at?->toIso8601String(),
         ];
     }
 }

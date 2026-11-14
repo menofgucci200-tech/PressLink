@@ -38,11 +38,14 @@
                 'key' => $key, 'route' => $route, 'label' => $label, 'icon' => $icon, 'url' => $url,
                 'active' => ($active ?? null) === $key,
             ];
+            $showsPickups = $pressing !== null && \App\Enums\Feature::Delivery->isLaunched() && $pressing->hasFeature(\App\Enums\Feature::Delivery);
             $navItems = [
                 $navItem('dashboard', 'dashboard', 'Dashboard', 'M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z|M9 21v-6h6v6'),
                 $navItem('orders', 'orders.index', 'Commandes', 'M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z|m3.3 7 8.7 5 8.7-5|M12 22V12'),
                 $navItem('clients', 'clients.index', 'Clients', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2|M9 11A4 4 0 1 0 9 3a4 4 0 0 0 0 8Z'),
                 $navItem('issues', 'issues.index', 'Signalements', 'M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z|M12 9v4|M12 17h.01'),
+                // Ramassages : une fois le service lancé, pour les pressings qui l'ont dans leur formule.
+                $showsPickups ? $navItem('pickups', 'pickups.index', 'Ramassages', 'M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2|M15 18H9|M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14|M15 18a2 2 0 1 0 4 0a2 2 0 1 0-4 0|M5 18a2 2 0 1 0 4 0a2 2 0 1 0-4 0') : null,
                 $canCash ? $navItem('cash', 'cash.index', 'Caisse', 'M2 7h20v12H2Z|M16 13h.01|M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2')
                     : ($lockedFor(\App\Enums\Feature::Cash) ? $navItem('cash', 'cash.index', 'Caisse', 'M2 7h20v12H2Z|M16 13h.01|M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2', $optionUrl(\App\Enums\Feature::Cash)) : null),
             ];
@@ -66,6 +69,10 @@
                 ? \App\Models\OrderIssue::whereHas('order', fn ($q) => $q->where('pressing_id', $pressing->id))
                     ->where('status', \App\Enums\OrderIssueStatus::Open->value)
                     ->count()
+                : 0;
+
+            $pendingPickupsCount = $showsPickups
+                ? $pressing->pickupRequests()->where('status', \App\Enums\PickupRequestStatus::Pending->value)->count()
                 : 0;
 
             $subscription = $pressing?->subscription;
@@ -146,6 +153,11 @@
                             <span class="truncate">{{ $item['label'] }}</span>
                             @if ($item['url'] ?? null)
                                 <x-lock-icon />
+                            @endif
+                            @if ($item['key'] === 'pickups' && $pendingPickupsCount > 0)
+                                <span class="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-(--color-warning) text-white text-[11px] font-semibold" data-testid="pickups-badge">
+                                    {{ $pendingPickupsCount }}
+                                </span>
                             @endif
                             @if ($item['key'] === 'issues' && $openIssuesCount > 0)
                                 <span class="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-(--color-error) text-white text-[11px] font-semibold">
@@ -375,8 +387,8 @@
                     <button type="button" @click="$dispatch('open-nav')" class="{{ $tabClass(false) }} relative">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="20" y2="17"></line></svg>
                         <span>Menu</span>
-                        @if ($openIssuesCount > 0)
-                            <span class="absolute top-1.5 left-1/2 ml-1.5 min-w-4 h-4 px-1 rounded-full bg-(--color-error) text-white text-[10px] font-bold flex items-center justify-center" aria-label="{{ $openIssuesCount }} signalement(s)">{{ $openIssuesCount }}</span>
+                        @if ($openIssuesCount + $pendingPickupsCount > 0)
+                            <span class="absolute top-1.5 left-1/2 ml-1.5 min-w-4 h-4 px-1 rounded-full {{ $openIssuesCount > 0 ? 'bg-(--color-error)' : 'bg-(--color-warning)' }} text-white text-[10px] font-bold flex items-center justify-center" aria-label="{{ collect([$openIssuesCount ? $openIssuesCount.' signalement(s)' : null, $pendingPickupsCount ? $pendingPickupsCount.' ramassage(s) à traiter' : null])->filter()->join(', ') }}">{{ $openIssuesCount + $pendingPickupsCount }}</span>
                         @endif
                     </button>
                 </div>

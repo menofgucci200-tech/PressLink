@@ -8,6 +8,7 @@ use App\Http\Controllers\OfflineCounterController;
 use App\Http\Controllers\OrderExportController;
 use App\Http\Controllers\OrderPhotoController;
 use App\Http\Controllers\OrderReceiptController;
+use App\Http\Controllers\PickupPhotoController;
 use App\Http\Controllers\PublicReceiptController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SitePageController;
@@ -50,6 +51,7 @@ use App\Livewire\Orders\Create as OrdersCreate;
 use App\Livewire\Orders\Index as OrdersIndex;
 use App\Livewire\Orders\QuickDeposit as OrdersQuickDeposit;
 use App\Livewire\Orders\Show as OrdersShow;
+use App\Livewire\Pickups\Index as PickupsIndex;
 use App\Livewire\Pressing\Delivery as PressingDelivery;
 use App\Livewire\Pressing\Settings as PressingSettings;
 use App\Livewire\Services\Index as ServicesIndex;
@@ -96,6 +98,11 @@ Route::middleware(['signed', 'throttle:60,1'])->group(function () {
 Route::get('/photos-commandes/{photo}', [OrderPhotoController::class, 'show'])
     ->middleware(['signed', 'throttle:600,1'])
     ->name('order-photos.show');
+
+// Photos jointes aux demandes de ramassage : même principe.
+Route::get('/photos-ramassages/{photo}', [PickupPhotoController::class, 'show'])
+    ->middleware(['signed', 'throttle:600,1'])
+    ->name('pickup-photos.show');
 
 // Lien « Ne plus recevoir ces emails » (signé : impossible à forger).
 Route::get('/emails/desabonnement/{customer}', function (Customer $customer) {
@@ -191,6 +198,7 @@ Route::middleware(['auth', HandleSandboxPressing::class])->group(function () {
             Route::get('/clients/{customer}', ClientsShow::class)->name('clients.show');
 
             Route::get('/signalements', IssuesIndex::class)->name('issues.index');
+            Route::get('/ramassages', PickupsIndex::class)->name('pickups.index');
 
             Route::get('/services', ServicesIndex::class)->name('services.index');
             // Ancienne adresse du module « Tarifs » (favoris, liens enregistrés).

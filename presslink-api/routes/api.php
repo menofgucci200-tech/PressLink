@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\CustomerProfileController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\OrderIssueController;
+use App\Http\Controllers\Api\V1\PickupRequestController;
 use App\Http\Controllers\Api\V1\PressingController;
 use App\Http\Controllers\AudienceController;
 use App\Http\Controllers\GeniusPayController;
@@ -75,5 +76,13 @@ Route::prefix('v1')->group(function () {
         Route::post('/customer/addresses', [CustomerAddressController::class, 'store'])->middleware('throttle:30,1');
         Route::put('/customer/addresses/{address}', [CustomerAddressController::class, 'update'])->middleware('throttle:30,1');
         Route::delete('/customer/addresses/{address}', [CustomerAddressController::class, 'destroy']);
+
+        // Demandes de ramassage (mode « Mon pressing »).
+        Route::get('/pressings/{pressing}/pickup-availability', [PickupRequestController::class, 'availability']);
+        Route::get('/pickup-requests', [PickupRequestController::class, 'index']);
+        Route::post('/pickup-requests', [PickupRequestController::class, 'store'])->middleware('throttle:10,1');
+        Route::get('/pickup-requests/{pickupRequest}', [PickupRequestController::class, 'show']);
+        Route::post('/pickup-requests/{pickupRequest}/photos', [PickupRequestController::class, 'storePhoto'])->middleware('throttle:30,1');
+        Route::post('/pickup-requests/{pickupRequest}/cancel', [PickupRequestController::class, 'cancel']);
     });
 });

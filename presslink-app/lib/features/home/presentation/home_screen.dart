@@ -15,6 +15,8 @@ import '../../../shared/models/order_summary.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../orders/presentation/order_detail_screen.dart';
 import '../../orders/presentation/orders_controller.dart';
+import '../../pickups/presentation/pickup_home_section.dart';
+import '../../pickups/presentation/pickups_controller.dart';
 import '../../pressings/presentation/join_pressing_screen.dart';
 import '../../pressings/presentation/pressing_detail_screen.dart';
 import '../../pressings/presentation/pressings_controller.dart';
@@ -42,6 +44,7 @@ class HomeScreen extends ConsumerWidget {
           onRefresh: () async {
             ref.invalidate(ordersProvider);
             ref.invalidate(myPressingsProvider);
+            ref.invalidate(pickupRequestsProvider);
             await Future.wait([
               ref.read(ordersProvider.future),
               ref.read(myPressingsProvider.future),
@@ -108,6 +111,7 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
+              const PickupHomeSection(),
               Text(
                 'COMMANDES RÉCENTES',
                 style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.6),

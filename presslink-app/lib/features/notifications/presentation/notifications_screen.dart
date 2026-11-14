@@ -9,6 +9,7 @@ import '../../../core/network/api_error.dart';
 import '../../../core/widgets/error_state_view.dart';
 import '../../../core/widgets/staggered_fade_in.dart';
 import '../../orders/presentation/order_detail_screen.dart';
+import '../../pickups/presentation/pickup_request_detail_screen.dart';
 import '../../orders/presentation/orders_controller.dart';
 import '../domain/notification_repository.dart';
 import 'notifications_controller.dart';
@@ -158,6 +159,16 @@ class NotificationsScreen extends ConsumerWidget {
                                   // Le marquage comme lu n'est pas critique : on continue
                                   // vers la commande même s'il échoue silencieusement.
                                 }
+                              }
+                              if (n.pickupRequestId != null &&
+                                  context.mounted) {
+                                Navigator.of(context).push(
+                                  AppPageRoute(
+                                    builder: (_) => PickupRequestDetailScreen(
+                                      requestId: n.pickupRequestId!,
+                                    ),
+                                  ),
+                                );
                               }
                               if (n.orderId != null && context.mounted) {
                                 Navigator.of(context)

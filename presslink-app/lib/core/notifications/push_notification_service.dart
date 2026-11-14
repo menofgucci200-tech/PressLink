@@ -9,6 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/app_page_route.dart';
 import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/orders/presentation/order_detail_screen.dart';
+import '../../features/pickups/presentation/pickup_request_detail_screen.dart';
+import '../../features/pickups/presentation/pickups_controller.dart';
 import '../../features/orders/presentation/orders_controller.dart';
 import '../../features/notifications/presentation/notifications_controller.dart';
 import '../../main.dart';
@@ -240,6 +242,16 @@ class PushNotificationService implements PushSwitch {
   }
 
   void _openOrderFromNotification(OSNotificationClickEvent event) {
+    final rawPickupId = event.notification.additionalData?['pickup_request_id'];
+    final pickupId = rawPickupId is String
+        ? int.tryParse(rawPickupId)
+        : rawPickupId is num
+        ? rawPickupId.toInt()
+        : null;
+    if (pickupId != null) {
+      _openPickupRequest(pickupId);
+      return;
+    }
     final rawOrderId = event.notification.additionalData?['order_id'];
     _openOrder(
       rawOrderId is String
@@ -248,6 +260,17 @@ class PushNotificationService implements PushSwitch {
           ? rawOrderId.toInt()
           : null,
     );
+  }
+
+  void _openPickupRequest(int requestId) {
+    _refreshAfterNotification();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      rootNavigatorKey.currentState?.push(
+        AppPageRoute(
+          builder: (_) => PickupRequestDetailScreen(requestId: requestId),
+        ),
+      );
+    });
   }
 
   void _openOrder(int? orderId) {
@@ -270,6 +293,7 @@ class PushNotificationService implements PushSwitch {
   /// périmées en attendant une action manuelle de l'utilisateur.
   void _refreshAfterNotification() {
     _ref.invalidate(ordersProvider);
+    _ref.invalidate(pickupRequestsProvider);
     _ref.invalidate(notificationsProvider);
     _ref.invalidate(unreadNotificationsCountProvider);
   }

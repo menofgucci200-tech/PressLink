@@ -128,6 +128,42 @@ class PressingContact {
   }
 }
 
+/// Ramassage et livraison proposés par le pressing (null s'il n'en propose pas).
+class DeliveryServices {
+  const DeliveryServices({
+    required this.pickup,
+    required this.delivery,
+    required this.pickupFeeFcfa,
+    required this.deliveryFeeFcfa,
+    required this.communes,
+    this.freeFromFcfa,
+    this.turnaroundHours,
+  });
+
+  final bool pickup;
+  final bool delivery;
+  final int pickupFeeFcfa;
+  final int deliveryFeeFcfa;
+  final int? freeFromFcfa;
+  final int? turnaroundHours;
+
+  /// Communes desservies.
+  final List<String> communes;
+
+  static DeliveryServices? fromJson(Object? json) {
+    if (json is! Map<String, dynamic>) return null;
+    return DeliveryServices(
+      pickup: json['pickup'] as bool? ?? false,
+      delivery: json['delivery'] as bool? ?? false,
+      pickupFeeFcfa: json['pickup_fee_fcfa'] as int? ?? 0,
+      deliveryFeeFcfa: json['delivery_fee_fcfa'] as int? ?? 0,
+      freeFromFcfa: json['delivery_free_from_fcfa'] as int?,
+      turnaroundHours: json['turnaround_hours'] as int?,
+      communes: (json['communes'] as List<dynamic>? ?? []).cast<String>(),
+    );
+  }
+}
+
 class PressingModel {
   const PressingModel({
     required this.id,
@@ -145,6 +181,7 @@ class PressingModel {
     this.terms,
     this.storageFeeClause,
     this.contact,
+    this.deliveryServices,
   });
 
   final int id;
@@ -168,6 +205,11 @@ class PressingModel {
 
   /// Comment joindre le pressing.
   final PressingContact? contact;
+
+  /// Ramassage et livraison, si le pressing les propose.
+  final DeliveryServices? deliveryServices;
+
+  bool get offersPickup => deliveryServices?.pickup ?? false;
 
   String get initials {
     final words = name
@@ -207,6 +249,7 @@ class PressingModel {
     terms: json['terms'] as String?,
     storageFeeClause: json['storage_fee_clause'] as String?,
     contact: PressingContact.fromJson(json['contact']),
+    deliveryServices: DeliveryServices.fromJson(json['delivery_services']),
   );
 }
 

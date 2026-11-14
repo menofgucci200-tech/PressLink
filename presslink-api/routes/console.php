@@ -29,6 +29,9 @@ Schedule::command('presslink:purge-order-photos')->dailyAt('03:30');
 // Audience du site au-delà de 12 mois : supprimée (politique de confidentialité).
 Schedule::command('presslink:purge-audience')->dailyAt('03:45');
 
+// Demandes de ramassage sans réponse à la fin du créneau : « Expirée » (et vieilles photos supprimées).
+Schedule::command('presslink:expire-pickups')->everyFifteenMinutes()->withoutOverlapping();
+
 // Paiements en ligne restés en cours au-delà de la durée d'une page de paiement : « Expiré ».
 Schedule::command('presslink:expire-payments')->hourly();
 

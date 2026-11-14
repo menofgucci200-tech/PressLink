@@ -5,6 +5,7 @@ namespace App\Actions\Sandbox;
 use App\Models\ActivityLog;
 use App\Models\Customer;
 use App\Models\OrderPhoto;
+use App\Models\PickupRequestPhoto;
 use App\Models\Pressing;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -45,5 +46,6 @@ class DeleteSandbox
             Storage::disk('public')->delete($pressing->logo_path);
         }
         Storage::disk(OrderPhoto::DISK)->deleteDirectory(OrderPhoto::directoryFor($pressing->id));
+        Storage::disk(PickupRequestPhoto::DISK)->deleteDirectory(PickupRequestPhoto::directoryFor($pressing->id));
     }
 }

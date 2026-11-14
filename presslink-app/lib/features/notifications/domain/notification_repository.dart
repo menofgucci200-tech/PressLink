@@ -6,6 +6,7 @@ class AppNotification {
     required this.title,
     required this.body,
     required this.orderId,
+    this.pickupRequestId,
     required this.createdAt,
     required this.isRead,
   });
@@ -14,6 +15,9 @@ class AppNotification {
   final String title;
   final String body;
   final int? orderId;
+
+  /// Notification d'une demande de ramassage (prévu, refusé, expiré).
+  final int? pickupRequestId;
   final DateTime createdAt;
   final bool isRead;
 
@@ -24,6 +28,7 @@ class AppNotification {
       title: data['title'] as String? ?? '',
       body: data['body'] as String? ?? '',
       orderId: data['order_id'] as int?,
+      pickupRequestId: data['pickup_request_id'] as int?,
       createdAt: DateTime.parse(json['created_at'] as String),
       isRead: json['read_at'] != null,
     );

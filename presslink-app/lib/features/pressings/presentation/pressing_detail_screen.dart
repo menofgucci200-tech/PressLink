@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/ivorian_phone.dart';
+import '../../../core/widgets/app_page_route.dart';
 import '../../../core/widgets/presslink_top_bar.dart';
+import '../../pickups/presentation/new_pickup_request_screen.dart';
 import '../domain/pressing_repository.dart';
 import 'pressing_contact.dart';
 
@@ -103,6 +106,27 @@ class PressingDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
+            if (AppConfig.deliveryEnabled && pressing.offersPickup) ...[
+              const SizedBox(height: AppSpacing.md),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    AppPageRoute(
+                      builder: (_) =>
+                          NewPickupRequestScreen(pressingId: pressing.id),
+                    ),
+                  ),
+                  icon: const Icon(
+                    Icons.local_shipping_outlined,
+                    size: 20,
+                    color: Colors.white,
+                  ),
+                  label: const Text('Faire ramasser mon linge'),
+                ),
+              ),
+            ],
             const SizedBox(height: AppSpacing.lg),
             _SectionCard(
               title: 'Contact & localisation',

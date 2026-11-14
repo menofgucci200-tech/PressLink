@@ -296,6 +296,12 @@ class Pressing extends Model
         return $hours !== null && $this->isOnSchedule(now()) ? now()->setTimeFromTimeString($hours['close']) : null;
     }
 
+    /** Le pressing ouvre-t-il ce jour-là ? (sans horaires renseignés : tous les jours) */
+    public function opensOn(Carbon $day): bool
+    {
+        return empty($this->opening_hours) || $this->hoursOn($day) !== null;
+    }
+
     /** @return array{open: string, close: string}|null Horaires d'un jour, null s'il est fermé. */
     private function hoursOn(Carbon $at): ?array
     {
@@ -574,6 +580,51 @@ class Pressing extends Model
             'turnaround_hours' => $this->turnaround_hours,
             'communes' => $communes,
         ];
+    }
+
+    /**
+     * Jours et créneaux de ramassage que le client peut choisir : les
+     * prochains jours d'ouverture, sans les créneaux du jour trop proches
+     * de leur fin.
+     *
+     * @return list<array{date: string, label: string, slots: list<array{from: string, to: string}>}>
+     */
+    public function pickupAvailability(?Carbon $now = null): array
+    {
+        $services = $this->deliveryServices();
+        if ($services === null || ! $services['pickup']) {
+            return [];
+        }
+
+        $now ??= now();
+        $days = [];
+        for ($offset = 0; $offset < PickupRequest::BOOKING_DAYS; $offset++) {
+            $day = $now->copy()->startOfDay()->addDays($offset);
+            if (! $this->opensOn($day)) {
+                continue;
+            }
+
+            $slots = array_values(array_filter($services['slots'], fn (array $slot) => $day->copy()->setTimeFromTimeString($slot['to'])
+                ->subMinutes(PickupRequest::MIN_NOTICE_MINUTES)->greaterThanOrEqualTo($now)));
+            if ($slots === []) {
+                continue;
+            }
+
+            $label = match (true) {
+                $day->isSameDay($now) => 'Aujourd\'hui',
+                $day->isSameDay($now->copy()->addDay()) => 'Demain',
+                default => ucfirst($day->copy()->locale('fr')->isoFormat('dddd D MMMM')),
+            };
+            $days[] = ['date' => $day->toDateString(), 'label' => $label, 'slots' => $slots];
+        }
+
+        return $days;
+    }
+
+    /** @return HasMany<PickupRequest, $this> */
+    public function pickupRequests(): HasMany
+    {
+        return $this->hasMany(PickupRequest::class);
     }
 
     /** @return HasMany<SubscriptionRequest, $this> */

@@ -10,6 +10,8 @@ use App\Models\Customer;
 use App\Models\OfflineOperation;
 use App\Models\Order;
 use App\Models\OrderPhoto;
+use App\Models\PickupRequest;
+use App\Models\PickupRequestPhoto;
 use App\Models\Pressing;
 use App\Models\Service;
 use Illuminate\Support\Facades\DB;
@@ -104,6 +106,16 @@ class ErasePressingData
         });
 
         Storage::disk(OrderPhoto::DISK)->deleteDirectory(OrderPhoto::directoryFor($pressing->id));
+
+        // Les demandes de ramassage partent avec les commandes.
+        $pickupIds = PickupRequest::where('pressing_id', $pressing->id)->pluck('id');
+        DB::table('notifications')
+            ->where('notifiable_type', (new Customer)->getMorphClass())
+            ->whereIn('data->pickup_request_id', $pickupIds)
+            ->delete();
+        PickupRequest::whereKey($pickupIds)->delete();
+        Storage::disk(PickupRequestPhoto::DISK)->deleteDirectory(PickupRequestPhoto::directoryFor($pressing->id));
+
         OfflineOperation::where('pressing_id', $pressing->id)->delete();
         $pressing->subscription?->update(['orders_used' => 0]);
 

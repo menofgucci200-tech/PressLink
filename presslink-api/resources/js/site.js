@@ -5,8 +5,10 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
+import { suivreAudience } from './audience';
 
 gsap.registerPlugin(ScrollTrigger);
+suivreAudience();
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];

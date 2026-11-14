@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\OrderIssueController;
 use App\Http\Controllers\Api\V1\PressingController;
+use App\Http\Controllers\AudienceController;
 use App\Http\Controllers\GeniusPayController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -14,6 +15,11 @@ use Illuminate\Support\Facades\Route;
 Route::post('/webhooks/geniuspay', [GeniusPayController::class, 'webhook'])
     ->middleware('throttle:120,1')
     ->name('webhooks.geniuspay');
+
+// Audience du site vitrine (pages vues, clics) : menu Audience de la console.
+Route::post('/audience', [AudienceController::class, 'store'])
+    ->middleware('throttle:120,1')
+    ->name('audience.store');
 
 Route::prefix('v1')->group(function () {
     Route::get('/user', function (Request $request) {

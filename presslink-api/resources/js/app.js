@@ -3,6 +3,10 @@ import './synchro-hors-ligne';
 import './guide';
 import './ticket';
 import './photos-commande';
+import { suivreAudience } from './audience';
+
+// Pages d'inscription et d'essai : comptées dans l'audience du site.
+suivreAudience();
 
 // Raccourci ⌘K / Ctrl+K — focus le champ de recherche de la page courante
 // (chaque page qui en a besoin a la sienne, il n'y a pas de recherche

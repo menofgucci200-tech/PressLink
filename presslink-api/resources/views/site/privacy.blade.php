@@ -67,6 +67,7 @@
 
     <h2>8. Cookies et stockage local</h2>
     <p>Le site et l'application utilisent uniquement des <strong>cookies et un stockage local strictement nécessaires</strong> : maintien de votre session de connexion, protection contre les requêtes frauduleuses, mémorisation de vos préférences (par exemple le masquage de la bannière d'installation). Aucun cookie publicitaire ni de mesure d'audience tierce n'est utilisé.</p>
+    <p>Pour améliorer le site, PressLink compte lui-même, <strong>sans cookie</strong>, les pages vues et les clics sur les pages publiques : page consultée, site d'origine, type d'appareil. Votre adresse IP n'est pas conservée ; elle sert seulement, le jour même, à ne pas compter deux fois le même visiteur. Ces statistiques restent chez PressLink et sont supprimées après 12 mois.</p>
 
     <h2>9. Vos droits</h2>
     <p>Conformément à la loi n° 2013-450, vous disposez d'un droit d'<strong>accès</strong>, de <strong>rectification</strong>, d'<strong>opposition</strong> et de <strong>suppression</strong> de vos données. Vous pouvez modifier la plupart de vos informations directement depuis votre profil dans l'application.</p>

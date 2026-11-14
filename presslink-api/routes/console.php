@@ -26,6 +26,9 @@ Schedule::command('presslink:purge-sandboxes')->hourly();
 // Photos des commandes remises ou annulées depuis 30 jours : supprimées (espace disque).
 Schedule::command('presslink:purge-order-photos')->dailyAt('03:30');
 
+// Audience du site au-delà de 12 mois : supprimée (politique de confidentialité).
+Schedule::command('presslink:purge-audience')->dailyAt('03:45');
+
 // Paiements en ligne restés en cours au-delà de la durée d'une page de paiement : « Expiré ».
 Schedule::command('presslink:expire-payments')->hourly();
 

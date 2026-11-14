@@ -7,6 +7,9 @@
 
         <title>{{ $title ?? config('app.name') }}</title>
         <meta name="robots" content="noindex, nofollow">
+        @if (request()->routeIs('signup', 'sandbox.start'))
+            <meta name="presslink-audience" content="{{ route('audience.store') }}">
+        @endif
         <link rel="icon" href="{{ asset('favicon.ico') }}?v=3" sizes="any">
         <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=3">
         <link rel="icon" type="image/png" href="{{ asset('favicon-96.png') }}?v=3" sizes="96x96">

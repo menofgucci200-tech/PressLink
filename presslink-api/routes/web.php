@@ -16,6 +16,7 @@ use App\Http\Middleware\HandleSandboxPressing;
 use App\Livewire\Account\Settings as AccountSettings;
 use App\Livewire\Activity\Index as ActivityIndex;
 use App\Livewire\Admin\Administrators\Index as AdminAdministratorsIndex;
+use App\Livewire\Admin\Audience\Index as AdminAudienceIndex;
 use App\Livewire\Admin\Clients\Index as AdminClientsIndex;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Admin\Orders\Index as AdminOrdersIndex;
@@ -225,6 +226,7 @@ Route::middleware(['auth', HandleSandboxPressing::class])->group(function () {
         Route::get('/formules', AdminPlansIndex::class)->name('plans.index');
         Route::get('/demandes', AdminRequestsIndex::class)->name('requests.index');
         Route::get('/site', AdminSiteIndex::class)->name('site.index');
+        Route::get('/audience', AdminAudienceIndex::class)->name('audience.index');
         Route::get('/roles', AdminRolesIndex::class)->name('roles.index');
         Route::get('/services', AdminServicesIndex::class)->name('services.index');
         Route::get('/export/{type}', AdminExportController::class)->whereIn('type', ['pressings', 'orders', 'clients'])->name('export');

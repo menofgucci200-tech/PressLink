@@ -17,6 +17,7 @@
             <meta name="google-site-verification" content="{{ config('services.google.site_verification') }}">
         @endif
         <link rel="canonical" href="{{ $canonical }}">
+        <meta name="presslink-audience" content="{{ route('audience.store') }}">
 
         {{-- Google exige un favicon d'au moins 48 px (multiple de 48) pour l'afficher dans ses résultats --}}
         <link rel="icon" href="{{ asset('favicon.ico') }}?v=3" sizes="any">

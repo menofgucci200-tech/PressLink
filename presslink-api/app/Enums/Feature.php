@@ -18,6 +18,7 @@ enum Feature: string
     case Exports = 'exports';
     case Group = 'groupe';
     case Offline = 'hors_ligne';
+    case Delivery = 'ramassage_livraison';
 
     public function label(): string
     {
@@ -28,6 +29,7 @@ enum Feature: string
             self::Exports => 'Exports Excel et PDF',
             self::Group => 'Gestion de plusieurs pressings',
             self::Offline => 'Mode hors connexion',
+            self::Delivery => 'Ramassage et livraison',
         };
     }
 
@@ -40,6 +42,7 @@ enum Feature: string
             self::Exports => 'Vos commandes et paiements en Excel, CSV ou PDF.',
             self::Group => 'Commandes, caisse, clients, équipe et rapports de tous vos pressings, et tarifs harmonisés.',
             self::Offline => 'Sans Internet, continuez à créer commandes et clients, encaisser et remettre ; tout est envoyé au retour de la connexion.',
+            self::Delivery => 'Vos clients envoient leur commande depuis l\'appli : vous passez chercher le linge et le livrez quand il est prêt.',
         };
     }
 
@@ -70,8 +73,27 @@ enum Feature: string
             self::Cash, self::CustomRoles, self::ActivityLog => 2_000,
             self::Exports => 1_000,
             self::Group => 3_000,
-            self::Offline => null,
+            self::Offline, self::Delivery => null,
         };
+    }
+
+    /**
+     * Fonction lancée : visible sur le site et les pages d'abonnement, et
+     * proposée aux clients. Le ramassage et la livraison se préparent côté
+     * pressing avant d'être ouverts aux clients (config presslink.delivery).
+     */
+    public function isLaunched(): bool
+    {
+        return match ($this) {
+            self::Delivery => (bool) config('presslink.delivery.launched'),
+            default => true,
+        };
+    }
+
+    /** @return list<self> */
+    public static function launched(): array
+    {
+        return array_values(array_filter(self::cases(), fn (self $feature) => $feature->isLaunched()));
     }
 
     /** Fonction dont dépend un accès de rôle (null = ouvert à toutes les formules). */

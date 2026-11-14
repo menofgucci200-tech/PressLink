@@ -19,7 +19,7 @@
         $rows[] = ['label' => e($essential), 'html' => true, 'cells' => array_fill(0, $columns, $yes)];
     }
     $rows[] = ['section' => 'Selon la formule'];
-    foreach (\App\Enums\Feature::cases() as $feature) {
+    foreach (\App\Enums\Feature::launched() as $feature) {
         $label = '<span class="font-medium">'.e($feature->label()).'</span><span class="block text-xs text-(--color-text-secondary)">'.e($feature->description()).'</span>';
         if (collect($plans)->contains(fn ($item) => in_array($feature, $item['features'], true))) {
             $rows[] = ['label' => $label, 'html' => true, 'cells' => collect($plans)->map(fn ($item) => in_array($feature, $item['features'], true) ? $yes : $no)->all()];

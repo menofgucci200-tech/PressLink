@@ -50,6 +50,7 @@ use App\Livewire\Orders\Create as OrdersCreate;
 use App\Livewire\Orders\Index as OrdersIndex;
 use App\Livewire\Orders\QuickDeposit as OrdersQuickDeposit;
 use App\Livewire\Orders\Show as OrdersShow;
+use App\Livewire\Pressing\Delivery as PressingDelivery;
 use App\Livewire\Pressing\Settings as PressingSettings;
 use App\Livewire\Services\Index as ServicesIndex;
 use App\Livewire\Subscription\Checkout as SubscriptionCheckout;
@@ -198,6 +199,7 @@ Route::middleware(['auth', HandleSandboxPressing::class])->group(function () {
             Route::get('/equipe', TeamIndex::class)->name('team.index');
             Route::redirect('/profil-pressing', '/espace/parametres', 301);
             Route::get('/parametres', PressingSettings::class)->name('pressing.settings');
+            Route::get('/ramassage-livraison', PressingDelivery::class)->name('pressing.delivery');
             Route::get('/abonnement', SubscriptionShow::class)->name('subscription.show');
             Route::get('/abonnement/formules', SubscriptionPlans::class)->name('subscription.plans');
             Route::get('/abonnement/paiement/{subscriptionRequest}', SubscriptionCheckout::class)->name('subscription.checkout');

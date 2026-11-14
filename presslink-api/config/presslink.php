@@ -23,6 +23,15 @@ return [
     ],
 
     /*
+    | Ramassage et livraison : les pressings règlent le service dès maintenant ;
+    | il n'apparaît sur le site, les abonnements et l'appli client qu'une fois
+    | lancé (toute la chaîne commande → ramassage → livraison prête).
+    */
+    'delivery' => [
+        'launched' => (bool) env('DELIVERY_LAUNCHED', false),
+    ],
+
+    /*
     | Identité légale de l'éditeur, affichée dans les mentions légales, les CGU
     | et la politique de confidentialité. Les champs vides (null) ne sont pas
     | affichés : à compléter dans le .env dès que les informations sont connues.

@@ -31,7 +31,7 @@ trait RequestsSubscriptionChanges
     {
         $pressing = $this->subscriptionPressing();
         $feature = Feature::tryFrom($feature);
-        abort_if($feature === null, 422);
+        abort_if($feature === null || ! $feature->isLaunched(), 422);
 
         if ($pressing->subscription->hasAddon($feature) || $pressing->subscription->plan->includes($feature)) {
             return;

@@ -40,7 +40,7 @@ class Show extends Component
 
         return view('livewire.subscription.show', [
             'subscription' => $subscription,
-            'features' => Feature::cases(),
+            'features' => Feature::launched(),
             'plans' => SubscriptionPlan::cases(),
             'orderPacks' => SubscriptionRequest::orderPacks(),
             'pendingRequests' => $pressing->subscriptionRequests()->pending()->latest()->get(),

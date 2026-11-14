@@ -81,7 +81,7 @@
             <p class="text-(--color-text-secondary)">L'essentiel est dans toutes les offres. Ces fonctions s'ajoutent avec Business ou Premium, ou une à une en option. Pendant l'essai gratuit, tout est ouvert.</p>
         </div>
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4" data-motion="cascade">
-            @foreach (\App\Enums\Feature::cases() as $feature)
+            @foreach (\App\Enums\Feature::launched() as $feature)
                 <div class="rounded-2xl border border-(--color-border) bg-(--color-surface) p-5">
                     <div class="flex items-baseline justify-between gap-3 mb-1">
                         <h3 class="font-semibold">{{ $feature->label() }}</h3>

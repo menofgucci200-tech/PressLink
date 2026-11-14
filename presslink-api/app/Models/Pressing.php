@@ -41,9 +41,30 @@ class Pressing extends Model
         'status',
         'is_demo',
         'sandbox_expires_at',
+        'pickup_enabled',
+        'delivery_enabled',
+        'pickup_fee_fcfa',
+        'delivery_fee_fcfa',
+        'delivery_free_from_fcfa',
+        'delivery_slots',
+        'turnaround_hours',
+    ];
+
+    /** Réglages du ramassage : envoyés au client par deliveryServices(), une fois le service lancé. */
+    protected $hidden = [
+        'pickup_enabled',
+        'delivery_enabled',
+        'pickup_fee_fcfa',
+        'delivery_fee_fcfa',
+        'delivery_free_from_fcfa',
+        'delivery_slots',
+        'turnaround_hours',
     ];
 
     protected $appends = ['logo_url'];
+
+    /** Créneaux proposés tant que le pressing n'a pas réglé les siens. */
+    public const DEFAULT_DELIVERY_SLOTS = [['from' => '08:00', 'to' => '12:00'], ['from' => '14:00', 'to' => '18:00']];
 
     /** Filtre « commandes non soldées » (acompte ou rien payé). */
     public const UNSETTLED_FILTER = 'non_soldee';
@@ -59,6 +80,13 @@ class Pressing extends Model
             'status' => PressingStatus::class,
             'is_demo' => 'boolean',
             'sandbox_expires_at' => 'datetime',
+            'pickup_enabled' => 'boolean',
+            'delivery_enabled' => 'boolean',
+            'pickup_fee_fcfa' => 'integer',
+            'delivery_fee_fcfa' => 'integer',
+            'delivery_free_from_fcfa' => 'integer',
+            'delivery_slots' => 'array',
+            'turnaround_hours' => 'integer',
         ];
     }
 
@@ -510,6 +538,42 @@ class Pressing extends Model
     public function hasFeature(Feature $feature): bool
     {
         return $this->subscription?->hasFeature($feature) ?? true;
+    }
+
+    /** @return HasMany<PressingServiceArea, $this> */
+    public function serviceAreas(): HasMany
+    {
+        return $this->hasMany(PressingServiceArea::class);
+    }
+
+    /**
+     * Ramassage et livraison tels que le client les voit, ou null si le
+     * pressing ne propose ni l'un ni l'autre (service pas encore lancé, hors
+     * formule, désactivé ou sans commune desservie).
+     *
+     * @return array{pickup: bool, delivery: bool, pickup_fee_fcfa: int, delivery_fee_fcfa: int, delivery_free_from_fcfa: ?int, slots: list<array{from: string, to: string}>, turnaround_hours: ?int, communes: list<string>}|null
+     */
+    public function deliveryServices(): ?array
+    {
+        if (! Feature::Delivery->isLaunched() || ! $this->hasFeature(Feature::Delivery) || (! $this->pickup_enabled && ! $this->delivery_enabled)) {
+            return null;
+        }
+
+        $communes = $this->serviceAreas()->orderBy('commune')->pluck('commune')->all();
+        if ($communes === []) {
+            return null;
+        }
+
+        return [
+            'pickup' => $this->pickup_enabled,
+            'delivery' => $this->delivery_enabled,
+            'pickup_fee_fcfa' => $this->pickup_fee_fcfa,
+            'delivery_fee_fcfa' => $this->delivery_fee_fcfa,
+            'delivery_free_from_fcfa' => $this->delivery_free_from_fcfa,
+            'slots' => $this->delivery_slots ?: self::DEFAULT_DELIVERY_SLOTS,
+            'turnaround_hours' => $this->turnaround_hours,
+            'communes' => $communes,
+        ];
     }
 
     /** @return HasMany<SubscriptionRequest, $this> */

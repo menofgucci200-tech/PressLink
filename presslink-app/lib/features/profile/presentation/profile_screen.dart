@@ -14,6 +14,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/theme_mode_controller.dart';
 import '../../../core/widgets/presslink_top_bar.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../addresses/presentation/addresses_screen.dart';
 import '../../auth/presentation/logout_confirmation.dart';
 import '../../pressings/presentation/my_pressings_screen.dart';
 import '../../pressings/presentation/pressings_controller.dart';
@@ -163,6 +164,15 @@ class ProfileScreen extends ConsumerWidget {
                   if (ref.watch(pushNotificationServiceProvider).isAvailable)
                     const _NotificationToggleRow(),
                   if (customer?.email != null) const _EmailToggleRow(),
+                  if (AppConfig.deliveryEnabled)
+                    _ProfileRow(
+                      icon: Icons.location_on_outlined,
+                      label: 'Mes adresses',
+                      value: '',
+                      onTap: () => Navigator.of(context).push(
+                        AppPageRoute(builder: (_) => const AddressesScreen()),
+                      ),
+                    ),
                   _ProfileRow(
                     icon: Icons.store_outlined,
                     label: 'Mes pressings',

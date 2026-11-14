@@ -18,6 +18,16 @@
         </p>
     </div>
 
+    @if ($pressing->hasFeature(\App\Enums\Feature::Delivery))
+        <a href="{{ route('pressing.delivery') }}" wire:navigate class="mb-6 flex items-center justify-between gap-4 rounded-xl border border-(--color-border) bg-(--color-surface) p-5 hover:border-(--color-primary)" data-testid="delivery-settings-link">
+            <span>
+                <span class="block text-sm font-semibold">Ramassage et livraison</span>
+                <span class="block text-xs text-(--color-text-muted) mt-0.5">Communes desservies, frais, créneaux : vos clients vous envoient leur commande depuis l'appli.</span>
+            </span>
+            <span class="text-(--color-primary)" aria-hidden="true">→</span>
+        </a>
+    @endif
+
     <form novalidate wire:submit="save" class="flex flex-col gap-6">
         <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5" data-guide="logo">
             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted) mb-4">Logo du pressing</div>

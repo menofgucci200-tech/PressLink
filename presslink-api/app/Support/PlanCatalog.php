@@ -47,7 +47,7 @@ final class PlanCatalog
         $previous = null;
 
         foreach (SubscriptionPlan::cases() as $plan) {
-            $features = array_values(array_filter(Feature::cases(), fn (Feature $f) => $plan->includes($f)));
+            $features = array_values(array_filter(Feature::launched(), fn (Feature $f) => $plan->includes($f)));
             $monthly = $plan->monthlyPriceFcfa();
             $annual = $plan->annualPriceFcfa();
 
@@ -77,7 +77,7 @@ final class PlanCatalog
      */
     public static function gains(SubscriptionPlan $from, SubscriptionPlan $to): array
     {
-        $features = array_values(array_filter(Feature::cases(), fn (Feature $f) => $to->includes($f) && ! $from->includes($f)));
+        $features = array_values(array_filter(Feature::launched(), fn (Feature $f) => $to->includes($f) && ! $from->includes($f)));
 
         $orders = null;
         if ($from->ordersLimit() !== $to->ordersLimit()) {

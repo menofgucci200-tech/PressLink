@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\CustomerAddressController;
 use App\Http\Controllers\Api\V1\CustomerAuthController;
 use App\Http\Controllers\Api\V1\CustomerProfileController;
 use App\Http\Controllers\Api\V1\NotificationController;
@@ -67,5 +68,12 @@ Route::prefix('v1')->group(function () {
         Route::post('/customer/photo', [CustomerProfileController::class, 'updatePhoto']);
         Route::delete('/customer/photo', [CustomerProfileController::class, 'deletePhoto']);
         Route::put('/customer/onesignal-player-id', [CustomerProfileController::class, 'updateOnesignalPlayerId']);
+
+        // Adresses de ramassage et de livraison.
+        Route::get('/communes', [CustomerAddressController::class, 'communes']);
+        Route::get('/customer/addresses', [CustomerAddressController::class, 'index']);
+        Route::post('/customer/addresses', [CustomerAddressController::class, 'store'])->middleware('throttle:30,1');
+        Route::put('/customer/addresses/{address}', [CustomerAddressController::class, 'update'])->middleware('throttle:30,1');
+        Route::delete('/customer/addresses/{address}', [CustomerAddressController::class, 'destroy']);
     });
 });

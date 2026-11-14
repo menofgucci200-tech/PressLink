@@ -156,4 +156,10 @@ class Customer extends Authenticatable
     {
         return $this->onesignal_player_id;
     }
+
+    /** @return HasMany<CustomerAddress, $this> */
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(CustomerAddress::class);
+    }
 }

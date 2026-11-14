@@ -40,7 +40,7 @@ class SitePageController extends Controller
             'plans' => PlanCatalog::plans(),
             'trialDays' => PlanCatalog::trialDays(),
             'launchOffer' => PlanCatalog::launchOffer(),
-            'options' => collect(Feature::cases())->filter(fn ($f) => $f->priceFcfa() !== null)->values(),
+            'options' => collect(Feature::launched())->filter(fn ($f) => $f->priceFcfa() !== null)->values(),
         ]);
     }
 

@@ -26,6 +26,8 @@ class PressingController extends Controller
             $array['storage_fee_clause'] = $pressing->storageFeeClause();
             // Comment joindre le pressing (fiche du pressing, bas de chaque commande).
             $array['contact'] = $pressing->supportContact();
+            // Ramassage et livraison : absent si le pressing ne les propose pas.
+            $array['delivery_services'] = $pressing->deliveryServices();
 
             // Services et prix (Repassage, Nettoyage…) : seulement si le pressing les montre à ses clients.
             if ($pressing->show_pricing_to_customers) {

@@ -5,14 +5,12 @@ import '../../../core/config/app_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/app_page_route.dart';
-import '../../pressings/presentation/pressings_controller.dart';
 import '../domain/pickup_repository.dart';
-import 'new_pickup_request_screen.dart';
 import 'pickup_request_detail_screen.dart';
 import 'pickups_controller.dart';
 
-/// Accueil : « Faire ramasser mon linge » quand l'un des pressings du
-/// client le propose, et les demandes en cours.
+/// Accueil : les demandes de ramassage en cours. La demande elle-même se
+/// fait depuis le bouton « + » de la barre du bas.
 class PickupHomeSection extends ConsumerWidget {
   const PickupHomeSection({super.key});
 
@@ -20,77 +18,18 @@ class PickupHomeSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     if (!AppConfig.deliveryEnabled) return const SizedBox.shrink();
 
-    final offersPickup =
-        ref
-            .watch(myPressingsProvider)
-            .valueOrNull
-            ?.any((p) => p.offersPickup) ??
-        false;
     final open = (ref.watch(pickupRequestsProvider).valueOrNull ?? const [])
         .where((r) => r.status.isOpen)
         .toList();
-
-    if (!offersPickup && open.isEmpty) return const SizedBox.shrink();
+    if (open.isEmpty) return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (offersPickup)
-            Material(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: () => Navigator.of(context)
-                    .push(
-                      AppPageRoute(
-                        builder: (_) => const NewPickupRequestScreen(),
-                      ),
-                    )
-                    .then((_) => ref.invalidate(pickupRequestsProvider)),
-                child: const Padding(
-                  padding: EdgeInsets.all(AppSpacing.md),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.local_shipping_outlined,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                      SizedBox(width: AppSpacing.sm + 4),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Faire ramasser mon linge',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              'Votre pressing passe le chercher chez vous.',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(Icons.chevron_right, color: Colors.white),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          for (final request in open) ...[
-            const SizedBox(height: AppSpacing.sm),
+          for (final (i, request) in open.indexed) ...[
+            if (i > 0) const SizedBox(height: AppSpacing.sm),
             _OpenRequestCard(request: request),
           ],
         ],

@@ -9,14 +9,14 @@ import '../../features/home/presentation/home_screen.dart';
 import '../../features/notifications/presentation/notifications_controller.dart';
 import '../../features/orders/presentation/orders_controller.dart';
 import '../../features/orders/presentation/orders_list_screen.dart';
-import '../../features/pressings/presentation/join_pressing_screen.dart';
 import '../../features/support/presentation/support_screen.dart';
-import 'app_page_route.dart';
+import 'add_action_sheet.dart';
 import 'main_menu_fan.dart';
 import 'presslink_top_bar.dart';
 
 /// Coquille de navigation principale — barre « onglet découpé » à 5
-/// emplacements : Accueil · Commandes · + (rejoindre un pressing) · Support
+/// emplacements : Accueil · Commandes · + (ramassage, rejoindre un pressing)
+/// · Support
 /// · Menu (bulles en éventail). Les notifications restent sur la cloche de
 /// l'accueil.
 class MainShell extends ConsumerStatefulWidget {
@@ -123,9 +123,7 @@ class _MainShellState extends ConsumerState<MainShell>
           onTabSelected: _onTabSelected,
           onAdd: () {
             _closeMenu();
-            Navigator.of(
-              context,
-            ).push(AppPageRoute(builder: (_) => const JoinPressingScreen()));
+            openAddAction(context);
           },
           onMenu: () => _menuOpen ? _closeMenu() : _openMenu(),
         ),

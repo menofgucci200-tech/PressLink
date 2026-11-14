@@ -16,6 +16,7 @@ import '../../addresses/domain/address_repository.dart';
 import '../../addresses/presentation/address_form_screen.dart';
 import '../../addresses/presentation/addresses_controller.dart';
 import '../../pressings/domain/pressing_repository.dart';
+import '../../pressings/presentation/join_pressing_screen.dart';
 import '../../pressings/presentation/pressings_controller.dart';
 import '../domain/pickup_repository.dart';
 import 'pickup_request_detail_screen.dart';
@@ -175,10 +176,15 @@ class _NewPickupRequestScreenState
           data: (pressings) {
             final eligible = pressings.where((p) => p.offersPickup).toList();
             if (eligible.isEmpty) {
-              return const _EmptyMessage(
+              return _EmptyMessage(
                 icon: Icons.local_shipping_outlined,
-                text:
-                    'Aucun de vos pressings ne propose encore le ramassage à domicile.',
+                text: pressings.isEmpty
+                    ? 'Rejoignez d\'abord votre pressing : il pourra ensuite passer chercher votre linge chez vous.'
+                    : 'Aucun de vos pressings ne propose encore le ramassage à domicile. Parlez-en à votre pressing, ou rejoignez-en un qui le propose.',
+                actionLabel: 'Rejoindre un pressing',
+                onAction: () => Navigator.of(context).pushReplacement(
+                  AppPageRoute(builder: (_) => const JoinPressingScreen()),
+                ),
               );
             }
             final pressing = eligible.firstWhere(
@@ -611,10 +617,17 @@ class AddressOption extends StatelessWidget {
 }
 
 class _EmptyMessage extends StatelessWidget {
-  const _EmptyMessage({required this.icon, required this.text});
+  const _EmptyMessage({
+    required this.icon,
+    required this.text,
+    this.actionLabel,
+    this.onAction,
+  });
 
   final IconData icon;
   final String text;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -631,6 +644,10 @@ class _EmptyMessage extends StatelessWidget {
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              ElevatedButton(onPressed: onAction, child: Text(actionLabel!)),
+            ],
           ],
         ),
       ),

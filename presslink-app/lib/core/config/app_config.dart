@@ -40,9 +40,12 @@ class AppConfig {
   static const String termsUrl = 'https://presslink.org/conditions-generales';
   static const String privacyUrl = 'https://presslink.org/confidentialite';
 
-  /// Ramassage et livraison : écrans client masqués jusqu'au lancement du
-  /// service (`--dart-define=DELIVERY_ENABLED=true` pour les montrer).
-  static const bool deliveryEnabled = bool.fromEnvironment('DELIVERY_ENABLED');
+  /// Ramassage et livraison : lancé. `--dart-define=DELIVERY_ENABLED=false`
+  /// masque de nouveau les écrans client.
+  static const bool deliveryEnabled = bool.fromEnvironment(
+    'DELIVERY_ENABLED',
+    defaultValue: true,
+  );
 
   static bool get isDevelopment => environment == 'development';
   static bool get isStaging => environment == 'staging';

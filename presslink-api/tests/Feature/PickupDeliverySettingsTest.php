@@ -25,6 +25,17 @@ class PickupDeliverySettingsTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Le service est lancé par défaut ; ces tests partent de l'état masqué
+     * (DELIVERY_LAUNCHED=false, l'arrêt d'urgence) et le lancent eux-mêmes.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config(['presslink.delivery.launched' => false]);
+    }
+
     private function pressingOn(SubscriptionPlan $plan): Pressing
     {
         $pressing = Pressing::factory()->create();

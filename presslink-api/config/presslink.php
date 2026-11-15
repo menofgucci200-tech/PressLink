@@ -23,12 +23,11 @@ return [
     ],
 
     /*
-    | Ramassage et livraison : les pressings règlent le service dès maintenant ;
-    | il n'apparaît sur le site, les abonnements et l'appli client qu'une fois
-    | lancé (toute la chaîne commande → ramassage → livraison prête).
+    | Ramassage et livraison : lancé (site, abonnements, appli client, tournée).
+    | DELIVERY_LAUNCHED=false dans le .env le masque de nouveau en urgence.
     */
     'delivery' => [
-        'launched' => (bool) env('DELIVERY_LAUNCHED', false),
+        'launched' => (bool) env('DELIVERY_LAUNCHED', true),
     ],
 
     /*

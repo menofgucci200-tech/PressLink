@@ -47,12 +47,35 @@ enum SubscriptionPlan: string
         };
     }
 
-    /** @return array{monthly: ?int, annual: ?int, orders_limit: ?int, features: list<string>} */
+    /**
+     * Fonctions qui existaient avant que la page Formules n'enregistre la
+     * liste des fonctions connues (« known_features ») : celles enregistrées
+     * avant ce champ ont été choisies parmi celles-ci seulement.
+     */
+    private const FEATURES_KNOWN_BEFORE_TRACKING = ['caisse', 'roles', 'journal', 'exports', 'groupe', 'hors_ligne'];
+
+    /**
+     * Réglages en vigueur. Une fonction apparue après le dernier
+     * enregistrement de la page Formules suit les réglages d'origine : le
+     * Super Admin n'a jamais pu la décocher, elle ne doit pas manquer à une
+     * formule qui l'inclut (ex. le ramassage pour Business et Premium).
+     *
+     * @return array{monthly: ?int, annual: ?int, orders_limit: ?int, features: list<string>}
+     */
     public function settings(): array
     {
         $saved = Setting::read('plans', [])[$this->value] ?? [];
+        $settings = array_replace($this->defaults(), array_intersect_key($saved, $this->defaults()));
 
-        return array_replace($this->defaults(), array_intersect_key($saved, $this->defaults()));
+        if (isset($saved['features'])) {
+            $known = $saved['known_features'] ?? self::FEATURES_KNOWN_BEFORE_TRACKING;
+            $settings['features'] = array_values(array_unique([
+                ...$settings['features'],
+                ...array_diff($this->defaults()['features'], $known),
+            ]));
+        }
+
+        return $settings;
     }
 
     /** La formule inclut-elle cette fonction ? */

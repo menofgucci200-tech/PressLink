@@ -114,6 +114,8 @@ class Index extends Component
             'annual' => $number($this->plans[$plan->value]['annual']),
             'orders_limit' => $number($this->plans[$plan->value]['orders_limit']),
             'features' => array_values(array_intersect(array_column(Feature::cases(), 'value'), $this->plans[$plan->value]['features'] ?? [])),
+            // Fonctions proposées au moment de l'enregistrement : une fonction ajoutée plus tard suivra la formule par défaut.
+            'known_features' => array_column(Feature::cases(), 'value'),
         ]])->all());
         Setting::write('trial_days', (int) $this->trialDays);
         Setting::write('launch_offer', trim($this->launchOffer));

@@ -10,6 +10,7 @@ use App\Livewire\Subscription\Show as SubscriptionShow;
 use App\Models\Customer;
 use App\Models\Pressing;
 use App\Models\Subscription;
+use App\Models\SubscriptionRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -76,6 +77,27 @@ class PickupDeliverySettingsTest extends TestCase
             ->assertDontSee('Ramassage et livraison')
             ->call('requestOption', Feature::Delivery->value)
             ->assertStatus(422);
+    }
+
+    public function test_a_starter_pressing_buys_the_service_by_moving_to_business_without_a_manual_request(): void
+    {
+        $this->launch();
+        config([
+            'services.geniuspay.base_url' => 'https://geniuspay.test/api/v1/merchant',
+            'services.geniuspay.api_key' => 'pk_sandbox_test',
+            'services.geniuspay.api_secret' => 'sk_sandbox_test',
+        ]);
+        $pressing = $this->pressingOn(SubscriptionPlan::Starter);
+        $this->actingAs($this->ownerOf($pressing));
+
+        $component = Livewire::test(SubscriptionShow::class)
+            ->assertSee('Passer à Business')
+            ->call('requestOption', Feature::Delivery->value);
+
+        $request = $pressing->subscriptionRequests()->sole();
+        $this->assertSame(SubscriptionRequest::KIND_PLAN, $request->kind);
+        $this->assertSame(SubscriptionPlan::Business, $request->plan);
+        $component->assertRedirect(route('subscription.checkout', $request));
     }
 
     public function test_once_launched_the_service_shows_on_the_pricing_page(): void

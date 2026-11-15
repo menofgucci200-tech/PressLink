@@ -25,7 +25,7 @@
             $rows[] = ['label' => $label, 'html' => true, 'cells' => collect($plans)->map(fn ($item) => in_array($feature, $item['features'], true) ? $yes : $no)->all()];
         } else {
             // Dans aucune formule : proposée à part, jamais affichée comme absente.
-            $rows[] = ['label' => $label, 'span' => $feature->priceFcfa() !== null ? 'En option : '.\App\Support\PlanCatalog::fcfa($feature->priceFcfa()).' F / mois' : 'Sur demande'];
+            $rows[] = ['label' => $label, 'span' => $feature->priceFcfa() !== null ? 'En option : '.\App\Support\PlanCatalog::fcfa($feature->priceFcfa()).' F / mois' : 'Bientôt disponible'];
         }
     }
 @endphp

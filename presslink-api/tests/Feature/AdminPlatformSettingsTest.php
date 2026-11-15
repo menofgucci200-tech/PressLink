@@ -83,6 +83,33 @@ class AdminPlatformSettingsTest extends TestCase
         $this->assertSame(42, $custom->fresh()->orders_limit);
     }
 
+    public function test_a_feature_added_after_the_plans_were_saved_follows_the_default_plans(): void
+    {
+        // Formules enregistrées avant l'arrivée du ramassage (cas de la production).
+        Setting::write('plans', [
+            'starter' => ['monthly' => 20_000, 'annual' => 200_000, 'orders_limit' => 100, 'features' => []],
+            'business' => ['monthly' => 30_000, 'annual' => 300_000, 'orders_limit' => 200, 'features' => ['caisse', 'roles', 'journal', 'exports', 'hors_ligne']],
+            'premium' => ['monthly' => 50_000, 'annual' => 500_000, 'orders_limit' => 350, 'features' => ['caisse', 'roles', 'journal', 'exports', 'groupe', 'hors_ligne']],
+        ]);
+
+        $this->assertTrue(SubscriptionPlan::Premium->includes(Feature::Delivery));
+        $this->assertTrue(SubscriptionPlan::Business->includes(Feature::Delivery));
+        $this->assertFalse(SubscriptionPlan::Starter->includes(Feature::Delivery));
+        $premium = Pressing::factory()->create();
+        Subscription::factory()->for($premium)->active(SubscriptionPlan::Premium)->create();
+        $this->assertTrue($premium->fresh()->hasFeature(Feature::Delivery));
+
+        // Une fois la page Formules enregistrée avec la fonction proposée, le choix du Super Admin compte.
+        Livewire::actingAs($this->superAdmin())->test(AdminPlans::class)
+            ->assertSet('plans.business.features', ['caisse', 'roles', 'journal', 'exports', 'hors_ligne', 'ramassage_livraison'])
+            ->set('plans.business.features', ['caisse', 'roles', 'journal', 'exports', 'hors_ligne'])
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertFalse(SubscriptionPlan::Business->includes(Feature::Delivery));
+        $this->assertTrue(SubscriptionPlan::Premium->includes(Feature::Delivery));
+    }
+
     public function test_option_and_order_pack_prices_show_on_the_subscription_page(): void
     {
         Setting::write('option_prices', ['exports' => 7500]);

@@ -37,6 +37,15 @@ trait RequestsSubscriptionChanges
             return;
         }
 
+        // Option qui n'est pas vendue seule : on achète la formule qui l'inclut.
+        if ($feature->priceFcfa() === null) {
+            $plan = $feature->includedFrom();
+            abort_if($plan === null, 422);
+            $this->requestPlan($plan->value);
+
+            return;
+        }
+
         $this->sendRequest($pressing, SubscriptionRequest::KIND_OPTION, feature: $feature);
     }
 

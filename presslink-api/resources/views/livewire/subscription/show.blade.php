@@ -204,6 +204,17 @@
                                 </button>
                             @elseif ($pending)
                                 <span class="inline-flex items-center h-8 px-3 rounded-full bg-(--color-info-tint) text-(--color-info) text-xs font-semibold">Demande envoyée</span>
+                            @elseif ($feature->priceFcfa() === null && $feature->includedFrom())
+                                {{-- Pas vendue seule : achat direct de la formule qui l'inclut. --}}
+                                <div class="flex flex-col items-start sm:items-end gap-1">
+                                    <button type="button" wire:click="requestPlan('{{ $feature->includedFrom()->value }}')" wire:loading.attr="disabled"
+                                            class="inline-flex items-center h-9 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">
+                                        Passer à {{ $feature->includedFrom()->label() }}
+                                    </button>
+                                    <span class="text-[11px] text-(--color-text-muted)">
+                                        Incluse dans {{ $feature->includedFrom()->label() }}@if ($feature->includedFrom()->monthlyPriceFcfa() !== null) · {{ number_format($feature->includedFrom()->monthlyPriceFcfa(), 0, ',', ' ') }} F / mois @endif
+                                    </span>
+                                </div>
                             @else
                                 <div class="flex flex-col items-start sm:items-end gap-1">
                                     <button type="button" wire:click="requestOption('{{ $feature->value }}')" wire:loading.attr="disabled"

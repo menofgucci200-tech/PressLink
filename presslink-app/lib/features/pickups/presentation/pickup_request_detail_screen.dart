@@ -37,6 +37,8 @@ class _PickupRequestDetailScreenState
       title: 'Annuler la demande ?',
       message: request.status == PickupStatus.accepted
           ? '${request.pressingName} ne passera pas ${request.scheduleLabel}.'
+          : request.openToZone
+          ? 'Votre demande aux pressings de ${request.commune} sera retirée.'
           : 'Votre demande à ${request.pressingName} sera retirée.',
       confirmLabel: 'Annuler la demande',
       cancelLabel: 'Garder',
@@ -98,7 +100,9 @@ class _PickupRequestDetailScreenState
             _InfoLine(
               icon: Icons.store_outlined,
               label: 'Pressing',
-              value: request.pressingName,
+              value: request.openToZone
+                  ? 'Le premier disponible à ${request.commune}'
+                  : request.pressingName,
             ),
             _InfoLine(
               icon: Icons.schedule,
@@ -121,7 +125,9 @@ class _PickupRequestDetailScreenState
             _InfoLine(
               icon: Icons.payments_outlined,
               label: 'Frais de ramassage',
-              value: request.pickupFeeFcfa > 0
+              value: request.openToZone
+                  ? 'Ceux du pressing qui accepte'
+                  : request.pickupFeeFcfa > 0
                   ? '${formatFcfa(request.pickupFeeFcfa)} F, avec la commande'
                   : 'Gratuit',
               isLast: (request.note ?? '').isEmpty,
@@ -240,7 +246,9 @@ class PickupStatusBanner extends StatelessWidget {
         Icons.hourglass_top_rounded,
         AppColors.warningText,
         context.warningTint,
-        'Le pressing va confirmer votre créneau. Vous serez prévenu ici.',
+        request.openToZone
+            ? 'Votre demande est partie aux pressings de ${request.commune}. Le premier qui accepte viendra : vous serez prévenu ici.'
+            : 'Le pressing va confirmer votre créneau. Vous serez prévenu ici.',
       ),
       PickupStatus.accepted => (
         Icons.local_shipping_outlined,
@@ -268,7 +276,9 @@ class PickupStatusBanner extends StatelessWidget {
         Icons.timer_off_outlined,
         context.textMuted,
         context.primaryTint,
-        'Le pressing n\'a pas répondu à temps. Vous pouvez envoyer une nouvelle demande.',
+        request.openToZone
+            ? 'Aucun pressing de ${request.commune} n\'a pris la demande à temps. Vous pouvez en envoyer une nouvelle.'
+            : 'Le pressing n\'a pas répondu à temps. Vous pouvez envoyer une nouvelle demande.',
       ),
       PickupStatus.pickedUp => (
         Icons.check_circle_outline,

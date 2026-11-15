@@ -6,12 +6,14 @@ use App\Actions\Orders\CreateOrderAction;
 use App\Enums\ActivityAction;
 use App\Enums\Permission;
 use App\Enums\PickupRequestStatus;
+use App\Enums\PressingStatus;
 use App\Mail\PickupRequestAlert;
 use App\Models\ActivityLog;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\Order;
 use App\Models\PickupRequest;
+use App\Models\PickupRequestDismissal;
 use App\Models\PickupRequestPhoto;
 use App\Models\Pressing;
 use App\Models\User;
@@ -32,60 +34,124 @@ use Throwable;
 use function Illuminate\Support\defer;
 
 /**
- * Demandes de ramassage, mode « Mon pressing » : le client demande à l'un
- * de ses pressings de passer chercher son linge ; le pressing accepte (en
- * gardant ou en changeant le créneau) ou refuse. Sur place, le coursier
- * marque le linge ramassé (la demande devient un dépôt rapide) ou le client
- * absent. Les règles métier sont ici ; un refus de règle lève une
- * RuntimeException au message affichable.
+ * Demandes de ramassage. Le client n'a pas besoin d'être déjà client d'un
+ * pressing : il voit les pressings qui passent dans sa commune et en choisit
+ * un, ou laisse la demande ouverte à la zone, où le premier pressing qui
+ * l'accepte la prend (les autres peuvent la masquer). Le pressing accepte
+ * (en gardant ou en changeant le créneau) ou refuse ; le client devient
+ * alors l'un de ses clients. Sur place, le coursier marque le linge ramassé
+ * (la demande devient un dépôt rapide) ou le client absent. Les règles
+ * métier sont ici ; un refus de règle lève une RuntimeException au message
+ * affichable.
  */
 class PickupRequests
 {
     public function __construct(private CreateOrderAction $createOrder) {}
 
     /**
+     * Ce que le client peut choisir pour une adresse : les pressings qui
+     * passent dans sa commune (ses pressings d'abord) avec leurs frais et
+     * leurs créneaux, et la demande ouverte à la zone, sur l'ensemble de
+     * leurs créneaux.
+     *
+     * @return array{commune: string, pressings: list<array<string, mixed>>, zone: array{days: list<array<string, mixed>>, fee_min_fcfa: int, fee_max_fcfa: int}|null}
+     */
+    public function options(Customer $customer, CustomerAddress $address): array
+    {
+        $mine = $customer->pressings()->pluck('pressings.id')->all();
+
+        $pressings = Pressing::pickupProvidersIn($address->commune)
+            ->map(fn (Pressing $pressing) => [
+                'id' => $pressing->id,
+                'name' => $pressing->name,
+                'logo_url' => $pressing->logo_url,
+                'address' => $pressing->address,
+                'pickup_fee_fcfa' => $pressing->pickup_fee_fcfa,
+                'is_mine' => in_array($pressing->id, $mine, true),
+                'days' => $pressing->pickupAvailability(),
+            ])
+            ->reject(fn (array $option) => $option['days'] === [])
+            ->sortBy([['is_mine', 'desc'], ['name', 'asc']])
+            ->values();
+
+        $zone = null;
+        if ($pressings->isNotEmpty()) {
+            $days = $pressings->flatMap(fn (array $option) => $option['days'])
+                ->groupBy('date')
+                ->map(fn ($sameDay) => [
+                    'date' => $sameDay->first()['date'],
+                    'label' => $sameDay->first()['label'],
+                    'slots' => $sameDay->flatMap(fn (array $day) => $day['slots'])
+                        ->unique(fn (array $slot) => "{$slot['from']}-{$slot['to']}")
+                        ->sortBy(fn (array $slot) => "{$slot['from']}-{$slot['to']}")
+                        ->values()->all(),
+                ])
+                ->sortKeys()->values()->all();
+
+            $zone = [
+                'days' => $days,
+                'fee_min_fcfa' => (int) $pressings->min('pickup_fee_fcfa'),
+                'fee_max_fcfa' => (int) $pressings->max('pickup_fee_fcfa'),
+            ];
+        }
+
+        return ['commune' => $address->commune, 'pressings' => $pressings->all(), 'zone' => $zone];
+    }
+
+    /**
+     * Envoie la demande au pressing choisi, ou à toute la zone si $pressing est null.
+     *
      * @param  array{pickup_date: string, slot_from: string, slot_to: string, items_estimate?: ?int, note?: ?string}  $data
      */
-    public function create(Customer $customer, Pressing $pressing, CustomerAddress $address, array $data): PickupRequest
+    public function create(Customer $customer, ?Pressing $pressing, CustomerAddress $address, array $data): PickupRequest
     {
-        if (! $customer->pressings()->whereKey($pressing->id)->exists()) {
-            throw new RuntimeException('Ajoutez d\'abord ce pressing à vos pressings.');
-        }
-
-        $services = $pressing->deliveryServices();
-        if ($services === null || ! $services['pickup']) {
-            throw new RuntimeException("{$pressing->name} ne propose pas le ramassage.");
-        }
-
         if ($address->customer_id !== $customer->id) {
             throw new RuntimeException('Adresse introuvable.');
         }
 
-        if (! in_array($address->commune, $services['communes'], true)) {
-            throw new RuntimeException("{$pressing->name} ne passe pas à {$address->commune}.");
+        if ($pressing !== null) {
+            $services = $pressing->deliveryServices();
+            if ($services === null || ! $services['pickup'] || $pressing->status !== PressingStatus::Active) {
+                throw new RuntimeException("{$pressing->name} ne propose pas le ramassage.");
+            }
+            if (! $pressing->picksUpIn($address->commune)) {
+                throw new RuntimeException("{$pressing->name} ne passe pas à {$address->commune}.");
+            }
+            $candidates = collect([$pressing]);
+        } else {
+            $candidates = Pressing::pickupProvidersIn($address->commune);
+            if ($candidates->isEmpty()) {
+                throw new RuntimeException("Aucun pressing ne passe encore à {$address->commune}.");
+            }
         }
 
-        $day = collect($pressing->pickupAvailability())->firstWhere('date', $data['pickup_date']);
-        $slotIsOffered = $day !== null && collect($day['slots'])
-            ->contains(fn (array $slot) => $slot['from'] === $data['slot_from'] && $slot['to'] === $data['slot_to']);
+        $slotIsOffered = $candidates->contains(function (Pressing $candidate) use ($data) {
+            $day = collect($candidate->pickupAvailability())->firstWhere('date', $data['pickup_date']);
+
+            return $day !== null && collect($day['slots'])
+                ->contains(fn (array $slot) => $slot['from'] === $data['slot_from'] && $slot['to'] === $data['slot_to']);
+        });
         if (! $slotIsOffered) {
             throw new RuntimeException('Ce créneau n\'est plus disponible. Choisissez-en un autre.');
         }
 
-        return DB::transaction(function () use ($customer, $pressing, $address, $data, $services) {
+        $request = DB::transaction(function () use ($customer, $pressing, $address, $data) {
             // Verrou sur le client : deux envois simultanés ne contournent pas les limites.
             Customer::whereKey($customer->id)->lockForUpdate()->first();
 
             $open = PickupRequest::where('customer_id', $customer->id)->open();
-            if ((clone $open)->where('pressing_id', $pressing->id)->exists()) {
+            if ($pressing !== null && (clone $open)->where('pressing_id', $pressing->id)->exists()) {
                 throw new RuntimeException("Vous avez déjà une demande en cours chez {$pressing->name}.");
+            }
+            if ($pressing === null && (clone $open)->whereNull('pressing_id')->exists()) {
+                throw new RuntimeException('Vous avez déjà une demande en attente d\'un pressing de votre zone.');
             }
             if ($open->count() >= PickupRequest::MAX_OPEN_PER_CUSTOMER) {
                 throw new RuntimeException('Vous avez déjà '.PickupRequest::MAX_OPEN_PER_CUSTOMER.' demandes de ramassage en cours.');
             }
 
-            $request = PickupRequest::create([
-                'pressing_id' => $pressing->id,
+            return PickupRequest::create([
+                'pressing_id' => $pressing?->id,
                 'customer_id' => $customer->id,
                 'status' => PickupRequestStatus::Pending,
                 'address_label' => $address->label,
@@ -97,16 +163,21 @@ class PickupRequests
                 'slot_to' => $data['slot_to'],
                 'items_estimate' => $data['items_estimate'] ?? null,
                 'note' => filled($data['note'] ?? null) ? trim($data['note']) : null,
-                'pickup_fee_fcfa' => $services['pickup_fee_fcfa'],
+                // Ouverte à la zone : les frais sont ceux du pressing qui l'accepte.
+                'pickup_fee_fcfa' => $pressing?->pickup_fee_fcfa ?? 0,
             ]);
+        });
 
+        if ($pressing !== null) {
             ActivityLog::record($pressing->id, ActivityAction::PickupRequested,
                 "Demande de ramassage de {$customer->fullName()} pour {$request->scheduleLabel()} ({$request->place()})", null, ['pickup_request_id' => $request->id]);
+        }
 
-            $this->alertAdmins($request);
+        foreach ($candidates as $candidate) {
+            $this->alertAdmins($request, recipient: $candidate);
+        }
 
-            return $request;
-        });
+        return $request;
     }
 
     public function addPhoto(PickupRequest $request, UploadedFile $file): PickupRequestPhoto
@@ -125,7 +196,7 @@ class PickupRequests
             throw new RuntimeException('Cette image n\'a pas pu être lue. Reprenez la photo.');
         }
 
-        $base = PickupRequestPhoto::directoryFor($request->pressing_id, $request->id).'/'.Str::random(40);
+        $base = PickupRequestPhoto::directoryFor($request->pressing_id ?? PickupRequestPhoto::ZONE_DIRECTORY, $request->id).'/'.Str::random(40);
         Storage::disk(PickupRequestPhoto::DISK)->put("{$base}.webp", $full);
         Storage::disk(PickupRequestPhoto::DISK)->put("{$base}-mini.webp", $thumb);
 
@@ -141,6 +212,10 @@ class PickupRequests
         $wasAccepted = $request->status === PickupRequestStatus::Accepted;
         $this->close($request, PickupRequestStatus::Cancelled);
 
+        if ($request->pressing_id === null) {
+            return;
+        }
+
         ActivityLog::record($request->pressing_id, ActivityAction::PickupCancelled,
             "Ramassage de {$request->customer->fullName()} ({$request->scheduleLabel()}) annulé par le client", null, ['pickup_request_id' => $request->id]);
 
@@ -151,23 +226,40 @@ class PickupRequests
     }
 
     /**
-     * Accepte la demande, sur le créneau du client ou sur un autre (« reprogrammer »).
-     * Sert aussi à reprogrammer un ramassage déjà prévu.
+     * Le pressing accepte la demande, sur le créneau du client ou sur un autre
+     * (« reprogrammer »). Une demande ouverte à la zone revient au premier
+     * pressing qui l'accepte. Sert aussi à reprogrammer un ramassage déjà prévu.
      */
-    public function accept(PickupRequest $request, User $user, ?string $date = null, ?string $slotFrom = null, ?string $slotTo = null): void
+    public function accept(PickupRequest $request, User $user, Pressing $pressing, ?string $date = null, ?string $slotFrom = null, ?string $slotTo = null): void
     {
-        DB::transaction(fn () => $this->acceptLocked($this->lockOpen($request), $user, $date, $slotFrom, $slotTo));
+        DB::transaction(fn () => $this->acceptLocked($this->lockOpen($request), $user, $pressing, $date, $slotFrom, $slotTo));
         $request->refresh();
     }
 
-    private function acceptLocked(PickupRequest $locked, User $user, ?string $date, ?string $slotFrom, ?string $slotTo): void
+    private function acceptLocked(PickupRequest $locked, User $user, Pressing $pressing, ?string $date, ?string $slotFrom, ?string $slotTo): void
     {
+        $takenFromZone = $locked->isOpenToZone();
+        if ($takenFromZone) {
+            if (! $pressing->picksUpIn($locked->commune)) {
+                throw new RuntimeException("Votre pressing ne passe pas à {$locked->commune}.");
+            }
+            $locked->forceFill(['pressing_id' => $pressing->id, 'pickup_fee_fcfa' => $pressing->pickup_fee_fcfa]);
+            $locked->setRelation('pressing', $pressing);
+        } elseif ($locked->pressing_id !== $pressing->id) {
+            throw new RuntimeException('Un autre pressing a déjà pris cette demande.');
+        }
+
         $moved = ($date !== null && $date !== $locked->pickup_date->toDateString())
             || ($slotFrom !== null && $slotFrom !== $locked->slot_from)
             || ($slotTo !== null && $slotTo !== $locked->slot_to);
 
         if ($locked->status === PickupRequestStatus::Accepted && ! $moved) {
             return;
+        }
+
+        // Le client devient l'un des clients du pressing (ses commandes, « Mes pressings »).
+        if (! $locked->customer->pressings()->whereKey($pressing->id)->exists()) {
+            $locked->customer->pressings()->attach($pressing->id, ['joined_at' => now()]);
         }
 
         $locked->update([
@@ -180,8 +272,13 @@ class PickupRequests
             'responded_at' => now(),
         ]);
 
+        $what = match (true) {
+            $takenFromZone => 'Ramassage pris dans la zone',
+            $moved => 'Ramassage reprogrammé',
+            default => 'Ramassage accepté',
+        };
         ActivityLog::record($locked->pressing_id, ActivityAction::PickupAccepted,
-            ($moved ? 'Ramassage reprogrammé' : 'Ramassage accepté')." pour {$locked->customer->fullName()} : {$locked->scheduleLabel()}", null, ['pickup_request_id' => $locked->id]);
+            "{$what} pour {$locked->customer->fullName()} : {$locked->scheduleLabel()}", null, ['pickup_request_id' => $locked->id]);
 
         $locked->customer->notify(new PickupAcceptedNotification($locked));
     }
@@ -194,6 +291,10 @@ class PickupRequests
 
     private function refuseLocked(PickupRequest $locked, User $user, string $reason): void
     {
+        if ($locked->isOpenToZone()) {
+            throw new RuntimeException('Cette demande est ouverte à toute la zone : masquez-la avec « Pas pour nous ».');
+        }
+
         if ($locked->status !== PickupRequestStatus::Pending) {
             throw new RuntimeException('Ce ramassage est déjà prévu : reprogrammez-le, ou appelez le client.');
         }
@@ -205,6 +306,16 @@ class PickupRequests
             "Ramassage refusé pour {$locked->customer->fullName()} : {$locked->refusal_reason}", null, ['pickup_request_id' => $locked->id]);
 
         $locked->customer->notify(new PickupRefusedNotification($locked));
+    }
+
+    /** « Pas pour nous » : le pressing masque chez lui une demande ouverte à sa zone. */
+    public function dismiss(PickupRequest $request, Pressing $pressing): void
+    {
+        if (! $request->isOpenToZone() || $request->status !== PickupRequestStatus::Pending) {
+            throw new RuntimeException('Cette demande n\'est plus ouverte à la zone.');
+        }
+
+        PickupRequestDismissal::firstOrCreate(['pickup_request_id' => $request->id, 'pressing_id' => $pressing->id]);
     }
 
     /**
@@ -267,7 +378,7 @@ class PickupRequests
 
     private function ensureRunsRounds(PickupRequest $request, User $user): void
     {
-        if (! $user->is_super_admin && ! $user->may(Permission::DeliveriesRun, $request->pressing)) {
+        if ($request->pressing === null || (! $user->is_super_admin && ! $user->may(Permission::DeliveriesRun, $request->pressing))) {
             throw new RuntimeException('Votre rôle ne permet pas de faire la tournée.');
         }
     }
@@ -328,10 +439,10 @@ class PickupRequests
      * E-mail aux administrateurs actifs, envoyé après la réponse et sans
      * file d'attente : un échec SMTP est journalisé, jamais bloquant.
      */
-    private function alertAdmins(PickupRequest $request, bool $cancelled = false): void
+    private function alertAdmins(PickupRequest $request, bool $cancelled = false, ?Pressing $recipient = null): void
     {
-        $pressing = $request->pressing;
-        if ($pressing->isSandbox()) {
+        $pressing = $recipient ?? $request->pressing;
+        if ($pressing === null || $pressing->isSandbox()) {
             return;
         }
 
@@ -340,9 +451,9 @@ class PickupRequests
             return;
         }
 
-        defer(function () use ($request, $emails, $cancelled): void {
+        defer(function () use ($request, $emails, $cancelled, $pressing): void {
             try {
-                Mail::to($emails)->send(new PickupRequestAlert($request, $cancelled));
+                Mail::to($emails)->send(new PickupRequestAlert($request, $cancelled, $pressing));
             } catch (Throwable $e) {
                 Log::warning('Alerte e-mail de ramassage non envoyée', ['pickup_request_id' => $request->id, 'error' => $e->getMessage()]);
             }

@@ -40,8 +40,11 @@ class PickupRequestPhoto extends Model
         return $this->belongsTo(PickupRequest::class);
     }
 
+    /** Dossier des photos d'une demande encore ouverte à la zone (sans pressing). */
+    public const ZONE_DIRECTORY = 'zone';
+
     /** Dossier des photos de ramassage d'un pressing (supprimé avec ses données). */
-    public static function directoryFor(int $pressingId, ?int $requestId = null): string
+    public static function directoryFor(int|string $pressingId, ?int $requestId = null): string
     {
         return 'pickup-photos/'.$pressingId.($requestId === null ? '' : '/'.$requestId);
     }

@@ -15,19 +15,18 @@ import '../../../shared/models/order_summary.dart';
 import '../../addresses/domain/address_repository.dart';
 import '../../addresses/presentation/address_form_screen.dart';
 import '../../addresses/presentation/addresses_controller.dart';
-import '../../pressings/domain/pressing_repository.dart';
-import '../../pressings/presentation/join_pressing_screen.dart';
-import '../../pressings/presentation/pressings_controller.dart';
 import '../domain/pickup_repository.dart';
 import 'pickup_request_detail_screen.dart';
 import 'pickups_controller.dart';
 
-/// Faire ramasser mon linge : le client choisit son pressing, l'adresse,
-/// le jour et le créneau ; photos et message sont facultatifs.
+/// Faire ramasser mon linge : le client choisit l'adresse, puis l'un des
+/// pressings qui passent dans sa commune, ou laisse la demande au premier
+/// pressing disponible de la zone. Il n'a pas besoin d'être déjà client d'un
+/// pressing. Photos et message sont facultatifs.
 class NewPickupRequestScreen extends ConsumerStatefulWidget {
   const NewPickupRequestScreen({super.key, this.pressingId});
 
-  /// Pressing choisi d'avance (depuis sa fiche).
+  /// Pressing choisi d'avance (depuis sa fiche), s'il passe à l'adresse.
   final int? pressingId;
 
   @override
@@ -46,8 +45,10 @@ class _NewPickupRequestScreenState
     extends ConsumerState<NewPickupRequestScreen> {
   static const _maxItems = 200;
 
-  late int? _pressingId = widget.pressingId;
   int? _addressId;
+
+  /// Pressing choisi ; null = le premier pressing disponible de la zone.
+  late int? _pressingId = widget.pressingId;
   String? _date;
   PickupSlot? _slot;
   int _items = 0;
@@ -98,13 +99,28 @@ class _NewPickupRequestScreenState
     }
   }
 
-  Future<void> _submit(PressingModel pressing) async {
-    final missing = <String>[
-      if (_addressId == null) 'l\'adresse',
-      if (_date == null || _slot == null) 'le jour et le créneau',
-    ];
-    if (missing.isNotEmpty) {
-      setState(() => _error = 'Choisissez ${missing.join(' et ')}.');
+  void _selectAddress(int addressId) {
+    if (addressId == _addressId) return;
+    setState(() {
+      _addressId = addressId;
+      _date = null;
+      _slot = null;
+      _error = null;
+    });
+  }
+
+  void _selectPressing(int? pressingId) {
+    setState(() {
+      _pressingId = pressingId;
+      _date = null;
+      _slot = null;
+      _error = null;
+    });
+  }
+
+  Future<void> _submit(PickupOptions options, PickupOption? pressing) async {
+    if (_date == null || _slot == null) {
+      setState(() => _error = 'Choisissez le jour et le créneau.');
       return;
     }
 
@@ -116,7 +132,7 @@ class _NewPickupRequestScreenState
     PickupRequest request;
     try {
       request = await repository.create(
-        pressingId: pressing.id,
+        pressingId: pressing?.id,
         addressId: _addressId!,
         date: _date!,
         slot: _slot!,
@@ -129,8 +145,8 @@ class _NewPickupRequestScreenState
         _sending = false;
         _error = apiErrorMessage(error);
       });
-      // Le créneau a pu être pris entre-temps : la liste est rafraîchie.
-      ref.invalidate(pickupAvailabilityProvider(pressing.id));
+      // Le créneau a pu passer entre-temps : la liste est rafraîchie.
+      ref.invalidate(pickupOptionsProvider(_addressId!));
       return;
     }
 
@@ -148,9 +164,11 @@ class _NewPickupRequestScreenState
     ref.invalidate(pickupRequestsProvider);
     showAppToast(
       context,
-      failedPhotos == 0
-          ? 'Demande envoyée à ${pressing.name}.'
-          : 'Demande envoyée, mais $failedPhotos photo(s) n\'ont pas pu être jointes.',
+      failedPhotos > 0
+          ? 'Demande envoyée, mais $failedPhotos photo(s) n\'ont pas pu être jointes.'
+          : pressing == null
+          ? 'Demande envoyée aux pressings de ${options.commune}.'
+          : 'Demande envoyée à ${pressing.name}.',
       type: failedPhotos == 0 ? AppToastType.success : AppToastType.warning,
     );
     Navigator.of(context).pushReplacement(
@@ -162,356 +180,514 @@ class _NewPickupRequestScreenState
 
   @override
   Widget build(BuildContext context) {
-    final pressingsAsync = ref.watch(myPressingsProvider);
-
     return Scaffold(
       appBar: const PressLinkTopBar(title: 'Faire ramasser mon linge'),
       body: SafeArea(
-        child: pressingsAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => ErrorStateView(
-            message: apiErrorMessage(e),
-            onRetry: () => ref.invalidate(myPressingsProvider),
-          ),
-          data: (pressings) {
-            final eligible = pressings.where((p) => p.offersPickup).toList();
-            if (eligible.isEmpty) {
-              return _EmptyMessage(
-                icon: Icons.local_shipping_outlined,
-                text: pressings.isEmpty
-                    ? 'Rejoignez d\'abord votre pressing : il pourra ensuite passer chercher votre linge chez vous.'
-                    : 'Aucun de vos pressings ne propose encore le ramassage à domicile. Parlez-en à votre pressing, ou rejoignez-en un qui le propose.',
-                actionLabel: 'Rejoindre un pressing',
-                onAction: () => Navigator.of(context).pushReplacement(
-                  AppPageRoute(builder: (_) => const JoinPressingScreen()),
-                ),
-              );
-            }
-            final pressing = eligible.firstWhere(
-              (p) => p.id == _pressingId,
-              orElse: () => eligible.first,
-            );
-            return _buildForm(context, eligible, pressing);
-          },
-        ),
+        child: ref
+            .watch(addressesControllerProvider)
+            .when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => ErrorStateView(
+                message: apiErrorMessage(e),
+                onRetry: () => ref.invalidate(addressesControllerProvider),
+              ),
+              data: (addresses) {
+                if (addresses.isEmpty) {
+                  return _EmptyMessage(
+                    icon: Icons.location_on_outlined,
+                    text:
+                        'Ajoutez l\'adresse où passer chercher votre linge : nous vous montrerons les pressings qui passent chez vous.',
+                    actionLabel: 'Ajouter une adresse',
+                    onAction: () => Navigator.of(context).push(
+                      AppPageRoute(builder: (_) => const AddressFormScreen()),
+                    ),
+                  );
+                }
+                // Par défaut : l'adresse par défaut du client.
+                final addressId = addresses.any((a) => a.id == _addressId)
+                    ? _addressId!
+                    : addresses
+                          .firstWhere(
+                            (a) => a.isDefault,
+                            orElse: () => addresses.first,
+                          )
+                          .id;
+                if (addressId != _addressId) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted && _addressId != addressId) {
+                      setState(() => _addressId = addressId);
+                    }
+                  });
+                }
+                return _buildForm(context, addresses, addressId);
+              },
+            ),
       ),
     );
   }
 
   Widget _buildForm(
     BuildContext context,
-    List<PressingModel> eligible,
-    PressingModel pressing,
+    List<CustomerAddress> addresses,
+    int addressId,
   ) {
     final theme = Theme.of(context);
-    final services = pressing.deliveryServices!;
-    final addressesAsync = ref.watch(addressesControllerProvider);
-    final daysAsync = ref.watch(pickupAvailabilityProvider(pressing.id));
+    final optionsAsync = ref.watch(pickupOptionsProvider(addressId));
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       children: [
-        // ===== Pressing =====
-        if (eligible.length > 1) ...[
-          const FormSectionTitle('PRESSING'),
+        // ===== Adresse =====
+        const FormSectionTitle('OÙ PASSER ?'),
+        for (final address in addresses) ...[
+          AddressOption(
+            address: address,
+            served: true,
+            selected: address.id == addressId,
+            onTap: () => _selectAddress(address.id),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
+        if (addresses.length < AddressRepository.maxAddresses)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => Navigator.of(
+                context,
+              ).push(AppPageRoute(builder: (_) => const AddressFormScreen())),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Ajouter une adresse'),
+            ),
+          ),
+
+        ...optionsAsync.when(
+          loading: () => const [
+            SizedBox(height: AppSpacing.lg),
+            LinearProgressIndicator(),
+          ],
+          error: (e, _) => [
+            const SizedBox(height: AppSpacing.md),
+            TextButton.icon(
+              onPressed: () => ref.invalidate(pickupOptionsProvider(addressId)),
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Charger les pressings'),
+            ),
+          ],
+          data: (options) => _buildChoices(context, theme, options),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildChoices(
+    BuildContext context,
+    ThemeData theme,
+    PickupOptions options,
+  ) {
+    if (options.pressings.isEmpty) {
+      return [
+        const SizedBox(height: AppSpacing.lg),
+        _NoPressingHere(commune: options.commune),
+      ];
+    }
+
+    // Un pressing choisi qui ne passe pas à cette adresse : retour à la zone.
+    final pressing = options.pressings
+        .where((p) => p.id == _pressingId)
+        .firstOrNull;
+    final days = pressing?.days ?? options.zoneDays;
+    final day = days.where((d) => d.date == _date).firstOrNull;
+    final zoneFee = options.zoneFeeMinFcfa == options.zoneFeeMaxFcfa
+        ? (options.zoneFeeMinFcfa > 0
+              ? '${formatFcfa(options.zoneFeeMinFcfa)} F'
+              : 'gratuit')
+        : 'de ${formatFcfa(options.zoneFeeMinFcfa)} à ${formatFcfa(options.zoneFeeMaxFcfa)} F selon le pressing';
+    final count = options.pressings.length;
+
+    return [
+      // ===== Pressing =====
+      const FormSectionTitle('QUEL PRESSING ?'),
+      _ChoiceCard(
+        selected: pressing == null,
+        onTap: () => _selectPressing(null),
+        leading: const CircleAvatar(
+          backgroundColor: AppColors.primary,
+          child: Icon(Icons.bolt_rounded, color: Colors.white),
+        ),
+        title: 'Le premier pressing disponible',
+        subtitle:
+            '$count pressing${count > 1 ? 's passent' : ' passe'} à ${options.commune}. '
+            'Le premier qui accepte vient chercher votre linge. Frais : $zoneFee.',
+      ),
+      for (final option in options.pressings) ...[
+        const SizedBox(height: AppSpacing.sm),
+        _ChoiceCard(
+          selected: option.id == pressing?.id,
+          onTap: () => _selectPressing(option.id),
+          leading: _PressingAvatar(option: option),
+          title: option.name,
+          badge: option.isMine ? 'Mon pressing' : null,
+          subtitle: [
+            if ((option.address ?? '').isNotEmpty) option.address!,
+            option.feeFcfa > 0
+                ? 'Frais : ${formatFcfa(option.feeFcfa)} F'
+                : 'Ramassage gratuit',
+          ].join(' · '),
+        ),
+      ],
+
+      // ===== Jour et créneau =====
+      const FormSectionTitle('QUAND ?'),
+      if (days.isEmpty)
+        Text(
+          'Aucun créneau disponible pour le moment.',
+          style: theme.textTheme.bodyMedium,
+        )
+      else ...[
+        SizedBox(
+          height: 40,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: days.length,
+            separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
+            itemBuilder: (_, i) => ChoiceChip(
+              label: Text(days[i].label),
+              selected: days[i].date == _date,
+              onSelected: (_) => setState(() {
+                _date = days[i].date;
+                if (!days[i].slots.contains(_slot)) {
+                  _slot = days[i].slots.length == 1
+                      ? days[i].slots.first
+                      : null;
+                }
+              }),
+            ),
+          ),
+        ),
+        if (day != null) ...[
+          const SizedBox(height: AppSpacing.sm + 4),
           Wrap(
             spacing: AppSpacing.sm,
             runSpacing: AppSpacing.sm,
             children: [
-              for (final p in eligible)
+              for (final slot in day.slots)
                 ChoiceChip(
-                  label: Text(p.name),
-                  selected: p.id == pressing.id,
-                  onSelected: (_) => setState(() {
-                    _pressingId = p.id;
-                    _addressId = null;
-                    _date = null;
-                    _slot = null;
-                  }),
+                  avatar: const Icon(Icons.schedule, size: 16),
+                  label: Text(slot.label),
+                  selected: slot == _slot,
+                  onSelected: (_) => setState(() => _slot = slot),
                 ),
             ],
           ),
-        ] else
-          Text(
-            'Votre demande part chez ${pressing.name}.',
-            style: theme.textTheme.bodyMedium,
-          ),
+        ],
+      ],
 
-        // ===== Adresse =====
-        const FormSectionTitle('OÙ PASSER ?'),
-        addressesAsync.when(
-          loading: () => const LinearProgressIndicator(),
-          error: (e, _) => TextButton.icon(
-            onPressed: () => ref.invalidate(addressesControllerProvider),
-            icon: const Icon(Icons.refresh, size: 18),
-            label: const Text('Charger mes adresses'),
+      // ===== Linge =====
+      const FormSectionTitle('VOTRE LINGE (FACULTATIF)'),
+      Row(
+        children: [
+          const Expanded(
+            child: Text(
+              'Nombre de pièces (environ)',
+              style: TextStyle(fontSize: 14),
+            ),
           ),
-          data: (addresses) {
-            final served = addresses
-                .where((a) => services.communes.contains(a.commune))
-                .toList();
-            // Par défaut : l'adresse par défaut si elle est desservie.
-            if (_addressId == null && served.isNotEmpty) {
-              final preferred = served.firstWhere(
-                (a) => a.isDefault,
-                orElse: () => served.first,
-              );
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted && _addressId == null) {
-                  setState(() => _addressId = preferred.id);
-                }
-              });
-            }
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                for (final address in addresses) ...[
-                  AddressOption(
-                    address: address,
-                    served: services.communes.contains(address.commune),
-                    selected: address.id == _addressId,
-                    onTap: () => setState(() => _addressId = address.id),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                ],
-                if (addresses.length < AddressRepository.maxAddresses)
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton.icon(
-                      onPressed: () => Navigator.of(context).push(
-                        AppPageRoute(builder: (_) => const AddressFormScreen()),
-                      ),
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Ajouter une adresse'),
-                    ),
-                  ),
-                if (served.isEmpty)
-                  Text(
-                    '${pressing.name} passe à : ${services.communes.join(', ')}.',
-                    style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12.5),
-                  ),
-              ],
-            );
-          },
-        ),
-
-        // ===== Jour et créneau =====
-        const FormSectionTitle('QUAND ?'),
-        daysAsync.when(
-          loading: () => const LinearProgressIndicator(),
-          error: (e, _) => TextButton.icon(
-            onPressed: () =>
-                ref.invalidate(pickupAvailabilityProvider(pressing.id)),
-            icon: const Icon(Icons.refresh, size: 18),
-            label: const Text('Charger les créneaux'),
+          IconButton.outlined(
+            onPressed: _items > 0 ? () => setState(() => _items--) : null,
+            icon: const Icon(Icons.remove, size: 18),
+            tooltip: 'Moins',
           ),
-          data: (days) {
-            if (days.isEmpty) {
-              return Text(
-                'Aucun créneau disponible pour le moment.',
-                style: theme.textTheme.bodyMedium,
-              );
-            }
-            final day = days.where((d) => d.date == _date).firstOrNull;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          SizedBox(
+            width: 44,
+            child: Text(
+              _items > 0 ? '$_items' : '—',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+          ),
+          IconButton.outlined(
+            onPressed: _items < _maxItems
+                ? () => setState(() => _items++)
+                : null,
+            icon: const Icon(Icons.add, size: 18),
+            tooltip: 'Plus',
+          ),
+        ],
+      ),
+      const SizedBox(height: AppSpacing.md),
+      Wrap(
+        spacing: AppSpacing.sm,
+        runSpacing: AppSpacing.sm,
+        children: [
+          for (var i = 0; i < _photos.length; i++)
+            Stack(
+              clipBehavior: Clip.none,
               children: [
-                SizedBox(
-                  height: 40,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: days.length,
-                    separatorBuilder: (_, _) =>
-                        const SizedBox(width: AppSpacing.sm),
-                    itemBuilder: (_, i) => ChoiceChip(
-                      label: Text(days[i].label),
-                      selected: days[i].date == _date,
-                      onSelected: (_) => setState(() {
-                        _date = days[i].date;
-                        if (!days[i].slots.contains(_slot)) {
-                          _slot = days[i].slots.length == 1
-                              ? days[i].slots.first
-                              : null;
-                        }
-                      }),
-                    ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  child: Image.memory(
+                    _photos[i].bytes,
+                    width: 72,
+                    height: 72,
+                    fit: BoxFit.cover,
                   ),
                 ),
-                if (day != null) ...[
-                  const SizedBox(height: AppSpacing.sm + 4),
-                  Wrap(
-                    spacing: AppSpacing.sm,
-                    runSpacing: AppSpacing.sm,
-                    children: [
-                      for (final slot in day.slots)
-                        ChoiceChip(
-                          avatar: const Icon(Icons.schedule, size: 16),
-                          label: Text(slot.label),
-                          selected: slot == _slot,
-                          onSelected: (_) => setState(() => _slot = slot),
-                        ),
-                    ],
+                Positioned(
+                  top: -8,
+                  right: -8,
+                  child: IconButton.filledTonal(
+                    visualDensity: VisualDensity.compact,
+                    iconSize: 16,
+                    onPressed: () => setState(() => _photos.removeAt(i)),
+                    icon: const Icon(Icons.close),
+                    tooltip: 'Retirer la photo',
                   ),
-                ],
+                ),
               ],
-            );
-          },
-        ),
-
-        // ===== Linge =====
-        const FormSectionTitle('VOTRE LINGE (FACULTATIF)'),
+            ),
+        ],
+      ),
+      if (_photos.length < PickupRepository.maxPhotos) ...[
+        if (_photos.isNotEmpty) const SizedBox(height: AppSpacing.sm),
         Row(
           children: [
-            const Expanded(
-              child: Text(
-                'Nombre de pièces (environ)',
-                style: TextStyle(fontSize: 14),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _pickPhotos(ImageSource.camera),
+                icon: const Icon(Icons.photo_camera_outlined, size: 18),
+                label: const Text('Photo'),
               ),
             ),
-            IconButton.outlined(
-              onPressed: _items > 0 ? () => setState(() => _items--) : null,
-              icon: const Icon(Icons.remove, size: 18),
-              tooltip: 'Moins',
-            ),
-            SizedBox(
-              width: 44,
-              child: Text(
-                _items > 0 ? '$_items' : '—',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _pickPhotos(ImageSource.gallery),
+                icon: const Icon(Icons.photo_library_outlined, size: 18),
+                label: const Text('Galerie'),
               ),
-            ),
-            IconButton.outlined(
-              onPressed: _items < _maxItems
-                  ? () => setState(() => _items++)
-                  : null,
-              icon: const Icon(Icons.add, size: 18),
-              tooltip: 'Plus',
             ),
           ],
         ),
-        const SizedBox(height: AppSpacing.md),
-        Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
-          children: [
-            for (var i = 0; i < _photos.length; i++)
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    child: Image.memory(
-                      _photos[i].bytes,
-                      width: 72,
-                      height: 72,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Positioned(
-                    top: -8,
-                    right: -8,
-                    child: IconButton.filledTonal(
-                      visualDensity: VisualDensity.compact,
-                      iconSize: 16,
-                      onPressed: () => setState(() => _photos.removeAt(i)),
-                      icon: const Icon(Icons.close),
-                      tooltip: 'Retirer la photo',
-                    ),
-                  ),
-                ],
-              ),
-          ],
+      ],
+      const SizedBox(height: AppSpacing.md),
+      Text(
+        'Message pour le pressing',
+        style: theme.textTheme.bodyMedium?.copyWith(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
         ),
-        if (_photos.length < PickupRepository.maxPhotos) ...[
-          if (_photos.isNotEmpty) const SizedBox(height: AppSpacing.sm),
-          Row(
+      ),
+      const SizedBox(height: 6),
+      TextField(
+        controller: _noteController,
+        minLines: 3,
+        maxLines: 5,
+        maxLength: 500,
+        textCapitalization: TextCapitalization.sentences,
+        decoration: const InputDecoration(
+          hintText: 'ex. Sonnez au portail vert, 2 costumes à nettoyer',
+          contentPadding: EdgeInsets.all(AppSpacing.md),
+        ),
+      ),
+
+      // ===== Récapitulatif =====
+      const SizedBox(height: AppSpacing.sm),
+      Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: context.primaryTint,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        child: Text(
+          pressing == null
+              ? 'Votre demande part aux pressings de ${options.commune}. Frais de ramassage : $zoneFee, à régler avec votre commande. Vous saurez quel pressing vient dès qu\'il accepte.'
+              : pressing.feeFcfa > 0
+              ? 'Frais de ramassage : ${formatFcfa(pressing.feeFcfa)} F, à régler avec votre commande.'
+              : 'Ramassage gratuit.',
+          style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
+        ),
+      ),
+      if (_error != null) ...[
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          _error!,
+          style: TextStyle(color: theme.colorScheme.error, fontSize: 13),
+        ),
+      ],
+      const SizedBox(height: AppSpacing.md),
+      SizedBox(
+        width: double.infinity,
+        height: 52,
+        child: ElevatedButton(
+          onPressed: _sending ? null : () => _submit(options, pressing),
+          child: _sending
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Envoyer la demande'),
+        ),
+      ),
+      const SizedBox(height: AppSpacing.md),
+    ];
+  }
+}
+
+/// Aucun pressing ne passe encore à cette commune.
+class _NoPressingHere extends StatelessWidget {
+  const _NoPressingHere({required this.commune});
+
+  final String commune;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: context.primaryTint,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.local_shipping_outlined, color: context.textMuted),
+          const SizedBox(width: AppSpacing.sm + 4),
+          Expanded(
+            child: Text(
+              'Aucun pressing ne passe encore à $commune. Choisissez une autre adresse, ou réessayez bientôt : de nouveaux pressings rejoignent PressLink.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Carte à choisir : un pressing, ou « le premier pressing disponible ».
+class _ChoiceCard extends StatelessWidget {
+  const _ChoiceCard({
+    required this.selected,
+    required this.onTap,
+    required this.leading,
+    required this.title,
+    required this.subtitle,
+    this.badge,
+  });
+
+  final bool selected;
+  final VoidCallback onTap;
+  final Widget leading;
+  final String title;
+  final String subtitle;
+  final String? badge;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: selected ? context.primaryTint : theme.cardTheme.color,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(
+          color: selected ? AppColors.primary : theme.dividerTheme.color!,
+          width: selected ? 1.5 : 1,
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.sm + 4),
+          child: Row(
             children: [
+              leading,
+              const SizedBox(width: AppSpacing.sm + 4),
               Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _pickPhotos(ImageSource.camera),
-                  icon: const Icon(Icons.photo_camera_outlined, size: 18),
-                  label: const Text('Photo'),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        if (badge != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 1,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              badge!,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontSize: 12.5,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _pickPhotos(ImageSource.gallery),
-                  icon: const Icon(Icons.photo_library_outlined, size: 18),
-                  label: const Text('Galerie'),
-                ),
+              Icon(
+                selected ? Icons.radio_button_checked : Icons.radio_button_off,
+                size: 20,
+                color: selected ? AppColors.primary : context.textMuted,
               ),
             ],
           ),
-        ],
-        const SizedBox(height: AppSpacing.md),
-        Text(
-          'Message pour le pressing',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
         ),
-        const SizedBox(height: 6),
-        TextField(
-          controller: _noteController,
-          minLines: 3,
-          maxLines: 5,
-          maxLength: 500,
-          textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(
-            hintText: 'ex. Sonnez au portail vert, 2 costumes à nettoyer',
-            contentPadding: EdgeInsets.all(AppSpacing.md),
-          ),
-        ),
+      ),
+    );
+  }
+}
 
-        // ===== Récapitulatif =====
-        const SizedBox(height: AppSpacing.sm),
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: context.primaryTint,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-          ),
-          child: Text(
-            services.pickupFeeFcfa > 0
-                ? 'Frais de ramassage : ${formatFcfa(services.pickupFeeFcfa)} F, à régler avec votre commande.'
-                : 'Ramassage gratuit.',
-            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
-          ),
+class _PressingAvatar extends StatelessWidget {
+  const _PressingAvatar({required this.option});
+
+  final PickupOption option;
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = option.name.isEmpty ? '?' : option.name[0].toUpperCase();
+    return CircleAvatar(
+      backgroundColor: context.primaryTint,
+      foregroundImage: option.logoUrl != null
+          ? NetworkImage(option.logoUrl!)
+          : null,
+      child: Text(
+        initial,
+        style: const TextStyle(
+          fontWeight: FontWeight.w700,
+          color: AppColors.primary,
         ),
-        if (_error != null) ...[
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            _error!,
-            style: TextStyle(color: theme.colorScheme.error, fontSize: 13),
-          ),
-        ],
-        const SizedBox(height: AppSpacing.md),
-        SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: ElevatedButton(
-            onPressed: _sending ? null : () => _submit(pressing),
-            child: _sending
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Text('Envoyer la demande'),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-      ],
+      ),
     );
   }
 }

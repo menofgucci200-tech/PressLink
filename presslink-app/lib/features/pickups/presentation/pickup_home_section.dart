@@ -81,7 +81,9 @@ class _OpenRequestCard extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${request.statusLabel} · ${request.pressingName}',
+                      request.openToZone
+                          ? 'En attente d\'un pressing de ${request.commune}'
+                          : '${request.statusLabel} · ${request.pressingName}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(

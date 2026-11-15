@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Database\Factories\PressingFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -580,6 +581,42 @@ class Pressing extends Model
             'turnaround_hours' => $this->turnaround_hours,
             'communes' => $communes,
         ];
+    }
+
+    /**
+     * Pressings qui passent chercher le linge dans cette commune, pour les
+     * clients de tout PressLink (pas seulement leurs clients) : actifs, hors
+     * démo et pressings de test, avec le ramassage dans leur formule.
+     *
+     * @return Collection<int, self>
+     */
+    public static function pickupProvidersIn(string $commune): Collection
+    {
+        if (! Feature::Delivery->isLaunched()) {
+            return new Collection;
+        }
+
+        return self::query()
+            ->where('status', PressingStatus::Active->value)
+            ->withoutDemo()
+            ->withoutSandboxes()
+            ->where('pickup_enabled', true)
+            ->whereHas('serviceAreas', fn (Builder $areas) => $areas->where('commune', $commune))
+            ->with('subscription')
+            ->orderBy('name')
+            ->get()
+            ->filter(fn (self $pressing) => $pressing->deliveryServices()['pickup'] ?? false)
+            ->values();
+    }
+
+    /** Ce pressing peut-il passer chercher du linge dans cette commune ? */
+    public function picksUpIn(string $commune): bool
+    {
+        $services = $this->deliveryServices();
+
+        return $this->status === PressingStatus::Active
+            && $services !== null && $services['pickup']
+            && in_array($commune, $services['communes'], true);
     }
 
     /**

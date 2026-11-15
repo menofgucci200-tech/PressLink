@@ -25,8 +25,8 @@ use Tests\TestCase;
 
 /**
  * Ramassage et livraison, lot 2 (côté appli client) : le client demande à
- * l'un de ses pressings de passer chercher son linge, joint des photos,
- * suit et annule sa demande.
+ * un pressing de passer chercher son linge, joint des photos, suit et annule
+ * sa demande. Le mode zone est dans PickupZoneTest.
  */
 class PickupRequestApiTest extends TestCase
 {
@@ -107,14 +107,15 @@ class PickupRequestApiTest extends TestCase
         $this->assertSame([['from' => '14:00', 'to' => '18:00']], $days[0]['slots']);
     }
 
-    public function test_only_the_customers_own_pressings_are_offered(): void
+    public function test_any_pressing_of_the_commune_can_be_chosen_without_being_its_customer_yet(): void
     {
-        $other = Pressing::factory()->create();
+        $this->pressing->customers()->detach($this->customer);
+        $this->postJson('/api/v1/pickup-requests', $this->payload())->assertCreated();
 
-        $this->getJson("/api/v1/pressings/{$other->id}/pickup-availability")->assertNotFound();
-        $this->postJson('/api/v1/pickup-requests', $this->payload(['pressing_id' => $other->id]))
+        $withoutPickup = Pressing::factory()->create(['name' => 'Pressing Lavoir']);
+        $this->postJson('/api/v1/pickup-requests', $this->payload(['pressing_id' => $withoutPickup->id]))
             ->assertUnprocessable()
-            ->assertJsonPath('message', 'Ajoutez d\'abord ce pressing à vos pressings.');
+            ->assertJsonPath('message', 'Pressing Lavoir ne propose pas le ramassage.');
     }
 
     public function test_the_customer_sends_a_request_and_the_pressing_admins_are_alerted(): void

@@ -18,7 +18,7 @@
 <div class="max-w-3xl">
     <div class="mb-6">
         <h1 class="font-display text-2xl font-bold mb-1">Ramassages</h1>
-        <p class="text-sm text-(--color-text-muted)">Vos clients vous demandent depuis l'appli PressLink de passer chercher leur linge. Acceptez sur leur créneau ou proposez-en un autre : ils sont prévenus tout de suite.</p>
+        <p class="text-sm text-(--color-text-muted)">Les clients de l'appli PressLink qui habitent vos communes vous demandent de passer chercher leur linge, ou cherchent le premier pressing disponible. Acceptez sur leur créneau ou proposez-en un autre : ils sont prévenus tout de suite.</p>
     </div>
 
     @if (! $launched || ! $pickupEnabled)
@@ -45,7 +45,7 @@
         <div class="bg-(--color-surface) border border-(--color-border) rounded-xl">
             @if ($tab === 'pending')
                 <x-empty-state icon="check" tone="success" title="Aucune demande à traiter">
-                    Quand un client vous demande de passer chercher son linge, la demande arrive ici et dans le menu. Vous recevez aussi un e-mail.
+                    Quand un client de vos communes vous demande de passer chercher son linge, ou cherche le premier pressing disponible, la demande arrive ici et dans le menu. Vous recevez aussi un e-mail.
                 </x-empty-state>
             @elseif ($tab === 'accepted')
                 <x-empty-state icon="box" title="Aucun ramassage prévu">
@@ -65,17 +65,30 @@
             @foreach ($requests as $request)
                 @php
                     $customer = $request->customer;
+                    // Ouverte à la zone : nom complet, téléphone et repère seulement après acceptation.
+                    $openToZone = $request->isOpenToZone();
                     $isActing = $actingId === $request->id;
                     $overdue = $request->status->isOpen() && $request->slotEndsAt()->isPast();
                 @endphp
                 <li wire:key="pickup-{{ $request->id }}" class="bg-(--color-surface) border border-(--color-border) rounded-xl p-4 sm:p-5" data-testid="pickup-request">
                     <div class="flex flex-wrap items-start justify-between gap-2">
                         <div class="min-w-0">
-                            <div class="font-semibold">{{ $customer->fullName() }}</div>
-                            <a href="tel:{{ $customer->phone }}" class="text-sm text-(--color-primary) hover:underline tabular-nums">{{ \App\Support\PhoneNumber::format($customer->phone) }}</a>
+                            @if ($openToZone)
+                                <div class="font-semibold">{{ $customer->first_name }}</div>
+                                <div class="text-xs text-(--color-text-muted)">Nom et téléphone visibles une fois la demande acceptée</div>
+                            @else
+                                <div class="font-semibold">{{ $customer->fullName() }}</div>
+                                <a href="tel:{{ $customer->phone }}" class="text-sm text-(--color-primary) hover:underline tabular-nums">{{ \App\Support\PhoneNumber::format($customer->phone) }}</a>
+                            @endif
                         </div>
                         <span class="flex-none inline-flex items-center h-6 px-2 rounded-full text-xs font-semibold {{ $statusTone[$request->status->value] }}">{{ $request->status->staffLabel() }}</span>
                     </div>
+
+                    @if ($openToZone)
+                        <p class="mt-3 rounded-lg bg-(--color-primary-tint) px-3 py-2 text-sm text-(--color-primary)" data-testid="zone-request">
+                            <span class="font-semibold">Ouverte aux pressings de {{ $request->commune }}</span> : le premier qui accepte la prend.
+                        </p>
+                    @endif
 
                     <div class="mt-3 grid gap-2 sm:grid-cols-2 text-sm">
                         <div>
@@ -88,7 +101,9 @@
                         <div>
                             <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-text-muted)">Où · {{ $request->address_label }}</div>
                             <div class="font-medium">{{ $request->place() }}</div>
-                            <div class="text-(--color-text-secondary)">{{ $request->landmark }}</div>
+                            @unless ($openToZone)
+                                <div class="text-(--color-text-secondary)">{{ $request->landmark }}</div>
+                            @endunless
                         </div>
                     </div>
 
@@ -96,7 +111,8 @@
                         @if ($request->items_estimate)
                             <span>Environ {{ $request->items_estimate }} pièce{{ $request->items_estimate > 1 ? 's' : '' }}</span>
                         @endif
-                        <span>Frais de ramassage : {{ $request->pickup_fee_fcfa > 0 ? number_format($request->pickup_fee_fcfa, 0, ',', ' ').' F' : 'gratuit' }}</span>
+                        @php $fee = $openToZone ? $pressing->pickup_fee_fcfa : $request->pickup_fee_fcfa; @endphp
+                        <span>Frais de ramassage{{ $openToZone ? ' (les vôtres)' : '' }} : {{ $fee > 0 ? number_format($fee, 0, ',', ' ').' F' : 'gratuit' }}</span>
                         <span>Reçue {{ $request->created_at->locale('fr')->diffForHumans() }}</span>
                     </div>
 
@@ -181,7 +197,11 @@
                             </div>
                         @elseif ($request->status->value === 'pending')
                             <div class="mt-4 grid grid-cols-2 sm:flex gap-2">
-                                <button type="button" wire:click="startRefuse({{ $request->id }})" class="h-10 px-4 rounded-lg border border-(--color-border) text-sm font-medium text-(--color-text-secondary) hover:bg-(--color-bg)">Refuser</button>
+                                @if ($openToZone)
+                                    <button type="button" wire:click="dismiss({{ $request->id }})" class="h-10 px-4 rounded-lg border border-(--color-border) text-sm font-medium text-(--color-text-secondary) hover:bg-(--color-bg)" data-testid="dismiss">Pas pour nous</button>
+                                @else
+                                    <button type="button" wire:click="startRefuse({{ $request->id }})" class="h-10 px-4 rounded-lg border border-(--color-border) text-sm font-medium text-(--color-text-secondary) hover:bg-(--color-bg)">Refuser</button>
+                                @endif
                                 <button type="button" wire:click="startAccept({{ $request->id }})" class="h-10 px-4 rounded-lg bg-(--color-primary) text-white text-sm font-semibold hover:bg-(--color-primary-600)">Accepter</button>
                             </div>
                         @else

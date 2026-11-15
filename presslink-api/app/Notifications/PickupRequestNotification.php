@@ -44,7 +44,7 @@ abstract class PickupRequestNotification extends Notification implements ShouldQ
             'title' => $this->title(),
             'body' => $this->body(),
             'pickup_request_id' => $this->pickupRequest->id,
-            'pressing_name' => $this->pickupRequest->pressing->name,
+            'pressing_name' => $this->pickupRequest->pressing?->name,
         ];
     }
 

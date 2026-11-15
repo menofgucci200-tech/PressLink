@@ -88,14 +88,83 @@ class PickupPhoto {
   );
 }
 
-/// Demande de ramassage envoyée à l'un des pressings du client.
+/// Pressing qui passe à l'adresse choisie, avec ses frais et ses créneaux.
+class PickupOption {
+  const PickupOption({
+    required this.id,
+    required this.name,
+    required this.feeFcfa,
+    required this.isMine,
+    required this.days,
+    this.logoUrl,
+    this.address,
+  });
+
+  final int id;
+  final String name;
+  final String? logoUrl;
+  final String? address;
+  final int feeFcfa;
+
+  /// Déjà l'un des pressings du client.
+  final bool isMine;
+  final List<PickupDay> days;
+
+  factory PickupOption.fromJson(Map<String, dynamic> json) => PickupOption(
+    id: json['id'] as int,
+    name: json['name'] as String,
+    logoUrl: json['logo_url'] as String?,
+    address: json['address'] as String?,
+    feeFcfa: json['pickup_fee_fcfa'] as int? ?? 0,
+    isMine: json['is_mine'] as bool? ?? false,
+    days: (json['days'] as List<dynamic>? ?? [])
+        .map((e) => PickupDay.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
+}
+
+/// Ce que le client peut choisir pour une adresse : les pressings de sa
+/// commune, ou la demande ouverte à la zone (le premier qui accepte).
+class PickupOptions {
+  const PickupOptions({
+    required this.commune,
+    required this.pressings,
+    required this.zoneDays,
+    required this.zoneFeeMinFcfa,
+    required this.zoneFeeMaxFcfa,
+  });
+
+  final String commune;
+  final List<PickupOption> pressings;
+  final List<PickupDay> zoneDays;
+  final int zoneFeeMinFcfa;
+  final int zoneFeeMaxFcfa;
+
+  factory PickupOptions.fromJson(Map<String, dynamic> json) {
+    final zone = json['zone'] as Map<String, dynamic>?;
+    return PickupOptions(
+      commune: json['commune'] as String? ?? '',
+      pressings: (json['pressings'] as List<dynamic>? ?? [])
+          .map((e) => PickupOption.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      zoneDays: (zone?['days'] as List<dynamic>? ?? [])
+          .map((e) => PickupDay.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      zoneFeeMinFcfa: zone?['fee_min_fcfa'] as int? ?? 0,
+      zoneFeeMaxFcfa: zone?['fee_max_fcfa'] as int? ?? 0,
+    );
+  }
+}
+
+/// Demande de ramassage, envoyée à un pressing ou ouverte à la zone
+/// ([openToZone] : aucun pressing ne l'a encore prise).
 class PickupRequest {
   const PickupRequest({
     required this.id,
     required this.status,
     required this.statusLabel,
-    required this.pressingId,
     required this.pressingName,
+    required this.openToZone,
     required this.addressLabel,
     required this.commune,
     required this.landmark,
@@ -112,13 +181,17 @@ class PickupRequest {
     this.refusalReason,
     this.photos = const [],
     this.orderId,
+    this.pressingId,
   });
 
   final int id;
   final PickupStatus status;
   final String statusLabel;
-  final int pressingId;
+  final int? pressingId;
+
+  /// Le pressing, ou « Pressings de Cocody » tant qu'aucun ne l'a prise.
   final String pressingName;
+  final bool openToZone;
   final String? pressingPhone;
   final String addressLabel;
   final String commune;
@@ -144,15 +217,18 @@ class PickupRequest {
       [commune, if ((neighborhood ?? '').isNotEmpty) neighborhood!].join(', ');
 
   factory PickupRequest.fromJson(Map<String, dynamic> json) {
-    final pressing = json['pressing'] as Map<String, dynamic>;
+    final pressing = json['pressing'] as Map<String, dynamic>?;
     final address = json['address'] as Map<String, dynamic>;
     return PickupRequest(
       id: json['id'] as int,
       status: PickupStatus.fromValue(json['status'] as String?),
       statusLabel: json['status_label'] as String? ?? '',
-      pressingId: pressing['id'] as int,
-      pressingName: pressing['name'] as String,
-      pressingPhone: pressing['phone'] as String?,
+      openToZone: json['open_to_zone'] as bool? ?? pressing == null,
+      pressingId: pressing?['id'] as int?,
+      pressingName:
+          pressing?['name'] as String? ??
+          'Pressings de ${address['commune'] ?? 'votre zone'}',
+      pressingPhone: pressing?['phone'] as String?,
       addressLabel: address['label'] as String? ?? '',
       commune: address['commune'] as String? ?? '',
       neighborhood: address['neighborhood'] as String?,
@@ -174,7 +250,7 @@ class PickupRequest {
   }
 }
 
-/// Demandes de ramassage (mode « Mon pressing »).
+/// Demandes de ramassage : à un pressing de la commune, ou à toute la zone.
 class PickupRepository {
   PickupRepository(this._apiClient);
 
@@ -192,6 +268,15 @@ class PickupRepository {
         .toList();
   }
 
+  /// Pressings qui passent à cette adresse, et la demande ouverte à la zone.
+  Future<PickupOptions> options(int addressId) async {
+    final response = await _apiClient.dio.get(
+      '/pickup-options',
+      queryParameters: {'address_id': addressId},
+    );
+    return PickupOptions.fromJson(response.data as Map<String, dynamic>);
+  }
+
   Future<List<PickupRequest>> list() async {
     final body = await _apiClient.getKeepingCopy('/pickup-requests');
     return (body as List)
@@ -204,8 +289,9 @@ class PickupRepository {
     return PickupRequest.fromJson(response.data as Map<String, dynamic>);
   }
 
+  /// Sans [pressingId], la demande part à tous les pressings de la commune.
   Future<PickupRequest> create({
-    required int pressingId,
+    required int? pressingId,
     required int addressId,
     required String date,
     required PickupSlot slot,

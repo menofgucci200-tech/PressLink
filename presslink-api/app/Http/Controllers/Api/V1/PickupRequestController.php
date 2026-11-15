@@ -14,18 +14,26 @@ use Illuminate\Http\Request;
 use RuntimeException;
 
 /**
- * Demandes de ramassage du client (mode « Mon pressing ») : créneaux
- * proposés, envoi, photos du linge, suivi et annulation.
+ * Demandes de ramassage du client : pressings qui passent à son adresse,
+ * créneaux, envoi à un pressing ou à toute la zone, photos du linge, suivi
+ * et annulation. Le client n'a pas besoin d'être déjà client d'un pressing.
  */
 class PickupRequestController extends Controller
 {
     public function __construct(private PickupRequests $pickups) {}
 
-    /** Jours et créneaux proposés par l'un des pressings du client. */
-    public function availability(Request $request, Pressing $pressing): JsonResponse
+    /** Pressings qui passent à l'adresse choisie, et la demande ouverte à la zone. */
+    public function options(Request $request): JsonResponse
     {
-        abort_unless($request->user()->pressings()->whereKey($pressing->id)->exists(), 404);
+        $address = CustomerAddress::where('customer_id', $request->user()->id)->find($request->integer('address_id'));
+        abort_if($address === null, 404);
 
+        return response()->json($this->pickups->options($request->user(), $address));
+    }
+
+    /** Jours et créneaux de ramassage d'un pressing. */
+    public function availability(Pressing $pressing): JsonResponse
+    {
         return response()->json(['days' => $pressing->pickupAvailability()]);
     }
 
@@ -50,9 +58,10 @@ class PickupRequestController extends Controller
     public function store(StorePickupRequestRequest $request): JsonResponse
     {
         $customer = $request->user();
-        $pressing = Pressing::find($request->integer('pressing_id'));
+        // Sans pressing choisi, la demande part à toute la zone.
+        $pressing = $request->filled('pressing_id') ? Pressing::find($request->integer('pressing_id')) : null;
         $address = CustomerAddress::where('customer_id', $customer->id)->find($request->integer('address_id'));
-        abort_if($pressing === null || $address === null, 404);
+        abort_if(($request->filled('pressing_id') && $pressing === null) || $address === null, 404);
 
         try {
             $pickupRequest = $this->pickups->create($customer, $pressing, $address, $request->validated());

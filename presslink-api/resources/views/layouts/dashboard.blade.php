@@ -73,7 +73,7 @@
                 : 0;
 
             $pendingPickupsCount = $showsPickups
-                ? $pressing->pickupRequests()->where('status', \App\Enums\PickupRequestStatus::Pending->value)->count()
+                ? \App\Models\PickupRequest::visibleTo($pressing)->where('status', \App\Enums\PickupRequestStatus::Pending->value)->count()
                 : 0;
 
             // Tournée : passages prévus aujourd'hui (et ceux en retard).

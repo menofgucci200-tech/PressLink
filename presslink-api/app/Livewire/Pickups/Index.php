@@ -18,8 +18,11 @@ use Livewire\WithPagination;
 use RuntimeException;
 
 /**
- * Demandes de ramassage reçues de l'appli client : accepter (sur le créneau
- * du client ou un autre), refuser avec un motif, voir les ramassages prévus.
+ * Demandes de ramassage reçues de l'appli client : celles adressées au
+ * pressing et celles ouvertes à sa zone (le premier pressing qui accepte la
+ * prend). Accepter (sur le créneau du client ou un autre), refuser avec un
+ * motif, masquer une demande de zone (« Pas pour nous »), voir les
+ * ramassages prévus.
  */
 class Index extends Component
 {
@@ -111,7 +114,7 @@ class Index extends Component
         $wasPending = $request->status === PickupRequestStatus::Pending;
 
         try {
-            $pickups->accept($request, auth()->user(), $this->date, $from, $to);
+            $pickups->accept($request, auth()->user(), $this->pressing, $this->date, $from, $to);
         } catch (RuntimeException $e) {
             $this->stopActing();
             $this->toast($e->getMessage(), 'error');
@@ -144,6 +147,23 @@ class Index extends Component
 
         $this->stopActing();
         $this->toast('Demande refusée : le client est prévenu.');
+    }
+
+    /** « Pas pour nous » : la demande de zone disparaît de la liste du pressing. */
+    public function dismiss(int $id, PickupRequests $pickups): void
+    {
+        $this->authorizeHandling();
+
+        try {
+            $pickups->dismiss($this->find($id), $this->pressing);
+        } catch (RuntimeException $e) {
+            $this->toast($e->getMessage(), 'error');
+
+            return;
+        }
+
+        $this->stopActing();
+        $this->toast('Demande masquée : les autres pressings de la zone peuvent la prendre.');
     }
 
     /** @return array<string, string> date => libellé */
@@ -179,7 +199,7 @@ class Index extends Component
 
     private function find(int $id): PickupRequest
     {
-        return $this->pressing->pickupRequests()->findOrFail($id);
+        return PickupRequest::visibleTo($this->pressing)->findOrFail($id);
     }
 
     #[Layout('layouts.dashboard', ['active' => 'pickups', 'title' => 'Ramassages'])]
@@ -190,7 +210,8 @@ class Index extends Component
         $requests = match ($this->tab) {
             'accepted' => $base()->where('status', PickupRequestStatus::Accepted->value)->orderBy('pickup_date')->orderBy('slot_from'),
             'closed' => $base()->whereNotIn('status', PickupRequestStatus::openValues())->latest('updated_at'),
-            default => $base()->where('status', PickupRequestStatus::Pending->value)->orderBy('pickup_date')->orderBy('slot_from'),
+            default => PickupRequest::visibleTo($this->pressing)->with(['customer', 'photos'])
+                ->where('status', PickupRequestStatus::Pending->value)->orderBy('pickup_date')->orderBy('slot_from'),
         };
 
         $counts = $this->pressing->pickupRequests()->open()
@@ -198,7 +219,7 @@ class Index extends Component
 
         return view('livewire.pickups.index', [
             'requests' => $requests->paginate(20),
-            'pendingCount' => (int) ($counts[PickupRequestStatus::Pending->value] ?? 0),
+            'pendingCount' => PickupRequest::visibleTo($this->pressing)->where('status', PickupRequestStatus::Pending->value)->count(),
             'acceptedCount' => (int) ($counts[PickupRequestStatus::Accepted->value] ?? 0),
             'canHandle' => auth()->user()->may(Permission::OrdersCreate, $this->pressing),
             'refusalReasons' => PickupRequest::REFUSAL_REASONS,

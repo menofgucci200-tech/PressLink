@@ -12,8 +12,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * Demande de ramassage : le client envoie sa commande depuis l'appli, son
- * pressing passe chercher le linge sur le créneau convenu.
+ * Demande de ramassage : le client envoie sa commande depuis l'appli, sans
+ * avoir à être client d'un pressing. Il choisit un pressing qui passe dans
+ * sa commune, ou la laisse ouverte à la zone (pressing_id vide) : le premier
+ * pressing de la commune qui accepte la prend.
  */
 class PickupRequest extends Model
 {
@@ -116,10 +118,56 @@ class PickupRequest extends Model
         return $this->hasMany(PickupRequestPhoto::class);
     }
 
+    /**
+     * Pressings qui ont masqué chez eux cette demande ouverte à la zone.
+     *
+     * @return HasMany<PickupRequestDismissal, $this>
+     */
+    public function dismissals(): HasMany
+    {
+        return $this->hasMany(PickupRequestDismissal::class);
+    }
+
     /** @param  Builder<self>  $query */
     public function scopeOpen(Builder $query): void
     {
         $query->whereIn('status', PickupRequestStatus::openValues());
+    }
+
+    /**
+     * Demandes ouvertes à la zone qu'un pressing peut prendre : en attente,
+     * dans l'une de ses communes, et qu'il n'a pas masquées.
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeOpenToZoneOf(Builder $query, Pressing $pressing): void
+    {
+        $query->whereNull('pressing_id')
+            ->where('status', PickupRequestStatus::Pending->value)
+            ->whereIn('commune', $pressing->serviceAreas()->select('commune'))
+            ->whereDoesntHave('dismissals', fn (Builder $dismissed) => $dismissed->where('pressing_id', $pressing->id));
+    }
+
+    /**
+     * Demandes qu'un pressing voit dans son menu « Ramassages » : les siennes
+     * et, s'il fait le ramassage, celles ouvertes à sa zone.
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeVisibleTo(Builder $query, Pressing $pressing): void
+    {
+        $query->where(function (Builder $visible) use ($pressing) {
+            $visible->where('pressing_id', $pressing->id);
+            if ($pressing->pickup_enabled) {
+                $visible->orWhere(fn (Builder $zone) => $zone->openToZoneOf($pressing));
+            }
+        });
+    }
+
+    /** Ouverte à la zone : aucun pressing ne l'a encore prise. */
+    public function isOpenToZone(): bool
+    {
+        return $this->pressing_id === null;
     }
 
     /** Fin du créneau prévu. */
@@ -160,11 +208,12 @@ class PickupRequest extends Model
             'id' => $this->id,
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
-            'pressing' => [
+            'pressing' => $this->pressing === null ? null : [
                 'id' => $this->pressing->id,
                 'name' => $this->pressing->name,
                 'phone' => $this->pressing->supportContact()['phone'],
             ],
+            'open_to_zone' => $this->isOpenToZone(),
             'address' => [
                 'label' => $this->address_label,
                 'commune' => $this->commune,

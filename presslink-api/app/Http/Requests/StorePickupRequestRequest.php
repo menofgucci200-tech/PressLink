@@ -18,7 +18,7 @@ class StorePickupRequestRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'pressing_id' => ['required', 'integer'],
+            'pressing_id' => ['nullable', 'integer'],
             'address_id' => ['required', 'integer'],
             'pickup_date' => ['required', 'date_format:Y-m-d'],
             'slot_from' => ['required', 'date_format:H:i'],

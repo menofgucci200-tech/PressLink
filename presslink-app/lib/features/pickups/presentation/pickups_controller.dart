@@ -17,8 +17,9 @@ final pickupRequestProvider = FutureProvider.autoDispose
       (ref, id) => ref.watch(pickupRepositoryProvider).get(id),
     );
 
-final pickupAvailabilityProvider = FutureProvider.autoDispose
-    .family<List<PickupDay>, int>(
-      (ref, pressingId) =>
-          ref.watch(pickupRepositoryProvider).availability(pressingId),
+/// Pressings qui passent à une adresse (par id d'adresse).
+final pickupOptionsProvider = FutureProvider.autoDispose
+    .family<PickupOptions, int>(
+      (ref, addressId) =>
+          ref.watch(pickupRepositoryProvider).options(addressId),
     );

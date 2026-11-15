@@ -115,6 +115,8 @@ class ErasePressingData
             ->where('notifiable_type', (new Customer)->getMorphClass())
             ->whereIn('data->pickup_request_id', $pickupIds)
             ->delete();
+        // Photos envoyées quand la demande était encore ouverte à la zone : rangées hors du dossier du pressing.
+        PickupRequestPhoto::whereIn('pickup_request_id', $pickupIds)->where('path', 'like', 'pickup-photos/'.PickupRequestPhoto::ZONE_DIRECTORY.'/%')->get()->each->delete();
         PickupRequest::whereKey($pickupIds)->delete();
         Storage::disk(PickupRequestPhoto::DISK)->deleteDirectory(PickupRequestPhoto::directoryFor($pressing->id));
 

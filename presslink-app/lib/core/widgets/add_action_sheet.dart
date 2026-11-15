@@ -68,7 +68,8 @@ Future<void> openAddAction(BuildContext context) {
                 icon: Icons.local_shipping_outlined,
                 color: AppColors.primary,
                 title: 'Faire ramasser mon linge',
-                subtitle: 'Votre pressing passe le chercher chez vous.',
+                subtitle:
+                    'Un pressing qui passe dans votre commune vient le chercher.',
                 screen: const NewPickupRequestScreen(),
               ),
               option(

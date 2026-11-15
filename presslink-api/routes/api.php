@@ -82,6 +82,7 @@ Route::prefix('v1')->group(function () {
         Route::delete('/customer/addresses/{address}', [CustomerAddressController::class, 'destroy']);
 
         // Demandes de ramassage (mode « Mon pressing »).
+        Route::get('/pickup-options', [PickupRequestController::class, 'options']);
         Route::get('/pressings/{pressing}/pickup-availability', [PickupRequestController::class, 'availability']);
         Route::get('/pickup-requests', [PickupRequestController::class, 'index']);
         Route::post('/pickup-requests', [PickupRequestController::class, 'store'])->middleware('throttle:10,1');

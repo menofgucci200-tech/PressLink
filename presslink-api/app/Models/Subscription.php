@@ -6,7 +6,6 @@ use App\Casts\SubscriptionPlanCast;
 use App\Enums\Feature;
 use App\Enums\SubscriptionPlan;
 use App\Enums\SubscriptionStatus;
-use App\Support\LaunchOffer;
 use Database\Factories\SubscriptionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -88,23 +87,19 @@ class Subscription extends Model
             && ($this->trial_ends_at === null || $this->trial_ends_at->isFuture());
     }
 
+    /** Mois offert à chaque nouveau pressing (jours), réglable depuis le Super Admin. */
+    public const DEFAULT_TRIAL_DAYS = 30;
+
     /** Durée de l'essai gratuit (jours), réglée depuis le Super Admin. */
     public static function trialDays(): int
     {
-        return max(0, (int) Setting::read('trial_days', 7));
+        return max(0, (int) Setting::read('trial_days', self::DEFAULT_TRIAL_DAYS));
     }
 
-    /**
-     * Fin de l'essai d'un pressing créé aujourd'hui : la durée d'essai (7 jours
-     * par défaut) comptée à partir de la fin de l'offre de lancement tant qu'elle
-     * court (gratuit jusqu'au 15 novembre, puis une semaine pour choisir), sinon
-     * à partir d'aujourd'hui.
-     */
+    /** Fin de l'essai d'un pressing créé aujourd'hui : le mois offert commence le jour de sa création. */
     public static function trialEndsAtForNewPressing(): Carbon
     {
-        $from = LaunchOffer::isActive() ? LaunchOffer::endsAt()->copy() : now();
-
-        return $from->addDays(self::trialDays());
+        return now()->addDays(self::trialDays());
     }
 
     /** Essai gratuit d'un nouveau pressing (formule Starter, toutes les fonctions ouvertes). */

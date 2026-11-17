@@ -24,10 +24,10 @@
     :json-ld="$jsonLd"
     :breadcrumb-json-ld="$breadcrumb">
     <a href="#contenu" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-(--color-primary) focus:text-white">Aller au contenu</a>
-    @if ($path !== '/' && \App\Support\LaunchOffer::isActive())
+    @if ($path !== '/')
         <a href="{{ route('home') }}#rejoindre" class="block bg-[#0B1530] text-white text-center text-sm font-medium px-5 py-2.5 hover:bg-[#12245A]">
             <span class="inline-block w-2 h-2 rounded-full bg-[#22C55E] mr-1.5 align-middle" aria-hidden="true"></span>
-            Lancement officiel : PressLink est gratuit pour les pressings jusqu'au {{ \App\Support\LaunchOffer::dateLabel() }}.
+            Nouveau pressing : {{ \App\Support\PlanCatalog::trialOffer() }}, toutes les fonctions ouvertes.
             <span class="font-bold text-[#FBBF24] whitespace-nowrap">En profiter →</span>
         </a>
     @endif

@@ -45,10 +45,10 @@ class PlansPageTest extends TestCase
             ->assertSee('Premium')
             ->assertSee('35 000')
             ->assertDontSee('mois offerts')
-            ->assertSee('1 mois offert pour nos 10 premiers pressings')
+            ->assertDontSee('10 premiers pressings')
             ->assertSee('Tout Starter, plus :')
             ->assertSee('Caisse complète')
-            ->assertSee('Essai gratuit de 7 jours');
+            ->assertSee('1 mois offert, toutes les fonctions ouvertes.');
     }
 
     public function test_the_plans_page_shows_the_current_plan_and_what_the_next_one_adds(): void

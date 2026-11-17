@@ -8,7 +8,6 @@ use App\Livewire\Concerns\ShowsToasts;
 use App\Models\Setting;
 use App\Models\Subscription;
 use App\Models\SubscriptionRequest;
-use App\Support\PlanCatalog;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -26,9 +25,6 @@ class Index extends Component
     public array $plans = [];
 
     public string $trialDays = '';
-
-    /** Offre de lancement affichée avec les formules (vide = aucune). */
-    public string $launchOffer = '';
 
     /** Bloquer les nouvelles commandes après la fin de la période payée (+ délai de grâce). */
     public bool $blockAfterPeriodEnd = false;
@@ -63,7 +59,6 @@ class Index extends Component
         }
 
         $this->trialDays = (string) Subscription::trialDays();
-        $this->launchOffer = (string) PlanCatalog::launchOffer();
         $this->blockAfterPeriodEnd = Subscription::blocksAfterPeriodEnd();
         foreach (Feature::cases() as $feature) {
             $this->optionPrices[$feature->value] = $text($feature->priceFcfa());
@@ -94,7 +89,6 @@ class Index extends Component
             'plans.*.features' => ['array'],
             'plans.*.features.*' => [Rule::enum(Feature::class)],
             'trialDays' => ['required', 'integer', 'min:0', 'max:365'],
-            'launchOffer' => ['nullable', 'string', 'max:200'],
             'blockAfterPeriodEnd' => ['boolean'],
             'optionPrices.*' => ['nullable', 'integer', 'min:0'],
             'orderPacks' => ['array'],
@@ -118,7 +112,6 @@ class Index extends Component
             'known_features' => array_column(Feature::cases(), 'value'),
         ]])->all());
         Setting::write('trial_days', (int) $this->trialDays);
-        Setting::write('launch_offer', trim($this->launchOffer));
         Setting::write('block_after_period_end', $this->blockAfterPeriodEnd);
         Setting::write('option_prices', array_map($number, $this->optionPrices));
         Setting::write('payment_fee_rates', collect(SubscriptionRequest::ONLINE_METHODS)

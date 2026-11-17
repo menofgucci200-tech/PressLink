@@ -5,7 +5,7 @@
         ['Comment payer ?', \App\Support\GeniusPay::isConfigured()
             ? 'Choisissez votre formule depuis votre espace et payez en ligne, au mois ou à l\'année : Wave, Orange Money, MTN, Moov ou carte bancaire. Les frais de l\'opérateur s\'ajoutent au prix et vous sont indiqués avant de payer. Votre formule est activée dès le paiement confirmé.'
             : 'Choisissez votre formule : nous vous envoyons un lien de paiement Wave du montant de la formule, au mois ou à l\'année. Votre espace est activé dès le paiement reçu.'],
-        ['Puis-je essayer avant de payer ?', "Oui : l'essai gratuit dure {$trialDays} jours, avec toutes les fonctions ouvertes. Ensuite, vous gardez les fonctions de la formule choisie."],
+        ['Puis-je essayer avant de payer ?', "Oui : chaque nouveau pressing a {$trialOffer}, avec toutes les fonctions ouvertes. Ensuite, vous choisissez votre formule et gardez ses fonctions."],
         ['Puis-je changer de formule ?', 'Oui, à tout moment, depuis la page Abonnement de votre espace pressing : vous y voyez ce que vous gagnez à passer à la formule supérieure.'],
         ['Une seule fonction me manque, dois-je changer de formule ?', 'Non : chaque fonction peut aussi être ajoutée seule, en option, à votre formule.'],
         ['Et si j\'ai plus de commandes que prévu ce mois-ci ?', 'Vous pouvez ajouter des commandes pour le mois en cours depuis votre espace, sans changer de formule.'],
@@ -18,7 +18,7 @@
 @endphp
 <x-site.page
     title="Nos offres — PressLink, logiciel de gestion de pressing"
-    description="Starter, Business, Premium : les offres PressLink pour gérer votre pressing, leurs prix au mois ou à l'année et ce que chacune comprend. Essai gratuit."
+    description="Starter, Business, Premium : les offres PressLink pour gérer votre pressing, leurs prix au mois ou à l'année et ce que chacune comprend. 1 mois offert."
     path="/offres"
     :json-ld="\App\Support\SiteContent::softwareJsonLd(route('site.pricing'))">
     <section class="acc" data-motion-ignore>
@@ -29,18 +29,12 @@
                     <span class="acc-ariane">Accueil › <b>Ma formule</b></span>
                 </div>
                 <h1>Une formule à votre taille.</h1>
-                <p class="acc-chapo">Starter, Business ou Premium, selon le nombre de commandes de votre pressing. Essai gratuit de {{ $trialDays }} jours, toutes les fonctions ouvertes.</p>
+                <p class="acc-chapo">Starter, Business ou Premium, selon le nombre de commandes de votre pressing. {{ ucfirst($trialOffer) }}, toutes les fonctions ouvertes.</p>
                 <div class="acc-confiance">
                     <span>Au mois ou à l'année</span>
                     <span>Sans engagement</span>
                     <span>Wave, Orange Money, MTN, Moov</span>
                 </div>
-                @if ($launchOffer)
-                    <p class="mt-6 inline-flex items-center gap-2 rounded-full bg-(--color-surface) border border-(--color-border) px-4 py-2 text-sm font-semibold">
-                        <span class="w-2 h-2 rounded-full bg-[#1DC8FF]" aria-hidden="true"></span>
-                        Offre de lancement : {{ $launchOffer }}
-                    </p>
-                @endif
             </div>
             <div class="pc-carte">
                 <x-site.rail current="formules" />
@@ -48,7 +42,7 @@
                     <p class="text-xs font-semibold uppercase tracking-widest text-(--color-primary) mb-4">Comment ça se passe</p>
                     <ol class="pc-etapes">
                         <li><div><strong>Créez votre pressing</strong><span>2 minutes, rien à payer. On vous appelle pour démarrer.</span></div></li>
-                        <li><div><strong>Travaillez avec vos vrais clients</strong><span>{{ \App\Support\LaunchOffer::isActive() ? 'Gratuitement jusqu\'au '.\App\Models\Subscription::trialEndsAtForNewPressing()->translatedFormat('j F').'.' : 'Pendant l\'essai gratuit de '.$trialDays.' jours.' }}</span></div></li>
+                        <li><div><strong>Travaillez avec vos vrais clients</strong><span>Gratuitement pendant {{ \App\Support\PlanCatalog::trialDuration() }}.</span></div></li>
                         <li><div><strong>Choisissez votre formule</strong><span>Depuis votre espace, quand vous êtes prêt. Rien n'est prélevé automatiquement.</span></div></li>
                     </ol>
                     <x-site.trial-button class="mt-6 w-full" />

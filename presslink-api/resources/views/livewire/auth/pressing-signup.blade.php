@@ -1,7 +1,6 @@
 {{-- Inscription d'un pressing : deux étapes courtes, essai gratuit, sans paiement. --}}
 @php
     $trialEnd = \App\Models\Subscription::trialEndsAtForNewPressing();
-    $launch = \App\Support\LaunchOffer::isActive();
     $input = 'w-full h-12 px-3.5 rounded-xl border text-base outline-none bg-(--color-surface) border-(--color-border) placeholder:text-(--color-text-muted) focus:border-(--color-primary) focus:ring-4 focus:ring-blue-500/10';
     $label = 'block text-sm font-medium text-(--color-text-primary) mb-1.5';
     $help = 'mt-1 text-xs text-(--color-text-muted)';
@@ -16,7 +15,7 @@
         <h1>Votre espace en 2 minutes.</h1>
         <p class="acc-chapo">Votre pressing, puis vous. Notre équipe vous appelle ensuite pour vos tarifs, vos horaires et votre équipe.</p>
         <div class="acc-confiance">
-            <span>{{ $launch ? 'Gratuit jusqu\'au '.\App\Support\LaunchOffer::dateLabel() : 'Essai gratuit' }}</span>
+            <span>{{ ucfirst(\App\Support\PlanCatalog::trialOffer()) }}</span>
             <span>Sans engagement</span>
             <span>On vous aide à démarrer</span>
         </div>

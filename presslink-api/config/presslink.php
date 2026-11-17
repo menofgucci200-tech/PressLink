@@ -14,15 +14,6 @@ return [
     ],
 
     /*
-    | Lancement officiel : PressLink est gratuit pour les pressings jusqu'à
-    | cette date incluse (page d'accueil, bandeau du site, essai des nouveaux
-    | pressings). Passé cette date, l'offre disparaît d'elle-même du site.
-    */
-    'launch' => [
-        'free_until' => env('LAUNCH_FREE_UNTIL', '2026-11-15'),
-    ],
-
-    /*
     | Ramassage et livraison : lancé (site, abonnements, appli client, tournée).
     | DELIVERY_LAUNCHED=false dans le .env le masque de nouveau en urgence.
     */

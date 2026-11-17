@@ -1,16 +1,10 @@
 @php
-    $offer = \App\Support\LaunchOffer::isActive();
-    $until = \App\Support\LaunchOffer::dateLabel();
-    $daysLeft = \App\Support\LaunchOffer::daysLeft();
+    $trialOffer = \App\Support\PlanCatalog::trialOffer();
 
-    $title = $offer
-        ? 'PressLink — Logiciel pressing gratuit jusqu\'au '.$until
-        : 'PressLink — Logiciel de gestion de pressing en Côte d\'Ivoire';
-    $description = 'Commandes, paiements, reçus et caisse au même endroit, clients prévenus dès que c\'est prêt. Le logiciel de pressing ivoirien'
-        .($offer ? ', gratuit jusqu\'au '.$until.'.' : '.');
-    $join = 'https://wa.me/'.ltrim($supportPhoneE164, '+').'?text='.rawurlencode($offer
-        ? 'Bonjour, je veux inscrire mon pressing sur PressLink (offre de lancement, gratuit jusqu\'au '.$until.').'
-        : 'Bonjour, je veux inscrire mon pressing sur PressLink.');
+    $title = 'PressLink — Logiciel de gestion de pressing en Côte d\'Ivoire';
+    $description = 'Commandes, paiements, reçus et caisse au même endroit, clients prévenus dès que c\'est prêt. Le logiciel de pressing ivoirien, '
+        .$trialOffer.'.';
+    $join = 'https://wa.me/'.ltrim($supportPhoneE164, '+').'?text='.rawurlencode('Bonjour, je veux inscrire mon pressing sur PressLink ('.$trialOffer.').');
     $words = ['simple.', 'organisé.', 'à jour.', 'payé à temps.'];
     $fromPrice = collect($plans)->pluck('monthly')->filter()->min();
     $steps = [
@@ -82,7 +76,7 @@
     <section class="acc" data-motion-ignore>
         <div class="acc-enveloppe">
             <div class="acc-briefing">
-                <span class="acc-ariane"><i aria-hidden="true"></i>{{ $offer ? 'Lancement officiel · logiciel de pressing' : 'Logiciel de gestion de pressing' }}</span>
+                <span class="acc-ariane"><i aria-hidden="true"></i>Logiciel de gestion de pressing</span>
                 <h1>Votre pressing,<br>enfin <span class="acc-tourne" data-motion="tourne">@foreach ($words as $i => $word)<span @class(['apres' => $i > 0]) @if ($i > 0) aria-hidden="true" @endif>{{ $word }}</span>@endforeach</span></h1>
                 <p class="acc-chapo">Commandes, paiements et clients prévenus au même endroit. Choisissez votre étape, on vous guide jusqu'au bout.</p>
                 {{-- La vidéo du parcours s'ouvre ici même (site.js) ; sans JavaScript, le lien mène à la page Pour les pressings. --}}
@@ -97,7 +91,7 @@
                     </span>
                 </a>
                 <div class="acc-confiance">
-                    @if ($offer)<span>Gratuit jusqu'au {{ $until }}</span>@endif
+                    <span>{{ ucfirst($trialOffer) }}</span>
                     <span>Sans engagement</span>
                     <span>Aide sur WhatsApp</span>
                 </div>
@@ -145,10 +139,9 @@
         </div>
         <div class="grid md:grid-cols-3 gap-5" data-motion="cascade">
             @foreach (array_values(array_filter([
-                $offer ? ['🎁', 'Gratuit jusqu\'au '.$until, 'Toutes les fonctions pendant le lancement, sans rien payer. Vous voyez par vous-même ce que PressLink change au quotidien.'] : null,
+                ['🎁', ucfirst($trialOffer), 'Toutes les fonctions ouvertes pendant '.\App\Support\PlanCatalog::trialDuration().', sans rien payer. Vous voyez par vous-même ce que PressLink change au quotidien, puis vous choisissez votre formule.'],
                 ['🤝', 'Accompagné pas à pas', 'Inscription en 2 minutes, puis notre équipe vous appelle pour vous aider à démarrer. Une question ? Un appel ou un message WhatsApp suffit.'],
                 ['🔔', 'Moins d\'appels, moins d\'attente', 'Vos clients sont prévenus automatiquement quand leur commande est prête : fini les « c\'est prêt ? » et les passages pour rien.'],
-                $offer ? null : ['📈', 'Votre activité en un coup d\'œil', 'Encaissé du jour, commandes en cours, retards : le tableau de bord vous dit l\'essentiel dès l\'ouverture.'],
             ])) as [$icon, $heading, $text])
                 <article class="bg-(--color-surface) border border-(--color-border) rounded-2xl p-6">
                     <div class="w-12 h-12 rounded-xl bg-(--color-primary-tint) flex items-center justify-center text-2xl mb-4" aria-hidden="true">{{ $icon }}</div>
@@ -248,8 +241,8 @@
             <div class="flex flex-wrap items-end justify-between gap-6 mb-8">
                 <div class="max-w-2xl">
                     <p class="text-xs font-semibold uppercase tracking-widest text-blue-300 mb-3">Nos offres</p>
-                    <h2 class="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">{{ $offer ? 'Et après le '.$until.' ?' : 'Vous cherchez la meilleure offre pour votre pressing ?' }}</h2>
-                    <p class="text-slate-300 leading-relaxed">{{ $offer ? 'Ensuite, vous choisissez l\'offre qui vous ressemble, seulement si PressLink vous convient. Rien n\'est prélevé automatiquement.' : 'Petit pressing, pressing qui grandit ou plusieurs établissements : choisissez l\'offre qui vous ressemble, et payez au mois ou à l\'année.' }}</p>
+                    <h2 class="font-display text-3xl md:text-4xl font-bold tracking-tight mb-3">Et après le mois offert ?</h2>
+                    <p class="text-slate-300 leading-relaxed">Vous choisissez l'offre qui vous ressemble, seulement si PressLink vous convient, et payez au mois ou à l'année. Rien n'est prélevé automatiquement.</p>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3">
                     <x-site.trial-button tone="light" />
@@ -279,12 +272,10 @@
                     </a>
                 @endforeach
             </div>
-            @if ($launchOffer && ! $offer)
-                <p class="mt-6 inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold">
-                    <span class="w-2 h-2 rounded-full bg-[#1DC8FF]" aria-hidden="true"></span>
-                    Offre de lancement : {{ $launchOffer }}
-                </p>
-            @endif
+            <p class="mt-6 inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-4 py-2 text-sm font-semibold">
+                <span class="w-2 h-2 rounded-full bg-[#1DC8FF]" aria-hidden="true"></span>
+                {{ ucfirst($trialOffer) }} à chaque nouveau pressing, puis la formule de votre choix.
+            </p>
         </div>
     </section>
 
@@ -299,7 +290,7 @@
                 @foreach ([
                     ['Inscrivez votre pressing', 'En 2 minutes sur ce site : le nom de votre pressing, votre commune et votre numéro. Ou sur WhatsApp au '.$supportPhoneDisplay.'.'],
                     ['On vous aide à démarrer', 'Notre équipe vous appelle : vos tarifs, vos horaires et votre équipe. On vous montre tout.'],
-                    [$offer ? 'Vous travaillez, gratuitement' : 'Vous démarrez', $offer ? 'Vous enregistrez vos premières commandes, sans rien payer jusqu\'au '.$until.'.' : 'Vous enregistrez vos premières commandes et vos clients sont prévenus.'],
+                    ['Vous travaillez, gratuitement', 'Vous enregistrez vos premières commandes sans rien payer pendant '.\App\Support\PlanCatalog::trialDuration().', puis vous choisissez votre formule.'],
                 ] as $i => [$heading, $text])
                     <li class="relative bg-(--color-surface) border border-(--color-border) rounded-2xl p-6">
                         <div class="font-display text-5xl font-extrabold text-(--color-primary)/15 absolute top-4 right-5 select-none" aria-hidden="true">{{ $i + 1 }}</div>
@@ -317,20 +308,16 @@
             <div class="absolute -right-24 -top-24 w-80 h-80 rounded-full bg-white/10" aria-hidden="true"></div>
             <div class="relative">
                 <h2 class="font-display text-3xl md:text-4xl font-extrabold tracking-tight mb-3">
-                    {{ $offer ? 'Le lancement, c\'est maintenant.' : 'Prêt à simplifier votre pressing ?' }}
+                    Prêt à simplifier votre pressing ?
                 </h2>
                 <p class="text-lg text-[#DBEAFE]">
-                    @if ($offer)
-                        PressLink est gratuit jusqu'au <strong class="text-white">{{ $until }}</strong> : plus que {{ $daysLeft }} {{ $daysLeft > 1 ? 'jours' : 'jour' }} pour en profiter.
-                    @else
-                        Inscrivez-vous en 2 minutes : notre équipe vous appelle pour vous aider à démarrer.
-                    @endif
+                    <strong class="text-white">{{ ucfirst($trialOffer) }}</strong> : inscrivez-vous en 2 minutes, notre équipe vous appelle pour vous aider à démarrer.
                 </p>
                 <p class="mt-4 text-sm text-[#DBEAFE]">{{ $supportPhoneDisplay }} · {{ config('presslink.support.email') }}</p>
             </div>
             <div class="relative flex flex-col gap-3">
                 <a href="{{ route('signup') }}" class="inline-flex items-center justify-center gap-2.5 min-h-13 py-2 px-6 rounded-xl bg-white text-(--color-primary-600) font-bold hover:bg-[#EFF6FF]">
-                    {{ $offer ? 'Inscrire mon pressing gratuitement' : 'Inscrire mon pressing' }}
+                    Inscrire mon pressing gratuitement
                 </a>
                 <a href="{{ route('sandbox.start') }}" class="inline-flex items-center justify-center h-13 px-6 rounded-xl border border-white/40 font-semibold hover:bg-white/10">Tester avec un pressing fictif</a>
                 <a href="{{ $join }}" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2.5 h-13 px-6 rounded-xl border border-white/40 font-semibold hover:bg-white/10">

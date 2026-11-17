@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Support\GeniusPay;
-use App\Support\LaunchOffer;
 use App\Support\PlanCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -32,7 +31,7 @@ class LandingController extends Controller
             [
                 'question' => 'L\'application PressLink est-elle gratuite ?',
                 'answer' => 'Oui, l\'application est gratuite pour les clients des pressings. Les pressings utilisent PressLink comme logiciel de gestion'
-                    .(LaunchOffer::isActive() ? ', gratuit lui aussi pendant le lancement officiel, jusqu\'au '.LaunchOffer::dateLabel().'.' : '.'),
+                    .', avec '.PlanCatalog::trialOffer().' à chaque nouveau pressing.',
             ],
             [
                 'question' => 'Comment installer PressLink sur mon téléphone ?',
@@ -61,16 +60,11 @@ class LandingController extends Controller
      */
     public static function pressingFaqs(): array
     {
-        $days = PlanCatalog::trialDays();
-
         return [
             [
                 'question' => 'Comment essayer PressLink dans mon pressing ?',
                 'answer' => 'Inscrivez votre pressing en 2 minutes sur presslink.org/inscription : son nom, votre commune et votre numéro. Votre espace est prêt tout de suite, et notre équipe vous appelle pour vous aider à le mettre en place. '
-                    .(LaunchOffer::isActive()
-                        ? 'Pendant le lancement, PressLink est gratuit jusqu\'au '.LaunchOffer::dateLabel().', puis vous avez une semaine pour choisir votre formule'
-                        : "L'essai gratuit dure {$days} jours")
-                    .', avec toutes les fonctions ouvertes, sans paiement à l\'avance.',
+                    .'Vous avez '.PlanCatalog::trialOffer().', avec toutes les fonctions ouvertes, sans paiement à l\'avance, puis vous choisissez votre formule.',
             ],
             [
                 'question' => 'Faut-il acheter du matériel ?',
@@ -107,7 +101,6 @@ class LandingController extends Controller
             'supportPhoneDisplay' => config('presslink.support.phone_display'),
             'supportPhoneE164' => config('presslink.support.phone_e164'),
             'plans' => PlanCatalog::plans(),
-            'launchOffer' => PlanCatalog::launchOffer(),
         ]);
     }
 }

@@ -31,7 +31,6 @@ class PressingSignupTest extends TestCase
         parent::setUp();
 
         $this->travelTo('2026-10-28 10:00:00');
-        config(['presslink.launch.free_until' => '2026-11-15']);
         RateLimiter::clear('inscription-pressing:127.0.0.1');
     }
 
@@ -50,11 +49,11 @@ class PressingSignupTest extends TestCase
             ->set('acceptTerms', true);
     }
 
-    public function test_the_signup_page_announces_the_trial_end_date(): void
+    public function test_the_signup_page_announces_the_free_month(): void
     {
         $this->get(route('signup'))->assertOk()
             ->assertSee('Étape 1 sur 2')
-            ->assertSee('22 novembre');
+            ->assertSee('1 mois offert');
     }
 
     public function test_a_pressing_signs_up_and_lands_on_its_dashboard_with_a_trial(): void
@@ -71,19 +70,19 @@ class PressingSignupTest extends TestCase
         $this->assertSame('+2252722445566', $pressing->phone);
         $this->assertSame(PressingRole::Admin, $pressing->staff()->firstOrFail()->pivot->role);
         $this->assertSame(SubscriptionStatus::Trialing, $pressing->subscription->status);
-        $this->assertSame('2026-11-22', $pressing->subscription->trial_ends_at->toDateString(), 'gratuit jusqu\'au 15 novembre, puis une semaine');
+        $this->assertSame('2026-11-27', $pressing->subscription->trial_ends_at->toDateString(), 'un mois offert à partir de l\'inscription');
         $this->assertGreaterThan(0, $pressing->prestations()->count(), 'services de base créés');
 
         Mail::assertSent(PressingSignedUp::class, fn (PressingSignedUp $mail) => $mail->hasTo(config('presslink.support.email')) && $mail->pressing->is($pressing));
     }
 
-    public function test_after_the_launch_the_trial_lasts_a_week_from_the_signup(): void
+    public function test_the_free_month_starts_on_the_signup_day(): void
     {
         $this->travelTo('2026-12-01 10:00:00');
 
         $this->fillForm()->call('register');
 
-        $this->assertSame('2026-12-08', Pressing::firstOrFail()->subscription->trial_ends_at->toDateString());
+        $this->assertSame('2026-12-31', Pressing::firstOrFail()->subscription->trial_ends_at->toDateString());
     }
 
     public function test_each_step_checks_its_fields(): void
@@ -139,8 +138,8 @@ class PressingSignupTest extends TestCase
         $this->get(route('dashboard'))->assertOk()
             ->assertSee('Bien démarrer avec PressLink')
             ->assertSee('Ajoutez vos articles et vos prix')
-            ->assertSee('Essai gratuit : encore 26 jours')
-            ->assertSee("jusqu'au 22/11/2026", false)
+            ->assertSee('Essai gratuit : encore 30 jours')
+            ->assertSee("jusqu'au 27/11/2026", false)
             ->assertSee('Choisir ma formule');
     }
 
@@ -151,15 +150,15 @@ class PressingSignupTest extends TestCase
         $this->fillForm()->call('register');
         $subscription = Subscription::firstOrFail();
 
-        $this->travelTo('2026-11-15 09:00:00');
+        $this->travelTo('2026-11-20 09:00:00');
         $this->artisan('presslink:trial-reminders')->assertSuccessful();
         Mail::assertNotSent(TrialEndingSoon::class);
 
-        $this->travelTo('2026-11-19 09:00:00');
+        $this->travelTo('2026-11-24 09:00:00');
         $this->artisan('presslink:trial-reminders')->assertSuccessful();
         Mail::assertSent(TrialEndingSoon::class, fn (TrialEndingSoon $mail) => $mail->hasTo('awa@example.com') && $mail->daysLeft === 3 && $mail->subscription->is($subscription));
 
-        $this->travelTo('2026-11-21 09:00:00');
+        $this->travelTo('2026-11-26 09:00:00');
         $this->artisan('presslink:trial-reminders')->assertSuccessful();
         Mail::assertSent(TrialEndingSoon::class, fn (TrialEndingSoon $mail) => $mail->daysLeft === 1);
     }

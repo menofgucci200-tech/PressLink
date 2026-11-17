@@ -4,7 +4,6 @@ namespace App\Support;
 
 use App\Enums\Feature;
 use App\Enums\SubscriptionPlan;
-use App\Models\Setting;
 use App\Models\Subscription;
 
 /**
@@ -89,19 +88,25 @@ final class PlanCatalog
         return ['features' => $features, 'orders' => $orders];
     }
 
-    /** Offre de lancement affichée avec les formules (vide = aucune), réglée par le Super Admin. */
-    public const DEFAULT_LAUNCH_OFFER = '1 mois offert pour nos 10 premiers pressings, quelle que soit la formule.';
-
-    public static function launchOffer(): ?string
-    {
-        $offer = trim((string) Setting::read('launch_offer', self::DEFAULT_LAUNCH_OFFER));
-
-        return $offer === '' ? null : $offer;
-    }
-
     public static function trialDays(): int
     {
         return Subscription::trialDays();
+    }
+
+    /** Durée offerte à un nouveau pressing : « 1 mois » (30 jours) ou « 14 jours ». */
+    public static function trialDuration(): string
+    {
+        $days = self::trialDays();
+
+        return $days === Subscription::DEFAULT_TRIAL_DAYS ? '1 mois' : $days.' '.($days > 1 ? 'jours' : 'jour');
+    }
+
+    /** « 1 mois offert » / « 14 jours offerts » */
+    public static function trialOffer(): string
+    {
+        $days = self::trialDays();
+
+        return self::trialDuration().($days === Subscription::DEFAULT_TRIAL_DAYS || $days <= 1 ? ' offert' : ' offerts');
     }
 
     public static function fcfa(?int $amount): string

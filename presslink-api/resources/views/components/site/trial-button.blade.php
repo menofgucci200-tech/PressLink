@@ -1,11 +1,7 @@
 @props(['tone' => 'primary'])
 {{-- « Essayer gratuitement » : la page d'inscription du pressing (2 minutes, sans paiement). --}}
 @php
-    $days = \App\Support\PlanCatalog::trialDays();
-    // Pendant le lancement : la vraie fin de l'essai (fin du lancement + la semaine pour choisir).
-    $label = \App\Support\LaunchOffer::isActive()
-        ? "Essayer gratuitement jusqu'au ".\App\Models\Subscription::trialEndsAtForNewPressing()->translatedFormat('j F')
-        : "Essayer gratuitement {$days} jours";
+    $label = 'Essayer gratuitement '.\App\Support\PlanCatalog::trialDuration();
     $classes = match ($tone) {
         'light' => 'bg-white text-slate-900 hover:bg-slate-100',
         default => 'bg-(--color-primary) text-white hover:bg-(--color-primary-600)',

@@ -203,6 +203,9 @@ class SubscriptionRequest extends Model
 
         $this->refresh();
 
+        // Pressing apporté par un commercial : sa commission sur l'abonnement payé.
+        SalesCommission::recordFor($this);
+
         // Validée à la main par l'équipe avec un montant : un paiement de l'historique.
         if ($byCurrentUser && $this->isPayment() && $this->paid_online_at === null) {
             PaymentAttempt::recordManual($this);

@@ -44,6 +44,12 @@ class SalesAgent extends Model
         return $this->hasMany(Pressing::class);
     }
 
+    /** @return HasMany<SalesCommission, $this> */
+    public function commissions(): HasMany
+    {
+        return $this->hasMany(SalesCommission::class);
+    }
+
     /** @return HasMany<SalesAgentClaim, $this> */
     public function claims(): HasMany
     {

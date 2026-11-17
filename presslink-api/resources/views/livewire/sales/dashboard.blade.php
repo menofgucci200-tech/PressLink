@@ -27,6 +27,18 @@
         @endforeach
     </div>
 
+    <a href="{{ route('sales.earnings') }}" wire:navigate class="flex flex-wrap items-center gap-x-8 gap-y-2 bg-(--color-primary) text-white rounded-xl px-5 py-4 mb-6 hover:bg-(--color-primary-600)" data-testid="earnings">
+        <div>
+            <div class="text-xs text-white/80">Mes revenus ce mois-ci</div>
+            <div class="font-display text-2xl font-bold tabular-nums">{{ number_format($earnings['thisMonth'], 0, ',', ' ') }} F</div>
+        </div>
+        <div>
+            <div class="text-xs text-white/80">À recevoir</div>
+            <div class="font-display text-2xl font-bold tabular-nums">{{ number_format($earnings['unpaid'], 0, ',', ' ') }} F</div>
+        </div>
+        <div class="ml-auto text-sm font-semibold">{{ $agent->commissionRate() }} % de l'abonnement de vos pressings →</div>
+    </a>
+
     <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] gap-4">
         <div class="bg-(--color-surface) border border-(--color-border) rounded-xl p-5" x-data="{ copied: false }">
             <h2 class="font-display text-base font-bold mb-1">Votre code commercial</h2>

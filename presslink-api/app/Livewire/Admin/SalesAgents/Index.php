@@ -148,6 +148,7 @@ class Index extends Component
     public function render(): View
     {
         $agents = SalesAgent::with('user')
+            ->withSum(['commissions as unpaid_fcfa' => fn ($query) => $query->whereNull('paid_at')], 'amount_fcfa')
             ->withCount([
                 'pressings',
                 'pressings as pressings_this_month' => fn ($query) => $query->where('sales_agent_attached_at', '>=', now()->startOfMonth()),

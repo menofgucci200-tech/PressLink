@@ -91,13 +91,14 @@
         @if ($agents->isEmpty())
             <div class="px-5 py-12 text-center text-sm text-(--color-text-muted)">Aucun commercial pour l'instant.</div>
         @else
-            <div class="overflow-x-auto"><table class="w-full min-w-[760px] whitespace-nowrap text-sm">
+            <div class="overflow-x-auto"><table class="w-full min-w-[860px] whitespace-nowrap text-sm">
                 <thead>
                     <tr class="bg-(--color-bg) text-left">
                         <th class="{{ $th }}">Commercial</th>
                         <th class="{{ $th }}">Code</th>
                         <th class="{{ $th }} text-right">Pressings</th>
                         <th class="{{ $th }} text-right">Ce mois</th>
+                        <th class="{{ $th }} text-right">À payer</th>
                         <th class="{{ $th }}">Commission</th>
                         <th class="{{ $th }}"></th>
                     </tr>
@@ -106,7 +107,7 @@
                     @foreach ($agents as $agent)
                         <tr class="border-t border-(--color-border) hover:bg-(--color-bg) {{ $agent->isActive() ? '' : 'opacity-60' }}" data-agent="{{ $agent->id }}">
                             <td class="px-5 py-3">
-                                <div class="font-medium">{{ $agent->user->name }} @unless ($agent->isActive()) <span class="text-xs text-(--color-error)">· suspendu</span> @endunless</div>
+                                <div class="font-medium"><a href="{{ route('admin.sales-agents.show', $agent) }}" wire:navigate class="text-(--color-primary) hover:underline">{{ $agent->user->name }}</a> @unless ($agent->isActive()) <span class="text-xs text-(--color-error)">· suspendu</span> @endunless</div>
                                 <div class="text-xs text-(--color-text-muted) tabular-nums">{{ \App\Support\PhoneNumber::national($agent->user->phone) }}</div>
                             </td>
                             <td class="px-5 py-3 font-mono">{{ $agent->code }}</td>
@@ -114,6 +115,9 @@
                                 <a href="{{ route('admin.pressings.index', ['commercial' => $agent->id]) }}" wire:navigate class="text-(--color-primary) hover:underline">{{ $agent->pressings_count }}</a>
                             </td>
                             <td class="px-5 py-3 text-right tabular-nums">{{ $agent->pressings_this_month }}</td>
+                            <td class="px-5 py-3 text-right tabular-nums font-semibold">
+                                <a href="{{ route('admin.sales-agents.show', $agent) }}" wire:navigate class="hover:underline">{{ number_format((int) $agent->unpaid_fcfa, 0, ',', ' ') }} F</a>
+                            </td>
                             <td class="px-5 py-3">
                                 <div class="flex items-center gap-1.5">
                                     <input type="number" min="0" max="100" wire:model="rates.{{ $agent->id }}" placeholder="{{ $agent->commissionRate() }}" class="w-16 h-8 px-2 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm tabular-nums" aria-label="Commission de {{ $agent->user->name }} (%)">

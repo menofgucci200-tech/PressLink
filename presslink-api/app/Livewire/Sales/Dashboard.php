@@ -40,6 +40,10 @@ class Dashboard extends Component
                 ['label' => 'Abonnés', 'value' => $subscribed],
             ],
             'recent' => $pressings->take(5),
+            'earnings' => [
+                'thisMonth' => (int) $agent->commissions()->where('earned_at', '>=', now()->startOfMonth())->sum('amount_fcfa'),
+                'unpaid' => (int) $agent->commissions()->unpaid()->sum('amount_fcfa'),
+            ],
             'pendingClaims' => $agent->claims()->where('status', SalesAgentClaim::PENDING)->count(),
             'shareText' => 'Bonjour, voici le lien pour inscrire votre pressing sur PressLink (1 mois offert) : '.$agent->signupUrl(),
         ]);

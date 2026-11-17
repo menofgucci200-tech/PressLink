@@ -30,6 +30,7 @@ use App\Livewire\Admin\Pressings\Show as AdminPressingsShow;
 use App\Livewire\Admin\Requests\Index as AdminRequestsIndex;
 use App\Livewire\Admin\Roles\Index as AdminRolesIndex;
 use App\Livewire\Admin\SalesAgents\Index as AdminSalesAgentsIndex;
+use App\Livewire\Admin\SalesAgents\Show as AdminSalesAgentsShow;
 use App\Livewire\Admin\Services\Index as AdminServicesIndex;
 use App\Livewire\Admin\Site\Index as AdminSiteIndex;
 use App\Livewire\Admin\Users\Index as AdminUsersIndex;
@@ -59,6 +60,7 @@ use App\Livewire\Pressing\Settings as PressingSettings;
 use App\Livewire\Round\Index as RoundIndex;
 use App\Livewire\Sales\Claims as SalesClaims;
 use App\Livewire\Sales\Dashboard as SalesDashboard;
+use App\Livewire\Sales\Earnings as SalesEarnings;
 use App\Livewire\Sales\Pressings\Create as SalesPressingsCreate;
 use App\Livewire\Sales\Pressings\Index as SalesPressingsIndex;
 use App\Livewire\Sales\Pressings\Show as SalesPressingsShow;
@@ -238,6 +240,7 @@ Route::middleware(['auth', HandleSandboxPressing::class])->group(function () {
         Route::get('/pressings', SalesPressingsIndex::class)->name('pressings.index');
         Route::get('/pressings/nouveau', SalesPressingsCreate::class)->name('pressings.create');
         Route::get('/pressings/{pressing}', SalesPressingsShow::class)->whereNumber('pressing')->name('pressings.show');
+        Route::get('/revenus', SalesEarnings::class)->name('earnings');
         Route::get('/signaler', SalesClaims::class)->name('claims');
     });
 
@@ -251,6 +254,7 @@ Route::middleware(['auth', HandleSandboxPressing::class])->group(function () {
         Route::get('/clients', AdminClientsIndex::class)->name('clients.index');
         Route::get('/administrateurs', AdminAdministratorsIndex::class)->name('administrators.index');
         Route::get('/commerciaux', AdminSalesAgentsIndex::class)->name('sales-agents.index');
+        Route::get('/commerciaux/{salesAgent}', AdminSalesAgentsShow::class)->whereNumber('salesAgent')->name('sales-agents.show');
         Route::get('/utilisateurs', AdminUsersIndex::class)->name('users.index');
         Route::get('/formules', AdminPlansIndex::class)->name('plans.index');
         Route::get('/demandes', AdminRequestsIndex::class)->name('requests.index');

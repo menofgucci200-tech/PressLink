@@ -27,6 +27,7 @@
                     $navItem('dashboard', 'sales.dashboard', 'Tableau de bord'),
                     $navItem('pressings', 'sales.pressings.index', 'Mes pressings'),
                     $navItem('create', 'sales.pressings.create', 'Inscrire un pressing'),
+                    $navItem('earnings', 'sales.earnings', 'Mes revenus'),
                     $navItem('claims', 'sales.claims', 'Signaler un pressing'),
                 ],
             ];

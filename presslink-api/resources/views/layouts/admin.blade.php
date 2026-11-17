@@ -33,6 +33,7 @@
                 ],
                 'Comptes' => [
                     $navItem('administrators', 'admin.administrators.index', 'Administrateurs'),
+                    $navItem('sales', 'admin.sales-agents.index', 'Commerciaux', \App\Models\SalesAgentClaim::pending()->count()),
                     $navItem('users', 'admin.users.index', 'Liste des utilisateurs'),
                     $navItem('roles', 'admin.roles.index', 'Rôles et accès'),
                 ],

@@ -66,6 +66,15 @@ class Login extends Component
             ]);
         }
 
+        $agent = Auth::user()->salesAgent;
+        if ($agent && ! $agent->isActive() && ! Auth::user()->currentPressing()) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'login' => 'Votre compte commercial est suspendu. Contactez l\'équipe PressLink.',
+            ]);
+        }
+
         RateLimiter::clear($throttleKey);
         session()->regenerate();
 
@@ -77,7 +86,12 @@ class Login extends Component
             }
         }
 
-        $this->redirect(Auth::user()->is_super_admin ? '/admin' : route('dashboard'), navigate: false);
+        $this->redirect(match (true) {
+            (bool) $user->is_super_admin => '/admin',
+            // Commercial sans pressing : son espace de suivi.
+            $user->isActiveSalesAgent() && ! $user->currentPressing() => route('sales.dashboard'),
+            default => route('dashboard'),
+        }, navigate: false);
     }
 
     /**

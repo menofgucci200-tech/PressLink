@@ -38,6 +38,16 @@ class Dashboard extends Component
     #[Url(as: 'tri', except: 'revenue')]
     public string $groupSort = 'revenue';
 
+    public function mount(): void
+    {
+        $user = auth()->user();
+
+        // Un commercial sans pressing suit son activité dans son propre espace.
+        if (! $user->currentPressing() && $user->isActiveSalesAgent()) {
+            $this->redirectRoute('sales.dashboard', navigate: true);
+        }
+    }
+
     public function setPeriod(string $period): void
     {
         $this->period = $period;

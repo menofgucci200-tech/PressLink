@@ -7,6 +7,7 @@ use App\Actions\Pressings\SignUpPressing;
 use App\Actions\Sandbox\DeleteSandbox;
 use App\Models\ActivityLog;
 use App\Models\Pressing;
+use App\Models\SalesAgent;
 use App\Models\SandboxTrial;
 use App\Models\User;
 use App\Rules\IvorianPhone;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
@@ -41,6 +43,10 @@ class PressingSignup extends Component
     public string $city = '';
 
     public string $pressingPhone = '';
+
+    /** Code du commercial qui a présenté PressLink (facultatif, pré-rempli par son lien ?code=). */
+    #[Url(as: 'code', except: '')]
+    public string $salesCode = '';
 
     // Étape 2 : le compte du gérant
     public string $ownerName = '';
@@ -117,7 +123,7 @@ class PressingSignup extends Component
             'owner_phone' => PhoneNumber::normalize($this->ownerPhone),
             'email' => trim($this->email),
             'password' => $this->password,
-        ]);
+        ], SalesAgent::findActiveByCode($this->salesCode));
 
         $fromSandbox = $this->sandboxPressingId !== null && $this->convertSandbox($owner);
 
@@ -164,11 +170,16 @@ class PressingSignup extends Component
 
         [$data, $rules] = $step === 1
             ? [
-                ['pressingName' => $this->pressingName, 'city' => $this->city, 'pressingPhone' => $normalized($this->pressingPhone)],
+                ['pressingName' => $this->pressingName, 'city' => $this->city, 'pressingPhone' => $normalized($this->pressingPhone), 'salesCode' => $this->salesCode],
                 [
                     'pressingName' => ['required', 'string', 'min:2', 'max:150'],
                     'city' => ['required', 'string', 'max:100'],
                     'pressingPhone' => ['required', 'string', new IvorianPhone(mobileOnly: false)],
+                    'salesCode' => ['nullable', 'string', 'max:30', function (string $attribute, mixed $value, \Closure $fail) {
+                        if (filled($value) && SalesAgent::findActiveByCode($value) === null) {
+                            $fail('Ce code commercial n\'existe pas. Vérifiez-le auprès de la personne qui vous l\'a donné, ou laissez le champ vide.');
+                        }
+                    }],
                 ],
             ]
             : [

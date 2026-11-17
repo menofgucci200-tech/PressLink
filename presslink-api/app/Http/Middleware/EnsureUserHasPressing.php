@@ -18,9 +18,11 @@ class EnsureUserHasPressing
         $user = $request->user();
 
         if ($user && ! $user->currentPressing()) {
-            return $user->is_super_admin
-                ? redirect()->route('admin.dashboard')
-                : abort(403);
+            return match (true) {
+                (bool) $user->is_super_admin => redirect()->route('admin.dashboard'),
+                $user->isActiveSalesAgent() => redirect()->route('sales.dashboard'),
+                default => abort(403),
+            };
         }
 
         return $next($request);

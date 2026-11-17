@@ -41,6 +41,10 @@ class Index extends Component
     #[Url(as: 'tri', except: 'recent')]
     public string $sort = 'recent';
 
+    /** Pressings apportés par ce commercial (lien depuis la page Commerciaux). */
+    #[Url(as: 'commercial', except: '')]
+    public string $salesAgent = '';
+
     public function mount(): void
     {
         abort_unless(auth()->user()->is_super_admin, 403);
@@ -48,14 +52,14 @@ class Index extends Component
 
     public function updating(string $property): void
     {
-        if (in_array($property, ['search', 'status', 'plan', 'subscriptionStatus', 'city', 'sort'], true)) {
+        if (in_array($property, ['search', 'status', 'plan', 'subscriptionStatus', 'city', 'sort', 'salesAgent'], true)) {
             $this->resetPage();
         }
     }
 
     public function resetFilters(): void
     {
-        $this->reset(['search', 'status', 'plan', 'subscriptionStatus', 'city', 'sort']);
+        $this->reset(['search', 'status', 'plan', 'subscriptionStatus', 'city', 'sort', 'salesAgent']);
         $this->resetPage();
     }
 
@@ -86,6 +90,7 @@ class Index extends Component
             'subscription_status' => $this->subscriptionStatus,
             'city' => $this->city,
             'sort' => $this->sort,
+            'sales_agent' => $this->salesAgent,
         ];
     }
 
@@ -125,6 +130,10 @@ class Index extends Component
 
         if ($city = $filters['city'] ?? '') {
             $query->where('city', $city);
+        }
+
+        if ($salesAgent = $filters['sales_agent'] ?? '') {
+            $query->where('sales_agent_id', (int) $salesAgent);
         }
 
         match ($filters['sort'] ?? 'recent') {

@@ -15,6 +15,7 @@ use App\Livewire\Concerns\ShowsToasts;
 use App\Models\ActivityLog;
 use App\Models\Pressing;
 use App\Models\Role;
+use App\Models\SalesAgent;
 use App\Models\Subscription;
 use App\Models\SubscriptionRequest;
 use App\Models\User;
@@ -38,6 +39,9 @@ class Show extends Component
     public Pressing $pressing;
 
     public string $plan = '';
+
+    /** Commercial qui a apporté le pressing (vide = aucun). */
+    public string $salesAgentId = '';
 
     public string $status = '';
 
@@ -79,7 +83,21 @@ class Show extends Component
         abort_unless(auth()->user()->is_super_admin, 403);
 
         $this->pressing = $pressing;
+        $this->salesAgentId = (string) ($pressing->sales_agent_id ?? '');
         $this->fillSubscriptionFields();
+    }
+
+    /** Rattache le pressing au commercial qui l'a apporté (ou le détache). */
+    public function saveSalesAgent(): void
+    {
+        abort_unless(auth()->user()->is_super_admin, 403);
+        $agent = $this->salesAgentId === '' ? null : SalesAgent::with('user')->findOrFail((int) $this->salesAgentId);
+
+        if ($agent?->id !== $this->pressing->sales_agent_id) {
+            $this->pressing->attachToSalesAgent($agent);
+        }
+
+        $this->toast($agent ? "{$this->pressing->name} est rattaché à {$agent->user->name}." : "{$this->pressing->name} n'est plus rattaché à un commercial.");
     }
 
     public function togglePressingStatus(): void
@@ -413,6 +431,7 @@ class Show extends Component
             'memberRoleIds' => $staff->mapWithKeys(fn (User $member) => [$member->id => $member->pivot->role_id
                 ?? $this->pressing->defaultRole($member->pivot->role === PressingRole::Admin ? Role::OWNER : Role::EMPLOYEE)->id]),
             'pendingRequests' => $pendingRequests,
+            'salesAgents' => SalesAgent::with('user')->get()->sortBy('user.name'),
             // Demandes traitées : paiements reçus et refus, du plus récent au plus ancien.
             'handledRequests' => $this->pressing->subscriptionRequests()
                 ->where('status', '!=', SubscriptionRequest::PENDING)

@@ -62,6 +62,14 @@
                 <p class="{{ $help }}">Le numéro que vos clients appellent.</p>
                 @error('pressingPhone') <p class="mt-1.5 text-sm text-(--color-error)">{{ $message }}</p> @enderror
             </div>
+            @unless ($sandboxPressingId)
+                <div>
+                    <label for="salesCode" class="{{ $label }}">Code commercial <span class="font-normal text-(--color-text-muted)">(facultatif)</span></label>
+                    <input id="salesCode" type="text" wire:model="salesCode" autocomplete="off" autocapitalize="characters" placeholder="AWA-4821" class="{{ $input }} uppercase">
+                    <p class="{{ $help }}">Si un commercial PressLink vous a présenté l'application.</p>
+                    @error('salesCode') <p class="mt-1.5 text-sm text-(--color-error)">{{ $message }}</p> @enderror
+                </div>
+            @endunless
         @else
             <div>
                 <label for="ownerName" class="{{ $label }}">Votre nom</label>

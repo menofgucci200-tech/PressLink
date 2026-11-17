@@ -157,7 +157,12 @@ class Settings extends Component
             'user' => $user,
             'memberships' => $user->is_super_admin ? collect() : $user->activePressings(),
         ])->layout(
-            $user->is_super_admin ? 'layouts.admin' : 'layouts.dashboard',
+            match (true) {
+                (bool) $user->is_super_admin => 'layouts.admin',
+                // Commercial sans pressing : son profil dans son espace.
+                $user->isActiveSalesAgent() && ! $user->currentPressing() => 'layouts.sales',
+                default => 'layouts.dashboard',
+            },
             ['active' => 'account', 'title' => 'Mon profil'],
         );
     }

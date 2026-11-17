@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -25,6 +26,8 @@ class Pressing extends Model
     use HasFactory;
 
     protected $fillable = [
+        'sales_agent_id',
+        'sales_agent_attached_at',
         'name',
         'code',
         'logo_path',
@@ -73,6 +76,7 @@ class Pressing extends Model
     protected function casts(): array
     {
         return [
+            'sales_agent_attached_at' => 'datetime',
             'opening_hours' => 'array',
             'storage_fee' => 'array',
             'support_contact' => 'array',
@@ -533,6 +537,21 @@ class Pressing extends Model
     }
 
     /** @return HasOne<Subscription, $this> */
+    /** Commercial qui a apporté ce pressing (commission sur son abonnement). */
+    public function salesAgent(): BelongsTo
+    {
+        return $this->belongsTo(SalesAgent::class);
+    }
+
+    /** Rattache le pressing au commercial qui l'a apporté (ou le détache avec null). */
+    public function attachToSalesAgent(?SalesAgent $agent): void
+    {
+        $this->forceFill([
+            'sales_agent_id' => $agent?->id,
+            'sales_agent_attached_at' => $agent ? now() : null,
+        ])->save();
+    }
+
     public function subscription(): HasOne
     {
         return $this->hasOne(Subscription::class)->latestOfMany();

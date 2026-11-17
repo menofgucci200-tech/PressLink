@@ -136,6 +136,19 @@ class SubscriptionRequest extends Model
     }
 
     /** @param  Builder<self>  $query */
+    /**
+     * Paiements de l'abonnement lui-même (formule ou renouvellement), hors
+     * options et packs de commandes : base des commissions des commerciaux.
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeSubscriptionPayments(Builder $query): void
+    {
+        $query->where('status', self::DONE)
+            ->whereIn('kind', [self::KIND_PLAN, self::KIND_RENEWAL])
+            ->where('amount_fcfa', '>', 0);
+    }
+
     public function scopePending(Builder $query): void
     {
         $query->where('status', self::PENDING);

@@ -20,7 +20,7 @@
     <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 mb-6">
         <div>
             <h1 class="font-display text-2xl font-bold mb-1">Pressings</h1>
-            <p class="text-sm text-(--color-text-muted)">{{ $pressings->total() }} pressing(s){{ $hasFilters ? ' pour ces filtres' : ' sur la plateforme' }}.</p>
+            <p class="text-sm text-(--color-text-muted)">{{ $pressings->total() }} pressing(s){{ $hasFilters ? ' pour ces filtres' : ' sur la plateforme' }}.@if ($salesAgent !== '' && ($filterAgent = \App\Models\SalesAgent::with('user')->find((int) $salesAgent))) Apportés par <span class="font-semibold">{{ $filterAgent->user->name }}</span>.@endif</p>
         </div>
         <div class="flex items-center gap-2">
             <a href="{{ route('admin.export', ['type' => 'pressings', ...array_filter($this->filters())]) }}"

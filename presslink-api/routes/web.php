@@ -12,6 +12,7 @@ use App\Http\Controllers\PickupPhotoController;
 use App\Http\Controllers\PublicReceiptController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SitePageController;
+use App\Http\Middleware\EnsureSalesAgent;
 use App\Http\Middleware\EnsureUserHasPressing;
 use App\Http\Middleware\HandleSandboxPressing;
 use App\Livewire\Account\Settings as AccountSettings;
@@ -28,6 +29,7 @@ use App\Livewire\Admin\Pressings\Index as AdminPressingsIndex;
 use App\Livewire\Admin\Pressings\Show as AdminPressingsShow;
 use App\Livewire\Admin\Requests\Index as AdminRequestsIndex;
 use App\Livewire\Admin\Roles\Index as AdminRolesIndex;
+use App\Livewire\Admin\SalesAgents\Index as AdminSalesAgentsIndex;
 use App\Livewire\Admin\Services\Index as AdminServicesIndex;
 use App\Livewire\Admin\Site\Index as AdminSiteIndex;
 use App\Livewire\Admin\Users\Index as AdminUsersIndex;
@@ -55,6 +57,11 @@ use App\Livewire\Pickups\Index as PickupsIndex;
 use App\Livewire\Pressing\Delivery as PressingDelivery;
 use App\Livewire\Pressing\Settings as PressingSettings;
 use App\Livewire\Round\Index as RoundIndex;
+use App\Livewire\Sales\Claims as SalesClaims;
+use App\Livewire\Sales\Dashboard as SalesDashboard;
+use App\Livewire\Sales\Pressings\Create as SalesPressingsCreate;
+use App\Livewire\Sales\Pressings\Index as SalesPressingsIndex;
+use App\Livewire\Sales\Pressings\Show as SalesPressingsShow;
 use App\Livewire\Services\Index as ServicesIndex;
 use App\Livewire\Subscription\Checkout as SubscriptionCheckout;
 use App\Livewire\Subscription\Plans as SubscriptionPlans;
@@ -225,6 +232,15 @@ Route::middleware(['auth', HandleSandboxPressing::class])->group(function () {
         Route::get('/mon-compte', AccountSettings::class)->name('account.settings');
     });
 
+    // Espace des commerciaux de terrain : leurs pressings, leur code, leurs signalements.
+    Route::prefix('commercial')->name('sales.')->middleware(EnsureSalesAgent::class)->group(function () {
+        Route::get('/', SalesDashboard::class)->name('dashboard');
+        Route::get('/pressings', SalesPressingsIndex::class)->name('pressings.index');
+        Route::get('/pressings/nouveau', SalesPressingsCreate::class)->name('pressings.create');
+        Route::get('/pressings/{pressing}', SalesPressingsShow::class)->whereNumber('pressing')->name('pressings.show');
+        Route::get('/signaler', SalesClaims::class)->name('claims');
+    });
+
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', AdminDashboard::class)->name('dashboard');
         Route::get('/pressings', AdminPressingsIndex::class)->name('pressings.index');
@@ -234,6 +250,7 @@ Route::middleware(['auth', HandleSandboxPressing::class])->group(function () {
         Route::get('/paiements', AdminPaymentsIndex::class)->name('payments.index');
         Route::get('/clients', AdminClientsIndex::class)->name('clients.index');
         Route::get('/administrateurs', AdminAdministratorsIndex::class)->name('administrators.index');
+        Route::get('/commerciaux', AdminSalesAgentsIndex::class)->name('sales-agents.index');
         Route::get('/utilisateurs', AdminUsersIndex::class)->name('users.index');
         Route::get('/formules', AdminPlansIndex::class)->name('plans.index');
         Route::get('/demandes', AdminRequestsIndex::class)->name('requests.index');

@@ -118,6 +118,21 @@ class Subscription extends Model
         ]);
     }
 
+    /**
+     * Où en est l'abonnement, en une phrase (espace commercial, console).
+     *
+     * @return array{label: string, tone: 'info'|'warning'|'success'|'error'}
+     */
+    public function summary(): array
+    {
+        return match (true) {
+            $this->isInTrial() => ['label' => 'Mois offert'.($this->trial_ends_at ? ' jusqu\'au '.$this->trial_ends_at->format('d/m/Y') : ''), 'tone' => 'info'],
+            $this->status === SubscriptionStatus::Trialing => ['label' => 'Essai terminé : formule à choisir', 'tone' => 'warning'],
+            $this->status === SubscriptionStatus::Active && ! $this->periodEnded() => ['label' => $this->plan->label().($this->current_period_ends_at ? ' jusqu\'au '.$this->current_period_ends_at->format('d/m/Y') : ''), 'tone' => 'success'],
+            default => ['label' => 'Abonnement à renouveler', 'tone' => 'error'],
+        };
+    }
+
     public function hasAddon(Feature $feature): bool
     {
         return in_array($feature->value, $this->addons ?? [], true);

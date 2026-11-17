@@ -89,6 +89,21 @@
                 <div class="flex justify-between gap-3"><span class="text-(--color-text-secondary)">Adresse</span><span class="font-medium">{{ $pressing->address ?? '—' }}</span></div>
                 <div class="flex justify-between gap-3"><span class="text-(--color-text-secondary)">Créé le</span><span class="font-medium">{{ $pressing->created_at->format('d/m/Y') }}</span></div>
                 <div class="flex justify-between gap-3"><span class="text-(--color-text-secondary)">Services</span><span class="font-medium tabular-nums">{{ $pressing->services_count }}</span></div>
+                <div class="sm:col-span-2 flex flex-wrap items-center justify-between gap-3 pt-1" data-testid="sales-agent">
+                    <label for="pressing-sales-agent" class="text-(--color-text-secondary)">Apporté par</label>
+                    <div class="flex items-center gap-2">
+                        <select id="pressing-sales-agent" wire:model="salesAgentId" class="h-9 px-2.5 rounded-lg border border-(--color-border) bg-(--color-surface) text-sm focus:outline-none focus:border-(--color-primary)">
+                            <option value="">Aucun commercial</option>
+                            @foreach ($salesAgents as $agent)
+                                <option value="{{ $agent->id }}">{{ $agent->user->name }} ({{ $agent->code }}){{ $agent->isActive() ? '' : ' · suspendu' }}</option>
+                            @endforeach
+                        </select>
+                        <button type="button" wire:click="saveSalesAgent" class="h-9 px-3 rounded-lg border border-(--color-border) text-sm font-semibold hover:border-(--color-primary) hover:text-(--color-primary)">Enregistrer</button>
+                    </div>
+                    @if ($pressing->sales_agent_attached_at)
+                        <p class="w-full text-xs text-(--color-text-muted) text-right">Rattaché le {{ $pressing->sales_agent_attached_at->format('d/m/Y') }}.</p>
+                    @endif
+                </div>
                 @if ($pressing->description)
                     <p class="sm:col-span-2 text-(--color-text-secondary)">{{ $pressing->description }}</p>
                 @endif

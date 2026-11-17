@@ -61,8 +61,8 @@ class RoundTest extends TestCase
         $this->pressing->update(['pickup_enabled' => true, 'delivery_enabled' => true, 'pickup_fee_fcfa' => 1000, 'delivery_fee_fcfa' => 1500]);
         $this->pressing->serviceAreas()->create(['commune' => 'Cocody']);
 
-        // Le coursier n'a que l'accès « Tournée ».
-        $role = Role::create(['pressing_id' => $this->pressing->id, 'key' => 'coursier', 'name' => 'Coursier', 'permissions' => [Permission::DeliveriesRun->value]]);
+        // Le coursier (rôle de base) n'a que l'accès « Tournée ».
+        $role = $this->pressing->defaultRole(Role::COURIER);
         $this->courier = User::factory()->create(['name' => 'Moussa']);
         $this->pressing->staff()->attach($this->courier, ['role' => PressingRole::Employee->value, 'role_id' => $role->id, 'is_active' => true]);
 
@@ -101,7 +101,7 @@ class RoundTest extends TestCase
         PickupRequest::factory()->for($this->pressing)->create(['pickup_date' => '2026-11-16']); // pas encore acceptée
 
         $this->actingAs($this->courier);
-        $this->get(route('dashboard'))->assertSeeInOrder(['data-testid="round-badge"', '3'], false);
+        $this->get(route('round.index'))->assertSeeInOrder(['data-testid="round-badge"', '3'], false);
 
         $this->get(route('round.index'))->assertOk()
             ->assertSeeInOrder(['En retard', 'Awa Koné', 'Livraison', 'Awa Koné', 'À encaisser : 4 500 F', 'Yao N&#039;Guessan'], false)
@@ -297,6 +297,38 @@ class RoundTest extends TestCase
         $this->actingAs($this->courier);
         $this->expectException(ModelNotFoundException::class);
         Livewire::test(Index::class)->call('startCollect', $other->id);
+    }
+
+    public function test_the_courier_lands_on_his_round_with_a_menu_limited_to_it(): void
+    {
+        $this->actingAs($this->courier);
+
+        $this->get(route('dashboard'))->assertRedirect(route('round.index'));
+        $this->get(route('round.index'))->assertOk()
+            ->assertSee('Tournée')
+            ->assertDontSee(route('orders.create'), false)
+            ->assertDontSee(route('clients.index'), false);
+    }
+
+    public function test_without_the_service_the_courier_keeps_the_usual_dashboard(): void
+    {
+        config(['presslink.delivery.launched' => false]);
+        $this->actingAs($this->courier);
+
+        $this->get(route('dashboard'))->assertOk();
+    }
+
+    public function test_a_courier_role_the_pressing_already_created_becomes_the_base_role(): void
+    {
+        $pressing = Pressing::factory()->create();
+        $pressing->roles()->where('key', Role::COURIER)->delete();
+        $own = $pressing->roles()->create(['name' => 'Coursier', 'permissions' => [Permission::DeliveriesRun->value, Permission::PaymentsRecord->value]]);
+
+        $role = $pressing->defaultRole(Role::COURIER);
+
+        $this->assertTrue($role->is($own));
+        $this->assertSame(1, $pressing->roles()->where('name', 'Coursier')->count());
+        $this->assertTrue($role->allows(Permission::PaymentsRecord), 'les accès choisis par le pressing sont gardés');
     }
 
     public function test_new_pressings_give_the_round_access_to_their_staff_roles(): void

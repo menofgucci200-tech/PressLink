@@ -109,7 +109,7 @@ class Pressing extends Model
         });
 
         // Tout pressing démarre avec deux services (Repassage et Nettoyage) et
-        // trois rôles (Propriétaire, Gérant, Employé).
+        // quatre rôles (Propriétaire, Gérant, Employé, Coursier).
         static::created(function (self $pressing): void {
             Prestation::createDefaultsFor($pressing);
             Role::createDefaultsFor($pressing);

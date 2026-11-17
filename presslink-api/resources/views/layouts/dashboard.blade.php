@@ -50,6 +50,11 @@
                 $canCash ? $navItem('cash', 'cash.index', 'Caisse', 'M2 7h20v12H2Z|M16 13h.01|M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2')
                     : ($lockedFor(\App\Enums\Feature::Cash) ? $navItem('cash', 'cash.index', 'Caisse', 'M2 7h20v12H2Z|M16 13h.01|M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2', $optionUrl(\App\Enums\Feature::Cash)) : null),
             ];
+            // Coursier : sa tournée seulement.
+            $courierOnly = ! $isOverviewMode && $user->onlyRunsDeliveries($pressing);
+            if ($courierOnly) {
+                $navItems = [$navItem('round', 'round.index', 'Tournée', 'M3 19a3 3 0 1 0 6 0a3 3 0 1 0-6 0|M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15|M15 5a3 3 0 1 0 6 0a3 3 0 1 0-6 0')];
+            }
             $navItems = array_values(array_filter($navItems));
             // Groupe : qui administre plusieurs pressings. En vue d'ensemble, le
             // menu ne montre que les pages du groupe ; dans un pressing, un lien
@@ -279,7 +284,7 @@
                     {{-- Les recherches qui filtrent une liste restent sur leur page
                          (Commandes, Clients…) ; ce bouton ouvre la palette (Ctrl/⌘ + K)
                          pour aller directement à une commande, un client ou une action. --}}
-                    @if ($pressing)
+                    @if ($pressing && ! $courierOnly)
                         <x-palette-trigger />
                     @endif
                     <div class="flex-1"></div>
@@ -369,7 +374,9 @@
             @php
                 $tabClass = fn (bool $isActive) => 'flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 h-14 text-[11px] font-semibold transition-colors '
                     .($isActive ? 'text-(--color-primary)' : 'text-(--color-text-muted) active:text-(--color-text-primary)');
-                $tabs = array_values(array_filter([
+                $tabs = $courierOnly ? [
+                    ['key' => 'round', 'url' => route('round.index'), 'label' => 'Tournée', 'icon' => 'M3 19a3 3 0 1 0 6 0a3 3 0 1 0-6 0|M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15|M15 5a3 3 0 1 0 6 0a3 3 0 1 0-6 0'],
+                ] : array_values(array_filter([
                     ['key' => 'dashboard', 'url' => route('dashboard'), 'label' => 'Accueil', 'icon' => 'M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z|M9 21v-6h6v6'],
                     ['key' => 'orders', 'url' => route('orders.index'), 'label' => 'Commandes', 'icon' => 'M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z|m3.3 7 8.7 5 8.7-5|M12 22V12'],
                     $can(\App\Enums\Permission::OrdersCreate) ? ['key' => 'new', 'url' => route('orders.create'), 'label' => 'Nouvelle', 'icon' => null] : null,
@@ -406,7 +413,7 @@
                 </div>
             </nav>
         @endif
-        @if ($pressing)
+        @if ($pressing && ! $courierOnly)
             @php
                 $shortcuts = [
                     'n' => route('orders.create'),

@@ -45,6 +45,13 @@ class Dashboard extends Component
         // Un commercial sans pressing suit son activité dans son propre espace.
         if (! $user->currentPressing() && $user->isActiveSalesAgent()) {
             $this->redirectRoute('sales.dashboard', navigate: true);
+
+            return;
+        }
+
+        // Un coursier arrive directement sur sa tournée.
+        if (! $user->hasMultiplePressings() && $user->onlyRunsDeliveries()) {
+            $this->redirectRoute('round.index', navigate: true);
         }
     }
 

@@ -126,6 +126,24 @@ class User extends Authenticatable
      * actif) ? Le propriétaire a tous les accès, dans la limite de ce que
      * comprend la formule du pressing (App\Enums\Feature).
      */
+    /**
+     * Membre qui ne fait que la tournée (rôle Coursier, ou rôle du pressing
+     * sans accès au comptoir ni à l'atelier) : il arrive sur sa tournée et
+     * son menu se limite à elle, une fois le service ouvert au pressing.
+     */
+    public function onlyRunsDeliveries(?Pressing $pressing = null): bool
+    {
+        $pressing ??= $this->currentPressing();
+
+        return $pressing !== null
+            && Feature::Delivery->isLaunched()
+            && $pressing->hasFeature(Feature::Delivery)
+            && $this->may(Permission::DeliveriesRun, $pressing)
+            && ! $this->may(Permission::OrdersCreate, $pressing)
+            && ! $this->may(Permission::PaymentsRecord, $pressing)
+            && ! $this->may(Permission::OrdersWorkshop, $pressing);
+    }
+
     public function may(Permission $permission, ?Pressing $pressing = null): bool
     {
         $pressing ??= $this->currentPressing();

@@ -155,7 +155,7 @@ class Index extends Component
         $this->errorMessage = null;
 
         if ($role->key !== null) {
-            $this->errorMessage = 'Les rôles Propriétaire, Gérant et Employé ne se suppriment pas.';
+            $this->errorMessage = 'Les rôles de base (Propriétaire, Gérant, Employé, Coursier) ne se suppriment pas.';
 
             return;
         }

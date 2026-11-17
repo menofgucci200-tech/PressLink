@@ -20,6 +20,11 @@ class Role extends Model
 
     public const EMPLOYEE = 'employee';
 
+    /** Coursier : seulement la tournée (ramasser, livrer, encaisser à la porte). */
+    public const COURIER = 'courier';
+
+    public const COURIER_NAME = 'Coursier';
+
     protected $fillable = ['pressing_id', 'key', 'name', 'permissions'];
 
     protected function casts(): array
@@ -44,13 +49,21 @@ class Role extends Model
             self::OWNER => ['name' => 'Propriétaire', 'permissions' => Permission::all()],
             self::MANAGER => ['name' => 'Gérant', 'permissions' => array_column($manager, 'value')],
             self::EMPLOYEE => ['name' => 'Employé', 'permissions' => array_column($employee, 'value')],
+            self::COURIER => ['name' => self::COURIER_NAME, 'permissions' => [Permission::DeliveriesRun->value]],
         ];
     }
 
     public static function createDefaultsFor(Pressing $pressing): void
     {
         foreach (self::defaults() as $key => $role) {
-            $pressing->roles()->firstOrCreate(['key' => $key], $role);
+            if ($pressing->roles()->where('key', $key)->exists()) {
+                continue;
+            }
+
+            // Rôle du même nom déjà créé par le pressing (ex. son propre « Coursier ») :
+            // il devient le rôle de base, avec les accès qu'il lui a donnés.
+            $sameName = $pressing->roles()->whereNull('key')->where('name', $role['name'])->first();
+            $sameName ? $sameName->update(['key' => $key]) : $pressing->roles()->create(['key' => $key, ...$role]);
         }
     }
 

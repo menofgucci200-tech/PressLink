@@ -67,9 +67,10 @@ class RolesAndPermissionsTest extends TestCase
         ], amountPaidFcfa: $paid);
     }
 
-    public function test_every_pressing_starts_with_owner_manager_and_employee(): void
+    public function test_every_pressing_starts_with_owner_manager_employee_and_courier(): void
     {
-        $this->assertSame(['Propriétaire', 'Gérant', 'Employé'], $this->pressing->roles()->pluck('name')->all());
+        $this->assertSame(['Propriétaire', 'Gérant', 'Employé', 'Coursier'], $this->pressing->roles()->pluck('name')->all());
+        $this->assertSame([Permission::DeliveriesRun->value], $this->pressing->defaultRole(Role::COURIER)->permissionValues());
         $this->assertTrue($this->pressing->defaultRole(Role::OWNER)->allows(Permission::RevenueView));
         $this->assertFalse($this->pressing->defaultRole(Role::MANAGER)->allows(Permission::RevenueView));
         $this->assertTrue($this->pressing->defaultRole(Role::MANAGER)->allows(Permission::CashClose));
@@ -149,7 +150,7 @@ class RolesAndPermissionsTest extends TestCase
         $this->actingAs($manager);
 
         $component = Livewire::test(TeamIndex::class)
-            ->assertViewHas('assignableRoles', fn ($roles) => $roles->pluck('key')->all() === [Role::EMPLOYEE])
+            ->assertViewHas('assignableRoles', fn ($roles) => $roles->pluck('key')->all() === [Role::EMPLOYEE, Role::COURIER])
             ->assertDontSee('Rôles et accès');
 
         $component->call('toggleActive', $owner->id)->assertForbidden();

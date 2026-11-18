@@ -393,7 +393,7 @@
                 <div class="text-[11px] font-semibold uppercase tracking-wide text-(--color-error) mb-1">Zone de danger</div>
                 <p class="text-sm text-(--color-text-secondary)">
                     Supprimer définitivement ce pressing efface aussi ses {{ $pressing->orders_count }} commande(s), ses {{ $pressing->services_count }} service(s),
-                    son abonnement et le rattachement de ses {{ $pressing->customers_count }} client(s). Les comptes clients et ceux de l'équipe sont conservés.
+                    son abonnement et le rattachement de ses {{ $pressing->customers_count }} client(s). Les comptes clients sont conservés ; les comptes de l'équipe qui ne servent dans aucun autre pressing sont supprimés et leurs numéros redeviennent libres.
                     Pour simplement bloquer l'accès, préférez « Suspendre ».
                 </p>
             </div>

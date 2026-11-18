@@ -22,6 +22,7 @@ use App\Models\User;
 use App\Rules\IvorianPhone;
 use App\Support\PhoneNumber;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -159,8 +160,9 @@ class Show extends Component
 
     /**
      * Suppression définitive : commandes, services, abonnement et
-     * rattachements partent en cascade. Les comptes de l'équipe sont
-     * conservés (ils peuvent appartenir à d'autres pressings).
+     * rattachements partent en cascade. Les comptes de l'équipe qui ne
+     * servent nulle part ailleurs (aucun autre pressing, pas commercial,
+     * pas super admin) sont supprimés aussi, pour libérer leur numéro.
      */
     public function deletePressing(): void
     {
@@ -173,7 +175,15 @@ class Show extends Component
         }
 
         $name = $this->pressing->name;
-        $this->pressing->delete();
+        DB::transaction(function (): void {
+            $staff = $this->pressing->staff()->get();
+            $this->pressing->delete();
+
+            $staff->filter(fn (User $user) => ! $user->is_super_admin
+                && ! $user->pressings()->exists()
+                && ! $user->salesAgent()->exists()
+            )->each->delete();
+        });
 
         $this->flashToast("Le pressing « {$name} » a été supprimé.");
         $this->redirectRoute('admin.pressings.index', navigate: true);

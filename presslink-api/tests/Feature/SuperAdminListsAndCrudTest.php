@@ -15,6 +15,7 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderIssue;
 use App\Models\Pressing;
+use App\Models\SalesAgent;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -89,12 +90,18 @@ class SuperAdminListsAndCrudTest extends TestCase
             ->assertHasErrors('info.phone');
     }
 
-    public function test_deleting_a_pressing_requires_typing_its_code_and_keeps_accounts(): void
+    public function test_deleting_a_pressing_requires_typing_its_code_and_frees_its_team_accounts(): void
     {
         $pressing = Pressing::factory()->create();
-        $manager = User::factory()->create();
+        $other = Pressing::factory()->create();
+        $manager = User::factory()->create(['phone' => '+2250701020304']);
+        $sharedOwner = User::factory()->create();
+        $salesAgentUser = SalesAgent::factory()->create()->user;
         $pressing->staff()->attach($manager, ['role' => PressingRole::Admin->value, 'is_active' => true]);
-        $order = Order::factory()->for($pressing)->create();
+        $pressing->staff()->attach($sharedOwner, ['role' => PressingRole::Admin->value, 'is_active' => true]);
+        $other->staff()->attach($sharedOwner, ['role' => PressingRole::Admin->value, 'is_active' => true]);
+        $pressing->staff()->attach($salesAgentUser, ['role' => PressingRole::Employee->value, 'is_active' => true]);
+        $order = Order::factory()->for($pressing)->create(['created_by' => $manager->id]);
 
         Livewire::test(AdminPressingsShow::class, ['pressing' => $pressing])
             ->set('deleteConfirmation', 'MAUVAIS')
@@ -109,8 +116,13 @@ class SuperAdminListsAndCrudTest extends TestCase
 
         $this->assertModelMissing($pressing);
         $this->assertModelMissing($order);
-        $this->assertModelExists($manager);
         $this->assertModelExists($order->customer);
+
+        // Le compte qui ne sert plus nulle part part avec le pressing : son numéro est libre.
+        $this->assertModelMissing($manager);
+        $this->assertFalse(User::where('phone', '+2250701020304')->exists());
+        $this->assertModelExists($sharedOwner);
+        $this->assertModelExists($salesAgentUser);
     }
 
     // ---------- Commandes ----------

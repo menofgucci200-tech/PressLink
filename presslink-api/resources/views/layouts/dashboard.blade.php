@@ -81,10 +81,11 @@
                 ? \App\Models\PickupRequest::visibleTo($pressing)->where('status', \App\Enums\PickupRequestStatus::Pending->value)->count()
                 : 0;
 
-            // Tournée : passages prévus aujourd'hui (et ceux en retard).
+            // Tournée : passages prévus aujourd'hui (et ceux en retard) ; pour un coursier, les siens et ceux de personne.
+            $roundOf = fn ($query) => $user->dispatchesRounds($pressing) ? $query : $query->forCourier($user);
             $roundStopsCount = $showsPickups
-                ? $pressing->pickupRequests()->where('status', \App\Enums\PickupRequestStatus::Accepted->value)->whereDate('pickup_date', '<=', today())->count()
-                    + $pressing->orderDeliveries()->where('status', \App\Enums\OrderDeliveryStatus::Scheduled->value)->whereDate('delivery_date', '<=', today())->count()
+                ? $roundOf($pressing->pickupRequests())->where('status', \App\Enums\PickupRequestStatus::Accepted->value)->whereDate('pickup_date', '<=', today())->count()
+                    + $roundOf($pressing->orderDeliveries())->where('status', \App\Enums\OrderDeliveryStatus::Scheduled->value)->whereDate('delivery_date', '<=', today())->count()
                 : 0;
 
             $subscription = $pressing?->subscription;

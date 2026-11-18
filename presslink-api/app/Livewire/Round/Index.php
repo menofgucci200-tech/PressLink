@@ -13,6 +13,7 @@ use App\Livewire\Concerns\ShowsToasts;
 use App\Models\OrderDelivery;
 use App\Models\PickupRequest;
 use App\Models\Pressing;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
@@ -41,6 +42,10 @@ class Index extends Component
 
     #[Url(as: 'jour')]
     public string $day = '';
+
+    /** Filtre de qui organise la tournée : '' tous, 'none' sans coursier, ou l'id d'un coursier. */
+    #[Url(as: 'coursier')]
+    public string $courierFilter = '';
 
     /** Arrêt en cours de traitement : « pickup-12 » ou « delivery-5 ». */
     public ?string $acting = null;
@@ -106,6 +111,34 @@ class Index extends Component
         $this->startActing("delivery-{$delivery->id}", 'reschedule');
         $this->date = $delivery->delivery_date->toDateString();
         $this->slot = "{$delivery->slot_from}-{$delivery->slot_to}";
+    }
+
+    /**
+     * Confie un passage (« pickup-12 » ou « delivery-5 ») à un coursier de
+     * l'équipe, ou à personne ('').
+     */
+    public function assign(string $key, string $courierId, PickupRequests $pickups, OrderDeliveries $deliveries): void
+    {
+        abort_unless(auth()->user()->dispatchesRounds($this->pressing), 403);
+        [$type, $id] = array_pad(explode('-', $key), 2, null);
+        abort_unless(in_array($type, ['pickup', 'delivery'], true) && ctype_digit((string) $id), 404);
+
+        $courier = $courierId === '' ? null : $this->pressing->couriers()->firstWhere('id', (int) $courierId);
+        abort_if($courierId !== '' && $courier === null, 404);
+
+        try {
+            if ($type === 'pickup') {
+                $pickups->assign($this->findPickup((int) $id), auth()->user(), $courier);
+            } else {
+                $deliveries->assign($this->findDelivery((int) $id), auth()->user(), $courier);
+            }
+        } catch (RuntimeException $e) {
+            $this->failed($e);
+
+            return;
+        }
+
+        $this->toast($courier ? "Passage confié à {$courier->name}." : 'Passage confié à aucun coursier : tous les coursiers le voient.');
     }
 
     public function stopActing(): void
@@ -282,12 +315,45 @@ class Index extends Component
 
     private function findPickup(int $id): PickupRequest
     {
-        return $this->pressing->pickupRequests()->findOrFail($id);
+        return $this->visibleToMe($this->pressing->pickupRequests())->findOrFail($id);
     }
 
     private function findDelivery(int $id): OrderDelivery
     {
-        return $this->pressing->orderDeliveries()->with('order')->findOrFail($id);
+        return $this->visibleToMe($this->pressing->orderDeliveries())->with('order')->findOrFail($id);
+    }
+
+    /** Organise la tournée (voit et répartit tout), ou coursier (ses passages et ceux de personne). */
+    private function dispatches(): bool
+    {
+        return auth()->user()->dispatchesRounds($this->pressing);
+    }
+
+    /**
+     * Passages que l'utilisateur peut traiter : tous pour qui organise la
+     * tournée ; les siens et ceux de personne pour un coursier.
+     */
+    private function visibleToMe(HasMany $query): HasMany
+    {
+        if (! $this->dispatches()) {
+            return $query->forCourier(auth()->user());
+        }
+
+        return $query;
+    }
+
+    /** Passages visibles, puis filtrés par le choix de coursier de qui organise la tournée. */
+    private function filteredByCourier(HasMany $query): HasMany
+    {
+        if (! $this->dispatches()) {
+            return $this->visibleToMe($query);
+        }
+
+        return match (true) {
+            $this->courierFilter === 'none' => $query->whereNull('courier_id'),
+            ctype_digit($this->courierFilter) => $query->where('courier_id', (int) $this->courierFilter),
+            default => $query,
+        };
     }
 
     /**
@@ -301,15 +367,15 @@ class Index extends Component
             ? $query->whereDate($column, '<=', $day->toDateString())
             : $query->whereDate($column, $day->toDateString());
 
-        $pickups = $onDay($this->pressing->pickupRequests()->where('status', PickupRequestStatus::Accepted->value), 'pickup_date')
-            ->with('customer')->get()
+        $pickups = $onDay($this->filteredByCourier($this->pressing->pickupRequests())->where('status', PickupRequestStatus::Accepted->value), 'pickup_date')
+            ->with(['customer', 'courier'])->get()
             ->map(fn (PickupRequest $request) => [
                 'type' => 'pickup', 'key' => "pickup-{$request->id}", 'model' => $request,
                 'late' => $request->slotEndsAt()->isPast(), 'sort' => $request->pickup_date->toDateString().$request->slot_from.'0',
             ]);
 
-        $deliveries = $onDay($this->pressing->orderDeliveries()->where('status', OrderDeliveryStatus::Scheduled->value), 'delivery_date')
-            ->with(['customer', 'order.items'])->get()
+        $deliveries = $onDay($this->filteredByCourier($this->pressing->orderDeliveries())->where('status', OrderDeliveryStatus::Scheduled->value), 'delivery_date')
+            ->with(['customer', 'courier', 'order.items'])->get()
             ->map(fn (OrderDelivery $delivery) => [
                 'type' => 'delivery', 'key' => "delivery-{$delivery->id}", 'model' => $delivery,
                 'late' => $delivery->slotEndsAt()->isPast(), 'sort' => $delivery->delivery_date->toDateString().$delivery->slot_from.'1',
@@ -329,8 +395,12 @@ class Index extends Component
         $doneDeliveries = $this->pressing->orderDeliveries()->where('status', OrderDeliveryStatus::Delivered->value)
             ->whereDate('delivered_at', $day->toDateString())->with(['customer', 'order'])->latest('delivered_at')->get();
 
+        $dispatches = $this->dispatches();
+
         return view('livewire.round.index', [
             'stops' => $stops,
+            'dispatches' => $dispatches,
+            'couriers' => $dispatches ? $this->pressing->couriers() : collect(),
             'toCollect' => $stops->where('type', 'delivery')->sum(fn (array $stop) => $stop['model']->amountToCollect()),
             'donePickups' => $donePickups,
             'doneDeliveries' => $doneDeliveries,

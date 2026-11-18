@@ -64,6 +64,10 @@
         </div>
     @endif
 
+    @if ($order->status === \App\Enums\OrderStatus::Prete && ! $homeDelivery?->isScheduled())
+        <livewire:orders.schedule-delivery :order="$order" :key="'schedule-delivery-'.$order->id" />
+    @endif
+
     @include('livewire.orders._next-step')
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">

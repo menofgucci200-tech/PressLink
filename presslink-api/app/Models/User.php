@@ -144,6 +144,18 @@ class User extends Authenticatable
             && ! $this->may(Permission::OrdersWorkshop, $pressing);
     }
 
+    /**
+     * Organise la tournée : programme les livraisons depuis le comptoir et
+     * répartit les passages entre les coursiers. C'est l'accueil (créer des
+     * commandes ou encaisser) ; un coursier ne fait que ses passages.
+     */
+    public function dispatchesRounds(?Pressing $pressing = null): bool
+    {
+        return $this->is_super_admin
+            || $this->may(Permission::OrdersCreate, $pressing)
+            || $this->may(Permission::PaymentsRecord, $pressing);
+    }
+
     public function may(Permission $permission, ?Pressing $pressing = null): bool
     {
         $pressing ??= $this->currentPressing();

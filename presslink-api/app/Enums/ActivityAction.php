@@ -33,6 +33,7 @@ enum ActivityAction: string
     case DeliveryRescheduled = 'delivery_rescheduled';
     case DeliveryCancelled = 'delivery_cancelled';
     case DeliveryMissed = 'delivery_missed';
+    case RoundAssigned = 'round_assigned';
 
     // Paiements
     case PaymentRecorded = 'payment_recorded';
@@ -86,6 +87,7 @@ enum ActivityAction: string
             self::DeliveryRescheduled => 'Livraison reprogrammée',
             self::DeliveryCancelled => 'Livraison annulée',
             self::DeliveryMissed => 'Livraison manquée',
+            self::RoundAssigned => 'Passage confié à un coursier',
             self::PaymentRecorded => 'Paiement encaissé',
             self::PaymentRefunded => 'Remboursement',
             self::PaymentRemoved => 'Paiement supprimé',
@@ -115,7 +117,7 @@ enum ActivityAction: string
             self::QuickDepositCreated, self::QuickDepositCompleted,
             self::PickupRequested, self::PickupAccepted, self::PickupRefused, self::PickupCancelled,
             self::PickupCollected, self::PickupMissed, self::DeliveryRequested, self::DeliveryRescheduled,
-            self::DeliveryCancelled, self::DeliveryMissed => 'orders',
+            self::DeliveryCancelled, self::DeliveryMissed, self::RoundAssigned => 'orders',
             self::StorageFeeCharged, self::StorageFeeWaived => 'payments',
             self::PaymentRecorded, self::PaymentRefunded, self::PaymentRemoved => 'payments',
             self::CustomerAdded => 'customers',

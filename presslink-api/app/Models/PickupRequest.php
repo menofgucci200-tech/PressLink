@@ -60,6 +60,7 @@ class PickupRequest extends Model
         'pickup_fee_fcfa',
         'refusal_reason',
         'responded_by',
+        'courier_id',
         'responded_at',
         'picked_up_at',
         'picked_up_by',
@@ -88,6 +89,27 @@ class PickupRequest extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    /**
+     * Coursier chargé de ce passage (null : personne, tous les coursiers le voient).
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function courier(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'courier_id');
+    }
+
+    /**
+     * Passages qu'un coursier voit dans sa tournée : les siens et ceux
+     * attribués à personne.
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeForCourier(Builder $query, User $courier): void
+    {
+        $query->where(fn (Builder $mine) => $mine->whereNull('courier_id')->orWhere('courier_id', $courier->id));
     }
 
     /** @return BelongsTo<User, $this> */

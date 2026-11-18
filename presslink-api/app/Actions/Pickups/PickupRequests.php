@@ -316,6 +316,34 @@ class PickupRequests
         $locked->customer->notify(new PickupRefusedNotification($locked));
     }
 
+    /** Confie un ramassage accepté à un coursier de l'équipe, ou à personne (null). */
+    public function assign(PickupRequest $request, User $user, ?User $courier): void
+    {
+        $pressing = $request->pressing;
+        if ($pressing === null || ! $user->dispatchesRounds($pressing)) {
+            throw new RuntimeException('Votre rôle ne permet pas de répartir la tournée.');
+        }
+        if ($courier !== null && ! $pressing->couriers()->contains('id', $courier->id)) {
+            throw new RuntimeException("{$courier->name} ne fait pas la tournée de ce pressing.");
+        }
+
+        DB::transaction(function () use ($request, $courier) {
+            $locked = PickupRequest::with('customer')->lockForUpdate()->findOrFail($request->id);
+            if ($locked->status !== PickupRequestStatus::Accepted) {
+                throw new RuntimeException('Seul un ramassage accepté se confie à un coursier.');
+            }
+            if ($locked->courier_id === $courier?->id) {
+                return;
+            }
+
+            $locked->update(['courier_id' => $courier?->id]);
+            ActivityLog::record($locked->pressing_id, ActivityAction::RoundAssigned,
+                "Ramassage chez {$locked->customer->fullName()} ".($courier ? "confié à {$courier->name}" : 'confié à aucun coursier'));
+        });
+
+        $request->refresh();
+    }
+
     /** « Pas pour nous » : le pressing masque chez lui une demande ouverte à sa zone. */
     public function dismiss(PickupRequest $request, Pressing $pressing): void
     {
@@ -388,6 +416,9 @@ class PickupRequests
     {
         if ($request->pressing === null || (! $user->is_super_admin && ! $user->may(Permission::DeliveriesRun, $request->pressing))) {
             throw new RuntimeException('Votre rôle ne permet pas de faire la tournée.');
+        }
+        if ($request->courier_id !== null && $request->courier_id !== $user->id && ! $user->dispatchesRounds($request->pressing)) {
+            throw new RuntimeException('Ce ramassage est confié à un autre coursier.');
         }
     }
 

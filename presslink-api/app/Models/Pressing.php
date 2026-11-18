@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Feature;
+use App\Enums\Permission;
 use App\Enums\PressingRole;
 use App\Enums\PressingStatus;
 use App\Exceptions\PressingClosedException;
@@ -757,6 +758,19 @@ class Pressing extends Model
         }
 
         return $role;
+    }
+
+    /**
+     * Membres actifs qui peuvent faire la tournée : ceux à qui l'on attribue
+     * un ramassage ou une livraison.
+     *
+     * @return Collection<int, User>
+     */
+    public function couriers(): Collection
+    {
+        return $this->staff()->wherePivot('is_active', true)->orderBy('name')->get()
+            ->filter(fn (User $member) => $member->may(Permission::DeliveriesRun, $this))
+            ->values();
     }
 
     public function admins(): BelongsToMany

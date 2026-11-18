@@ -14,12 +14,15 @@ use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\Order;
 use App\Models\OrderDelivery;
+use App\Models\Pressing;
 use App\Models\User;
 use App\Notifications\DeliveryMissedNotification;
 use App\Notifications\DeliveryRescheduledNotification;
+use App\Notifications\DeliveryScheduledNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
 
@@ -123,6 +126,89 @@ class OrderDeliveries
 
             return $delivery;
         });
+    }
+
+    /**
+     * Livraison programmée par le pressing lui-même (le client a appelé, ou
+     * le linge vient d'un ramassage) : n'importe quel jour et créneau, à une
+     * adresse d'une commune desservie, avec un coursier si on le choisit. Le
+     * client est prévenu dans l'appli.
+     *
+     * @param  array{address_label?: ?string, commune: string, neighborhood?: ?string, landmark: string}  $address
+     * @param  array{delivery_date: string, slot_from: string, slot_to: string, note?: ?string}  $data
+     */
+    public function schedule(Order $order, User $user, array $address, array $data, ?User $courier = null): OrderDelivery
+    {
+        if (! $user->dispatchesRounds($order->pressing)) {
+            throw new RuntimeException('Votre rôle ne permet pas de programmer une livraison.');
+        }
+
+        $offer = $this->offer($order);
+        if (! $offer['available']) {
+            throw new RuntimeException((string) $offer['reason']);
+        }
+        if (! in_array($address['commune'], $offer['communes'], true)) {
+            throw new RuntimeException("{$order->pressing->name} ne livre pas à {$address['commune']}.");
+        }
+        $this->ensureCourierOf($order->pressing, $courier);
+
+        $delivery = DB::transaction(function () use ($order, $user, $address, $data, $offer, $courier) {
+            $locked = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
+            if ($locked->status !== OrderStatus::Prete || $locked->scheduledDelivery()->exists()) {
+                throw new RuntimeException('Une livraison est déjà prévue pour cette commande.');
+            }
+
+            $delivery = OrderDelivery::create([
+                'pressing_id' => $locked->pressing_id,
+                'order_id' => $locked->id,
+                'customer_id' => $locked->customer_id,
+                'status' => OrderDeliveryStatus::Scheduled,
+                'address_label' => Str::limit(trim((string) ($address['address_label'] ?? '')) ?: 'Adresse', 40, ''),
+                'commune' => $address['commune'],
+                'neighborhood' => filled($address['neighborhood'] ?? null) ? trim($address['neighborhood']) : null,
+                'landmark' => trim($address['landmark']),
+                'delivery_date' => $data['delivery_date'],
+                'slot_from' => $data['slot_from'],
+                'slot_to' => $data['slot_to'],
+                'note' => filled($data['note'] ?? null) ? trim($data['note']) : null,
+                'delivery_fee_fcfa' => $offer['fee_fcfa'],
+                'handled_by' => $user->id,
+                'courier_id' => $courier?->id,
+            ]);
+
+            ActivityLog::record($locked->pressing_id, ActivityAction::DeliveryRequested,
+                "Livraison de {$locked->order_number} programmée par le pressing pour {$delivery->scheduleLabel()} ({$delivery->place()})"
+                .($courier ? ", confiée à {$courier->name}" : ''), $locked, ['order_delivery_id' => $delivery->id]);
+
+            return $delivery;
+        });
+
+        $delivery->load(['order.pressing', 'customer']);
+        $delivery->customer->notify(new DeliveryScheduledNotification($delivery->order, $delivery));
+
+        return $delivery;
+    }
+
+    /** Confie la livraison à un coursier de l'équipe, ou à personne (null). */
+    public function assign(OrderDelivery $delivery, User $user, ?User $courier): void
+    {
+        if (! $user->dispatchesRounds($delivery->pressing)) {
+            throw new RuntimeException('Votre rôle ne permet pas de répartir la tournée.');
+        }
+        $this->ensureCourierOf($delivery->pressing, $courier);
+
+        DB::transaction(function () use ($delivery, $courier) {
+            $locked = $this->lockScheduled($delivery);
+            if ($locked->courier_id === $courier?->id) {
+                return;
+            }
+
+            $locked->update(['courier_id' => $courier?->id]);
+            ActivityLog::record($locked->pressing_id, ActivityAction::RoundAssigned,
+                "Livraison de {$locked->order->order_number} ".($courier ? "confiée à {$courier->name}" : 'confiée à aucun coursier'), $locked->order, ['order_delivery_id' => $locked->id]);
+        });
+
+        $delivery->refresh();
     }
 
     public function cancelByCustomer(OrderDelivery $delivery): void
@@ -232,6 +318,16 @@ class OrderDeliveries
     {
         if (! $user->is_super_admin && ! $user->may(Permission::DeliveriesRun, $delivery->pressing)) {
             throw new RuntimeException('Votre rôle ne permet pas de faire la tournée.');
+        }
+        if ($delivery->courier_id !== null && $delivery->courier_id !== $user->id && ! $user->dispatchesRounds($delivery->pressing)) {
+            throw new RuntimeException('Cette livraison est confiée à un autre coursier.');
+        }
+    }
+
+    private function ensureCourierOf(Pressing $pressing, ?User $courier): void
+    {
+        if ($courier !== null && ! $pressing->couriers()->contains('id', $courier->id)) {
+            throw new RuntimeException("{$courier->name} ne fait pas la tournée de ce pressing.");
         }
     }
 

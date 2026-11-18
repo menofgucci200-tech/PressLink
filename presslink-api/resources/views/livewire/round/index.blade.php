@@ -9,7 +9,10 @@
 <div class="max-w-3xl">
     <div class="mb-5">
         <h1 class="font-display text-2xl font-bold mb-1">Tournée</h1>
-        <p class="text-sm text-(--color-text-muted)">Les ramassages acceptés et les livraisons demandées par vos clients, dans l'ordre des créneaux. Sur place : linge ramassé, commande livrée et payée, ou client absent.</p>
+        <p class="text-sm text-(--color-text-muted)">Les ramassages acceptés et les livraisons prévues, dans l'ordre des créneaux. Sur place : linge ramassé, commande livrée et payée, ou client absent.</p>
+        @unless ($dispatches)
+            <p class="mt-1 text-sm text-(--color-text-muted)">Vous voyez les passages qui vous sont confiés et ceux qui ne sont confiés à personne.</p>
+        @endunless
     </div>
 
     @unless ($launched)
@@ -26,6 +29,19 @@
             </button>
         @endforeach
     </div>
+
+    @if ($dispatches && $couriers->isNotEmpty())
+        <div class="mb-4 flex items-center gap-2">
+            <label for="round-courier-filter" class="flex-none text-sm font-medium text-(--color-text-secondary)">Coursier</label>
+            <select id="round-courier-filter" wire:model.live="courierFilter" class="{{ $select }} sm:max-w-64" data-testid="courier-filter">
+                <option value="">Tous les passages</option>
+                <option value="none">Confiés à personne</option>
+                @foreach ($couriers as $courier)
+                    <option value="{{ $courier->id }}">{{ $courier->name }}</option>
+                @endforeach
+            </select>
+        </div>
+    @endif
 
     @if ($stops->isNotEmpty())
         <div class="mb-4 grid grid-cols-3 gap-2 text-center" data-testid="round-summary">
@@ -47,7 +63,7 @@
     @if ($stops->isEmpty())
         <div class="bg-(--color-surface) border border-(--color-border) rounded-xl">
             <x-empty-state icon="check" tone="success" title="Aucun passage prévu ce jour-là">
-                Les ramassages que vous acceptez (menu Ramassages) et les livraisons que vos clients demandent depuis l'appli s'affichent ici.
+                Les ramassages que vous acceptez (menu Ramassages), les livraisons que vos clients demandent depuis l'appli et celles que vous programmez depuis une commande prête s'affichent ici.
             </x-empty-state>
         </div>
     @else
@@ -108,6 +124,20 @@
 
                     @if ($model->note)
                         <p class="mt-2 text-sm text-(--color-text-secondary) break-words">« {{ $model->note }} »</p>
+                    @endif
+
+                    @if ($dispatches && $couriers->isNotEmpty())
+                        <div class="mt-3 flex items-center gap-2">
+                            <label for="courier-{{ $stop['key'] }}" class="flex-none text-xs font-medium text-(--color-text-secondary)">Confié à</label>
+                            <select id="courier-{{ $stop['key'] }}" wire:change="assign('{{ $stop['key'] }}', $event.target.value)" class="{{ $select }} h-10 sm:max-w-64" data-testid="assign-courier">
+                                <option value="" @selected($model->courier_id === null)>Personne (tous les coursiers)</option>
+                                @foreach ($couriers as $courier)
+                                    <option value="{{ $courier->id }}" @selected($model->courier_id === $courier->id)>{{ $courier->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @elseif ($model->courier_id === auth()->id())
+                        <p class="mt-3 text-xs font-semibold text-(--color-primary)">Confié à vous</p>
                     @endif
 
                     @if ($canRun)

@@ -23,6 +23,7 @@ use App\Notifications\PickupMissedNotification;
 use App\Notifications\PickupRefusedNotification;
 use App\Support\ImageOptimizer;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -60,8 +61,9 @@ class PickupRequests
     {
         $mine = $customer->pressings()->pluck('pressings.id')->all();
 
-        $pressings = Pressing::pickupProvidersIn($address->commune)
+        $pressings = Pressing::pickupProvidersIn($address->commune, $customer)
             ->map(fn (Pressing $pressing) => [
+                'is_demo' => $pressing->is_demo,
                 'id' => $pressing->id,
                 'name' => $pressing->name,
                 'logo_url' => $pressing->logo_url,
@@ -74,9 +76,13 @@ class PickupRequests
             ->sortBy([['is_mine', 'desc'], ['name', 'asc']])
             ->values();
 
+        // La demande ouverte à la zone ne part qu'aux vrais pressings.
+        $zonePressings = $pressings->reject(fn (array $option) => $option['is_demo']);
+        $pressings = $pressings->map(fn (array $option) => Arr::except($option, 'is_demo'));
+
         $zone = null;
-        if ($pressings->isNotEmpty()) {
-            $days = $pressings->flatMap(fn (array $option) => $option['days'])
+        if ($zonePressings->isNotEmpty()) {
+            $days = $zonePressings->flatMap(fn (array $option) => $option['days'])
                 ->groupBy('date')
                 ->map(fn ($sameDay) => [
                     'date' => $sameDay->first()['date'],
@@ -90,8 +96,8 @@ class PickupRequests
 
             $zone = [
                 'days' => $days,
-                'fee_min_fcfa' => (int) $pressings->min('pickup_fee_fcfa'),
-                'fee_max_fcfa' => (int) $pressings->max('pickup_fee_fcfa'),
+                'fee_min_fcfa' => (int) $zonePressings->min('pickup_fee_fcfa'),
+                'fee_max_fcfa' => (int) $zonePressings->max('pickup_fee_fcfa'),
             ];
         }
 
@@ -114,7 +120,9 @@ class PickupRequests
             if ($services === null || ! $services['pickup'] || $pressing->status !== PressingStatus::Active) {
                 throw new RuntimeException("{$pressing->name} ne propose pas le ramassage.");
             }
-            if (! $pressing->picksUpIn($address->commune)) {
+            $followsDemo = $pressing->is_demo && ! $pressing->isSandbox()
+                && $customer->pressings()->whereKey($pressing->id)->exists();
+            if (! $pressing->picksUpIn($address->commune) || ($pressing->is_demo && ! $followsDemo)) {
                 throw new RuntimeException("{$pressing->name} ne passe pas à {$address->commune}.");
             }
             $candidates = collect([$pressing]);
@@ -240,7 +248,7 @@ class PickupRequests
     {
         $takenFromZone = $locked->isOpenToZone();
         if ($takenFromZone) {
-            if (! $pressing->picksUpIn($locked->commune)) {
+            if ($pressing->is_demo || ! $pressing->picksUpIn($locked->commune)) {
                 throw new RuntimeException("Votre pressing ne passe pas à {$locked->commune}.");
             }
             $locked->forceFill(['pressing_id' => $pressing->id, 'pickup_fee_fcfa' => $pressing->pickup_fee_fcfa]);

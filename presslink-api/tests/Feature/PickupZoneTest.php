@@ -272,6 +272,46 @@ class PickupZoneTest extends TestCase
         app(PickupRequests::class)->accept($request, $owner, $plateau);
     }
 
+    public function test_the_demo_pressing_is_offered_only_to_the_customers_who_follow_it(): void
+    {
+        Notification::fake();
+        Mail::fake();
+        // Seule la démo passe à Yopougon.
+        $demo = $this->pickupPressing('Pressing Démo', 700, ['Yopougon']);
+        $demo->update(['is_demo' => true]);
+        $yopougon = CustomerAddress::factory()->for($this->customer)->create(['commune' => 'Yopougon']);
+        $payload = $this->zonePayload(['address_id' => $yopougon->id, 'pressing_id' => $demo->id]);
+
+        $this->getJson("/api/v1/pickup-options?address_id={$yopougon->id}")->assertOk()
+            ->assertJsonCount(0, 'pressings');
+        $this->postJson('/api/v1/pickup-requests', $payload)->assertUnprocessable();
+
+        // Le client a saisi le code de la démo : elle lui est proposée, sans ouvrir la zone.
+        $demo->customers()->attach($this->customer, ['joined_at' => now()]);
+        $this->getJson("/api/v1/pickup-options?address_id={$yopougon->id}")->assertOk()
+            ->assertJsonCount(1, 'pressings')
+            ->assertJsonPath('pressings.0.name', 'Pressing Démo')
+            ->assertJsonPath('pressings.0.is_mine', true)
+            ->assertJsonMissingPath('pressings.0.is_demo')
+            ->assertJsonPath('zone', null);
+
+        $this->postJson('/api/v1/pickup-requests', $payload)->assertCreated();
+        $this->assertSame($demo->id, PickupRequest::sole()->pressing_id);
+    }
+
+    public function test_demo_and_test_pressings_never_see_nor_take_requests_left_to_the_zone(): void
+    {
+        $request = $this->zoneRequest();
+        $demo = $this->pickupPressing('Pressing Démo', 700, ['Cocody']);
+        $demo->update(['is_demo' => true]);
+        $owner = $this->ownerOf($demo, 'demo@pressing.test');
+
+        $this->assertSame(0, PickupRequest::visibleTo($demo)->count());
+
+        $this->expectExceptionMessage('Votre pressing ne passe pas à Cocody.');
+        app(PickupRequests::class)->accept($request, $owner, $demo);
+    }
+
     public function test_an_unanswered_zone_request_expires_with_a_message_about_the_zone(): void
     {
         Notification::fake();

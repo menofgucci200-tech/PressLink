@@ -605,11 +605,12 @@ class Pressing extends Model
     /**
      * Pressings qui passent chercher le linge dans cette commune, pour les
      * clients de tout PressLink (pas seulement leurs clients) : actifs, hors
-     * démo et pressings de test, avec le ramassage dans leur formule.
+     * démo et pressings de test, avec le ramassage dans leur formule. La démo
+     * s'ajoute pour le client qui la suit déjà (il a saisi son code).
      *
      * @return Collection<int, self>
      */
-    public static function pickupProvidersIn(string $commune): Collection
+    public static function pickupProvidersIn(string $commune, ?Customer $follower = null): Collection
     {
         if (! Feature::Delivery->isLaunched()) {
             return new Collection;
@@ -617,7 +618,8 @@ class Pressing extends Model
 
         return self::query()
             ->where('status', PressingStatus::Active->value)
-            ->withoutDemo()
+            ->where(fn (Builder $visible) => $visible->where('is_demo', false)
+                ->when($follower, fn (Builder $followed) => $followed->orWhereIn('id', $follower->pressings()->select('pressings.id'))))
             ->withoutSandboxes()
             ->where('pickup_enabled', true)
             ->whereHas('serviceAreas', fn (Builder $areas) => $areas->where('commune', $commune))

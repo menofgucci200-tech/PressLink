@@ -150,7 +150,8 @@ class PickupRequest extends Model
 
     /**
      * Demandes qu'un pressing voit dans son menu « Ramassages » : les siennes
-     * et, s'il fait le ramassage, celles ouvertes à sa zone.
+     * et, s'il fait le ramassage, celles ouvertes à sa zone (jamais pour la
+     * démo ni un pressing de test : ce sont des demandes de vrais clients).
      *
      * @param  Builder<self>  $query
      */
@@ -158,7 +159,7 @@ class PickupRequest extends Model
     {
         $query->where(function (Builder $visible) use ($pressing) {
             $visible->where('pressing_id', $pressing->id);
-            if ($pressing->pickup_enabled) {
+            if ($pressing->pickup_enabled && ! $pressing->is_demo) {
                 $visible->orWhere(fn (Builder $zone) => $zone->openToZoneOf($pressing));
             }
         });

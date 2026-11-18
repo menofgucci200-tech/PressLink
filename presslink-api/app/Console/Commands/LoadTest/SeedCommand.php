@@ -4,6 +4,7 @@ namespace App\Console\Commands\LoadTest;
 
 use App\Actions\Orders\CreateOrderAction;
 use App\Enums\OrderStatus;
+use App\Enums\PaymentMethod;
 use App\Enums\PressingRole;
 use App\Enums\SubscriptionPlan;
 use App\Models\ActivityLog;
@@ -229,6 +230,13 @@ class SeedCommand extends Command
                 ]]);
 
                 $target = $this->weightedRandomStatus($statusWeights);
+
+                // Une commande n'est remise que soldée.
+                if ($target === OrderStatus::Recuperee) {
+                    $order = $order->fresh();
+                    $order->recordPayment((int) $order->balance_due_fcfa, PaymentMethod::Cash);
+                    $order = $order->fresh();
+                }
 
                 foreach ($this->transitionPathTo($target) as $step) {
                     $order->update(['status' => $step]);

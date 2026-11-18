@@ -108,7 +108,7 @@ class ChangeOrderStatusAction
 
             // Fait hors connexion : l'historique garde l'heure réelle.
             if ($performedAt !== null) {
-                $locked->statusHistory()->where('status', $target->value)->latest('id')->first()?->forceFill(['created_at' => $performedAt])->save();
+                $locked->statusHistory()->where('status', $target->value)->reorder('id', 'desc')->first()?->forceFill(['created_at' => $performedAt])->save();
             }
 
             return $locked;

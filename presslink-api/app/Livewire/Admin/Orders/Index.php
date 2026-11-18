@@ -104,7 +104,9 @@ class Index extends Component
     public static function filteredQuery(array $filters, bool $withStatus = true): Builder
     {
         // Ni la démo ni les pressings de test : leurs commandes sont fictives.
-        $query = Order::query()->whereIn('pressing_id', Pressing::withoutDemo()->select('id'));
+        // Liste d'identifiants plutôt que sous-requête : MySQL lit alors les
+        // dernières commandes par l'index sur la date, sans tout trier.
+        $query = Order::query()->whereIn('pressing_id', Pressing::withoutDemo()->pluck('id')->all());
 
         if ($term = trim((string) ($filters['search'] ?? ''))) {
             $query->where(fn ($q) => $q->where('order_number', 'like', "%{$term}%")
@@ -183,7 +185,7 @@ class Index extends Component
                     'pressing:id,name,code,phone',
                     'customer',
                     'items',
-                    'statusHistory' => fn ($q) => $q->orderBy('created_at'),
+                    'statusHistory' => fn ($q) => $q->orderBy('created_at')->orderBy('id'),
                     'statusHistory.changedBy:id,name',
                     'issues' => fn ($q) => $q->latest(),
                     'creator:id,name',

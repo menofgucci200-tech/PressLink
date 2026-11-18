@@ -250,7 +250,7 @@ class ApplyOfflineOperations
         );
 
         $order->forceFill(['created_at' => $at])->saveQuietly();
-        $order->statusHistory()->oldest('id')->first()?->forceFill(['created_at' => $at])->save();
+        $order->statusHistory()->reorder('id')->first()?->forceFill(['created_at' => $at])->save();
         // Acompte d'une journée déjà clôturée : compté dans la caisse d'aujourd'hui.
         $paidAt = $this->paymentDate($pressing, $at);
         if ($paid > 0 && ! $paidAt->equalTo($at)) {

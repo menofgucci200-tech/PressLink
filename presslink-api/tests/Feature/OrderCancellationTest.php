@@ -80,8 +80,8 @@ class OrderCancellationTest extends TestCase
         $order->refresh();
         $this->assertSame(OrderStatus::Annulee, $order->status);
         $this->assertSame(CancellationReason::Duplicate, $order->cancellation_reason);
-        $this->assertSame('Commande en double : Saisie deux fois', $order->statusHistory()->latest('id')->first()->note);
-        $this->assertSame($employee->id, $order->statusHistory()->latest('id')->first()->changed_by);
+        $this->assertSame('Commande en double : Saisie deux fois', $order->statusHistory()->reorder('id', 'desc')->first()->note);
+        $this->assertSame($employee->id, $order->statusHistory()->reorder('id', 'desc')->first()->changed_by);
         $this->assertStringContainsString('Commande en double', ActivityLog::where('action', ActivityAction::OrderCancelled)->firstOrFail()->description);
     }
 

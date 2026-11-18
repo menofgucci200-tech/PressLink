@@ -120,7 +120,8 @@ class Order extends Model
     /** @return HasMany<OrderStatusHistory, $this> */
     public function statusHistory(): HasMany
     {
-        return $this->hasMany(OrderStatusHistory::class)->orderBy('created_at');
+        // Départage par id : plusieurs changements peuvent tomber dans la même seconde.
+        return $this->hasMany(OrderStatusHistory::class)->orderBy('created_at')->orderBy('id');
     }
 
     /** @return HasMany<OrderPhoto, $this> */
@@ -310,7 +311,7 @@ class Order extends Model
     /** Date à laquelle la commande a été prête (dernier passage « Prête »). */
     public function readyAt(): ?Carbon
     {
-        $readyAt = $this->statusHistory()->where('status', OrderStatus::Prete->value)->latest('created_at')->value('created_at');
+        $readyAt = $this->statusHistory()->where('status', OrderStatus::Prete->value)->reorder('created_at', 'desc')->orderByDesc('id')->value('created_at');
 
         return $readyAt !== null ? Carbon::parse($readyAt) : null;
     }

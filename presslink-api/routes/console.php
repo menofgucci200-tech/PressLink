@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\PlatformHealth;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -37,3 +38,6 @@ Schedule::command('presslink:expire-payments')->hourly();
 
 // Caches de configuration et de routes : reconstruits après un déploiement ou une modification du .env.
 Schedule::command('presslink:refresh-caches')->everyMinute()->withoutOverlapping();
+
+// Témoin de passage du cron, lu par la page « Santé » de la console.
+Schedule::call(fn () => touch(storage_path(PlatformHealth::HEARTBEAT_FILE)))->everyMinute()->name('heartbeat');

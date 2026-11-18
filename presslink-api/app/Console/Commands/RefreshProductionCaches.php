@@ -8,17 +8,19 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Caches de production (configuration, routes, événements) : chaque requête
- * n'a plus à relire une trentaine de fichiers de configuration, le .env et
- * toutes les routes. L'hébergement n'a pas d'accès shell : la tâche planifiée
- * (chaque minute) les reconstruit quand ils manquent (le déploiement les
- * efface) ou quand le .env a été modifié depuis (nouvelles clés…).
+ * Caches de production (configuration, routes, événements, vues) : chaque
+ * requête n'a plus à relire une trentaine de fichiers de configuration, le
+ * .env et toutes les routes, et aucun visiteur ne paie la compilation des
+ * vues Blade (sinon, après chaque déploiement, la première visite de chaque
+ * page la compile : plusieurs secondes). L'hébergement n'a pas d'accès shell :
+ * la tâche planifiée (chaque minute) les reconstruit quand ils manquent (le
+ * déploiement les efface) ou quand le .env a été modifié depuis.
  */
 class RefreshProductionCaches extends Command
 {
     protected $signature = 'presslink:refresh-caches {--force : Reconstruire même si les caches sont à jour}';
 
-    protected $description = 'Reconstruit les caches de configuration et de routes après un déploiement ou une modification du .env.';
+    protected $description = 'Reconstruit les caches de configuration, de routes et de vues après un déploiement ou une modification du .env.';
 
     public function handle(): int
     {
@@ -37,10 +39,10 @@ class RefreshProductionCaches extends Command
         }
 
         try {
-            foreach (['config:cache', 'route:cache', 'event:cache'] as $command) {
+            foreach (['config:cache', 'route:cache', 'event:cache', 'view:cache'] as $command) {
                 Artisan::call($command);
             }
-            Log::info('Caches de production reconstruits (configuration, routes, événements).');
+            Log::info('Caches de production reconstruits (configuration, routes, événements, vues).');
             $this->info('Caches reconstruits.');
         } catch (Throwable $e) {
             // Sans cache, l'application fonctionne : on efface ce qui a pu être écrit à moitié.

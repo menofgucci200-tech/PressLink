@@ -86,6 +86,18 @@ class OrderBusinessRulesTest extends TestCase
         );
     }
 
+    public function test_an_order_ready_twice_is_ready_since_the_last_time(): void
+    {
+        $pressing = Pressing::factory()->create();
+        $order = (new CreateOrderAction)->handle($pressing, $this->makeCustomerOf($pressing), [$this->makeItem()]);
+        $order->statusHistory()->create(['status' => OrderStatus::Prete, 'created_at' => '2026-11-01 10:00:00']);
+        $order->statusHistory()->create(['status' => OrderStatus::Traitement, 'created_at' => '2026-11-02 10:00:00']);
+        $order->statusHistory()->create(['status' => OrderStatus::Prete, 'created_at' => '2026-11-05 10:00:00']);
+
+        // Le droit de magasinage court depuis le dernier passage « Prête ».
+        $this->assertSame('2026-11-05 10:00:00', $order->readyAt()->toDateTimeString());
+    }
+
     public function test_only_a_ready_order_can_be_marked_as_recovered(): void
     {
         // RB-07

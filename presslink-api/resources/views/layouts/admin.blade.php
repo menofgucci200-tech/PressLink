@@ -42,6 +42,7 @@
                     $navItem('services', 'admin.services.index', 'Services'),
                     $navItem('site', 'admin.site.index', 'Site vitrine'),
                     $navItem('audience', 'admin.audience.index', 'Audience'),
+                    $navItem('health', 'admin.health.index', 'Santé de la plateforme'),
                 ],
             ];
             $navLink = fn (bool $isActive) => 'flex items-center gap-2 rounded-r-lg border-l-4 px-3 py-2 text-sm transition-colors '.($isActive

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AddServerTiming;
 use App\Http\Middleware\EnsureCustomerIsActive;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -15,6 +16,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
+        $middleware->prepend(AddServerTiming::class);
         $middleware->alias(['customer.active' => EnsureCustomerIsActive::class]);
         // Deux portails : la console super admin a sa propre page de connexion.
         $middleware->redirectGuestsTo(

@@ -170,7 +170,8 @@ class Index extends Component
                 default => $query->orderByDesc('pressing_customers.joined_at'),
             };
 
-            $clients = $query->orderByDesc('customers.id')->paginate(15);
+            // Départage sur la table du rattachement : avec l'index (pressing_id, joined_at, customer_id), la page se lit sans tout trier.
+            $clients = $query->orderByDesc('pressing_customers.customer_id')->paginate(15);
         }
 
         return view('livewire.clients.index', ['clients' => $clients]);
